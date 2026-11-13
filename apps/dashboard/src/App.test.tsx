@@ -29,10 +29,22 @@ describe("the dashboard shell", () => {
     expect(document.body.textContent).not.toContain("keep_analyses");
   });
 
-  it("switches to a future section and back", () => {
+  it("renders the start-up dependency graph", () => {
     render(<App />);
     fireEvent.click(screen.getByRole("button", { name: "Graph" }));
+
     expect(screen.getByRole("heading", { level: 1, name: "Graph" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Dependency graph" })).toBeTruthy();
+    expect(screen.getByText("10 components · 9 dependencies")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /web-server/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /app-db/ })).toBeTruthy();
+    expect(screen.queryByText("Not built yet")).toBeNull();
+  });
+
+  it("switches to a future section and back", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Candidates" }));
+    expect(screen.getByRole("heading", { level: 1, name: "Candidates" })).toBeTruthy();
     expect(screen.getByText("Not built yet")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Runs" }));

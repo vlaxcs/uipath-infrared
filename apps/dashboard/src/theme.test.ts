@@ -14,9 +14,18 @@ async function generates(candidate: string): Promise<boolean> {
 }
 
 describe("the Tailwind theme", () => {
-  it.each(["bg-surface", "text-fg-muted", "border-status-failed", "text-label", "rounded-card", "font-mono"])(
-    "generates the token utility %s",
-    async (candidate) => {
+  it.each([
+    "bg-surface",
+    "text-fg-muted",
+    "border-status-failed",
+    "text-label",
+    "rounded-card",
+    "font-mono",
+    "fill-graph-stack-1",
+    "stroke-graph-edge",
+    "border-status-idle",
+    "text-status-orphan",
+  ])("generates the token utility %s", async (candidate) => {
       expect(await generates(candidate)).toBe(true);
     },
   );
