@@ -9,7 +9,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 | 1. Who do we target? | done |
 | 2. What is their problem? | done; price goes in the form |
 | 3. How do we get into their day? | done |
-| 4. Business plan | skipped for now; one-off or cron, price from the form |
+| 4. Business plan | in progress: 5-run packs and a cloud-scheduled subscription; price from the form |
 | 5. Design the product | done at PRD level; provider list left for the SPEC |
 | 6. Branding | name done; Miruna proposes the rest |
 
@@ -51,11 +51,13 @@ Gap: nobody turns the financial roadmap into a re-planned architecture across hy
 
 ## 3. Getting into their day
 
-- **Channel:** a dashboard and Slack.
+- **Channel:** a dashboard, Slack, and a Chrome extension for the GitHub organisation.
+- **GitHub runners:** the product reads the organisation's runners and suggests optimisations, or moving them on-prem.
 
 ## 4. Business plan
 
-- **Sold as:** one-off runs, or a recurring run (cron job).
+- **Run packs:** 5 runs.
+- **Subscription:** runs scheduled in the cloud.
 
 ## 5. Product design
 

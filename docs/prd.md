@@ -39,11 +39,15 @@ Existing tools each cover one piece: hyperscaler assessments pull towards their 
 - **Input:** the project's financial roadmap and its current infrastructure.
 - **On-prem is an option, with its hidden costs:** when the company has no on-prem lab, the plan covers setting one up: what it costs, its configuration (cooling, disk replacement and the rest), and its risks.
 - **Sources:** we choose the data sources. Each run produces several analyses; the CTO picks which ones carry into the following plans.
-- **Channel:** a dashboard and Slack.
+- **Channel:** a dashboard, Slack, and a Chrome extension for the GitHub organisation.
+- **GitHub runners:** the product reads the organisation's runners and suggests optimisations, or moving them on-prem.
 
 ## How we make money
 
-Sold as one-off runs, or as a recurring run (cron job). The price comes from the validation form.
+- **Run packs:** 5 runs.
+- **Subscription:** runs scheduled in the cloud.
+
+The price comes from the validation form.
 
 ## MVP demo
 
