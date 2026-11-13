@@ -4,14 +4,17 @@ MVP for the UiPath hackathon "Agents in Action". Built from the decisions in `do
 
 ## What it is
 
-An agent that takes a company's cloud infrastructure and its project's financial roadmap, and re-plans the infrastructure across providers: hyperscalers, platforms such as Supabase, and on-prem. Each run produces:
+An end-to-end agentic workflow. It analyses the client's infrastructure against their internal projects, whose expectations are known, and makes decisions on three criteria:
+1. high availability;
+2. cost reduction;
+3. the zones wanted for each project (to confirm).
+
+The decisions can move infrastructure across providers: hyperscalers, platforms such as Supabase, and on-prem. Each run produces:
 - the analysis of the current infrastructure;
 - the new layout;
 - an updated cost analysis;
-- a migration plan;
-- how high availability goes up or down.
-
-Configurable by HA, zones and cost optimisation.
+- how high availability goes up or down;
+- at the end, a visualisation of the change, step by step, showing how it would be implemented.
 
 ## Who pays
 
