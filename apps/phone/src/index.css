@@ -1,10 +1,23 @@
 @import "tailwindcss";
 
+@custom-variant hosted (html.hosted &);
+
+@custom-variant bezel {
+  @media (width >= 40rem) {
+    @slot;
+  }
+  html.hosted & {
+    @slot;
+  }
+}
+
 :root {
   --color-background: #ffffff;
   --color-surface: #f6f7f9;
   --color-foreground: #111b21;
+  --color-muted: #667781;
   --color-frame: #1c1c1e;
+  --color-browser-canvas: #ffffff;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
@@ -13,6 +26,7 @@
     --color-background: #0f1218;
     --color-surface: #181d26;
     --color-foreground: #e9edef;
+    --color-muted: #8696a0;
     --color-frame: #000000;
   }
 }
@@ -21,7 +35,9 @@
   --color-background: var(--color-background);
   --color-surface: var(--color-surface);
   --color-foreground: var(--color-foreground);
+  --color-muted: var(--color-muted);
   --color-frame: var(--color-frame);
+  --color-browser-canvas: var(--color-browser-canvas);
   --font-sans: var(--font-sans);
 }
 
@@ -31,6 +47,9 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-size: 1rem;
+  }
+  html.hosted body {
+    background-color: transparent;
   }
 }
 
