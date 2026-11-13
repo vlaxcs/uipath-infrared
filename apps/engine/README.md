@@ -47,6 +47,7 @@ Domain modules:
 | `signals.py` | facts to signals: orphan, idle, oversized, undersized, static scaling, single-zone stateful, single-zone pool, residency, design problem |
 | `relocation.py` | the allowed region a component breaking residency moves to |
 | `strategies/cleanup_orphans.py`, `strategies/rightsize_in_place.py` | the first two cumulative layers, each built with `Candidate.extend` on the one before |
+| `strategies/managed_services.py` | step e: moves to another provider's catalog option, with the feature, provider, residency and stay-together checks |
 | `constraints.py` | every hard constraint on an end state; money and hours arrive in `CandidateFigures` |
 | `growth.py`, `projection.py` | run cost per month and scenario with growth and events, discounted over the horizon |
 | `migration.py`, `ops.py`, `egress.py`, `outage.py` | one-off migration cost and hours, ops cost, egress on new boundaries, expected outage loss |
@@ -94,6 +95,16 @@ Strategies plug in through `engine/application/strategies.py`: a builder `(previ
 - A stateless component on a production critical path in fewer zones than `min_zones` is spread to `min_zones`, keeping its unit count. It costs more only if the catalog's `multi_az_multiplier` says so.
 - A stateful component that breaks `data_residency` moves, on its current catalog option, to the allowed region that most of its stack already uses (then the estate, then the allowed or offered concrete regions). When its option serves no allowed region, it stays and the violation stands. The move is priced and its migration counted like any other.
 - Node groups of one cluster that report identical usage are cluster-level copies; their actions are capped at low confidence.
+
+## Managed services rules
+
+- `managed_services` builds on `rightsize_in_place` and looks at every running component whose kind has a catalog option at another provider. On-prem targets are left to `move_to_onprem`.
+- A target is rejected, with the reason recorded, when it lacks an extension in `features_used`, its provider is not allowed or is forbidden, it would hold data subject to `data_residency` outside the allowed regions, it would split a region-scoped stay-together group across regions, or the catalog cannot price it.
+- The target keeps the size rightsizing chose: the smallest tier at the target that covers the current tier's vCPU and memory. Among the targets left, the cheapest by `cost_placement` wins, and only if it costs less than staying.
+- A stay-together group with `provider` or `zone` scope moves as one unit: every live member moves to the same provider, choosing the provider that saves the most in total, or none of them moves.
+- A component that does not move but had targets gets one `flag` action (signal `move_rejected`) listing every rejected target and why. A move lists the targets it rejected in its reason.
+- When `features_used` is unknown (real extractions), the move is allowed and a `flag` action with signal `verify_extensions` asks for a check before moving.
+- On `demo-shop`: `rds-erp` moves to `managed-pg-serverless` and stays in `eu-west-1` with `erp-core`; `pg-lake` moves to `managed-pg-branching`; `rds-orders` and `rds-analytics` stay, because `rds-analytics` has no managed target with its extensions and `orders-replication` moves as one unit.
 
 ## Evaluation rules
 

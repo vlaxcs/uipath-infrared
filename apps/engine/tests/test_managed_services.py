@@ -97,6 +97,6 @@ def test_evaluate_prices_the_cross_provider_move():
     managed, rightsize = by_id["managed_services"], by_id["rightsize_in_place"]
     assert managed["cost"]["run_eur_month_now"] < rightsize["cost"]["run_eur_month_now"]
     assert managed["cost"]["migration_eur"] > rightsize["cost"]["migration_eur"]
-    moves = [a for a in managed["actions"] if a["action"] == "move"]
+    moves = [a for a in managed["actions"] if a["action"] == "move" and a.get("layer") == "managed_services"]
     assert {a["component"] for a in moves} == {"rds-erp", "pg-lake"}
     assert all(a["saving_eur_month"] > 0 for a in moves)
