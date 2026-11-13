@@ -90,4 +90,5 @@ CVs go in `docs/hackathon/cvs/`. Add here what each CV misses.
 | Idea 2 | Onboarding is internal and starts when the offer is accepted and the agreement signed; recruiting, offer and signing are out of scope | team decision |
 | Idea 3 | Channel: Slack approvals (Bolt, Socket Mode), the same approvals as buttons on the run's web page as a fallback; new hire gets Workspace emails before day one | Slack is where start-ups already work; the page keeps the demo alive if Slack or Wi-Fi drops |
 | Idea 3 | Rejected for the MVP: Slack Q&A bot, Slack-to-account linking by email, judges joining the workspace | out of the demo path, or too slow on stage |
+| Idea 3 | Identity and permissions: a Microsoft organisation (Entra ID, Microsoft SSO), through Microsoft Graph | the hackathon PRD is its own MVP; the Enterpreyes PRD's constraints don't bind it |
 | Idea 1 | Rejected as separate jobs: H1 (Slack requests) and H4 (ask HR anything) | H1 can come back as the channel, H4 is a single LLM call with RAG |

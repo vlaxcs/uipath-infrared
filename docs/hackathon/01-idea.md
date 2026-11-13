@@ -1,4 +1,4 @@
-# Idea phase (2 hours) -> one-page PRD
+﻿# Idea phase (2 hours) -> one-page PRD
 
 Output of this phase: a one-page PRD the mentors validated. Who pays, what problem, why now, how we make money. Nothing in here is decided until it lands in the decision log in `00-before.md`.
 
@@ -143,11 +143,11 @@ Plug into habits they already have instead of asking them to install something n
 
 **Helper for their judgement, not a replacement.** The agent prepares and chases. HR, the manager and the access owner decide. It never approves access or picks a cover on its own: it proposes, they tap.
 
-**Channel: Slack.** In a start-up, HR, managers, buddies and IT are already on Slack all day. The agent writes to each of them there, approvals included. No new tool to install. Before day one the new hire isn't on Slack yet, so they get emails from the company's Workspace.
+**Channel: Slack.** In a start-up, HR, managers, buddies and IT are already on Slack all day. The agent writes to each of them there, approvals included. No new tool to install. Before day one the new hire isn't on Slack yet, so they get emails from the company's Microsoft account.
 
 **Linked to what they already do:**
-- Google Calendar: who is away on the start date, and when the first day happens;
-- Google Workspace: the account and its groups;
+- Microsoft organisation (Entra ID, through Microsoft Graph): sign-in with Microsoft SSO, the account and its groups, i.e. the permissions;
+- Outlook Calendar (Graph): who is away on the start date, and when the first day happens;
 - GitHub and GCP: the access the first tasks need, and the access left behind at offboarding;
 - what HR uses today (a spreadsheet or an HR tool): the agent reads the start date and the position from there, it doesn't replace them.
 
