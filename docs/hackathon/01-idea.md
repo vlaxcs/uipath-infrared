@@ -47,7 +47,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 ## 3. Getting into their day
 
 - **A helper, not a replacement:** the agent prepares and chases; people decide with one tap.
-- **Channel:** Slack approvals (Bolt, Socket Mode). The same approvals as buttons on the run's web page, as a fallback and for following the run.
+- **Channel:** Slack approvals, simulated in the demo's phone frame. The same approvals as buttons on the run's web page, as a fallback and for following the run.
 - **New hire before day one:** emails from the company's Microsoft account.
 - **Linked to:** the Microsoft organisation (Entra ID SSO, groups as permissions, Outlook Calendar, through Microsoft Graph), GitHub and GCP for access, and whatever HR uses today for the start date and position.
 
