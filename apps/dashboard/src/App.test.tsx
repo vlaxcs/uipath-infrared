@@ -39,4 +39,20 @@ describe("the dashboard shell", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Runs" })).toBeTruthy();
     expect(screen.getByRole("list", { name: "Runs" })).toBeTruthy();
   });
+
+  it("shows the engine's candidates and the winner's change", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Candidates" }));
+
+    expect(screen.getByRole("heading", { level: 1, name: "Candidates" })).toBeTruthy();
+    const list = screen.getByRole("list", { name: "Candidates" });
+    expect(list.querySelectorAll("button")).toHaveLength(5);
+    expect(screen.queryByText("Not built yet")).toBeNull();
+
+    const detail = screen.getByRole("region", { name: "agent-serverless-db-eu" });
+    expect(detail.textContent).toContain("Winner");
+    expect(detail.textContent).toContain("Agent");
+    expect(detail.textContent).toContain("The change, step by step");
+    expect(detail.textContent).toContain("Security remediation");
+  });
 });

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { CandidatesSection } from "~/candidates/CandidatesSection";
+import { sampleResult } from "~/candidates/sampleResult";
 import { sectionById, type SectionId } from "~/navigation/sections";
 import { sampleRuns } from "~/runs/sampleRun";
 import { RunsSection } from "~/runs/RunsSection";
@@ -20,6 +22,8 @@ export function App() {
     >
       {section === "runs" ? (
         <RunsSection runs={sampleRuns} selectedRunId={selectedRunId} onSelectRun={setSelectedRunId} />
+      ) : section === "candidates" ? (
+        <CandidatesSection result={sampleResult} />
       ) : (
         <SectionPlaceholder section={activeSection} />
       )}
