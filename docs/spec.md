@@ -94,14 +94,16 @@ One run, per project:
 | 2. Investigate | agent | `infra.json`, read-only tools | findings with evidence | which components need deeper reads |
 | 3. Propose | agent | findings, `forecast.json` | candidate plans (actions per component) | |
 | 4. Evaluate | engine | candidates, `infra.json`, `forecast.json`, `catalog.json` | `result.json`: cost, availability, risk, effort, violations, rank | a candidate breaks a hard constraint: the agent revises it (back to 3) |
-| 5. Rehearse | sandbox | the winning candidate | traffic and failure results | availability or latency misses the forecast: back to 3 with the measured gap |
-| 6. Present | orchestrator, dashboard, Slack | `result.json`, rehearsal results | the analyses, the new layout, the step-by-step change | the CTO picks which analyses carry into the next plans |
+| 5. Present | orchestrator, dashboard, Slack | `result.json` | the analyses, the proposed layouts with their costs and availability, the step-by-step change | the CTO picks which analyses carry into the next plans, and the layout to rehearse |
+| 6. Rehearse | sandbox | the layout the CTO picked | traffic and failure results | misses the forecast: back to 3 with the measured gap; holds: the CTO approves the plan |
 | 7. Migrate (phase 2) | orchestrator | approved plan | one pull request per step in the client's repo | a person approves; the client's CI applies |
 | 8. Verify (phase 2) | extractor, engine | the infrastructure after merge | measured vs forecast | diverges: re-plan the remaining steps |
 
-The loop between 3, 4 and 5 is what makes Infrared an agent and not a fixed pipeline: what the engine and the sandbox return decides whether the agent keeps, revises or drops a candidate. Every loop is bounded (a maximum number of revisions per run), and every decision is logged with its reason so a run can be replayed.
+The loops are what make Infrared an agent and not a fixed pipeline: what the engine returns in step 4 and what the sandbox measures in step 6 decide whether the agent keeps, revises or drops a candidate. Every loop is bounded (a maximum number of revisions per run), and every decision is logged with its reason so a run can be replayed.
 
-**Human in the loop.** Runs pause at three points: after step 6 (which analyses carry forward), before step 7 (approve the plan), and on every pull request (approve the step). Approvals come from the dashboard or Slack.
+The sandbox runs after the CTO picks a layout, not before: it rehearses only what the CTO wants, and the rehearsal is a visible step in the run.
+
+**Human in the loop.** Runs pause at three points: after step 5 (which analyses carry forward, which layout to rehearse), after step 6 (approve the plan), and on every pull request (approve the step). Approvals come from the dashboard or Slack.
 
 **Decision criteria per project.** Each project has its own `forecast.json`, with its own criteria: high availability (`ha_level`, `min_availability_pct`), cost (`weights`, budget), and zones (`min_zones`, residency).
 
@@ -152,10 +154,11 @@ The agent runs on the Claude Agent SDK, which expects an Anthropic API key. The 
 1. A start-up-sized project in Floci with a poor infrastructure, and its `forecast.json`.
 2. A run starts from the dashboard; the steps appear live.
 3. The engine rejects one candidate for a hard constraint (a zone the project does not allow); the agent revises it.
-4. The sandbox rehearses the winner, a failure is injected, the fallback holds.
-5. The dashboard shows the dependency graph, the candidates with why each lost, and the change step by step.
-6. The CTO picks the analyses to keep and approves the plan from Slack, on the phone frame next to the dashboard.
-7. Phase 2, if built: the first step opens a pull request; after merge, Infrared verifies against the forecast.
+4. The dashboard shows the dependency graph, the candidates with why each lost, and the change step by step.
+5. The CTO picks the analyses to keep and the layout to rehearse.
+6. The sandbox rehearses that layout: traffic runs, a failure is injected, the fallback holds.
+7. The CTO approves the plan from Slack, on the phone frame next to the dashboard.
+8. Phase 2, if built: the first step opens a pull request; after merge, Infrared verifies against the forecast.
 
 A recorded run of the same path is kept as a fallback.
 

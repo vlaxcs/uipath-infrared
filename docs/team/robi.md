@@ -19,7 +19,7 @@ Read first: `docs/spec.md` sections 2, 4, 5 and 9.
 | 3 | Run view: the steps of a run, live, each decision and its reason | 5 | M | the sample run renders, then a real one |
 | 4 | Dependency graph, from the prototype that came with #3 | 2 | M | the start-up mock's graph renders with its edges |
 | 5 | Candidates: cost, availability, risk, effort, why each lost; the winner's change step by step | 5 | L | renders a real `result.json` |
-| 6 | Approvals: keep analyses, approve the plan | 5 | S | calls the orchestrator and the run continues |
+| 6 | Approvals: keep analyses, pick the layout to rehearse, approve the plan | 5 | S | calls the orchestrator and the run continues |
 | 7 | Rehearsal view: traffic, the failure injected, the fallback | 5 | M | renders a `rehearsal.json` |
 | 8 | Chrome extension: the latest run and runner suggestions inside the GitHub organisation | 2 | M | shows the latest run on a GitHub page |
 
