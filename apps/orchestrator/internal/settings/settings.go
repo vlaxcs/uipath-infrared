@@ -15,10 +15,11 @@ import (
 const defaultMaxRevisions = 2
 
 type Settings struct {
-	Addr         string
-	RunsDir      string
-	ContractsDir string
-	Workflow     workflow.Config
+	Addr           string
+	RunsDir        string
+	ContractsDir   string
+	AllowedOrigins []string
+	Workflow       workflow.Config
 }
 
 func Load() (Settings, error) {
@@ -55,7 +56,18 @@ func Load() (Settings, error) {
 		return Settings{}, err
 	}
 	settings.Workflow.MaxRevisions = maxRevisions
+	settings.AllowedOrigins = optionalList("ORCHESTRATOR_ALLOWED_ORIGINS")
 	return settings, nil
+}
+
+func optionalList(name string) []string {
+	var items []string
+	for _, item := range strings.Split(os.Getenv(name), ",") {
+		if item = strings.TrimSpace(item); item != "" {
+			items = append(items, item)
+		}
+	}
+	return items
 }
 
 func optionalCount(name string, fallback int) (int, error) {

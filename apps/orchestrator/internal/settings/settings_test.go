@@ -49,3 +49,17 @@ func TestABadRevisionCapStopsStartup(t *testing.T) {
 		t.Fatalf("a negative cap: %v", err)
 	}
 }
+
+func TestAllowedOriginsAreOptionalAndCommaSeparated(t *testing.T) {
+	setAll(t)
+	t.Setenv("ORCHESTRATOR_ALLOWED_ORIGINS", "")
+	loaded, err := settings.Load()
+	if err != nil || len(loaded.AllowedOrigins) != 0 {
+		t.Fatalf("unset: %v %q", err, loaded.AllowedOrigins)
+	}
+	t.Setenv("ORCHESTRATOR_ALLOWED_ORIGINS", " http://127.0.0.1:5173 , http://localhost:5173,")
+	loaded, err = settings.Load()
+	if err != nil || strings.Join(loaded.AllowedOrigins, "|") != "http://127.0.0.1:5173|http://localhost:5173" {
+		t.Fatalf("set: %v %q", err, loaded.AllowedOrigins)
+	}
+}

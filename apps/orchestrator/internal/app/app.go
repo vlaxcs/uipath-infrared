@@ -31,5 +31,5 @@ func Build(config settings.Settings) (App, error) {
 	if err := flow.Load(); err != nil {
 		return App{}, err
 	}
-	return App{Handler: httpapi.Handler(flow), Workflow: flow}, nil
+	return App{Handler: httpapi.Handler(flow, config.AllowedOrigins...), Workflow: flow}, nil
 }
