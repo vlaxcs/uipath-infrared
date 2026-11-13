@@ -1,0 +1,194 @@
+{
+  "schema_version": "1.0",
+  "candidate_id": "rightsize_in_place",
+  "forecast_id": "demo-shop-2027-plan",
+  "traffic_profile": {
+    "pattern": "constant",
+    "duration_s": 90,
+    "target_endpoint": "http://sandbox-shop-alb.us-east-1.localhost.localstack.cloud:4566",
+    "requests_per_second": 10,
+    "total_requests": 900
+  },
+  "failure": {
+    "type": "instance_stop",
+    "target_component": "vm-shop-web-1",
+    "injected_at_s": 30,
+    "duration_s": 20,
+    "detail": "Stopped instance i-sandbox-abc123 in us-east-1a to test zone-level failover"
+  },
+  "phases": {
+    "baseline": {
+      "duration_s": 30,
+      "availability_pct": {
+        "value": 100.0,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "HTTP probe with 1s interval"
+      },
+      "latency_p50_ms": {
+        "value": 42,
+        "unit": "ms",
+        "provenance": "synthetic",
+        "basis": "HTTP probe response times"
+      },
+      "latency_p95_ms": {
+        "value": 68,
+        "unit": "ms",
+        "provenance": "synthetic"
+      },
+      "latency_p99_ms": {
+        "value": 95,
+        "unit": "ms",
+        "provenance": "synthetic"
+      },
+      "requests_total": 300,
+      "requests_successful": 300,
+      "requests_failed": 0,
+      "error_rate_pct": {
+        "value": 0.0,
+        "unit": "percent",
+        "provenance": "synthetic"
+      }
+    },
+    "failure": {
+      "duration_s": 20,
+      "availability_pct": {
+        "value": 99.5,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "HTTP probe with 1s interval, 1 request failed during failover"
+      },
+      "latency_p50_ms": {
+        "value": 58,
+        "unit": "ms",
+        "provenance": "synthetic"
+      },
+      "latency_p95_ms": {
+        "value": 180,
+        "unit": "ms",
+        "provenance": "synthetic"
+      },
+      "latency_p99_ms": {
+        "value": 450,
+        "unit": "ms",
+        "provenance": "synthetic"
+      },
+      "requests_total": 200,
+      "requests_successful": 199,
+      "requests_failed": 1,
+      "error_rate_pct": {
+        "value": 0.5,
+        "unit": "percent",
+        "provenance": "synthetic"
+      }
+    },
+    "recovery": {
+      "duration_s": 40,
+      "availability_pct": {
+        "value": 100.0,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "HTTP probe with 1s interval"
+      },
+      "latency_p50_ms": {
+        "value": 44,
+        "unit": "ms",
+        "provenance": "synthetic"
+      },
+      "latency_p95_ms": {
+        "value": 71,
+        "unit": "ms",
+        "provenance": "synthetic"
+      },
+      "latency_p99_ms": {
+        "value": 98,
+        "unit": "ms",
+        "provenance": "synthetic"
+      },
+      "requests_total": 400,
+      "requests_successful": 400,
+      "requests_failed": 0,
+      "error_rate_pct": {
+        "value": 0.0,
+        "unit": "percent",
+        "provenance": "synthetic"
+      }
+    }
+  },
+  "component_results": [
+    {
+      "component_id": "alb-shop",
+      "kind": "load_balancer",
+      "status": "healthy",
+      "availability_pct": {
+        "value": 100.0,
+        "provenance": "synthetic"
+      },
+      "note": "Stayed healthy throughout, routed around failed instance"
+    },
+    {
+      "component_id": "vm-shop-web-1",
+      "kind": "virtual_machine",
+      "status": "failed",
+      "availability_pct": {
+        "value": 0.0,
+        "provenance": "synthetic"
+      },
+      "note": "Intentionally stopped for 20s"
+    },
+    {
+      "component_id": "vm-shop-web-2",
+      "kind": "virtual_machine",
+      "status": "healthy",
+      "availability_pct": {
+        "value": 100.0,
+        "provenance": "synthetic"
+      },
+      "cpu_pct": {
+        "value": 28,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "CloudWatch CPUUtilization"
+      },
+      "memory_pct": {
+        "value": 42,
+        "unit": "percent",
+        "provenance": "synthetic"
+      },
+      "note": "Handled increased load during failover"
+    },
+    {
+      "component_id": "rds-orders",
+      "kind": "postgres",
+      "status": "healthy",
+      "availability_pct": {
+        "value": 100.0,
+        "provenance": "synthetic"
+      },
+      "cpu_pct": {
+        "value": 15,
+        "unit": "percent",
+        "provenance": "synthetic"
+      }
+    }
+  ],
+  "verdict": {
+    "passed": true,
+    "forecast_min_availability_pct": 99.9,
+    "measured_availability_pct": 99.94,
+    "gap_pct": 0.04,
+    "reason": "Overall availability 99.94% exceeds threshold 99.9%, failover completed within 2s with 1 failed request"
+  },
+  "timestamps": {
+    "started_at": "2026-11-13T10:30:00Z",
+    "completed_at": "2026-11-13T10:31:30Z",
+    "elapsed_s": 90
+  },
+  "infrastructure": {
+    "vpc_id": "vpc-sandbox-001",
+    "name_prefix": "sandbox-",
+    "endpoint": "http://localhost:4566",
+    "components_created": ["alb-shop", "vm-shop-web-1", "vm-shop-web-2", "rds-orders"],
+    "teardown_status": "success"
+  }
+}

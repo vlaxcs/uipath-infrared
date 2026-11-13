@@ -272,6 +272,22 @@ def main():
         if len(errors) == schema_errors_before:
             errors.extend(f"[integrity] run: {e}" for e in run_integrity_errors(run))
             print(f"  {len(run['events'])} events, {run['revision']} revision(s), status {run['status']}")
+        print("rehearsal")
+        r = load(HERE / "rehearsal.example.json")
+        schema_check("rehearsal.example.json", r, "rehearsal.schema.json")
+
+        print("\n=== startup ===")
+        print("infra")
+        infra_startup = load(HERE / "mock/startup.infra.json")
+        schema_check("startup.infra.json", infra_startup, "infra.schema.json")
+        if not errors:
+            infra_integrity(infra_startup)
+        print("forecast")
+        f_startup = load(HERE / "mock/startup.forecast.json")
+        schema_check("startup.forecast.json", f_startup, "forecast.schema.json")
+        forecast_integrity(f_startup)
+        print("catalog check")
+        catalog_integrity(c, infra_startup)
     finish()
 
 

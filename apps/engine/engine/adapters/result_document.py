@@ -7,6 +7,7 @@ from engine.domain.catalog import Catalog
 from engine.domain.evaluation import Evaluation, baseline_evidence
 from engine.domain.forecast import Forecast
 from engine.domain.model import Infra
+from engine.domain.onprem import OnpremPlatformCost
 from engine.domain.provenance import confidence_of
 from engine.domain.ranking import Decision, Standing
 from engine.domain.remediation import EFFORT_HOURS_BY_GATE
@@ -84,10 +85,12 @@ def _candidate(evaluation: Evaluation, standing: Standing) -> dict[str, Any]:
             "one_off_eur": evaluation.remediation_eur,
             "run_delta_eur_month": 0.0,
         }
+    if evaluation.onprem is not None and evaluation.onprem.capacity_share > 0:
+        cost["onprem_platform"] = _onprem_platform(evaluation.onprem)
     lost = standing.lost_because
     return {
         "id": evaluation.id,
-        "source": "engine",
+        "source": evaluation.candidate.source,
         "builds_on": evaluation.candidate.builds_on,
         "feasible": evaluation.feasible,
         "violations": _violations(evaluation.check.violations),
@@ -148,3 +151,18 @@ def _violations(violations: Sequence[Violation]) -> list[dict[str, Any]]:
 
 def _scenarios(values: Any) -> dict[str, float]:
     return {scenario: values[scenario] for scenario in SCENARIOS}
+
+
+def _onprem_platform(onprem: OnpremPlatformCost) -> dict[str, Any]:
+    share = onprem.capacity_share
+    return {
+        "platform": onprem.platform,
+        "platforms_needed": onprem.platforms_needed,
+        "capacity_share": share,
+        "capex_eur": onprem.capex_eur,
+        "capex_amortised_eur_month": onprem.capex_amortised_eur_month * share,
+        "power_cooling_eur_month": onprem.power_cooling_eur_month * share,
+        "colocation_eur_month": onprem.colocation_eur_month * share,
+        "disk_replacement_eur_month": onprem.disk_replacement_eur_month * share,
+        "staff_eur_month": onprem.staff_eur_month * share,
+    }
