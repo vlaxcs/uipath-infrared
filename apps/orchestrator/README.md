@@ -17,6 +17,8 @@ Relative paths in `.env` resolve from where the orchestrator starts, so start it
 curl -s -XPOST localhost:8080/runs -d '{"project": "startup"}'
 curl -s localhost:8080/runs/run-startup-0001/events?after=0
 curl -s -XPOST localhost:8080/runs/run-startup-0001/decisions -d '{"step": "present", "status": "approved", "actor": {"kind": "human", "id": "cto", "surface": "dashboard"}, "decision": {"kind": "pick_layout", "reason": "stays in the EU", "layout": "agent-serverless-db-eu"}}'
+curl -s localhost:8080/runs/run-startup-0001/files
+curl -s localhost:8080/runs/run-startup-0001/files/infra.json
 ```
 
 ## API
@@ -28,8 +30,10 @@ curl -s -XPOST localhost:8080/runs/run-startup-0001/decisions -d '{"step": "pres
 | `GET /runs/{id}` | the run document |
 | `GET /runs/{id}/events?after=` | the events after `seq`, `[]` when none |
 | `POST /runs/{id}/decisions` | `201` the appended event; `400` bad body; `409` gate not open; `422` layout not a feasible candidate |
+| `GET /runs/{id}/files` | `200` the run's artifact files: `path` and `size` for `infra.json`, `findings.json`, `candidates.<n>.json`, `feedback.<n>.json`, `result.<n>.json`, `rehearsal.<n>.json` |
+| `GET /runs/{id}/files/{path}` | `200` the file, raw JSON; `404` when it is not an allowlisted artifact or is missing; `413` over 16 MiB |
 
-Errors are `{"error": "<reason>"}`.
+Errors are `{"error": "<reason>"}`. The file routes read the run directory on disk; they serve only the allowlisted artifacts above, never `run.json`, the copied inputs or the logs. A path is a single file name: traversal, directories and symlinks are refused.
 
 ## Test
 
