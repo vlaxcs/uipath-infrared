@@ -186,7 +186,7 @@ Not in the run contract: the payload of the run list, defined by the orchestrato
 
 **Done in the repo setup:** #3 and #2 merged into the structure of section 3; configuration read from `.env` (section 4); pinned `requirements.txt` per app; repo-relative paths in the READMEs; the name Infrared; the bash note; the scorer moved next to the ground truth (`apps/estate/score.py`).
 
-**Still to do, by each owner:** remove the comments and docstrings (section 4), and split single-file modules into the layers section 4 asks for, starting with `apps/extractor/extract_floci.py` (811 lines, Andrei) and `apps/agent/agent/main.py` (Vlad).
+**Still to do, by each owner:** remove the comments and docstrings (section 4), and split single-file modules into the layers section 4 asks for, starting with `apps/extractor/extract_floci.py` (811 lines, Andrei). `apps/agent/` is split and clean (`docs/orchestrator.md` section 8).
 
 ## 8. LLM
 
