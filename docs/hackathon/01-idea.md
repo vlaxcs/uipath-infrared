@@ -63,7 +63,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
   - focus: contract amendments and performance reviews, the least automated today;
   - useful: moving between projects and departments;
   - nice to have: leave requests;
-  - left out: worked hours.
+  - left out: worked hours, access requests.
 - **Mocked for the MVP:** most data, such as the employees' schedule. The mocked data still drives the agent's decisions, e.g. the schedule tells it whether the manager is in the office.
 
 ## Open questions
