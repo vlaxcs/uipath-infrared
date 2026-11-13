@@ -28,3 +28,24 @@ def aws() -> AwsSettings:
         access_key_id=required("AWS_ACCESS_KEY_ID"),
         secret_access_key=required("AWS_SECRET_ACCESS_KEY"),
     )
+
+
+def optional(name: str) -> str:
+    return os.environ.get(name, "").strip()
+
+
+@dataclass(frozen=True)
+class ExtensionSettings:
+    github_token: str
+    github_repository: str
+    ai_consumption_file: str
+    rds_stats_password: str
+
+
+def extensions() -> ExtensionSettings:
+    return ExtensionSettings(
+        github_token=optional("GITHUB_TOKEN"),
+        github_repository=optional("GITHUB_REPOSITORY"),
+        ai_consumption_file=optional("AI_CONSUMPTION_FILE"),
+        rds_stats_password=optional("RDS_STATS_PASSWORD"),
+    )
