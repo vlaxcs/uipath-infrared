@@ -8,7 +8,7 @@ Read first: `docs/spec.md` sections 1, 4, 5 and 6; your `docs/decision-engine.md
 
 ## You own
 
-`apps/engine/`, `contracts/result.schema.json`, `contracts/catalog.schema.json` and the catalog examples.
+`apps/engine/` and the catalog's content. You draft `contracts/result.schema.json`; Vlad owns `contracts/` and the flow, and reviews every change to a schema or to the engine's CLI.
 
 ## Order
 
@@ -19,7 +19,7 @@ Read first: `docs/spec.md` sections 1, 4, 5 and 6; your `docs/decision-engine.md
 | 3 | Step b: `do_nothing` and the constraint checks | #2 s7 | S | infeasible on residency and single-AZ RDS |
 | 4 | Steps c and d: `cleanup_orphans`, `rightsize_in_place` | #2 s7 | M | about EUR 9.2k from orphans; `rds-analytics` grows; `ddb-orders` flagged, no capacity added |
 | 5 | Step g: score, Pareto, payback, robustness, the nothing-feasible fallback | #2 s7 | M | a deterministic winner; every loser has a reason |
-| 6 | The CLI: `engine evaluate <infra> <forecast> <catalog> [--candidates file]` | 5 | S | the orchestrator and the agent call it |
+| 6 | The CLI: `engine evaluate <infra> <forecast> <catalog> [--candidates file]` | 5 | S | it replaces the engine stub in Vlad's flow test and the test stays green |
 | 7 | Determinism test | 10 | S | the same inputs give the same `result.json`, byte for byte |
 | 8 | Step e: `managed_services` with the feature check; Supabase or Neon in the catalog | #2 s7 | M | a cross-provider move is priced; feature mismatches rejected with the reason |
 | 9 | Step f: `move_to_onprem` with the full platform cost | #2 s7 | M | capex, cooling, disks and staff in the result |

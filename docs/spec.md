@@ -84,6 +84,12 @@ docs/                prd.md, spec.md, team/<name>.md (one task file per person)
 - Every change lands through a pull request into `main`. Nobody pushes to `main` directly.
 - A pull request's description states what it changes, what depends on it, and the manual checks a reviewer runs.
 
+**Ownership of the flow**
+- Vlad owns the flow end to end: the agent, the orchestrator, every schema in `contracts/`, and the end-to-end flow test.
+- Others build components that plug into the flow. A component is done when it passes the flow test, not when it works on its own.
+- Every pull request that touches `contracts/`, the orchestrator, the agent, or the entry point a component exposes to the flow (the engine's CLI, the sandbox's CLI, how the surfaces call the orchestrator API) needs Vlad's review.
+- A bug in the flow gets a failing flow test before its fix, whoever's component it is in.
+
 ## 5. The agentic workflow
 
 One run, per project:
@@ -169,6 +175,7 @@ A recorded run of the same path is kept as a fallback.
 - Agent: `score.py` against `ground_truth/`, recall reported per run.
 - Determinism: the same inputs give the same `result.json`, byte for byte.
 - Workflow: a run on the mock reaches step 6 with every step logged; an injected constraint failure triggers exactly one revision.
+- The flow test: one run of the demo path end to end, in CI. It starts with every component replaced by a stub that returns its sample file; each stub is swapped for the real component as it lands, and the test must stay green.
 
 ## 11. Open decisions
 
