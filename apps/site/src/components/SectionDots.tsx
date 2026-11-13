@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { HORIZONTAL_QUERY } from "../lib/motion";
 
-const PANEL_IDS = ["acasa", "ce-gaseste", "cum-merge", "intrebari", "final"];
+const PANEL_IDS = ["acasa", "run", "ce-gaseste", "cum-merge", "preturi", "intrebari", "final"];
 
 // Only on the sideways page: where you are, a way to jump, and a thin progress line.
 export function SectionDots({ label, names }: { label: string; names: string[] }) {

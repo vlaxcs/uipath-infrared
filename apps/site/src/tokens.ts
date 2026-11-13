@@ -15,8 +15,6 @@ export const colorPairs: ColorPair[] = [
   { text: "accent", background: "canvas-tint" },
   { text: "on-accent", background: "accent" },
   { text: "on-accent", background: "accent-lip" },
-  { text: "on-bubble", background: "bubble-in" },
-  { text: "on-bubble", background: "bubble-out" },
   { text: "fg", background: "screen" },
   { text: "fg-muted", background: "screen" },
   { text: "status-fixed", background: "screen" },

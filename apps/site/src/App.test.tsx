@@ -9,11 +9,38 @@ import { parseColorTokens } from "./tokens.ts";
 const accent = parseColorTokens(tokensCss).find((token) => token.name === "accent")!.value;
 
 describe("product page", () => {
-  it("opens in Romanian and says it comes from Digi", () => {
+  it("opens in Romanian as Infrared", () => {
     render(<App />);
     expect(document.documentElement.lang).toBe("ro");
+    expect(document.title).toBe("Infrared");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(content.ro.hero.title);
-    expect(screen.getAllByText("de la Digi").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(content.ro.tagline).length).toBeGreaterThan(0);
+  });
+
+  it("shows a run through every pipeline stage", () => {
+    render(<App />);
+    const run = screen.getByRole("figure", { name: content.ro.run.label });
+    const stages = within(run).getAllByRole("listitem").map((item) => item.textContent);
+    expect(stages).toEqual(content.ro.run.steps.map((step) => `✓${step.stage}${step.result}`));
+  });
+
+  it("groups every finding under its criterion", () => {
+    render(<App />);
+    for (const criterion of ["cost", "availability", "database"] as const) {
+      const group = screen.getByRole("group", { name: content.ro.finds.criteria[criterion] });
+      const names = within(group).getAllByRole("heading", { level: 4 }).map((heading) => heading.textContent);
+      expect(names).toEqual(content.ro.finds.items.filter((item) => item.criterion === criterion).map((item) => item.name));
+    }
+  });
+
+  it("lists both plans with their prices", () => {
+    render(<App />);
+    const section = screen.getByRole("region", { name: content.ro.pricing.title });
+    for (const plan of content.ro.pricing.plans) {
+      const card = within(section).getByRole("heading", { name: plan.name }).closest("li")!;
+      expect(card).toHaveTextContent(plan.price);
+      expect(card).toHaveTextContent(plan.unit);
+    }
   });
 
   it("switches every section to English", async () => {

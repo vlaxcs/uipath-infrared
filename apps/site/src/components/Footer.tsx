@@ -1,17 +1,20 @@
 import type { Content } from "../content";
-import { AnimatedMascot } from "./AnimatedMascot";
+import { buttonClass } from "../lib/styles";
+import { Logo } from "./Logo";
 
 export function Footer({ text, tokensHref }: { text: Content; tokensHref: string }) {
   return (
     <footer id="final" className="relative flex min-h-svh snap-start flex-col items-center justify-center gap-6 bg-canvas px-4 py-24 text-center sm:gap-8 sm:px-8 horizontal:h-full horizontal:min-h-0 horizontal:w-screen horizontal:flex-none">
-      <AnimatedMascot className="size-36" />
+      <Logo className="size-24" />
       <div className="flex flex-col items-center gap-2">
-        <p className="type-h3 text-fg">Netpotu</p>
-        <p className="type-tag text-fg-muted">{text.byDigi}</p>
+        <p className="type-h3 text-fg">Infrared</p>
+        <p className="type-tag text-fg-muted">{text.tagline}</p>
       </div>
       <h2 className="type-h1 max-w-[18ch] text-fg">{text.footer.title}</h2>
-      <p className="type-lead max-w-[44ch] text-fg-muted">{text.footer.lead}</p>
-      <p className="type-label inline-flex items-center gap-3 rounded-full border-2 border-accent px-5 py-3 text-fg">
+      <a href="#preturi" className={buttonClass("accent")}>
+        {text.pricing.eyebrow}
+      </a>
+      <p className="type-label inline-flex items-center gap-3 rounded-full border-2 border-line px-5 py-3 text-fg">
         <span aria-hidden="true" className="text-accent">
           ✓
         </span>

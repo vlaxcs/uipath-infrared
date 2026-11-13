@@ -5,49 +5,32 @@
   --font-*: initial;
   --text-*: initial;
 
-  --color-canvas: #ffffff;
-  --color-canvas-tint: #f4f6f5;
-  --color-surface: #ffffff;
-  --color-line: #e2e5e3;
-  --color-fg: #1a1c1b;
-  --color-fg-muted: #4a4f4c;
+  --color-canvas: #000000;
+  --color-canvas-tint: #0e0e0e;
+  --color-surface: #141414;
+  --color-line: #2a2a2a;
+  --color-fg: #ffffff;
+  --color-fg-muted: #a6a6a6;
 
-  --color-accent: #087a53;
-  --color-accent-lip: #06603f;
-  --color-on-accent: #ffffff;
+  --color-accent: #ef3b24;
+  --color-accent-lip: #ff5a43;
+  --color-on-accent: #000000;
 
-  --color-night: #1a1c1b;
-  --color-night-line: #3a3d3b;
+  --color-night: #0a0a0a;
+  --color-night-line: #2a2a2a;
 
-  --color-screen: #efeae2;
-  --color-bubble-in: #ffffff;
-  --color-bubble-out: #d9fdd3;
-  --color-on-bubble: #1a1c1b;
+  --color-screen: #0a0a0a;
 
-  --color-status-fixed: #23692a;
-  --color-status-warn: #8a5300;
-  --color-status-danger: #c62828;
+  --color-status-fixed: #5cc96b;
+  --color-status-warn: #f0a030;
+  --color-status-danger: #ff6b6b;
 
-  --color-bar-high: #d93025;
-  --color-bar-medium: #f5b700;
-  --color-bar-low: #2e9e4f;
+  --color-focus: #7cacf8;
+  --color-shadow: rgb(0 0 0 / 0.6);
 
-  --color-badge-high: #d93025;
-  --color-badge-high-shade: #b8261c;
-  --color-badge-high-lip: #8f1d15;
-  --color-badge-medium: #f5b700;
-  --color-badge-medium-shade: #d49e00;
-  --color-badge-medium-lip: #b58600;
-  --color-badge-low: #25d366;
-  --color-badge-low-shade: #1da851;
-  --color-badge-low-lip: #14913f;
-
-  --color-focus: #0b57d0;
-  --color-shadow: rgb(26 28 27 / 0.22);
-
-  --font-display: "Outfit Variable", system-ui, sans-serif;
+  --font-display: "Inter Variable", system-ui, sans-serif;
   --font-sans: "Inter Variable", system-ui, sans-serif;
-  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  --font-mono: Consolas, ui-monospace, monospace;
 
   --text-h1: clamp(2.375rem, 4.4vw, 3.5rem);
   --text-h2: clamp(2rem, 3.4vw, 2.75rem);
@@ -150,7 +133,7 @@
 }
 
 @utility type-eyebrow {
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-size: var(--text-tag);
   line-height: 1.4;
   font-weight: 700;

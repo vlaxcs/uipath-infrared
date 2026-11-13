@@ -15,11 +15,11 @@ export type Pitch2Copy = {
 
 export const pitch2Copy: Record<Language, Pitch2Copy> = {
   en: {
-    title: "Netpotu | Pitch",
+    title: "Infrared | Pitch",
     skipLink: "Skip to content",
     languageLabel: "Language",
     byDigi: "Service for internet providers",
-    closing: "Netpotu comes bundled with the router.",
+    closing: "Infrared comes bundled with the router.",
     sections: [
       {
         id: "problema",
@@ -33,7 +33,7 @@ export const pitch2Copy: Record<Language, Pitch2Copy> = {
       { id: "solutia", label: "How we solved it", title: "ACTIONABLE reports, built from the home network.", tagline: "TAP and SOLVE.",
         shots: [
           { src: "/pitch-operator-ro.webp", width: 1600, height: 990, who: "You, the provider", alt: "The operator's page for one customer report: score 85, 3 of 5 steps fixed, the technical explanation and what to tell the customer on the phone." },
-          { src: "/pitch-whatsapp-ro.webp", width: 672, height: 1310, who: "Your customer", alt: "The customer's WhatsApp chat with Netpotu: the customer taps I'm done, the step is checked and marked fixed, the next step arrives with three buttons." },
+          { src: "/pitch-whatsapp-ro.webp", width: 672, height: 1310, who: "Your customer", alt: "The customer's WhatsApp chat with Infrared: the customer taps I'm done, the step is checked and marked fixed, the next step arrives with three buttons." },
         ],
         points: [] },
       {
@@ -48,11 +48,11 @@ export const pitch2Copy: Record<Language, Pitch2Copy> = {
     ],
   },
   ro: {
-    title: "Netpotu | Pitch",
+    title: "Infrared | Pitch",
     skipLink: "Sari la conținut",
     languageLabel: "Limba",
     byDigi: "Serviciu pentru furnizorii de internet",
-    closing: "Netpotu vine la pachet cu routerul.",
+    closing: "Infrared vine la pachet cu routerul.",
     sections: [
       {
         id: "problema",
@@ -66,7 +66,7 @@ export const pitch2Copy: Record<Language, Pitch2Copy> = {
       { id: "solutia", label: "Cum am rezolvat-o", title: "Rapoarte ACȚIONABILE, pe baza rețelei de acasă.", tagline: "APEȘI și REZOLVI.",
         shots: [
           { src: "/pitch-operator-ro.webp", width: 1600, height: 990, who: "Tu, ca furnizor", alt: "Pagina operatorului pentru raportul unui client: scor 85, 3 din 5 pași rezolvați, explicația tehnică și ce îi spune clientului la telefon." },
-          { src: "/pitch-whatsapp-ro.webp", width: 672, height: 1310, who: "Clientul tău", alt: "Conversația clientului cu Netpotu pe WhatsApp: apasă Am terminat, pasul e verificat și rezolvat, apoi vine pasul următor cu trei butoane." },
+          { src: "/pitch-whatsapp-ro.webp", width: 672, height: 1310, who: "Clientul tău", alt: "Conversația clientului cu Infrared pe WhatsApp: apasă Am terminat, pasul e verificat și rezolvat, apoi vine pasul următor cu trei butoane." },
         ],
         points: [] },
       {

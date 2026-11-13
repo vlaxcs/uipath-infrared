@@ -1,15 +1,49 @@
-import type { Content, Device, DeviceState, Severity } from "../content";
-import { FindArt } from "./FindArt";
+import type { Content, Criterion, Resource, ResourceState } from "../content";
 import { Eyebrow, Heading, Section } from "./ui";
 
-const SEVERITY_ICON: Record<Severity, string> = { high: "!", medium: "!", low: "i" };
-const SEVERITY_COLOR: Record<Severity, string> = {
-  high: "text-status-danger border-status-danger",
-  medium: "text-status-warn border-status-warn",
-  low: "text-status-fixed border-status-fixed",
-};
+export function Run({ text }: { text: Content }) {
+  const run = text.run;
+  return (
+    <Section id="run" titleId="run-titlu">
+      <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+        <div>
+          <Eyebrow>{run.eyebrow}</Eyebrow>
+          <Heading id="run-titlu">{run.title}</Heading>
+        </div>
+        <figure
+          data-reveal
+          aria-label={run.label}
+          className="m-0 w-full max-w-xl rounded-card border-2 border-line bg-surface p-2.5 shadow-float data-shown:animate-appear"
+        >
+          <figcaption className="type-tag flex items-center gap-2 px-3 pt-2 pb-3 text-fg-muted">
+            <span aria-hidden="true" className="size-2.5 rounded-full bg-accent" />
+            {run.label}
+          </figcaption>
+          <ol className="grid gap-1.5 rounded-well bg-screen p-3">
+            {run.steps.map((step) => (
+              <li key={step.stage} className="type-tag grid grid-cols-[1.25rem_7rem_1fr] items-baseline gap-2">
+                <span aria-hidden="true" className="text-status-fixed">
+                  ✓
+                </span>
+                <span className="text-fg">{step.stage}</span>
+                <span className="text-fg-muted">{step.result}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="type-tag flex items-center gap-3 px-3 pt-3 pb-2 text-fg">
+            <span aria-hidden="true" className="text-accent">
+              →
+            </span>
+            {run.status}
+          </p>
+        </figure>
+      </div>
+    </Section>
+  );
+}
 
-const SEVERITIES: Severity[] = ["high", "medium", "low"];
+const CRITERIA: Criterion[] = ["cost", "availability", "database"];
+const CRITERION_GLYPH: Record<Criterion, string> = { cost: "$", availability: "↑", database: "≡" };
 
 export function Finds({ text }: { text: Content }) {
   return (
@@ -18,41 +52,28 @@ export function Finds({ text }: { text: Content }) {
       <Heading id="gaseste-titlu" center>
         {text.finds.title}
       </Heading>
-      <p className="type-lead mx-auto mt-3 max-w-[46ch] text-center text-fg-muted">{text.finds.lead}</p>
       <div className="mt-8 grid gap-8 lg:grid-cols-3 lg:gap-5">
-        {SEVERITIES.map((severity, group) => (
-          <div key={severity} role="group" aria-labelledby={`gaseste-${severity}`}>
-            <h3
-              id={`gaseste-${severity}`}
-              className={`type-label mb-3 flex items-center gap-2 border-b-2 pb-2 ${SEVERITY_COLOR[severity]}`}
-            >
-              <span aria-hidden="true" className="grid size-6 place-items-center rounded-full bg-current">
-                <span className="text-on-accent">{SEVERITY_ICON[severity]}</span>
+        {CRITERIA.map((criterion, group) => (
+          <div key={criterion} role="group" aria-labelledby={`gaseste-${criterion}`}>
+            <h3 id={`gaseste-${criterion}`} className="type-label mb-3 flex items-center gap-2 border-b-2 border-accent pb-2 text-fg">
+              <span aria-hidden="true" className="type-tag grid size-6 place-items-center rounded-full bg-accent text-on-accent">
+                {CRITERION_GLYPH[criterion]}
               </span>
-              {text.finds.severity[severity]}
+              {text.finds.criteria[criterion]}
             </h3>
             <ul className="grid gap-3">
               {text.finds.items
                 .map((item, index) => ({ item, index }))
-                .filter(({ item }) => item.severity === severity)
+                .filter(({ item }) => item.criterion === criterion)
                 .map(({ item, index }) => (
-                  // Corner radii nest: card (1.25rem) = badge tile (10px) + padding (0.5rem) + border (2px).
                   <li
                     key={item.name}
                     data-reveal
                     style={{ animationDelay: `${group * 120 + index * 40}ms` }}
-                    className="flex items-center gap-4 rounded-well border-2 border-line bg-canvas-tint p-2 data-shown:animate-appear"
+                    className="rounded-well border-2 border-line bg-canvas-tint px-4 py-3 data-shown:animate-appear"
                   >
-                    <FindArt
-                      code={item.code}
-                      severity={item.severity}
-                      index={index}
-                      className="size-16 rounded-[calc(var(--radius-well)-2px-0.5rem)]"
-                    />
-                    <div className="min-w-0 pr-2">
-                      <h4 className="type-h4 text-fg">{item.name}</h4>
-                      <p className="type-tag mt-1 text-fg-muted">{item.detail}</p>
-                    </div>
+                    <h4 className="type-h4 text-fg">{item.name}</h4>
+                    <p className="type-tag mt-1 text-fg-muted">{item.detail}</p>
                   </li>
                 ))}
             </ul>
@@ -63,23 +84,34 @@ export function Finds({ text }: { text: Content }) {
   );
 }
 
-const STATE_ICON: Record<DeviceState, string> = { danger: "!", warn: "?", fixed: "✓" };
-const STATE_COLOR: Record<DeviceState, string> = {
+const STATE_ICON: Record<ResourceState, string> = { danger: "!", warn: "?", fixed: "✓" };
+const STATE_COLOR: Record<ResourceState, string> = {
   danger: "text-status-danger border-status-danger",
   warn: "text-status-warn border-status-warn",
   fixed: "text-status-fixed border-status-fixed",
 };
 
-function DeviceRow({ device }: { device: Device }) {
+function ResourceRow({ resource }: { resource: Resource }) {
   return (
     <li className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-item border-2 border-line bg-surface px-2.5 py-1.5">
-      <span className="type-tag font-bold text-fg">{device.name}</span>
-      <span className={`type-tag inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border-2 px-2 py-0.5 ${STATE_COLOR[device.state]}`}>
+      <span className="type-tag font-bold text-fg">{resource.name}</span>
+      <span className={`type-tag inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border-2 px-2 py-0.5 ${STATE_COLOR[resource.state]}`}>
         <span aria-hidden="true" className="font-extrabold">
-          {STATE_ICON[device.state]}
+          {STATE_ICON[resource.state]}
         </span>
-        {device.status}
+        {resource.status}
       </span>
+    </li>
+  );
+}
+
+function CheckRow({ label, tone = "fg" }: { label: string; tone?: "fg" | "fixed" }) {
+  return (
+    <li className={`type-tag flex items-center gap-2 rounded-item border-2 border-line bg-surface px-2.5 py-1.5 ${tone === "fixed" ? "text-status-fixed" : "text-fg"}`}>
+      <span aria-hidden="true" className="text-accent">
+        ✓
+      </span>
+      {label}
     </li>
   );
 }
@@ -90,42 +122,41 @@ function StepArt({ index, text }: { index: number; text: Content }) {
   if (index === 0) {
     return (
       <ul className="grid gap-1.5">
-        {text.how.devices.map((device) => (
-          <DeviceRow key={device.name} device={device} />
+        {text.how.resources.map((resource) => (
+          <ResourceRow key={resource.name} resource={resource} />
         ))}
       </ul>
     );
   }
   if (index === 1) {
     return (
-      <p className="max-w-[94%] rounded-item rounded-tl-sm bg-bubble-in px-3 py-2.5 text-on-bubble shadow-lip-sm">
-        <span className="type-tag block text-accent">Netpotu</span>
-        <span className="type-body">{text.how.incoming}</span>
-      </p>
+      <ul className="grid gap-1.5">
+        {text.how.criteria.map((criterion) => (
+          <CheckRow key={criterion} label={criterion} />
+        ))}
+      </ul>
     );
   }
   if (index === 2) {
+    const last = text.how.rehearsal.length - 1;
     return (
-      <div className="grid gap-2">
-        <p aria-hidden="true" className="type-tag max-w-[80%] rounded-item rounded-tl-sm bg-bubble-in px-3 py-2 text-fg-muted opacity-70">
-          <span className="line-clamp-2">{text.how.incoming}</span>
-        </p>
-        <p className="type-label ml-auto w-fit rounded-item rounded-tr-sm bg-bubble-out px-4 py-2.5 text-on-bubble shadow-lip-sm">
-          {text.how.outgoing} <span aria-hidden="true">✓✓</span>
-        </p>
-      </div>
+      <ul className="grid gap-1.5">
+        {text.how.rehearsal.map((line, row) => (
+          <CheckRow key={line} label={line} tone={row === last ? "fixed" : "fg"} />
+        ))}
+      </ul>
     );
   }
   return (
     <div className="grid gap-2">
-      <p className="type-label flex items-center gap-3 rounded-item border-2 border-status-fixed bg-surface px-3 py-2 text-status-fixed">
-        <span aria-hidden="true" className="grid size-8 flex-none place-items-center rounded-full bg-status-fixed text-on-accent">
-          ✓
+      <p className="type-label flex items-center gap-3 rounded-item border-2 border-accent bg-surface px-3 py-2 text-fg">
+        <span aria-hidden="true" className="grid size-8 flex-none place-items-center rounded-full bg-accent text-on-accent">
+          1
         </span>
-        {text.how.checked}
+        {text.how.change.current}
       </p>
       <p className="type-label flex items-center justify-between gap-3 rounded-item border-2 border-dashed border-line px-3 py-2.5 text-fg-muted">
-        {text.how.nextStep}
+        {text.how.change.next}
         <span aria-hidden="true">→</span>
       </p>
     </div>
@@ -196,6 +227,35 @@ export function HowItWorks({ text }: { text: Content }) {
           {text.how.promise}
         </p>
       </div>
+    </Section>
+  );
+}
+
+export function Pricing({ text }: { text: Content }) {
+  return (
+    <Section id="preturi" titleId="preturi-titlu">
+      <Eyebrow center>{text.pricing.eyebrow}</Eyebrow>
+      <Heading id="preturi-titlu" center>
+        {text.pricing.title}
+      </Heading>
+      <ul className="mx-auto mt-8 grid max-w-3xl gap-5 md:grid-cols-2">
+        {text.pricing.plans.map((plan, index) => (
+          <li
+            key={plan.name}
+            data-reveal
+            style={{ animationDelay: `${index * 120}ms` }}
+            className="flex flex-col gap-3 rounded-card border-2 border-line bg-canvas-tint p-6 shadow-lip data-shown:animate-appear"
+          >
+            <h3 className="type-eyebrow text-accent">{plan.name}</h3>
+            <p className="flex flex-wrap items-baseline gap-x-3">
+              <span className="type-figure text-fg">{plan.price}</span>
+              <span className="type-tag text-fg-muted">{plan.unit}</span>
+            </p>
+            <p className="text-fg-muted">{plan.detail}</p>
+          </li>
+        ))}
+      </ul>
+      <p className="type-tag mx-auto mt-6 max-w-[60ch] text-center text-fg-muted">{text.pricing.compare}</p>
     </Section>
   );
 }

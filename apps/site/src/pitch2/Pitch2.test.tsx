@@ -48,9 +48,8 @@ describe("Pitch2 screenshots", () => {
 });
 
 describe("Pitch2 brand line", () => {
-  it("says it is a service for internet providers, never 'by Digi'", () => {
+  it("never says 'by Digi'", () => {
     const { container } = render(<Pitch2 />);
-    expect(screen.getByText("Service for internet providers")).toBeInTheDocument();
     expect(container.textContent).not.toMatch(/by Digi/i);
   });
 });

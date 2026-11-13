@@ -24,7 +24,7 @@
   }
 
   html {
-    color-scheme: light;
+    color-scheme: dark;
     overscroll-behavior-x: none;
     scroll-padding-top: 0;
   }
@@ -77,153 +77,28 @@
 }
 
 @layer components {
-  .badge * {
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  .badge .badge-body {
-    animation: badge-float 3s ease-in-out infinite;
-    animation-delay: var(--badge-delay, 0s);
-  }
-
-  .badge .badge-shadow {
-    animation: badge-shadow 3s ease-in-out infinite;
-    animation-delay: var(--badge-delay, 0s);
-  }
-
-  .badge .badge-glint {
-    animation: badge-glint 3s ease-in-out infinite;
-    animation-delay: var(--badge-delay, 0s);
-  }
-
-  .badge .badge-rec {
-    animation: badge-blink 1.2s steps(1, end) infinite;
-  }
-
-  .badge .badge-antenna {
-    animation: badge-pulse 1.4s ease-in-out infinite;
-  }
-
-  .badge .badge-antenna-late {
-    animation-delay: 0.7s;
-  }
-
-  .badge .badge-shackle {
-    animation: badge-shackle 2.4s ease-in-out infinite;
-  }
-
-  .badge .badge-rays {
-    animation: badge-rays 1.6s ease-in-out infinite;
-  }
-
-  .badge .badge-paper {
-    animation: badge-paper 2.2s ease-in-out infinite;
-  }
-
-  .badge .badge-question {
-    transform-origin: 50% 80%;
-    animation: badge-wobble 2.4s ease-in-out infinite;
+  .infra-travel {
+    animation: infra-travel 9s ease-in-out infinite;
   }
 }
 
-@keyframes badge-float {
+@keyframes infra-travel {
   0%,
-  100% {
+  10% {
     translate: 0 0;
   }
-  50% {
-    translate: 0 -4px;
+  27% {
+    translate: calc(var(--dx) * 0.5) calc(var(--dy) * 0.5 - var(--lift));
   }
-}
-
-@keyframes badge-shadow {
-  0%,
-  100% {
-    scale: 1 1;
-    opacity: 1;
+  44%,
+  60% {
+    translate: var(--dx) var(--dy);
   }
-  50% {
-    scale: 0.85 1;
-    opacity: 0.7;
+  77% {
+    translate: calc(var(--dx) * 0.5) calc(var(--dy) * 0.5 - var(--lift));
   }
-}
-
-@keyframes badge-glint {
-  0%,
-  100% {
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes badge-blink {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-}
-
-@keyframes badge-pulse {
-  0%,
-  100% {
-    scale: 1;
-    opacity: 1;
-  }
-  50% {
-    scale: 1.45;
-    opacity: 0.55;
-  }
-}
-
-@keyframes badge-shackle {
-  0%,
-  55%,
+  94%,
   100% {
     translate: 0 0;
-  }
-  20%,
-  40% {
-    translate: 0 -4px;
-  }
-}
-
-@keyframes badge-rays {
-  0%,
-  100% {
-    opacity: 0;
-    scale: 0.7;
-  }
-  50% {
-    opacity: 1;
-    scale: 1;
-  }
-}
-
-@keyframes badge-paper {
-  0%,
-  15% {
-    translate: 0 -7px;
-  }
-  70%,
-  100% {
-    translate: 0 1px;
-  }
-}
-
-@keyframes badge-wobble {
-  0%,
-  100% {
-    rotate: 0deg;
-  }
-  25% {
-    rotate: -12deg;
-  }
-  75% {
-    rotate: 12deg;
   }
 }

@@ -5,9 +5,17 @@ const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   secondary: "border-line bg-surface text-fg shadow-lip hover:border-fg-muted",
 };
 
-export function buttonClass(variant: ButtonVariant, extra = "") {
+type ButtonSize = "regular" | "compact";
+
+const BUTTON_SIZES: Record<ButtonSize, string> = {
+  regular: "type-button min-h-13 px-7",
+  compact: "type-tag h-10 px-5 font-bold",
+};
+
+export function buttonClass(variant: ButtonVariant, extra = "", size: ButtonSize = "regular") {
   return [
-    "type-button inline-flex min-h-13 items-center justify-center gap-2 rounded-full border-2 px-7 text-center no-underline",
+    "inline-flex items-center justify-center gap-2 rounded-full border-2 text-center no-underline",
+    BUTTON_SIZES[size],
     "transition-[filter,translate,box-shadow] duration-150 active:translate-y-1 active:shadow-none",
     BUTTON_VARIANTS[variant],
     extra,

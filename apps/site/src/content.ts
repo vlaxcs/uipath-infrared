@@ -1,14 +1,15 @@
 export type Language = "ro" | "en";
 
-export type DeviceState = "danger" | "warn" | "fixed";
-export type Device = { name: string; state: DeviceState; status: string };
-export type Severity = "high" | "medium" | "low";
-export type Find = { code: string; name: string; detail: string; severity: Severity };
+export type ResourceState = "danger" | "warn" | "fixed";
+export type Resource = { name: string; state: ResourceState; status: string };
+export type Criterion = "cost" | "availability" | "database";
+export type Finding = { name: string; detail: string; criterion: Criterion };
+export type Plan = { name: string; price: string; unit: string; detail: string };
 
 export type Content = {
   skipLink: string;
   languageLabel: string;
-  byDigi: string;
+  tagline: string;
   nav: { cta: string; progress: string; sections: string[] };
   hero: {
     eyebrow: string;
@@ -16,23 +17,23 @@ export type Content = {
     lead: string;
     primary: string;
     secondary: string;
-    chatImage: string;
-    chatAlt: string;
+    scene: { label: string };
   };
-  finds: { eyebrow: string; title: string; lead: string; severity: Record<Severity, string>; items: Find[] };
+  run: { eyebrow: string; title: string; label: string; steps: { stage: string; result: string }[]; status: string };
+  finds: { eyebrow: string; title: string; criteria: Record<Criterion, string>; items: Finding[] };
   how: {
     eyebrow: string;
     title: string;
     steps: { title: string; body: string }[];
-    devices: Device[];
-    incoming: string;
-    outgoing: string;
-    checked: string;
-    nextStep: string;
+    resources: Resource[];
+    criteria: string[];
+    rehearsal: string[];
+    change: { current: string; next: string };
     promise: string;
   };
+  pricing: { eyebrow: string; title: string; plans: Plan[]; compare: string };
   faq: { eyebrow: string; title: string; items: { q: string; a: string }[] };
-  footer: { title: string; lead: string; back: string; tokensLink: string; productLink: string };
+  footer: { title: string; back: string; tokensLink: string; productLink: string };
   tokens: {
     title: string;
     lead: string;
@@ -49,67 +50,87 @@ export type Content = {
 const ro: Content = {
   skipLink: "Sari la conținut",
   languageLabel: "Limba",
-  byDigi: "de la Digi",
-  nav: { cta: "Cum funcționează", progress: "Secțiunile paginii", sections: ["Acasă", "Ce găsește", "Cum funcționează", "Întrebări", "Final"] },
+  tagline: "infrastructură per proiect",
+  nav: { cta: "Cum funcționează", progress: "Secțiunile paginii", sections: ["Acasă", "Un run", "Ce găsește", "Cum funcționează", "Prețuri", "Întrebări", "Final"] },
   hero: {
-    eyebrow: "Pentru internetul de acasă",
-    title: "Îți spunem ce să repari la internetul de acasă.",
-    lead: "Netpotu se uită la aparatele din casă și îți scrie pe WhatsApp ce ai de făcut. Câte un pas, în cuvinte simple.",
-    primary: "Vezi cum funcționează",
-    secondary: "Ce poate găsi",
-    chatImage: "/wa-chat-ro.webp",
-    chatAlt:
-      "Conversație pe WhatsApp cu Netpotu: ce filmează camera Hikvision poate fi văzut de alții de pe Wi-Fi, iar primul pas este să deschizi aplicația camerei. Dedesubt, butoanele Am terminat, Gata, ce urmează? și Explică mai simplu.",
+    eyebrow: "Pentru CTO",
+    title: "Infrastructura, construită pe proiectele tale.",
+    lead: "Citește cloud-ul. Decide per proiect. Testează în sandbox. Îți dă pașii.",
+    primary: "Cum funcționează",
+    secondary: "Ce găsește",
+    scene: { label: "Două site-uri de infrastructură care își schimbă componentele." },
+  },
+  run: {
+    eyebrow: "Un run",
+    title: "Șase etape. Un plan.",
+    label: "Un run Infrared",
+    steps: [
+      { stage: "extract", result: "resurse și dependențe" },
+      { stage: "investigate", result: "CPU, RAM, GPU, tokeni" },
+      { stage: "propose", result: "layout-uri candidate" },
+      { stage: "evaluate", result: "preț, constrângeri, rang" },
+      { stage: "rehearse", result: "trafic și căderi" },
+      { stage: "present", result: "planul, pas cu pas" },
+    ],
+    status: "gata de aprobare",
   },
   finds: {
-    eyebrow: "Ce poate găsi",
-    title: "Lucruri pe care nu le vezi, dar le poți repara.",
-    lead: "Câteva exemple. Netpotu îți spune doar ce a găsit la tine acasă și începe cu ce e mai grav.",
-    severity: { high: "Grav", medium: "Mediu", low: "Mic" },
+    eyebrow: "Ce găsește",
+    title: "Din consum măsurat. Nu din estimări.",
+    criteria: { cost: "Cost", availability: "Disponibilitate", database: "Baze de date" },
     items: [
-      { code: "CAMERA_STREAM_EXPOSED", name: "Alții pot vedea imaginea camerei tale", detail: "Oricine e pe Wi-Fi-ul tău o poate deschide.", severity: "high" },
-      { code: "TELNET_OPEN", name: "Un străin poate prelua controlul unui aparat", detail: "Intrarea nu e protejată, iar parola poate fi furată.", severity: "high" },
-      { code: "HTTP_ADMIN_CLEARTEXT", name: "Parola din setările routerului poate fi citită", detail: "Oricine e pe Wi-Fi-ul tău o poate vedea când o scrii.", severity: "medium" },
-      { code: "MQTT_EXPOSED", name: "Aparatele smart pot primi comenzi de la alții", detail: "Oricine e pe Wi-Fi-ul tău poate încerca să le dea comenzi.", severity: "medium" },
-      { code: "PRINTER_RAW_EXPOSED", name: "Oricine poate trimite documente la imprimantă", detail: "Îți poate consuma hârtia și cerneala.", severity: "low" },
-      { code: "UNKNOWN_DEVICE", name: "Un aparat necunoscut e conectat la Wi-Fi", detail: "Nu știm ce este. Verifică dacă e al tău.", severity: "low" },
+      { name: "Resurse idle și orfane", detail: "Instanțe, volume, IP-uri nefolosite.", criterion: "cost" },
+      { name: "Rightsizing", detail: "Din CPU și RAM măsurate.", criterion: "cost" },
+      { name: "GPU și tokeni", detail: "Capacitate nefolosită, consum LLM scump.", criterion: "cost" },
+      { name: "Runner-e GitHub", detail: "Optimizate sau mutate on-prem.", criterion: "cost" },
+      { name: "Fără fallback", detail: "Ce cade cu o zonă sau un nod.", criterion: "availability" },
+      { name: "Dependențe rupte", detail: "Egress și latență, prețuite.", criterion: "availability" },
+      { name: "Tabele calde", detail: "Din pg_stat_statements.", criterion: "database" },
+      { name: "Domenii amestecate", detail: "Split-uri, replici, partiționare.", criterion: "database" },
     ],
   },
   how: {
     eyebrow: "În 4 pași",
     title: "Cum funcționează",
     steps: [
-      { title: "Routerul se uită", body: "Vede ce aparate ai și ce lasă deschis." },
-      { title: "Primești un mesaj", body: "Îți scrie pe WhatsApp ce să repari primul." },
-      { title: "Faci ce scrie", body: "Un singur pas, în cuvinte simple." },
-      { title: "Routerul verifică", body: "Vede dacă a mers și trece mai departe." },
+      { title: "Citește", body: "Read-only: resurse, metrici, scheme." },
+      { title: "Decide", body: "Per proiect, după criteriile lui." },
+      { title: "Testează", body: "Trafic și căderi, în sandbox." },
+      { title: "Arată", body: "Pașii, cu costul de după." },
     ],
-    devices: [
-      { name: "Camera", state: "danger", status: "Expusă" },
-      { name: "Imprimanta", state: "warn", status: "De verificat" },
-      { name: "Televizorul", state: "fixed", status: "În regulă" },
+    resources: [
+      { name: "rds-orders", state: "danger", status: "o zonă" },
+      { name: "ec2-api", state: "warn", status: "prea mare" },
+      { name: "s3-assets", state: "fixed", status: "ok" },
     ],
-    incoming: "Deschide pe telefon aplicația pentru cameră.",
-    outgoing: "Am terminat",
-    checked: "Rezolvat",
-    nextStep: "Urmează pasul 2",
-    promise: "Nu îți cerem niciodată un link, o parolă sau bani.",
+    criteria: ["Disponibilitate", "Cost", "Zone"],
+    rehearsal: ["trafic simulat", "nod oprit", "fallback ok"],
+    change: { current: "Pasul 1: mută baza", next: "Pasul 2" },
+    promise: "Read-only. Nu aplică nimic singur.",
+  },
+  pricing: {
+    eyebrow: "Prețuri",
+    title: "Per companie.",
+    plans: [
+      { name: "Pachet", price: "100 USD", unit: "5 run-uri", detail: "20 USD per run." },
+      { name: "Abonament", price: "200 USD", unit: "pe lună", detail: "Run-uri programate." },
+    ],
+    compare: "Un review de consultant pornește de la 495 USD.",
   },
   faq: {
     eyebrow: "Întrebări",
-    title: "Ce vor să știe oamenii",
+    title: "Ce întreabă un CTO",
     items: [
-      { q: "Trebuie să instalez ceva?", a: "Nu. Netpotu merge pe routerul Digi pe care îl ai deja. Mesajele vin pe WhatsApp." },
-      { q: "Ce fac dacă nu înțeleg un pas?", a: "Scrii că nu înțelegi sau apeși butonul de explicație. Primești același pas, spus mai simplu." },
-      { q: "Unele lucruri le repară Digi pentru mine?", a: "Da. Ce ține de routerul Digi se poate repara de la distanță, dar numai după ce ești de acord în mesaj." },
-      { q: "Ce date pleacă din casa mea?", a: "Adresele aparatelor și istoricul rămân în router. Spre Digi pleacă doar pașii, ce fel de aparate ai, marca lor și programul de pe ele, ca să te poată ajuta dacă suni la suport." },
-      { q: "Cum știu că mesajul e chiar de la Netpotu?", a: "Netpotu nu îți cere niciodată un link, o parolă sau bani. Dacă un mesaj îți cere așa ceva, nu e de la noi." },
+      { q: "Ce acces cere?", a: "Read-only: AWS describe și list, CloudWatch, Postgres, GitHub." },
+      { q: "Cum ajunge schimbarea în producție?", a: "Ca pull request. Îl aprobi tu, îl aplică CI-ul tău." },
+      { q: "Unde se poate muta?", a: "AWS, GCP, Azure, Supabase, Neon, Hetzner, Fly.io, R2, B2, Upstash, RunPod, on-prem." },
+      { q: "De ce nu Vantage sau Infracost?", a: "Ele raportează costul. Infrared propune schimbarea." },
+      { q: "De unde vin cifrele?", a: "Dintr-un motor determinist: prețuri, SLA, consum măsurat." },
     ],
   },
   footer: {
-    title: "Netpotu vine cu routerul Digi.",
-    lead: "Nu instalezi nimic. Mesajele vin pe WhatsApp, de la Netpotu.",
-    back: "Înapoi la început",
+    title: "Infrastructura care urmează proiectele.",
+    back: "Sus",
     tokensLink: "Tokenuri de design",
     productLink: "Înapoi la produs",
   },
@@ -129,67 +150,87 @@ const ro: Content = {
 const en: Content = {
   skipLink: "Skip to content",
   languageLabel: "Language",
-  byDigi: "by Digi",
-  nav: { cta: "How it works", progress: "Page sections", sections: ["Home", "What it finds", "How it works", "Questions", "End"] },
+  tagline: "infrastructure per project",
+  nav: { cta: "How it works", progress: "Page sections", sections: ["Home", "A run", "What it finds", "How it works", "Pricing", "Questions", "End"] },
   hero: {
-    eyebrow: "For your home internet",
-    title: "We tell you what to fix on your home internet.",
-    lead: "Netpotu looks at the devices in your home and writes to you on WhatsApp what to do. One step at a time, in simple words.",
-    primary: "See how it works",
-    secondary: "What it can find",
-    chatImage: "/wa-chat-ro.webp",
-    chatAlt:
-      "A WhatsApp chat with Netpotu, in Romanian: what the Hikvision camera films can be seen by others on the Wi-Fi, and the first step is to open the camera's app. Below it, the buttons I'm done, Done, what's next? and Explain it simpler.",
+    eyebrow: "For CTOs",
+    title: "Infrastructure, built around your projects.",
+    lead: "Reads your cloud. Decides per project. Rehearses in a sandbox. Hands you the steps.",
+    primary: "How it works",
+    secondary: "What it finds",
+    scene: { label: "Two infrastructure sites exchanging components." },
+  },
+  run: {
+    eyebrow: "A run",
+    title: "Six stages. One plan.",
+    label: "An Infrared run",
+    steps: [
+      { stage: "extract", result: "resources and dependencies" },
+      { stage: "investigate", result: "CPU, RAM, GPU, tokens" },
+      { stage: "propose", result: "candidate layouts" },
+      { stage: "evaluate", result: "price, constraints, rank" },
+      { stage: "rehearse", result: "traffic and failures" },
+      { stage: "present", result: "the plan, step by step" },
+    ],
+    status: "ready for approval",
   },
   finds: {
-    eyebrow: "What it can find",
-    title: "Things you can't see, but can fix.",
-    lead: "A few examples. Netpotu only tells you what it found in your home, and starts with the worst.",
-    severity: { high: "Serious", medium: "Medium", low: "Minor" },
+    eyebrow: "What it finds",
+    title: "Measured usage. Not estimates.",
+    criteria: { cost: "Cost", availability: "Availability", database: "Databases" },
     items: [
-      { code: "CAMERA_STREAM_EXPOSED", name: "Others can see what your camera films", detail: "Anyone on your Wi-Fi can open its picture.", severity: "high" },
-      { code: "TELNET_OPEN", name: "A stranger could take control of a device", detail: "The login is not protected, so the password can be stolen.", severity: "high" },
-      { code: "HTTP_ADMIN_CLEARTEXT", name: "The password to your router settings can be read", detail: "Anyone on your Wi-Fi can see it when you type it.", severity: "medium" },
-      { code: "MQTT_EXPOSED", name: "Smart devices can take orders from others", detail: "Anyone on your Wi-Fi could try to give them commands.", severity: "medium" },
-      { code: "PRINTER_RAW_EXPOSED", name: "Anyone can send documents to your printer", detail: "They could use up your paper and ink.", severity: "low" },
-      { code: "UNKNOWN_DEVICE", name: "An unknown device is on your Wi-Fi", detail: "We do not know what it is. Check that it is yours.", severity: "low" },
+      { name: "Idle and orphan resources", detail: "Unused instances, volumes, IPs.", criterion: "cost" },
+      { name: "Rightsizing", detail: "From measured CPU and RAM.", criterion: "cost" },
+      { name: "GPU and tokens", detail: "Idle capacity, costly LLM spend.", criterion: "cost" },
+      { name: "GitHub runners", detail: "Optimised or moved on-prem.", criterion: "cost" },
+      { name: "No fallback", detail: "What fails with one zone or node.", criterion: "availability" },
+      { name: "Split dependencies", detail: "Egress and latency, priced.", criterion: "availability" },
+      { name: "Hot tables", detail: "From pg_stat_statements.", criterion: "database" },
+      { name: "Mixed domains", detail: "Splits, replicas, partitioning.", criterion: "database" },
     ],
   },
   how: {
     eyebrow: "In 4 steps",
     title: "How it works",
     steps: [
-      { title: "The router looks", body: "It sees your devices and what they leave open." },
-      { title: "You get a message", body: "It writes on WhatsApp what to fix first." },
-      { title: "You do what it says", body: "One step, in simple words." },
-      { title: "The router checks", body: "It sees if it worked and moves on." },
+      { title: "Reads", body: "Read-only: resources, metrics, schemas." },
+      { title: "Decides", body: "Per project, on its criteria." },
+      { title: "Rehearses", body: "Traffic and failures, in a sandbox." },
+      { title: "Shows", body: "The steps, with the cost after." },
     ],
-    devices: [
-      { name: "Camera", state: "danger", status: "Exposed" },
-      { name: "Printer", state: "warn", status: "To check" },
-      { name: "TV", state: "fixed", status: "All good" },
+    resources: [
+      { name: "rds-orders", state: "danger", status: "one zone" },
+      { name: "ec2-api", state: "warn", status: "oversized" },
+      { name: "s3-assets", state: "fixed", status: "ok" },
     ],
-    incoming: "Open the app for your camera on your phone.",
-    outgoing: "I'm done",
-    checked: "Fixed",
-    nextStep: "Step 2 is next",
-    promise: "We never ask you for a link, a password or money.",
+    criteria: ["Availability", "Cost", "Zones"],
+    rehearsal: ["traffic simulated", "node stopped", "fallback ok"],
+    change: { current: "Step 1: move the database", next: "Step 2" },
+    promise: "Read-only. Never applies a change itself.",
+  },
+  pricing: {
+    eyebrow: "Pricing",
+    title: "Per company.",
+    plans: [
+      { name: "Pack", price: "100 USD", unit: "5 runs", detail: "20 USD a run." },
+      { name: "Subscription", price: "200 USD", unit: "a month", detail: "Scheduled runs." },
+    ],
+    compare: "A consultant review starts at 495 USD.",
   },
   faq: {
     eyebrow: "Questions",
-    title: "What people ask",
+    title: "What CTOs ask",
     items: [
-      { q: "Do I have to install anything?", a: "No. Netpotu runs on the Digi router you already have. The messages come on WhatsApp." },
-      { q: "What if I don't understand a step?", a: "Write that you don't understand, or tap the explain button. You get the same step, said more simply." },
-      { q: "Does Digi fix some things for me?", a: "Yes. What belongs to the Digi router can be fixed remotely, but only after you agree in the message." },
-      { q: "What data leaves my home?", a: "Your devices' addresses and the history stay in the router. Only the steps, what kind of devices you have, their brand and the software on them go to Digi, so they can help if you call support." },
-      { q: "How do I know a message is really from Netpotu?", a: "Netpotu never asks you for a link, a password or money. If a message asks for that, it is not from us." },
+      { q: "What access does it need?", a: "Read-only: AWS describe and list, CloudWatch, Postgres, GitHub." },
+      { q: "How does a change reach production?", a: "As a pull request. You approve it, your CI applies it." },
+      { q: "Where can it move?", a: "AWS, GCP, Azure, Supabase, Neon, Hetzner, Fly.io, R2, B2, Upstash, RunPod, on-prem." },
+      { q: "Why not Vantage or Infracost?", a: "They report the cost. Infrared proposes the change." },
+      { q: "Where do the numbers come from?", a: "A deterministic engine: prices, SLAs, measured usage." },
     ],
   },
   footer: {
-    title: "Netpotu comes with your Digi router.",
-    lead: "You install nothing. The messages come on WhatsApp, from Netpotu.",
-    back: "Back to the start",
+    title: "Infrastructure that follows your projects.",
+    back: "Top",
     tokensLink: "Design tokens",
     productLink: "Back to the product",
   },
