@@ -44,6 +44,19 @@ Buyers come from the PRD: founders of start-ups and SMEs up to 500 people. Which
 | D | founder | commercial | follow a deal after it becomes a project | partly / partly / no | reads like a report, not an agent |
 | E | founder | hiring managers | from an open position to an onboarded hire | partly / yes / yes | PRD and EU AI Act: our AI never ranks candidates, which cuts most of the agency |
 
+### Decided: start-ups and small enterprises, employee experience and HR efficiency
+
+Buyer: the founder or COO. Two users the same agent has to serve: the employee, who gets an answer or a result instead of a form, and HR, who stops doing it by hand. Which job is still open. HR and employee jobs from the PRD, through the filter:
+
+| # | Job | Why it is an agent | Filter 1/2/3 | Risk |
+| --- | --- | --- | --- | --- |
+| H1 | Employee request on Slack: "I'm off next Friday", "I'm moving to 4 days a week" | reads balance, contract type, legal holidays, team coverage; the approver is out of office? reroutes up the org chart; missing proof? asks for it | yes / yes / yes (manager approves) | needs a Slack app and Calendar |
+| H2 | Onboarding a new hire | the checklist exists, but the agent chases blockers: account not created, legal task (REVISAL) late, buddy on leave, equipment missing; HR approves contract and permissions | partly / yes / yes | the closest to a fixed workflow; the demo has to show the replanning |
+| H3 | Offboarding a leaver | finds access left behind everywhere (GCP, GitHub, groups), the final hours summary, retention per kind of data; HR and IT approve every revocation | yes / yes / yes | HR and security together; the "employee experience" part is weak |
+| H4 | Employee asks HR anything ("how much leave do I have left, why was my overtime cut?") | retrieval over contract, hours and policy, then acts if needed | partly / partly / no | close to a single LLM call with RAG |
+
+EU AI Act line, all jobs: the agent routes, explains and prepares. A human approves anything that decides something about a person.
+
 Questions for mentors in this step:
 - which of these users do you see as a real paying customer?
 - do you know any company that has this pain today, so we can ask them?

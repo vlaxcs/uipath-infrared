@@ -84,3 +84,5 @@ CVs go in `docs/hackathon/cvs/`. Add here what each CV misses.
 | Time | Decision or rejected idea | Reason |
 | --- | --- | --- |
 | Before | Skip `/grill-with-docs` for this hackathon; the dev SPEC is grilled inline instead | Vlad's call for this session |
+| Idea 1 | Target: start-ups and small enterprises; the agent improves employee experience and HR efficiency | team decision; mentors not yet consulted |
+| Idea 1 | Rejected as the main job: worked hours math (C) | a regular program, fails the agent filter |
