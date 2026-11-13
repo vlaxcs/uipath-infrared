@@ -5,44 +5,70 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  contracts:
-    runs-on: ubuntu-latest
+  secrets:
+    runs-on: [self-hosted, linux, infrared]
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: contracts/requirements.txt
-      - run: pip install -r contracts/requirements.txt
-      - run: python contracts/check_mock.py
-      - run: python contracts/check_mock.py contracts/real/floci-estate.infra.json
+          fetch-depth: 0
+      - name: Tools on PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Secrets in the whole git history
+        run: gitleaks git --redact --no-banner .
+
+  contracts:
+    runs-on: [self-hosted, linux, infrared]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools on PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Python environment
+        run: |
+          uv venv --python 3.12 .venv
+          uv pip install --python .venv -r contracts/requirements.txt
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+      - name: Mock, forecast and catalog examples
+        run: python contracts/check_mock.py
+      - name: Real Floci extraction
+        if: ${{ !cancelled() }}
+        run: python contracts/check_mock.py contracts/real/floci-estate.infra.json
 
   python:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, infrared]
+    timeout-minutes: 10
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         app: [estate, extractor, agent]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: apps/${{ matrix.app }}/requirements.txt
-      - run: pip install -r apps/${{ matrix.app }}/requirements.txt
-      - run: python -m compileall -q apps/${{ matrix.app }}
+      - name: Tools on PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Python environment
+        run: |
+          uv venv --python 3.12 .venv
+          uv pip install --python .venv -r apps/${{ matrix.app }}/requirements.txt
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+      - name: Compile
+        run: python -m compileall -q apps/${{ matrix.app }}
 
   web:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, infrared]
+    timeout-minutes: 15
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         app: [site, phone]
     defaults:
@@ -55,8 +81,15 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: apps/${{ matrix.app }}/package-lock.json
-      - run: npm ci
-      - run: npm run lint --if-present
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run build
+      - run: npm ci --no-audit --no-fund
+      - name: Lint
+        run: npm run lint --if-present
+      - name: Types
+        if: ${{ !cancelled() }}
+        run: npm run typecheck
+      - name: Unit tests
+        if: ${{ !cancelled() }}
+        run: npm test
+      - name: Build
+        if: ${{ !cancelled() }}
+        run: npm run build

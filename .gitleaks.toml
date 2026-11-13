@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Fake credentials planted in the demo estate for the agent to find"
+regexes = [
+  '''sk_live_51H8EXAMPLEEXAMPLE''',
+  '''wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY''',
+]
