@@ -1,6 +1,6 @@
 # Infrared
 
-Infrared is an end-to-end agentic workflow that re-plans a company's infrastructure around the projects it runs. It analyses the current infrastructure against each internal project's known expectations, decides what should change for high availability, cost and zones, and shows step by step how to implement the change.
+Infrared is an end-to-end agentic workflow that re-plans a company's infrastructure around the projects it runs. It analyses the current infrastructure against each internal project's known expectations, decides what should change against the criteria chosen for each project (high availability, cost, zones), and shows step by step how to implement the change.
 
 ## Customers
 
@@ -29,10 +29,10 @@ A CTO wants the best ratio of quality, functionality and price from their infras
 - The client's current infrastructure.
 - Their internal projects and what each one is expected to need, from the project's financial roadmap.
 
-**Decision criteria**
+**Decision criteria**, chosen per project:
 1. High availability.
 2. Cost reduction.
-3. The zones wanted for each project.
+3. The zones the project needs.
 
 **Where infrastructure can move**
 - Hyperscalers.
