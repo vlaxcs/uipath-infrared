@@ -1,17 +1,18 @@
-import type { Run } from "~/runs/types";
+import type { RunSource } from "~/runs/source";
+import type { Run, RunDetail } from "~/runs/types";
 import { RunsEmptyState } from "~/runs/RunsEmptyState";
 import { RunsList } from "~/runs/RunsList";
-import { RunSummary } from "~/runs/RunSummary";
+import { RunView } from "~/runs/RunView";
 
 type RunsSectionProps = {
   runs: readonly Run[];
+  selectedRun: RunDetail | null;
   selectedRunId: string | null;
   onSelectRun: (id: string) => void;
+  source: RunSource;
 };
 
-export function RunsSection({ runs, selectedRunId, onSelectRun }: RunsSectionProps) {
-  const selectedRun = runs.find((run) => run.id === selectedRunId) ?? null;
-
+export function RunsSection({ runs, selectedRun, selectedRunId, onSelectRun, source }: RunsSectionProps) {
   return (
     <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
       <div className="flex w-full flex-col gap-3 xl:w-80 xl:shrink-0">
@@ -23,7 +24,11 @@ export function RunsSection({ runs, selectedRunId, onSelectRun }: RunsSectionPro
         )}
       </div>
       <div className="min-w-0 flex-1">
-        {selectedRun ? <RunSummary run={selectedRun} /> : runs.length > 0 ? <RunsEmptyState hasRuns /> : null}
+        {selectedRun ? (
+          <RunView key={selectedRun.id} run={selectedRun} source={source} />
+        ) : runs.length > 0 ? (
+          <RunsEmptyState hasRuns />
+        ) : null}
       </div>
     </div>
   );

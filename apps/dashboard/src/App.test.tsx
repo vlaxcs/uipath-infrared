@@ -14,7 +14,7 @@ describe("the dashboard shell", () => {
     }
   });
 
-  it("lists the sample run and shows its summary when selected", () => {
+  it("lists the sample run and shows its timeline when selected", () => {
     render(<App />);
     expect(screen.getByRole("list", { name: "Runs" }).textContent).toContain("demo-shop");
 
@@ -26,7 +26,19 @@ describe("the dashboard shell", () => {
     expect(summary.textContent).toContain("1 / 2");
     expect(summary.textContent).toContain("forecast.json");
     expect(summary.textContent).toContain("catalog.json");
-    expect(document.body.textContent).not.toContain("keep_analyses");
+
+    const timeline = screen.getByRole("region", { name: "Timeline" });
+    expect(timeline.textContent).toContain("keep_analyses");
+    expect(timeline.textContent).toContain("the GPU and orphan findings stand; the ERP one waits for the vendor");
+    expect(timeline.textContent).toContain("pick_layout");
+    expect(timeline.textContent).toContain("managed_services");
+    expect(timeline.textContent).toContain("approve_plan");
+    expect(timeline.textContent).toContain("cto (dashboard)");
+    expect(timeline.textContent).toContain("cto (slack)");
+    expect(timeline.textContent).toContain("result.0.json");
+    expect(timeline.textContent).toContain("result.1.json");
+    expect(timeline.textContent).toContain("rehearsal.json");
+    expect(screen.queryByText("A layout is waiting to be picked")).toBeNull();
   });
 
   it("switches to a future section and back", () => {

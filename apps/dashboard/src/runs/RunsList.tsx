@@ -1,6 +1,6 @@
 import type { Run } from "~/runs/types";
 import { formatTimestamp } from "~/runs/format";
-import { runStatusMeta } from "~/runs/status";
+import { runStatusLabel, runStatusMeta } from "~/runs/status";
 import { StatusBadge } from "~/ui/StatusBadge";
 
 type RunsListProps = {
@@ -29,7 +29,7 @@ export function RunsList({ runs, selectedRunId, onSelectRun }: RunsListProps) {
             >
               <span className="flex items-center justify-between gap-2">
                 <span className="text-label font-semibold">{run.project}</span>
-                <StatusBadge label={status.label} tone={status.tone} />
+                <StatusBadge label={runStatusLabel(run)} tone={status.tone} />
               </span>
               <span className="font-mono text-caption text-fg-muted">{run.id}</span>
               <span className="flex items-center justify-between gap-2 text-caption text-fg-subtle">

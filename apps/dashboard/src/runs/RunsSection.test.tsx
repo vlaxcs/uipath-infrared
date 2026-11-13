@@ -1,27 +1,40 @@
 import { useState } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import type { Run } from "~/runs/types";
+import { failedRun } from "~/runs/fixtures";
+import { sampleRun, sampleRuns } from "~/runs/sampleRun";
+import { sampleRunSource } from "~/runs/sampleRunSource";
 import { RunsSection } from "~/runs/RunsSection";
-import { sampleRuns } from "~/runs/sampleRun";
+import type { RunDetail } from "~/runs/types";
 
 afterEach(cleanup);
 
-const secondRun: Run = {
-  ...sampleRuns[0],
-  id: "run-demo-shop-0002",
-  project: "checkout",
-  status: "failed",
-};
+function Harness({ runs }: { runs: readonly RunDetail[] }) {
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const selectedRun = runs.find((run) => run.id === selectedRunId) ?? null;
 
-function Harness({ runs }: { runs: readonly Run[] }) {
-  const [selected, setSelected] = useState<string | null>(null);
-  return <RunsSection runs={runs} selectedRunId={selected} onSelectRun={setSelected} />;
+  return (
+    <RunsSection
+      runs={runs}
+      selectedRun={selectedRun}
+      selectedRunId={selectedRunId}
+      onSelectRun={setSelectedRunId}
+      source={sampleRunSource}
+    />
+  );
 }
 
 describe("the runs section", () => {
   it("says when there are no runs", () => {
-    render(<RunsSection runs={[]} selectedRunId={null} onSelectRun={() => {}} />);
+    render(
+      <RunsSection
+        runs={[]}
+        selectedRun={null}
+        selectedRunId={null}
+        onSelectRun={() => {}}
+        source={sampleRunSource}
+      />,
+    );
     expect(screen.getByText("No runs yet")).toBeTruthy();
   });
 
@@ -31,7 +44,7 @@ describe("the runs section", () => {
   });
 
   it("switches the summary between runs", () => {
-    render(<Harness runs={[sampleRuns[0], secondRun]} />);
+    render(<Harness runs={[sampleRun, failedRun]} />);
 
     fireEvent.click(screen.getByRole("button", { name: /run-demo-shop-0002/ }));
     expect(screen.getByRole("region", { name: "checkout" }).textContent).toContain("Failed");

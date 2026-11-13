@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { Run } from "~/runs/types";
-import { formatTimestamp } from "~/runs/format";
-import { runStatusMeta } from "~/runs/status";
+import { formatTimestamp, shortHash } from "~/runs/format";
+import { runStatusLabel, runStatusMeta } from "~/runs/status";
 import { StatusBadge } from "~/ui/StatusBadge";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -26,7 +26,7 @@ export function RunSummary({ run }: { run: Run }) {
           </h2>
           <p className="font-mono text-caption text-fg-muted">{run.id}</p>
         </div>
-        <StatusBadge label={status.label} tone={status.tone} />
+        <StatusBadge label={runStatusLabel(run)} tone={status.tone} />
       </div>
 
       <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -47,7 +47,7 @@ export function RunSummary({ run }: { run: Run }) {
           {files.map((file) => (
             <li key={file.path} className="flex flex-col gap-0.5 rounded-control bg-surface-muted px-3 py-2">
               <span className="text-label">{file.path}</span>
-              <span className="break-all font-mono text-caption text-fg-subtle">{file.sha256.slice(0, 12)}</span>
+              <span className="break-all font-mono text-caption text-fg-subtle">{shortHash(file.sha256)}</span>
             </li>
           ))}
         </ul>
