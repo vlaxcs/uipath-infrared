@@ -12,6 +12,8 @@ Everything the extractor side and the decision-engine side must agree on, plus a
 | `mock/demo-shop.infra.json` | The deliberately bad mock project (38 components, 30 edges, 4 stacks). |
 | `mock/demo-shop.expected-signals.md` | What a competent engine should notice in the mock. Engine-side, not input. |
 | `mock/build_demo_shop.py` | Authoring helper for the mock. All numbers typed by hand; reads nothing from `ground_truth/`. |
+| `candidates.schema.json` / `candidates.example.json` | The agent's proposals: what changes, never what it costs. Input to `engine evaluate --candidates`. |
+| `candidates_integrity.py` / `test_candidates_contract.py` | The candidate rules a JSON Schema can't express, and a test per rule. |
 | `run.schema.json` / `run.example.json` | One run of the workflow: its state and its event log. Written by the orchestrator, read by the surfaces and the flow test. |
 | `run_integrity.py` / `test_run_contract.py` | The run rules a JSON Schema can't express, and a test per rule. |
 | `check_mock.py` | Schema + referential-integrity checker (run it on real extractor output too). |
@@ -56,6 +58,16 @@ Do **not** build the mock from `ground_truth/planted_issues.json`; that is the a
 - **Edges**: `from` depends on `to`. `kind` ∈ network/data/event/traffic/dns/config. `evidence` ∈ declared/observed/inferred. `gb_month` optional: **Floci produces no traffic data**, so there it is estimated or synthetic. Omit rather than invent. Kind and `stay_together` decide what moves together; `gb_month` only prices egress.
 - **`stay_together`**: optional owner/extractor hints. The engine should also derive groups from `data`/`traffic` edges with `latency_sensitive` or large volume; hints win.
 - **Extensions**: new fields must start with `x_`.
+
+## Field rules (candidates.json)
+
+- **No numbers from the model.** No field carries money, a score, availability or confidence, and `x_` extensions are not allowed. The only numbers are configuration: `quantity`, `zones`, `vcpu`, `memory_gb`.
+- **`candidates[].id`**: unique in the file, never an engine strategy name (the `strategies_enabled` enum in `forecast.schema.json`). Kept as-is in `result.json`.
+- **`builds_on`**: an engine strategy, a candidate earlier in the file, or `null` for today's estate. The candidate lists only its own actions; the engine adds the parent's, and the candidate's action replaces the parent's on the same component.
+- **`actions[]`**: one per component per candidate, each with a `reason` (the evidence read). `delete`, `stop`, `autoscale`, `remediate` carry no `to`; `resize` needs a `tier`, `vcpu` or `memory_gb`; `scale` needs `quantity` or `zones`; `move` needs an `option`. `account` is allowed only for `remediate`.
+- **`to`**, checked against the catalog and the infra when the project matches: the option exists and is for the component's kind, the region matches one of the option's regions, the tier is one the option offers. Breaking a hard constraint is not an error here: that is the engine's job, and the sample does it on purpose (`rds-orders`, pii, to `us-east-1`).
+- **`revision`**: the run's revision. `revises` only above 0.
+- **At most 10 candidates** per file.
 
 ## Field rules (run.json)
 
@@ -149,13 +161,14 @@ Known Floci gaps: no `CreateSnapshot`, ASG/ECS/EKS resources are real Docker con
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r contracts/requirements.txt
-.venv/bin/python contracts/check_mock.py                                       # mock + forecast + catalog + result + run examples
+.venv/bin/python contracts/check_mock.py                                       # mock + forecast + catalog + result + candidates + run examples
 .venv/bin/python contracts/check_mock.py contracts/real/floci-estate.infra.json  # extractor output
 .venv/bin/python contracts/check_mock.py path/to/result.json                     # engine output
-.venv/bin/python -m unittest discover -s contracts -p "test_*.py"              # the run contract's rules
+.venv/bin/python contracts/check_mock.py path/to/candidates.json                 # agent output
+.venv/bin/python -m unittest discover -s contracts -p "test_*.py"              # the run and candidates contracts' rules
 ```
 
-Last run on this tree: all six example files pass their schemas (infra, forecast, catalog, two results, run), 38 components / 30 edges, 21 run events, 0 integrity errors, 0 warnings; 39 run contract tests pass. The checker also fails correctly on a broken copy (duplicate id, dangling edge, missing provenance, unknown field, bad enum, node_group with a wrong parent, top-level `findings`).
+Last run on this tree: all seven example files pass their schemas (infra, forecast, catalog, two results, candidates, run), 38 components / 30 edges, 21 run events, 0 integrity errors, 0 warnings; 67 contract tests pass (39 run, 28 candidates). The checker also fails correctly on a broken copy (duplicate id, dangling edge, missing provenance, unknown field, bad enum, node_group with a wrong parent, top-level `findings`).
 
 ## Versioning
 
