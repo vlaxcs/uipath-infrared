@@ -82,7 +82,6 @@ A **simulated clock** compresses weeks into minutes, so the demo moves time forw
 - **Offer accepted:** the person lands in the HRIS (Workday at UiPath, mocked). The case opens.
 - **Contract** goes to signing (DocuSign, mocked). Not signed in X days: the agent nudges the recruiter.
 - **Hardware**, after signing: the person picks Mac or Windows in a form. **The agent decides:** Mac wanted but the team requires Windows, it explains to the person and tells IT; Mac out of stock, it proposes an alternative, IT approves. *Manual today.*
-- **Occupational medicine:** **the agent decides** a clinic slot before day 1, the person confirms. No slot in time: it proposes moving the start date, HR decides. *Manual today, "in every company".*
 - **Who receives them on day 1:** **the agent decides** from the schedule. Manager in that office that day? If not, a buddy or a colleague from the same office. Nobody there (e.g. a coworking space): it proposes a remote first day or another date, the manager decides. *Their biggest challenge: the same experience across offices.*
 - **D-2:** the manager gets a Slack message with what to prepare.
 - **D-1:** the agent posts to the IT and reception channel: "X starts tomorrow at 10, Y receives them". *Manual today.*
@@ -91,6 +90,7 @@ A **simulated clock** compresses weeks into minutes, so the demo moves time forw
 **Onboarding (day 1 onward)**
 - **Day 1:** welcome and the first day's plan.
 - **Day 2:** mandatory trainings. The agent tracks completion, nudges, and escalates to the manager at the deadline.
+- **Occupational medicine at Regina Maria**, part of the trainings: **the agent decides** which free slots to offer, emails them to the person, reads the slot they pick from their reply, and books the appointment. *Manual today, "in every company".*
 - **Check-ins, week 1 and month 1:** **the agent decides** a slot both calendars have free. Manager goes on leave: it reschedules.
 - **Probation:** 2 weeks before it ends, the manager gets "probation ends, do you confirm?". The agent gathers the check-in notes; the manager decides. *Suggested by People Ops.*
 

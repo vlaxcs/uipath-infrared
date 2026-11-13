@@ -101,5 +101,6 @@ CVs go in `docs/hackathon/cvs/`. Add here what each CV misses.
 | Idea 5 | Two surfaces: a phone demo of what the employee receives (email, Slack bot setup), and a platform with locked modules, an "Awaiting onboarding" panel and a state graph per person | Vlad |
 | Idea 6 | Name: Wellboarder | Vlad |
 | Idea 5 | Real, not simulated: the Slack bot, the new hire's Microsoft account and email, Microsoft SSO sign-in; replaces "simulated in the phone frame" | Vlad |
+| Idea 5 | Occupational medicine at Regina Maria moves to the trainings: slots proposed by email, the slot read from the reply, then booked | Vlad |
 | Idea gate | Mentors validated the idea; the validation form is out, answers pending | Vlad |
 | Idea 1 | Rejected as separate jobs: H1 (Slack requests) and H4 (ask HR anything) | H1 can come back as the channel, H4 is a single LLM call with RAG |
