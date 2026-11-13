@@ -35,7 +35,7 @@ The technical design for building Infrared, as described in `docs/prd.md`. This 
 | Phone frame | an iPhone screen on the laptop, running a browser logged into Slack, where approvals happen live in the demo | TypeScript | new |
 | Product page | the vertical page that carries the theme and doubles as the pitch site | TypeScript, React | started (`apps/site`, imported from an earlier product page) |
 
-**How components connect.** The pipeline stages exchange contract files (`infra.json`, `forecast.json`, `catalog.json`, `result.json`), validated against their schemas. The orchestrator calls each stage as a subprocess or over HTTP, and serves run state and events to the surfaces over an HTTP JSON API. gRPC is reserved for Go-to-Go calls if more Go services appear; with one Go service, plain HTTP and the existing JSON Schemas avoid maintaining a second set of definitions in protobuf.
+**How components connect.** The pipeline stages exchange contract files (`infra.json`, `forecast.json`, `catalog.json`, `result.json`), validated against their schemas. The orchestrator calls each stage as a subprocess or over HTTP, and serves run state and events to the surfaces over an HTTP JSON API. No gRPC and no protobuf in the MVP: the JSON Schemas in `contracts/` are the only contract.
 
 ## 3. Repository structure
 
