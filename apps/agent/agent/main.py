@@ -13,6 +13,7 @@ from claude_agent_sdk import (
     AgentDefinition, AssistantMessage, ClaudeAgentOptions, ResultMessage, TextBlock, ToolUseBlock, query,
 )
 
+from agent import settings
 from agent.tools import DRYRUN, FINDINGS, OUT, TOOL_NAMES, server
 
 COMMON = """You analyse a simulated AWS estate (floci, us-east-1) for savings and improvements.
@@ -103,4 +104,5 @@ if __name__ == "__main__":
     ap.add_argument("--model", default="sonnet")
     ap.add_argument("--max-turns", type=int, default=150)
     a = ap.parse_args()
+    settings.llm()
     asyncio.run(run(a.focus, a.model, a.max_turns))

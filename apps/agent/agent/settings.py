@@ -28,3 +28,16 @@ def aws() -> AwsSettings:
         access_key_id=required("AWS_ACCESS_KEY_ID"),
         secret_access_key=required("AWS_SECRET_ACCESS_KEY"),
     )
+
+
+@dataclass(frozen=True)
+class LlmSettings:
+    api_key: str
+    base_url: str | None
+
+
+def llm() -> LlmSettings:
+    return LlmSettings(
+        api_key=required("ANTHROPIC_API_KEY"),
+        base_url=os.environ.get("ANTHROPIC_BASE_URL", "").strip() or None,
+    )
