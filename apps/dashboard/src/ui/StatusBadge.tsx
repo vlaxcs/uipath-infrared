@@ -1,4 +1,4 @@
-export type StatusTone = "running" | "awaiting" | "completed" | "failed" | "neutral";
+export type StatusTone = "running" | "awaiting" | "completed" | "failed" | "neutral" | "idle" | "orphan";
 
 const TONE_CLASSES: Record<StatusTone, string> = {
   running: "border-status-running text-status-running",
@@ -6,6 +6,8 @@ const TONE_CLASSES: Record<StatusTone, string> = {
   completed: "border-status-completed text-status-completed",
   failed: "border-status-failed text-status-failed",
   neutral: "border-border-strong text-fg-muted",
+  idle: "border-status-idle text-status-idle",
+  orphan: "border-status-orphan text-status-orphan",
 };
 
 export function StatusBadge({ label, tone }: { label: string; tone: StatusTone }) {

@@ -23,6 +23,15 @@
   --color-status-completed: var(--color-status-completed);
   --color-status-failed: var(--color-status-failed);
   --color-status-neutral: var(--color-status-neutral);
+  --color-status-idle: var(--color-status-idle);
+  --color-status-orphan: var(--color-status-orphan);
+
+  --color-graph-stack-1: var(--color-graph-stack-1);
+  --color-graph-stack-2: var(--color-graph-stack-2);
+  --color-graph-stack-3: var(--color-graph-stack-3);
+  --color-graph-stack-4: var(--color-graph-stack-4);
+  --color-graph-stack-5: var(--color-graph-stack-5);
+  --color-graph-edge: var(--color-graph-edge);
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
