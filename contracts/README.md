@@ -1,4 +1,4 @@
-# InfraRed data contract (v1.0)
+# Infrared data contract (v1.0)
 
 Everything the extractor side and the decision-engine side must agree on, plus a hand-written bad project to build against.
 
@@ -117,11 +117,9 @@ Known Floci gaps: no `CreateSnapshot`, ASG/ECS/EKS resources are real Docker con
 ## Validate
 
 ```bash
-python3 -m venv /tmp/ir-venv && /tmp/ir-venv/bin/pip install jsonschema
-/tmp/ir-venv/bin/python contract/check_mock.py                    # mock + forecast + catalog examples
-/tmp/ir-venv/bin/python contract/check_mock.py path/to/real.json  # extractor output
-# one-liner, schema only:
-/tmp/ir-venv/bin/python -c "import json,jsonschema;jsonschema.Draft202012Validator(json.load(open('contract/infra.schema.json'))).validate(json.load(open('contract/mock/demo-shop.infra.json')));print('ok')"
+python3 -m venv .venv && .venv/bin/pip install -r contracts/requirements.txt
+.venv/bin/python contracts/check_mock.py                                       # mock + forecast + catalog examples
+.venv/bin/python contracts/check_mock.py contracts/real/floci-estate.infra.json  # extractor output
 ```
 
 Last run on this tree: all three example files pass their schemas, 38 components / 30 edges, 0 integrity errors, 0 warnings. The checker also fails correctly on a broken copy (duplicate id, dangling edge, missing provenance, unknown field, bad enum, node_group with a wrong parent, top-level `findings`).

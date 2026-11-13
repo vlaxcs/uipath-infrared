@@ -1,6 +1,6 @@
-# InfraRed optimizer agent
+# Infrared optimizer agent
 
-A Claude Agent SDK app that reviews the simulated AWS estate (floci, see the top-level `README.md`) and
+A Claude Agent SDK app that reviews the simulated AWS estate (floci, see `apps/estate/README.md`) and
 proposes what to optimize: rightsizing, idle/orphan removal, consolidation, and migration to a better-fit
 service. It is **read-only**. Proposed changes are written as dry-run scripts for a human to review; the
 agent never applies them.
@@ -46,14 +46,14 @@ agent never applies them.
 
 ## Run it
 
-Prerequisites: floci running and the estate built (`./run.sh` from the repo root), plus credentials for
-Claude. The SDK launches the Claude Code CLI, so an existing Claude Code login may work; otherwise
-`export ANTHROPIC_API_KEY=...`.
+Prerequisites: floci running and the estate built (`apps/estate/run.sh`), and a `.env` at the repo root
+copied from `.env.example`, with `ANTHROPIC_API_KEY` filled in. The SDK launches the Claude Code CLI, so an
+existing Claude Code login may work without the key.
+
+Run from `apps/agent/` (on Windows, in Git Bash or WSL):
 
 ```bash
-cd /Users/rosuae/Documents/InfraRed
-./run.sh                                   # only if the estate isn't up yet
-.venv/bin/pip install claude-agent-sdk     # once
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # once
 
 .venv/bin/python -m agent.main                                   # full review
 .venv/bin/python -m agent.main --focus "NAT gateways and orphan storage"   # cheaper, narrower
@@ -74,15 +74,17 @@ Each run **deletes and recreates `out/`**.
 | `report.md` | the lead's final ranked summary |
 | `dryrun/F00N.sh` | proposed change for finding `F00N`, using the aws CLI against floci. Review before running; nothing executes it. |
 
-Applying one by hand: `bash out/dryrun/F003.sh` (it sets the floci endpoint and test credentials itself).
+Applying one by hand, from the repo root: `set -a; . ./.env; set +a; bash apps/agent/out/dryrun/F003.sh`. The script holds no endpoint or credentials; it stops if the environment is not loaded.
 
 ## Score it
 
+The scorer lives with the ground truth, in `apps/estate/`:
+
 ```bash
-.venv/bin/python -m agent.score
+python apps/estate/score.py                     # reads apps/agent/out/findings.jsonl
 ```
 
-Compares `out/findings.jsonl` with `ground_truth/planted_issues.json` and prints recall overall and per
+Compares the findings with `apps/estate/ground_truth/planted_issues.json` and prints recall overall and per
 category, how many findings match a planted issue, and the missed non-security issues. Matching is by
 resource name tokens, so it is crude: read the misses and the unmatched findings by hand (unmatched may be
 real extra findings, not false positives). Run it yourself; never expose the ground truth to the agent.
@@ -93,14 +95,15 @@ real extra findings, not false positives). Run it yourself; never expose the gro
 - Metric series aren't keyed to the planted-issue ledger; the agent must match series to resources itself.
 - Not yet verified: that subagents can call the `mcp__infra__*` tools. If a run shows the specialists
   failing on tool access, move the tool calls to the lead or adjust `AGENTS[...].tools` in `agent/main.py`.
-- Output is not yet converted to the `contract/forecast.schema.json` format; `findings.jsonl` is its own shape.
+- Output is not yet converted to a contract format; `findings.jsonl` is its own shape.
 
 ## Files
 
 ```
-agent/
-  main.py    lead + subagent definitions, prompts, run loop
-  tools.py   read-only MCP tools and finding/dry-run writer
-  score.py   scorer against ground_truth (human use only)
-  README.md  this file
+apps/agent/
+  agent/main.py      lead + subagent definitions, prompts, run loop
+  agent/tools.py     read-only MCP tools and finding/dry-run writer
+  agent/aws.py       boto3 clients built from the environment
+  agent/settings.py  reads .env, stops when a variable is missing
+  requirements.txt
 ```

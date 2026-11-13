@@ -1,0 +1,3 @@
+boto3==1.44.2
+claude-agent-sdk==0.2.181
+python-dotenv==1.2.4

@@ -1,10 +1,14 @@
-# Real extractor output (live Floci estate)
+# Extractor
 
-`floci-estate.infra.json` is what `../extract_floci.py` produced from the running Floci estate.
-Same schema as `../mock/demo-shop.infra.json` (`infra.schema.json`), so the engine reads either file unchanged.
+`extract_floci.py` reads the running estate through API calls only and writes `contracts/real/floci-estate.infra.json`.
+Same schema as `contracts/mock/demo-shop.infra.json` (`contracts/infra.schema.json`), so the engine reads either file unchanged.
+Endpoint, region and credentials come from the repo-root `.env`.
 
-    ../.venv/bin/python ../extract_floci.py            # re-extract (needs floci up on :4566)
-    python3 ../check_mock.py real/floci-estate.infra.json   # validate (needs jsonschema)
+Run from `apps/extractor/`:
+
+    python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # once
+    .venv/bin/python extract_floci.py                                     # re-extract (needs floci up)
+    python ../../contracts/check_mock.py ../../contracts/real/floci-estate.infra.json   # validate
 
 ## Mock vs real
 

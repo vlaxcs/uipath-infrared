@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://infrared.local/contract/catalog.schema.json",
-  "title": "InfraRed service catalog",
+  "title": "Infrared service catalog",
   "description": "Static knowledge the engine prices candidates with: for each component `kind`, the options available per provider, with pricing formula, SLA/failure domains, supported features and migration effort. Hand-maintained, versioned like code. The example file is ILLUSTRATIVE: numbers are rounded, plausible-looking and NOT real price lists.",
   "type": "object",
   "required": ["schema_version", "illustrative", "currency", "options"],

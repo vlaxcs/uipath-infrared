@@ -12,7 +12,7 @@ from typing import Any
 
 from claude_agent_sdk import create_sdk_mcp_server, tool
 
-from synth.common import client
+from agent.aws import client
 
 OUT = Path(__file__).resolve().parent.parent / "out"
 FINDINGS = OUT / "findings.jsonl"
@@ -140,8 +140,8 @@ async def record_finding(args: dict[str, Any]) -> dict:
         path = DRYRUN / f"{fid}.sh"
         path.write_text(
             "#!/usr/bin/env bash\n# DRY-RUN PROPOSAL - review before running. Not executed by the agent.\n"
-            f"# {args.get('title', '')}\nset -euo pipefail\nexport AWS_ENDPOINT_URL=http://localhost:4566 "
-            "AWS_DEFAULT_REGION=us-east-1 AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test\n" + script + "\n"
+            f"# {args.get('title', '')}\nset -euo pipefail\n"
+            ': "${AWS_ENDPOINT_URL:?load the repo .env first: set -a; . ./.env; set +a}"\n' + script + "\n"
         )
         rec["dry_run_script"] = str(path.relative_to(OUT.parent))
     with FINDINGS.open("a") as f:

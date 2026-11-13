@@ -1,4 +1,4 @@
-# InfraRed synthetic AWS estate (floci)
+# Infrared synthetic AWS estate (floci)
 
 Deliberately badly-built infrastructure for testing an observer/advisor agent.
 
@@ -33,9 +33,12 @@ clustered by stack; filter by stack / connection kind / status; click a node for
 Nodes come from live floci state; edges = `topology.json` + relationships read from the API (placement, roles, containment).
 Stack, idle and orphan are derived from naming and observed metrics, not from the planted-issue ledger. `run.sh` regenerates it.
 
-## Extractor (`contract/extract_floci.py`)
-Reads the live estate through API calls only and writes `contract/real/floci-estate.infra.json` in the `contract/infra.schema.json`
-format. See `contract/real/README.md` for how it differs from the mock. It never reads `ground_truth/`.
+## Extractor (`apps/extractor/`)
+Reads the live estate through API calls only and writes `contracts/real/floci-estate.infra.json` in the `contracts/infra.schema.json`
+format. See `apps/extractor/README.md` for how it differs from the mock. It never reads `ground_truth/`.
+
+## Configuration
+Endpoint, region and credentials come from the repo-root `.env` (copy `.env.example`). The scripts are bash: on Windows, run them in Git Bash or WSL.
 
 ## Ground truth
 `ground_truth/planted_issues.json` lists every planted flaw (stack, service, resource, issue, category,

@@ -21,12 +21,16 @@ from pathlib import Path
 import boto3
 from botocore.config import Config
 
+import settings
+
+AWS = settings.aws()
+
 ap = argparse.ArgumentParser()
-ap.add_argument("--endpoint", default="http://localhost:4566")
-ap.add_argument("--region", default="us-east-1")
+ap.add_argument("--endpoint", default=AWS.endpoint_url)
+ap.add_argument("--region", default=AWS.region)
 ap.add_argument("--project", default="floci-estate")
 ap.add_argument("--window-days", type=int, default=14)
-ap.add_argument("--out", default=str(Path(__file__).parent / "real" / "floci-estate.infra.json"))
+ap.add_argument("--out", default=str(Path(__file__).resolve().parents[2] / "contracts" / "real" / "floci-estate.infra.json"))
 A = ap.parse_args()
 
 IS_FLOCI = "localhost" in A.endpoint or "127.0.0.1" in A.endpoint
@@ -37,8 +41,8 @@ WARN = []
 
 
 def cl(svc):
-    return boto3.client(svc, endpoint_url=A.endpoint, region_name=A.region, aws_access_key_id="test",
-                        aws_secret_access_key="test", config=CFG)
+    return boto3.client(svc, endpoint_url=A.endpoint, region_name=A.region, aws_access_key_id=AWS.access_key_id,
+                        aws_secret_access_key=AWS.secret_access_key, config=CFG)
 
 
 ec2, eks, ecs, elb, asg = cl("ec2"), cl("eks"), cl("ecs"), cl("elbv2"), cl("autoscaling")

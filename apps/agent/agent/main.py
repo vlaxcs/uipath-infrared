@@ -1,4 +1,4 @@
-"""InfraRed optimizer agent (Claude Agent SDK).
+"""Infrared optimizer agent (Claude Agent SDK).
 
     .venv/bin/python -m agent.main [--focus "text"] [--model sonnet|opus]
 

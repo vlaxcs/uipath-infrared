@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://infrared.local/contract/forecast.schema.json",
-  "title": "InfraRed forecast & decision settings",
+  "title": "Infrared forecast & decision settings",
   "description": "What the roadmap, financial forecast and the CTO's preferences are turned into. Written by hand at first; an LLM may later fill it from roadmap text, but the engine only ever sees this JSON. Everything the scoring needs to be deterministic is explicit here: scenario weights, constraint thresholds and the cost/risk/effort weights.",
   "type": "object",
   "required": ["schema_version", "id", "horizon_months", "currency", "scenarios", "hard_constraints", "cto_settings", "business"],

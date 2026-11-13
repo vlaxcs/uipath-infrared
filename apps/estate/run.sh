@@ -2,7 +2,7 @@
 # Rebuild the whole estate: wipe floci, create resources, backfill 14d of metrics, start the live pusher.
 set -e
 cd "$(dirname "$0")"
-[ -d .venv ] || { python3 -m venv .venv && .venv/bin/pip install -q boto3; }
+[ -d .venv ] || { python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt; }
 ./stop-live.sh
 ./reset.sh
 .venv/bin/python -m synth.main

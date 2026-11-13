@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://infrared.local/contract/infra.schema.json",
-  "title": "InfraRed infrastructure snapshot (extractor output)",
+  "title": "Infrared infrastructure snapshot (extractor output)",
   "description": "One JSON document describing a project's infrastructure as FACTS. The extractor (colleague A) writes it; the decision engine (colleague B) reads it. It deliberately contains no findings, scores, recommendations or 'issues': the engine derives all of those itself (otherwise the engine would be graded on the extractor's opinions, and two engines could never be compared on the same input). Fields outside `usage`, `cost` and `edges[].gb_month` are configuration facts read from the provider API and are 'observed' by definition. Unknown values are omitted or null, never guessed. Extension fields must start with 'x_'.",
   "type": "object",
   "required": ["schema_version", "project", "source", "components", "edges"],

@@ -7,20 +7,21 @@ import zipfile
 import boto3
 from botocore.config import Config
 
-ENDPOINT = os.environ.get("AWS_ENDPOINT_URL", "http://localhost:4566")
-REGION = "us-east-1"
+from synth import settings
+
 ACCOUNT = "000000000000"
 
 _cfg = Config(retries={"max_attempts": 2}, connect_timeout=5, read_timeout=60)
 
 
 def client(service):
+    aws = settings.aws()
     return boto3.client(
         service,
-        endpoint_url=ENDPOINT,
-        region_name=REGION,
-        aws_access_key_id="test",
-        aws_secret_access_key="test",
+        endpoint_url=aws.endpoint_url,
+        region_name=aws.region,
+        aws_access_key_id=aws.access_key_id,
+        aws_secret_access_key=aws.secret_access_key,
         config=_cfg,
     )
 

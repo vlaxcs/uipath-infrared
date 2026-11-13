@@ -8,3 +8,8 @@ build/
 Thumbs.db
 .claude/settings.local.json
 CLAUDE.local.md
+.venv/
+__pycache__/
+*.pyc
+apps/estate/logs/
+apps/agent/out/

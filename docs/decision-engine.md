@@ -1,6 +1,6 @@
-# InfraRed decision engine
+# Infrared decision engine
 
-How InfraRed decides which plan is best, and what the engine must do with the contract data to get there. Design only: nothing here is built yet. Inputs are the three contract files in `infrared/contract/` (see its `README.md` for field rules).
+How Infrared decides which plan is best, and what the engine must do with the contract data to get there. Design only: nothing here is built yet. Inputs are the three contract files in `contracts/` (see its `README.md` for field rules).
 
 ## The rule: the LLM proposes, the calculator decides, the LLM explains
 
@@ -17,7 +17,7 @@ Every number traces back to a catalog price, an SLA figure, a forecast assumptio
                                     constraints → score → rank                   migration plan)
 ```
 
-### How it fits with `infrared/agent/`
+### How it fits with `apps/agent/`
 
 The existing optimizer agent reads Floci directly and records findings, with savings in USD that the model estimates from its own knowledge of list prices. Keep it for what it does well: qualitative findings, dependency reasoning and dry-run scripts. **The numbers in the final output come from the engine, not from the model.** Later, expose the engine as an MCP tool (`evaluate_candidate(actions) -> priced result`) so that every candidate the agent proposes is priced and checked deterministically.
 
@@ -55,7 +55,7 @@ The extractor reports facts; the engine decides what they mean.
 ### Confidence
 Every recommendation carries the **weakest provenance** of the inputs behind it: `observed` gives high confidence, `estimated` medium, `synthetic` low. The output says which input set the level ("GPU shutdown: low, `gpu_pct` is synthetic"). Confidence never changes the score; it is shown next to it.
 
-### Gaps in real data (`infrared/contract/real/`)
+### Gaps in real data (`contracts/real/`)
 The real extraction differs from the mock, and the engine has to handle these:
 - **No `features_used`** (the RDS API can't list Postgres extensions). A move to a target with fewer features is **allowed but flagged** "verify extensions before migrating"; its risk goes up by 0.15 and the migration plan gets a check step. It is blocked only when `features_used` is present and the target doesn't support everything in it.
 - **No `gb_month` on edges.** Egress stays unpriced and the candidate is flagged `egress_unpriced`, so a cross-provider move never looks cheaper only because traffic data is missing.
@@ -128,7 +128,7 @@ Movement rules:
 
 ## 6. Output: `result.json`
 
-To be formalised as `infrared/contract/result.schema.json`, so the dashboard and LLM work can start against it before the engine is finished. Sketch (the values are placeholders, not results):
+To be formalised as `contracts/result.schema.json`, so the dashboard and LLM work can start against it before the engine is finished. Sketch (the values are placeholders, not results):
 
 ```json
 {
@@ -156,7 +156,7 @@ To be formalised as `infrared/contract/result.schema.json`, so the dashboard and
 
 ## 7. Build order and how we know it works
 
-Each step can be demoed on its own. Tests come from `infrared/contract/mock/demo-shop.expected-signals.md`: the engine passes when they pass. Never test against `ground_truth/`, which is the agent's answer key.
+Each step can be demoed on its own. Tests come from `contracts/mock/demo-shop.expected-signals.md`: the engine passes when they pass. Never test against `ground_truth/`, which is the agent's answer key.
 
 | # | Build | Test on the mock |
 |---|---|---|
@@ -169,4 +169,4 @@ Each step can be demoed on its own. Tests come from `infrared/contract/mock/demo
 | g | scoring, Pareto, payback, robustness, nothing-feasible fallback | deterministic winner; every loser has a reason |
 | h | run on `real/floci-estate.infra.json` | no crash; the flags from "Gaps in real data" appear |
 
-Then the LLM layer, built on numbers that already work: roadmap text → `forecast.json`, the critic pass, the written explanation and migration plan, and an `evaluate_candidate` tool for `infrared/agent/`.
+Then the LLM layer, built on numbers that already work: roadmap text → `forecast.json`, the critic pass, the written explanation and migration plan, and an `evaluate_candidate` tool for `apps/agent/`.

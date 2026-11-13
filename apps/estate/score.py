@@ -1,15 +1,17 @@
-"""Score out/findings.jsonl against ground_truth/planted_issues.json (run by a human, never by the agent).
+"""Score the agent's findings against ground_truth/planted_issues.json (run by a human, never by the agent).
 
-    .venv/bin/python -m agent.score
+    python score.py [path/to/findings.jsonl]
 
 A planted issue counts as found when a finding's resources/title/evidence mention its resource name (or the
 numeric/word tokens of it) and the stack or service is plausible. Crude on purpose: read the misses by hand.
 """
 import json
 import re
+import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ESTATE = Path(__file__).resolve().parent
+DEFAULT_FINDINGS = ESTATE.parent / "agent" / "out" / "findings.jsonl"
 
 
 def tokens(s: str) -> set[str]:
@@ -17,8 +19,8 @@ def tokens(s: str) -> set[str]:
 
 
 def main() -> None:
-    truth = json.loads((ROOT / "ground_truth/planted_issues.json").read_text())["issues"]
-    path = ROOT / "out/findings.jsonl"
+    truth = json.loads((ESTATE / "ground_truth/planted_issues.json").read_text())["issues"]
+    path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_FINDINGS
     findings = [json.loads(l) for l in path.read_text().splitlines()] if path.exists() else []
     blobs = [(f["id"], " ".join([f.get("title", ""), " ".join(map(str, f.get("resources", []))),
                                   f.get("recommendation", "")]).lower()) for f in findings]
