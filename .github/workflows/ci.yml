@@ -37,8 +37,11 @@ jobs:
           uv venv --python 3.12 .venv
           uv pip install --python .venv -r contracts/requirements.txt
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
-      - name: Mock, forecast and catalog examples
+      - name: Mock, forecast, catalog and run examples
         run: python contracts/check_mock.py
+      - name: Contract tests
+        if: ${{ !cancelled() }}
+        run: python -m unittest discover -s contracts -p "test_*.py"
       - name: Real Floci extraction
         if: ${{ !cancelled() }}
         run: python contracts/check_mock.py contracts/real/floci-estate.infra.json
