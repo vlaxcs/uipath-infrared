@@ -106,7 +106,7 @@ A **simulated clock** compresses weeks into minutes, so the demo moves time forw
 
 ### Two surfaces
 
-- **Phone, the employee's view:** everything the new hire receives during onboarding: the emails, setting up the Slack bot, and the rest of what reaches them.
+- **Phone, the employee's view:** everything the new hire receives during onboarding: the emails, setting up the Slack bot, and the rest of what reaches them. Shown in a phone frame on the laptop, not on a real phone.
 - **Platform, HR and the manager's view:**
   - a side panel with most modules of the previous internal platform (Dashboard, Team Schedule, Tasks, Projects, Performance Review, Org Chart, Employees, Contracts, Leave and the rest), shown but locked;
   - an **Awaiting onboarding** panel listing the people in onboarding;
