@@ -1,6 +1,6 @@
 # Infrared
 
-Infrared is an end-to-end agentic workflow that re-plans a company's infrastructure around the projects it runs. It analyses the current infrastructure against each internal project's known expectations, decides what should change for high availability, cost and zones, and shows step by step how to implement the change.
+Infrared is an end-to-end agentic workflow that re-plans a company's infrastructure around the projects it runs. It analyses the current infrastructure against each internal project's known expectations, decides what should change against the criteria chosen for each project (high availability, cost, zones), and shows step by step how to implement the change.
 
 ## Customers
 
@@ -29,22 +29,50 @@ A CTO wants the best ratio of quality, functionality and price from their infras
 - The client's current infrastructure.
 - Their internal projects and what each one is expected to need, from the project's financial roadmap.
 
-**Decision criteria**
+**Data sources Infrared reads**
+
+| Source | What Infrared takes from it |
+| --- | --- |
+| The cloud provider's APIs (AWS in the MVP: `describe`/`list` calls) | every resource, its configuration, and how resources depend on each other |
+| CloudWatch metrics | CPU, RAM, disk, network and request usage over time |
+| AI usage: GPU metrics, and token spend on managed models (e.g. Bedrock) and third-party LLM APIs | what AI workloads consume and cost |
+| Database schemas and their statistics (Postgres catalog, table sizes, `pg_stat_statements`) | the structure behind the refactoring suggestions |
+| The GitHub API | the organisation's runners and their workflow history |
+| Provider price lists (the AWS Price List API, the public pricing pages of the targets below) | the price of every option |
+
+**Decision criteria**, chosen per project:
 1. High availability.
 2. Cost reduction.
-3. The zones wanted for each project.
+3. The zones the project needs.
 
 **Where infrastructure can move**
-- Hyperscalers.
-- Platforms such as Supabase.
-- On-prem. When the company has no on-prem lab, the plan includes setting one up: what it costs, how it is configured (cooling, disk replacement and the rest), and its risks.
+
+| Kind | Targets |
+| --- | --- |
+| Hyperscalers | AWS, Google Cloud, Azure |
+| Postgres | Supabase, Neon |
+| Compute and containers | Hetzner Cloud, Fly.io |
+| Object storage | Cloudflare R2, Backblaze B2 |
+| Cache and queues | Upstash |
+| GPU for AI workloads | RunPod |
+| On-prem | self-hosted Postgres, Kubernetes, S3-compatible storage, GitHub self-hosted runners |
+
+When the company has no on-prem lab, the plan includes setting one up: what it costs, how it is configured (cooling, disk replacement and the rest), and its risks.
+
+**Dependencies decide what moves together.** Infrared maps how resources depend on each other (network, data, events, traffic, DNS, configuration). Resources that depend on each other closely move together, and every move that splits them prices the egress and the added latency.
+
+**Usage and AI consumption.** Every decision rests on measured CPU, RAM and AI consumption: rightsizing, idle and orphan resources, GPU capacity that sits unused, and token spend that could run cheaper elsewhere.
+
+**Sandbox.** Infrared builds the new infrastructure in a sandbox and tests it there before proposing it: it simulates traffic on it, and checks the fallbacks when components fail. Details in the SPEC.
+
+**Database refactoring.** Infrared reads database schemas and their statistics, and suggests splits at database level, mainly for performance: tables that belong to different domains, hot tables that should live apart, read replicas, partitioning.
 
 **Output of a run**
 - An analysis of the current infrastructure.
 - The new layout.
 - An updated cost analysis.
 - How high availability goes up or down.
-- A visualisation of the change, step by step, showing how it would be implemented.
+- A visualisation: the infrastructure as a graph of resources and their dependencies, and the change, step by step, showing how it would be implemented.
 
 **Control**
 - Infrared chooses the data sources.
@@ -76,8 +104,8 @@ No product found turns a project's financial roadmap into a re-planned infrastru
 
 | Plan | Price |
 | --- | --- |
-| Run pack | 5 runs for 490 USD, about 98 USD a run |
-| Subscription | 199 USD a month, with runs scheduled in the cloud |
+| Run pack | 5 runs for 100 USD, 20 USD a run |
+| Subscription | 200 USD a month, with runs scheduled in the cloud |
 
 How the prices compare:
 
@@ -87,8 +115,20 @@ How the prices compare:
 | Vantage | cost visibility | Pro 30 USD a month up to 7,500 USD of tracked spend; Business 200 USD a month up to 20,000 USD |
 | Infracost | the cost of a planned change, in CI | Starter 250 USD a month; Cloud 1,000 USD a month |
 
-- The run pack costs less than the cheapest single consultant review, and each run also re-plans across providers, prices availability and on-prem, and lays out the implementation.
+- The run pack costs a fifth of the cheapest single consultant review, and each run also re-plans across providers, prices availability and on-prem, and lays out the implementation.
 - The subscription is priced at Vantage Business, which shows spend only, and below Infracost Starter.
+
+## Phases
+
+**Phase 1: analyse and decide.** Infrared runs as a sequence of steps: it reads the infrastructure, analyses it, decides against each project's criteria, and shows the new layout and the step-by-step change.
+
+**Phase 2: migrate through pull requests.** Each step of the change becomes a pull request with infrastructure code in the client's GitHub repository. Infrared keeps read-only access to the cloud and never applies a change itself:
+- a person on the client's team reviews and approves each pull request;
+- the client's own CI applies it, with the client's own credentials;
+- Infrared monitors the pull request (review, CI, merge), then reads the infrastructure again and compares the result with the forecast;
+- when the result diverges from the forecast, Infrared re-plans the remaining steps.
+
+The MVP targets phase 1 and attempts phase 2.
 
 ## MVP
 
@@ -98,7 +138,7 @@ How the prices compare:
 ## Open questions
 
 - Prices: confirm with prospective clients, and measure Infrared's own cost per run (LLM calls) before fixing them.
-- Which providers the MVP can move infrastructure to.
+- Which of the targets above the MVP prices first. The MVP's catalog covers AWS, a managed serverless Postgres and on-prem.
 - Whether infra.new (YC) already does what Infrared does.
 - Vantage's published prices disagree between sources (30/200 USD or 50/250 USD a month); this document uses the figure most sources agree on.
 
