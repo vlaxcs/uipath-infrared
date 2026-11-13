@@ -11,7 +11,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 | 3. How do we get into their day? | done |
 | 4. Business plan | skipped for now; one-off or cron, price from the form |
 | 5. Design the product | done at PRD level; provider list left for the SPEC |
-| 6. Branding | next |
+| 6. Branding | name done; Miruna proposes the rest |
 
 ## 1. Target
 
@@ -44,6 +44,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 | Vantage, CloudZero, Finout, Amnic | cost visibility and forecasting across clouds | they report and forecast spend; they don't re-plan the architecture or the HA |
 | CAST AI | Kubernetes cost automation | Kubernetes only; doesn't see databases, storage or egress |
 | Infracost | the cost of an infrastructure change, before deployment | prices a change you already designed; doesn't propose one |
+| infra.new (YC) | AI dev tool that configures cloud infrastructure for cost and security | to check: whether it re-plans across providers from a roadmap |
 | consultants | manual moves to Supabase, Neon, Vercel, R2 | one-off, by hand, no HA or forecast model |
 
 Gap: nobody turns the financial roadmap into a re-planned architecture across hyperscalers, platforms and on-prem, with the cost delta, the HA delta and a migration plan.
@@ -64,6 +65,9 @@ Gap: nobody turns the financial roadmap into a re-planned architecture across hy
 - **Demo data:** a few mocked projects, each with a deliberately bad infrastructure, running locally in Floci or another AWS emulator. The agent runs on each one and shows its results.
 
 ## 6. Branding
+
+- **Name:** InfraRed.
+- **Palette, mascot, logo:** Miruna proposes them.
 
 ## Open questions
 
