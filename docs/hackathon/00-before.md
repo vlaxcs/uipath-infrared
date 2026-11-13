@@ -86,3 +86,5 @@ CVs go in `docs/hackathon/cvs/`. Add here what each CV misses.
 | Before | Skip `/grill-with-docs` for this hackathon; the dev SPEC is grilled inline instead | Vlad's call for this session |
 | Idea 1 | Target: start-ups and small enterprises; the agent improves employee experience and HR efficiency | team decision; mentors not yet consulted |
 | Idea 1 | Rejected as the main job: worked hours math (C) | a regular program, fails the agent filter |
+| Idea 1 | Job: the employee lifecycle, onboarding to offboarding (H2 + H3); the MVP workflows are cut to fit the deadline | team decision |
+| Idea 1 | Rejected as separate jobs: H1 (Slack requests) and H4 (ask HR anything) | H1 can come back as the channel, H4 is a single LLM call with RAG |
