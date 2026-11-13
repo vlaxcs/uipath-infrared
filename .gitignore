@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+build/
+.DS_Store
+Thumbs.db
+.claude/settings.local.json
+CLAUDE.local.md
+docs/hackathon/cvs/
