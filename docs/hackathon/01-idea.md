@@ -59,6 +59,11 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 
 - **One agentic workflow** that covers the whole lifecycle: from the offer, through onboarding, the Enterpreyes flows in between, to offboarding.
 - **It doesn't have to sit next to an existing product.**
+- **Flows in between:**
+  - focus: contract amendments and performance reviews, the least automated today;
+  - useful: moving between projects and departments;
+  - nice to have: leave requests;
+  - left out: worked hours.
 - **Mocked for the MVP:** most data, such as the employees' schedule. The mocked data still drives the agent's decisions, e.g. the schedule tells it whether the manager is in the office.
 
 ## Open questions

@@ -93,4 +93,6 @@ CVs go in `docs/hackathon/cvs/`. Add here what each CV misses.
 | Idea 3 | Identity and permissions: a Microsoft organisation (Entra ID, Microsoft SSO), through Microsoft Graph | the hackathon PRD is its own MVP; the Enterpreyes PRD's constraints don't bind it |
 | Idea 5 | Onboarding starts at the offer, replacing "offer accepted and agreement signed" | Vlad |
 | Idea 5 | One agentic workflow from the offer to offboarding, with the Enterpreyes flows in between; most data mocked, mocked data still drives decisions | Vlad |
+| Idea 5 | Flows in between: focus on contract amendments and performance reviews; moves between projects and departments useful; leave nice to have | amendments and reviews are the least automated today |
+| Idea 5 | Rejected: worked hours | doesn't really matter for this product |
 | Idea 1 | Rejected as separate jobs: H1 (Slack requests) and H4 (ask HR anything) | H1 can come back as the channel, H4 is a single LLM call with RAG |
