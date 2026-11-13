@@ -90,7 +90,7 @@ Statement 2 is also our pitch for "why an agent": the product runs the fixed ste
 | personal data breach under GDPR | fines up to 20M EUR or 4% of global turnover | GDPR art. 83 | law |
 
 Risks with no clean number yet:
-- **security:** a former employee who still has access to GCP, GitHub or Workspace (see the offboarding surveys above);
+- **security:** a former employee who still has access to GCP, GitHub or the Microsoft organisation (see the offboarding surveys above);
 - **legal (Romania):** a contract not registered in REVISAL before the first day; fine amount to confirm in the Labour Code;
 - **legal (GDPR):** access to personal data kept after it is no longer needed;
 - **people:** the new hire's first week with no manager, no buddy and no access, the thing Gallup ties to the 12%.
@@ -167,8 +167,8 @@ Channels to pick from:
 
 | Channel | For | Against |
 | --- | --- | --- |
-| Slack bot | everyone above already lives there; approvals in one tap; the PRD already has a Slack bot | needs a Slack app per workspace |
-| Google Workspace (Calendar, Gmail) | Workspace is mandatory in the PRD; availability on the start date comes from Calendar | email alone is slow for approvals |
+| Slack bot | everyone above already lives there; approvals in one tap | needs a Slack app per workspace |
+| Microsoft (Outlook Calendar, Outlook mail) | the client already has it; availability on the start date comes from Calendar | email alone is slow for approvals |
 | web app | a page for HR to follow the run and correct it: the "follow progress, correct mistakes" part of the rubric | it's one more place to open |
 
 
