@@ -9,7 +9,6 @@ import (
 
 type Invocation struct {
 	Command []string
-	Dir     string
 	LogPath string
 	Timeout time.Duration
 }

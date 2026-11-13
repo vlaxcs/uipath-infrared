@@ -12,7 +12,7 @@ Two sentences: a run is an append-only event log, and every step is a function f
 
 ## 2. Stages
 
-Every stage is a subprocess. Its command prefix comes from configuration (section 6) and is split on spaces, never through a shell; the orchestrator appends the arguments below. The subprocess inherits the orchestrator's environment, and its working directory is the run's directory. Every path the orchestrator passes is absolute.
+Every stage is a subprocess. Its command prefix comes from configuration (section 6) and is split on spaces, never through a shell; the orchestrator appends the arguments below. The subprocess inherits the orchestrator's environment and working directory, so relative paths in a command prefix resolve from where the orchestrator was started. Every path the orchestrator passes is absolute.
 
 | Step | Command | Writes | Checked against |
 | --- | --- | --- | --- |

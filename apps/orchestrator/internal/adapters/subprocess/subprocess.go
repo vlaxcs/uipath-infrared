@@ -37,7 +37,6 @@ func (Runner) Run(ctx context.Context, invocation workflow.Invocation) (workflow
 	defer cancel()
 	stderr := &tail{limit: tailBytes}
 	cmd := exec.CommandContext(ctx, invocation.Command[0], invocation.Command[1:]...)
-	cmd.Dir = invocation.Dir
 	cmd.Stdout = log
 	cmd.Stderr = io.MultiWriter(log, stderr)
 	runErr := cmd.Run()

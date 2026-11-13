@@ -1,0 +1,1361 @@
+{
+  "baseline": {
+    "availability_pct": 98.0,
+    "confidence": "medium",
+    "confidence_reason": "cost.monthly_eur is estimated",
+    "flags": [
+      "catalog_mismatch"
+    ],
+    "monthly_eur": 3269.0,
+    "violations": [
+      {
+        "actual": 98.0,
+        "component": null,
+        "constraint": "min_availability_pct",
+        "detail": "main critical path reaches 97.995% across 6 components",
+        "distance": 2.34,
+        "limit": 99.4
+      },
+      {
+        "actual": null,
+        "component": "backup-storage",
+        "constraint": "data_residency",
+        "detail": "pii data in us-east-1, allowed: eu-*",
+        "distance": 1.0,
+        "limit": null
+      },
+      {
+        "actual": null,
+        "component": "app-db",
+        "constraint": "security.forbid_public_datastores",
+        "detail": "datastore exposed to the internet",
+        "distance": 1.0,
+        "limit": null
+      },
+      {
+        "actual": null,
+        "component": "uploads",
+        "constraint": "security.forbid_public_datastores",
+        "detail": "datastore exposed to the internet",
+        "distance": 1.0,
+        "limit": null
+      },
+      {
+        "actual": null,
+        "component": "old-bastion",
+        "constraint": "security.forbid_world_open_admin_ports",
+        "detail": "open to the world: 22",
+        "distance": 1.0,
+        "limit": null
+      },
+      {
+        "actual": null,
+        "component": "web-server",
+        "constraint": "security.forbid_world_open_admin_ports",
+        "detail": "open to the world: 22",
+        "distance": 1.0,
+        "limit": null
+      },
+      {
+        "actual": null,
+        "component": "app-db",
+        "constraint": "security.require_backups",
+        "detail": "backup retention 0 days, under 7",
+        "distance": 1.0,
+        "limit": null
+      },
+      {
+        "actual": null,
+        "component": "cache",
+        "constraint": "security.require_backups",
+        "detail": "backup retention 0 days, under 7",
+        "distance": 1.0,
+        "limit": null
+      },
+      {
+        "actual": null,
+        "component": "uploads",
+        "constraint": "security.require_backups",
+        "detail": "backup retention 0 days, under 7",
+        "distance": 1.0,
+        "limit": null
+      },
+      {
+        "actual": null,
+        "component": "app-db",
+        "constraint": "security.require_encryption_at_rest",
+        "detail": "datastore not encrypted at rest",
+        "distance": 1.0,
+        "limit": null
+      },
+      {
+        "actual": null,
+        "component": "cache",
+        "constraint": "security.require_encryption_at_rest",
+        "detail": "datastore not encrypted at rest",
+        "distance": 1.0,
+        "limit": null
+      },
+      {
+        "actual": null,
+        "component": "logs-volume",
+        "constraint": "security.require_encryption_at_rest",
+        "detail": "datastore not encrypted at rest",
+        "distance": 1.0,
+        "limit": null
+      },
+      {
+        "actual": null,
+        "component": "queue",
+        "constraint": "security.require_encryption_at_rest",
+        "detail": "datastore not encrypted at rest",
+        "distance": 1.0,
+        "limit": null
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "actions": [
+        {
+          "action": "delete",
+          "component": "logs-volume",
+          "confidence": "high",
+          "confidence_reason": "read_iops, status, write_iops are observed",
+          "from": "aws gp2 x1, 1 zone",
+          "layer": "cleanup_orphans",
+          "reason": "orphan: nothing uses it, delete it",
+          "saving_eur_month": 46.0,
+          "signal": "orphan",
+          "to": "deleted"
+        },
+        {
+          "action": "stop",
+          "component": "old-bastion",
+          "confidence": "high",
+          "confidence_reason": "cpu_pct, status are observed",
+          "from": "aws-ec2-general t3.large x1, 1 zone",
+          "layer": "cleanup_orphans",
+          "reason": "idle: stop it and keep its data and disks",
+          "saving_eur_month": 56.0,
+          "signal": "idle",
+          "to": "aws-ec2-general t3.large x1, 1 zone, stopped"
+        },
+        {
+          "action": "move",
+          "component": "backup-storage",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "from": "aws-s3 standard x1, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "pii data in us-east-1 breaks residency (eu-*): move it to eu-west-1, where 9 of the other 9 main components already run",
+          "saving_eur_month": 1.36,
+          "signal": "residency",
+          "to": "aws-s3 standard x1, 1 zone"
+        },
+        {
+          "action": "flag",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "cpu_pct, memory_gb, memory_pct, vcpu are observed",
+          "from": "aws cache.r5.xlarge x1, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "looks oversized (cpu_pct p95 19%, memory_pct p95 22%, 30% headroom), but the catalog has no option to price a smaller size",
+          "saving_eur_month": 0.0,
+          "signal": "oversized",
+          "to": "aws cache.r5.xlarge x1, 1 zone"
+        },
+        {
+          "action": "scale",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "from": "aws cache.r5.xlarge x1, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "stateful in 1 zone, the CTO asks for 2: run it in 2 zones",
+          "saving_eur_month": 0.0,
+          "signal": "single_zone_stateful",
+          "to": "aws cache.r5.xlarge x1, 2 zones"
+        },
+        {
+          "action": "resize",
+          "component": "web-server",
+          "confidence": "high",
+          "confidence_reason": "cpu_pct, memory_gb, memory_pct, vcpu are observed",
+          "from": "aws-ec2-general m5.4xlarge x3, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "oversized, shrink it: memory_pct p95 35% across 3 units, 30% headroom: 2 units",
+          "saving_eur_month": 439.0,
+          "signal": "oversized",
+          "to": "aws-ec2-general m5.4xlarge x2, 1 zone"
+        },
+        {
+          "action": "scale",
+          "component": "web-server",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "from": "aws-ec2-general m5.4xlarge x2, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "serves a production critical path from 1 zone, the CTO asks for 2: spread it over 2 zones",
+          "saving_eur_month": 0.0,
+          "signal": "single_zone_pool",
+          "to": "aws-ec2-general m5.4xlarge x2, 2 zones"
+        },
+        {
+          "action": "move",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "connections, cpu_pct, read_iops, write_iops are observed",
+          "from": "aws-rds-postgres db.r5.4xlarge x1, 1 zone",
+          "layer": "agent",
+          "reason": "single-zone stateful database",
+          "saving_eur_month": 957.0,
+          "signal": "single_zone_stateful",
+          "to": "managed-pg-serverless c4 x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 4.0,
+          "from": "managed-pg-serverless c4 x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "remove public access: datastore exposed to the internet",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_public_datastores",
+          "to": "managed-pg-serverless c4 x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "managed-pg-serverless c4 x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "enable backups with 7 days of retention: backup retention 0 days, under 7",
+          "saving_eur_month": 0.0,
+          "signal": "require_backups",
+          "to": "managed-pg-serverless c4 x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 8.0,
+          "from": "managed-pg-serverless c4 x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "encrypt at rest: datastore not encrypted at rest",
+          "saving_eur_month": 0.0,
+          "signal": "require_encryption_at_rest",
+          "to": "managed-pg-serverless c4 x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws cache.r5.xlarge x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "enable backups with 7 days of retention: backup retention 0 days, under 7",
+          "saving_eur_month": 0.0,
+          "signal": "require_backups",
+          "to": "aws cache.r5.xlarge x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 8.0,
+          "from": "aws cache.r5.xlarge x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "encrypt at rest: datastore not encrypted at rest",
+          "saving_eur_month": 0.0,
+          "signal": "require_encryption_at_rest",
+          "to": "aws cache.r5.xlarge x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "old-bastion",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-ec2-general t3.large x1, 1 zone, stopped",
+          "layer": "security_remediation",
+          "reason": "close the admin ports to the world: open to the world: 22",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_world_open_admin_ports",
+          "to": "aws-ec2-general t3.large x1, 1 zone, stopped"
+        },
+        {
+          "action": "remediate",
+          "component": "queue",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 8.0,
+          "from": "aws standard x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "encrypt at rest: datastore not encrypted at rest",
+          "saving_eur_month": 0.0,
+          "signal": "require_encryption_at_rest",
+          "to": "aws standard x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "uploads",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 4.0,
+          "from": "aws-s3 standard x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "remove public access: datastore exposed to the internet",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_public_datastores",
+          "to": "aws-s3 standard x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "uploads",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-s3 standard x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "enable backups with 7 days of retention: backup retention 0 days, under 7",
+          "saving_eur_month": 0.0,
+          "signal": "require_backups",
+          "to": "aws-s3 standard x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "web-server",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-ec2-general m5.4xlarge x2, 2 zones",
+          "layer": "security_remediation",
+          "reason": "close the admin ports to the world: open to the world: 22",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_world_open_admin_ports",
+          "to": "aws-ec2-general m5.4xlarge x2, 2 zones"
+        }
+      ],
+      "availability_pct": 99.43,
+      "builds_on": "rightsize_in_place",
+      "confidence": "medium",
+      "confidence_reason": "cost.monthly_eur is estimated",
+      "cost": {
+        "expected_outage_loss_eur_year": 40268.7,
+        "expected_total_eur": 159805.26,
+        "horizon_by_scenario": {
+          "base": 64103.59,
+          "high": 84067.89,
+          "low": 49506.81
+        },
+        "horizon_run_eur": 65445.47,
+        "migration_eur": 8369.8,
+        "ops_eur_month": 412.5,
+        "run_eur_month_at_horizon": {
+          "base": 3661.83,
+          "high": 5813.28,
+          "low": 2290.55
+        },
+        "run_eur_month_now": 1772.71,
+        "security_remediation": {
+          "effort_hours": 37.0,
+          "one_off_eur": 2775.0,
+          "run_delta_eur_month": 0.0
+        }
+      },
+      "cutover_downtime_hours": 2,
+      "effort_hours": 94.49,
+      "feasible": true,
+      "flags": [
+        "catalog_illustrative",
+        "catalog_mismatch",
+        "change_unpriced"
+      ],
+      "id": "agent-serverless-db-eu",
+      "lost_because": null,
+      "pareto": true,
+      "payback_months": 4.14,
+      "rank": 1,
+      "rank_by_scenario": {
+        "base": 1,
+        "high": 1,
+        "low": 1
+      },
+      "risk": 0.13,
+      "score": 0.19,
+      "source": "agent",
+      "violation_distance": 0,
+      "violations": []
+    },
+    {
+      "actions": [
+        {
+          "action": "delete",
+          "component": "logs-volume",
+          "confidence": "high",
+          "confidence_reason": "read_iops, status, write_iops are observed",
+          "from": "aws gp2 x1, 1 zone",
+          "layer": "cleanup_orphans",
+          "reason": "orphan: nothing uses it, delete it",
+          "saving_eur_month": 46.0,
+          "signal": "orphan",
+          "to": "deleted"
+        },
+        {
+          "action": "stop",
+          "component": "old-bastion",
+          "confidence": "high",
+          "confidence_reason": "cpu_pct, status are observed",
+          "from": "aws-ec2-general t3.large x1, 1 zone",
+          "layer": "cleanup_orphans",
+          "reason": "idle: stop it and keep its data and disks",
+          "saving_eur_month": 56.0,
+          "signal": "idle",
+          "to": "aws-ec2-general t3.large x1, 1 zone, stopped"
+        },
+        {
+          "action": "scale",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "from": "aws-rds-postgres db.r5.4xlarge x1, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "stateful in 1 zone, the CTO asks for 2: run it in 2 zones",
+          "saving_eur_month": -1206.0,
+          "signal": "single_zone_stateful",
+          "to": "aws-rds-postgres db.r5.4xlarge x1, 2 zones"
+        },
+        {
+          "action": "move",
+          "component": "backup-storage",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "from": "aws-s3 standard x1, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "pii data in us-east-1 breaks residency (eu-*): move it to eu-west-1, where 9 of the other 9 main components already run",
+          "saving_eur_month": 1.36,
+          "signal": "residency",
+          "to": "aws-s3 standard x1, 1 zone"
+        },
+        {
+          "action": "flag",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "cpu_pct, memory_gb, memory_pct, vcpu are observed",
+          "from": "aws cache.r5.xlarge x1, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "looks oversized (cpu_pct p95 19%, memory_pct p95 22%, 30% headroom), but the catalog has no option to price a smaller size",
+          "saving_eur_month": 0.0,
+          "signal": "oversized",
+          "to": "aws cache.r5.xlarge x1, 1 zone"
+        },
+        {
+          "action": "scale",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "from": "aws cache.r5.xlarge x1, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "stateful in 1 zone, the CTO asks for 2: run it in 2 zones",
+          "saving_eur_month": 0.0,
+          "signal": "single_zone_stateful",
+          "to": "aws cache.r5.xlarge x1, 2 zones"
+        },
+        {
+          "action": "resize",
+          "component": "web-server",
+          "confidence": "high",
+          "confidence_reason": "cpu_pct, memory_gb, memory_pct, vcpu are observed",
+          "from": "aws-ec2-general m5.4xlarge x3, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "oversized, shrink it: memory_pct p95 35% across 3 units, 30% headroom: 2 units",
+          "saving_eur_month": 439.0,
+          "signal": "oversized",
+          "to": "aws-ec2-general m5.4xlarge x2, 1 zone"
+        },
+        {
+          "action": "scale",
+          "component": "web-server",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "from": "aws-ec2-general m5.4xlarge x2, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "serves a production critical path from 1 zone, the CTO asks for 2: spread it over 2 zones",
+          "saving_eur_month": 0.0,
+          "signal": "single_zone_pool",
+          "to": "aws-ec2-general m5.4xlarge x2, 2 zones"
+        },
+        {
+          "action": "move",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "memory_gb, storage_gb, vcpu are observed",
+          "from": "aws-rds-postgres db.r5.4xlarge x1, 2 zones",
+          "layer": "managed_services",
+          "reason": "move to managed-pg-serverless c16: EUR 2,473 to EUR 970 a month, stays in eu-west-1 with web-tier",
+          "saving_eur_month": 1503.0,
+          "signal": "managed_service",
+          "to": "managed-pg-serverless c16 x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 4.0,
+          "from": "managed-pg-serverless c16 x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "remove public access: datastore exposed to the internet",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_public_datastores",
+          "to": "managed-pg-serverless c16 x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "managed-pg-serverless c16 x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "enable backups with 7 days of retention: backup retention 0 days, under 7",
+          "saving_eur_month": 0.0,
+          "signal": "require_backups",
+          "to": "managed-pg-serverless c16 x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 8.0,
+          "from": "managed-pg-serverless c16 x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "encrypt at rest: datastore not encrypted at rest",
+          "saving_eur_month": 0.0,
+          "signal": "require_encryption_at_rest",
+          "to": "managed-pg-serverless c16 x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws cache.r5.xlarge x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "enable backups with 7 days of retention: backup retention 0 days, under 7",
+          "saving_eur_month": 0.0,
+          "signal": "require_backups",
+          "to": "aws cache.r5.xlarge x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 8.0,
+          "from": "aws cache.r5.xlarge x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "encrypt at rest: datastore not encrypted at rest",
+          "saving_eur_month": 0.0,
+          "signal": "require_encryption_at_rest",
+          "to": "aws cache.r5.xlarge x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "old-bastion",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-ec2-general t3.large x1, 1 zone, stopped",
+          "layer": "security_remediation",
+          "reason": "close the admin ports to the world: open to the world: 22",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_world_open_admin_ports",
+          "to": "aws-ec2-general t3.large x1, 1 zone, stopped"
+        },
+        {
+          "action": "remediate",
+          "component": "queue",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 8.0,
+          "from": "aws standard x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "encrypt at rest: datastore not encrypted at rest",
+          "saving_eur_month": 0.0,
+          "signal": "require_encryption_at_rest",
+          "to": "aws standard x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "uploads",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 4.0,
+          "from": "aws-s3 standard x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "remove public access: datastore exposed to the internet",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_public_datastores",
+          "to": "aws-s3 standard x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "uploads",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-s3 standard x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "enable backups with 7 days of retention: backup retention 0 days, under 7",
+          "saving_eur_month": 0.0,
+          "signal": "require_backups",
+          "to": "aws-s3 standard x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "web-server",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-ec2-general m5.4xlarge x2, 2 zones",
+          "layer": "security_remediation",
+          "reason": "close the admin ports to the world: open to the world: 22",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_world_open_admin_ports",
+          "to": "aws-ec2-general m5.4xlarge x2, 2 zones"
+        }
+      ],
+      "availability_pct": 99.43,
+      "builds_on": "rightsize_in_place",
+      "confidence": "medium",
+      "confidence_reason": "cost.monthly_eur is estimated",
+      "cost": {
+        "expected_outage_loss_eur_year": 40268.7,
+        "expected_total_eur": 184497.4,
+        "horizon_by_scenario": {
+          "base": 88282.98,
+          "high": 115876.32,
+          "low": 68108.15
+        },
+        "horizon_run_eur": 90137.61,
+        "migration_eur": 8369.8,
+        "ops_eur_month": 412.5,
+        "run_eur_month_at_horizon": {
+          "base": 5041.87,
+          "high": 8012.59,
+          "low": 3148.55
+        },
+        "run_eur_month_now": 2432.71,
+        "security_remediation": {
+          "effort_hours": 37.0,
+          "one_off_eur": 2775.0,
+          "run_delta_eur_month": 0.0
+        }
+      },
+      "cutover_downtime_hours": 2,
+      "effort_hours": 94.49,
+      "feasible": true,
+      "flags": [
+        "catalog_illustrative",
+        "catalog_mismatch",
+        "change_unpriced"
+      ],
+      "id": "managed_services",
+      "lost_because": {
+        "detail": "EUR 24,692 more expected over the horizon than agent-serverless-db-eu",
+        "reason": "cost"
+      },
+      "pareto": false,
+      "payback_months": 6.15,
+      "rank": 2,
+      "rank_by_scenario": {
+        "base": 2,
+        "high": 2,
+        "low": 2
+      },
+      "risk": 0.23,
+      "score": 0.55,
+      "source": "engine",
+      "violation_distance": 0,
+      "violations": []
+    },
+    {
+      "actions": [
+        {
+          "action": "delete",
+          "component": "logs-volume",
+          "confidence": "high",
+          "confidence_reason": "read_iops, status, write_iops are observed",
+          "from": "aws gp2 x1, 1 zone",
+          "layer": "cleanup_orphans",
+          "reason": "orphan: nothing uses it, delete it",
+          "saving_eur_month": 46.0,
+          "signal": "orphan",
+          "to": "deleted"
+        },
+        {
+          "action": "stop",
+          "component": "old-bastion",
+          "confidence": "high",
+          "confidence_reason": "cpu_pct, status are observed",
+          "from": "aws-ec2-general t3.large x1, 1 zone",
+          "layer": "cleanup_orphans",
+          "reason": "idle: stop it and keep its data and disks",
+          "saving_eur_month": 56.0,
+          "signal": "idle",
+          "to": "aws-ec2-general t3.large x1, 1 zone, stopped"
+        },
+        {
+          "action": "scale",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "from": "aws-rds-postgres db.r5.4xlarge x1, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "stateful in 1 zone, the CTO asks for 2: run it in 2 zones",
+          "saving_eur_month": -1206.0,
+          "signal": "single_zone_stateful",
+          "to": "aws-rds-postgres db.r5.4xlarge x1, 2 zones"
+        },
+        {
+          "action": "move",
+          "component": "backup-storage",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "from": "aws-s3 standard x1, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "pii data in us-east-1 breaks residency (eu-*): move it to eu-west-1, where 9 of the other 9 main components already run",
+          "saving_eur_month": 1.36,
+          "signal": "residency",
+          "to": "aws-s3 standard x1, 1 zone"
+        },
+        {
+          "action": "flag",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "cpu_pct, memory_gb, memory_pct, vcpu are observed",
+          "from": "aws cache.r5.xlarge x1, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "looks oversized (cpu_pct p95 19%, memory_pct p95 22%, 30% headroom), but the catalog has no option to price a smaller size",
+          "saving_eur_month": 0.0,
+          "signal": "oversized",
+          "to": "aws cache.r5.xlarge x1, 1 zone"
+        },
+        {
+          "action": "scale",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "from": "aws cache.r5.xlarge x1, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "stateful in 1 zone, the CTO asks for 2: run it in 2 zones",
+          "saving_eur_month": 0.0,
+          "signal": "single_zone_stateful",
+          "to": "aws cache.r5.xlarge x1, 2 zones"
+        },
+        {
+          "action": "resize",
+          "component": "web-server",
+          "confidence": "high",
+          "confidence_reason": "cpu_pct, memory_gb, memory_pct, vcpu are observed",
+          "from": "aws-ec2-general m5.4xlarge x3, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "oversized, shrink it: memory_pct p95 35% across 3 units, 30% headroom: 2 units",
+          "saving_eur_month": 439.0,
+          "signal": "oversized",
+          "to": "aws-ec2-general m5.4xlarge x2, 1 zone"
+        },
+        {
+          "action": "scale",
+          "component": "web-server",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "from": "aws-ec2-general m5.4xlarge x2, 1 zone",
+          "layer": "rightsize_in_place",
+          "reason": "serves a production critical path from 1 zone, the CTO asks for 2: spread it over 2 zones",
+          "saving_eur_month": 0.0,
+          "signal": "single_zone_pool",
+          "to": "aws-ec2-general m5.4xlarge x2, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 4.0,
+          "from": "aws-rds-postgres db.r5.4xlarge x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "remove public access: datastore exposed to the internet",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_public_datastores",
+          "to": "aws-rds-postgres db.r5.4xlarge x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-rds-postgres db.r5.4xlarge x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "enable backups with 7 days of retention: backup retention 0 days, under 7",
+          "saving_eur_month": 0.0,
+          "signal": "require_backups",
+          "to": "aws-rds-postgres db.r5.4xlarge x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 8.0,
+          "from": "aws-rds-postgres db.r5.4xlarge x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "encrypt at rest: datastore not encrypted at rest",
+          "saving_eur_month": 0.0,
+          "signal": "require_encryption_at_rest",
+          "to": "aws-rds-postgres db.r5.4xlarge x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws cache.r5.xlarge x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "enable backups with 7 days of retention: backup retention 0 days, under 7",
+          "saving_eur_month": 0.0,
+          "signal": "require_backups",
+          "to": "aws cache.r5.xlarge x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 8.0,
+          "from": "aws cache.r5.xlarge x1, 2 zones",
+          "layer": "security_remediation",
+          "reason": "encrypt at rest: datastore not encrypted at rest",
+          "saving_eur_month": 0.0,
+          "signal": "require_encryption_at_rest",
+          "to": "aws cache.r5.xlarge x1, 2 zones"
+        },
+        {
+          "action": "remediate",
+          "component": "old-bastion",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-ec2-general t3.large x1, 1 zone, stopped",
+          "layer": "security_remediation",
+          "reason": "close the admin ports to the world: open to the world: 22",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_world_open_admin_ports",
+          "to": "aws-ec2-general t3.large x1, 1 zone, stopped"
+        },
+        {
+          "action": "remediate",
+          "component": "queue",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 8.0,
+          "from": "aws standard x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "encrypt at rest: datastore not encrypted at rest",
+          "saving_eur_month": 0.0,
+          "signal": "require_encryption_at_rest",
+          "to": "aws standard x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "uploads",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 4.0,
+          "from": "aws-s3 standard x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "remove public access: datastore exposed to the internet",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_public_datastores",
+          "to": "aws-s3 standard x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "uploads",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-s3 standard x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "enable backups with 7 days of retention: backup retention 0 days, under 7",
+          "saving_eur_month": 0.0,
+          "signal": "require_backups",
+          "to": "aws-s3 standard x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "web-server",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-ec2-general m5.4xlarge x2, 2 zones",
+          "layer": "security_remediation",
+          "reason": "close the admin ports to the world: open to the world: 22",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_world_open_admin_ports",
+          "to": "aws-ec2-general m5.4xlarge x2, 2 zones"
+        }
+      ],
+      "availability_pct": 99.43,
+      "builds_on": "cleanup_orphans",
+      "confidence": "medium",
+      "confidence_reason": "cost.monthly_eur is estimated",
+      "cost": {
+        "expected_outage_loss_eur_year": 40268.7,
+        "expected_total_eur": 241557.2,
+        "horizon_by_scenario": {
+          "base": 143411.02,
+          "high": 188403.0,
+          "low": 110514.81
+        },
+        "horizon_run_eur": 146434.96,
+        "migration_eur": 3997.8,
+        "ops_eur_month": 637.5,
+        "run_eur_month_at_horizon": {
+          "base": 8181.49,
+          "high": 13016.91,
+          "low": 5100.19
+        },
+        "run_eur_month_now": 3932.64,
+        "security_remediation": {
+          "effort_hours": 37.0,
+          "one_off_eur": 2775.0,
+          "run_delta_eur_month": 0.0
+        }
+      },
+      "cutover_downtime_hours": 1,
+      "effort_hours": 53.09,
+      "feasible": true,
+      "flags": [
+        "catalog_illustrative",
+        "catalog_mismatch",
+        "change_unpriced"
+      ],
+      "id": "rightsize_in_place",
+      "lost_because": {
+        "detail": "EUR 81,752 more expected over the horizon than agent-serverless-db-eu",
+        "reason": "cost"
+      },
+      "pareto": true,
+      "payback_months": null,
+      "rank": 3,
+      "rank_by_scenario": {
+        "base": 3,
+        "high": 3,
+        "low": 3
+      },
+      "risk": 0.08,
+      "score": 0.65,
+      "source": "engine",
+      "violation_distance": 0,
+      "violations": []
+    },
+    {
+      "actions": [
+        {
+          "action": "delete",
+          "component": "logs-volume",
+          "confidence": "high",
+          "confidence_reason": "read_iops, status, write_iops are observed",
+          "from": "aws gp2 x1, 1 zone",
+          "layer": "cleanup_orphans",
+          "reason": "orphan: nothing uses it, delete it",
+          "saving_eur_month": 46.0,
+          "signal": "orphan",
+          "to": "deleted"
+        },
+        {
+          "action": "stop",
+          "component": "old-bastion",
+          "confidence": "high",
+          "confidence_reason": "cpu_pct, status are observed",
+          "from": "aws-ec2-general t3.large x1, 1 zone",
+          "layer": "cleanup_orphans",
+          "reason": "idle: stop it and keep its data and disks",
+          "saving_eur_month": 56.0,
+          "signal": "idle",
+          "to": "aws-ec2-general t3.large x1, 1 zone, stopped"
+        },
+        {
+          "action": "remediate",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 4.0,
+          "from": "aws-rds-postgres db.r5.4xlarge x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "remove public access: datastore exposed to the internet",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_public_datastores",
+          "to": "aws-rds-postgres db.r5.4xlarge x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-rds-postgres db.r5.4xlarge x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "enable backups with 7 days of retention: backup retention 0 days, under 7",
+          "saving_eur_month": 0.0,
+          "signal": "require_backups",
+          "to": "aws-rds-postgres db.r5.4xlarge x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "app-db",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 8.0,
+          "from": "aws-rds-postgres db.r5.4xlarge x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "encrypt at rest: datastore not encrypted at rest",
+          "saving_eur_month": 0.0,
+          "signal": "require_encryption_at_rest",
+          "to": "aws-rds-postgres db.r5.4xlarge x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws cache.r5.xlarge x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "enable backups with 7 days of retention: backup retention 0 days, under 7",
+          "saving_eur_month": 0.0,
+          "signal": "require_backups",
+          "to": "aws cache.r5.xlarge x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "cache",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 8.0,
+          "from": "aws cache.r5.xlarge x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "encrypt at rest: datastore not encrypted at rest",
+          "saving_eur_month": 0.0,
+          "signal": "require_encryption_at_rest",
+          "to": "aws cache.r5.xlarge x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "old-bastion",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-ec2-general t3.large x1, 1 zone, stopped",
+          "layer": "security_remediation",
+          "reason": "close the admin ports to the world: open to the world: 22",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_world_open_admin_ports",
+          "to": "aws-ec2-general t3.large x1, 1 zone, stopped"
+        },
+        {
+          "action": "remediate",
+          "component": "queue",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 8.0,
+          "from": "aws standard x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "encrypt at rest: datastore not encrypted at rest",
+          "saving_eur_month": 0.0,
+          "signal": "require_encryption_at_rest",
+          "to": "aws standard x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "uploads",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 4.0,
+          "from": "aws-s3 standard x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "remove public access: datastore exposed to the internet",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_public_datastores",
+          "to": "aws-s3 standard x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "uploads",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-s3 standard x1, 1 zone",
+          "layer": "security_remediation",
+          "reason": "enable backups with 7 days of retention: backup retention 0 days, under 7",
+          "saving_eur_month": 0.0,
+          "signal": "require_backups",
+          "to": "aws-s3 standard x1, 1 zone"
+        },
+        {
+          "action": "remediate",
+          "component": "web-server",
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only",
+          "effort_hours": 1.0,
+          "from": "aws-ec2-general m5.4xlarge x3, 1 zone",
+          "layer": "security_remediation",
+          "reason": "close the admin ports to the world: open to the world: 22",
+          "saving_eur_month": 0.0,
+          "signal": "forbid_world_open_admin_ports",
+          "to": "aws-ec2-general m5.4xlarge x3, 1 zone"
+        }
+      ],
+      "availability_pct": 98.0,
+      "builds_on": "do_nothing",
+      "confidence": "medium",
+      "confidence_reason": "cost.monthly_eur is estimated",
+      "cost": {
+        "expected_outage_loss_eur_year": 140486.01,
+        "expected_total_eur": 405665.61,
+        "horizon_by_scenario": {
+          "base": 115336.75,
+          "high": 151470.13,
+          "low": 88917.63
+        },
+        "horizon_run_eur": 117765.31,
+        "migration_eur": 2775.0,
+        "ops_eur_month": 787.5,
+        "run_eur_month_at_horizon": {
+          "base": 6580.1,
+          "high": 10464.72,
+          "low": 4104.61
+        },
+        "run_eur_month_now": 3167.0,
+        "security_remediation": {
+          "effort_hours": 37.0,
+          "one_off_eur": 2775.0,
+          "run_delta_eur_month": 0.0
+        }
+      },
+      "cutover_downtime_hours": 0.0,
+      "effort_hours": 37.0,
+      "feasible": false,
+      "flags": [
+        "catalog_illustrative",
+        "catalog_mismatch"
+      ],
+      "id": "cleanup_orphans",
+      "lost_because": {
+        "detail": "min_availability_pct: main critical path reaches 97.995% across 6 components (and 1 more)",
+        "reason": "constraint"
+      },
+      "pareto": false,
+      "payback_months": 11.01,
+      "rank": null,
+      "rank_by_scenario": null,
+      "risk": 0.0,
+      "score": null,
+      "source": "engine",
+      "violation_distance": 3.34,
+      "violations": [
+        {
+          "actual": 98.0,
+          "component": null,
+          "constraint": "min_availability_pct",
+          "detail": "main critical path reaches 97.995% across 6 components",
+          "distance": 2.34,
+          "limit": 99.4
+        },
+        {
+          "actual": null,
+          "component": "backup-storage",
+          "constraint": "data_residency",
+          "detail": "pii data in us-east-1, allowed: eu-*",
+          "distance": 1.0,
+          "limit": null
+        }
+      ]
+    },
+    {
+      "actions": [],
+      "availability_pct": 98.0,
+      "builds_on": null,
+      "confidence": "medium",
+      "confidence_reason": "cost.monthly_eur is estimated",
+      "cost": {
+        "expected_outage_loss_eur_year": 140486.01,
+        "expected_total_eur": 408641.19,
+        "horizon_by_scenario": {
+          "base": 117664.36,
+          "high": 153797.75,
+          "low": 91245.24
+        },
+        "horizon_run_eur": 120092.93,
+        "migration_eur": 0,
+        "ops_eur_month": 937.5,
+        "run_eur_month_at_horizon": {
+          "base": 6682.1,
+          "high": 10566.72,
+          "low": 4206.61
+        },
+        "run_eur_month_now": 3269.0
+      },
+      "cutover_downtime_hours": 0.0,
+      "effort_hours": 0,
+      "feasible": false,
+      "flags": [
+        "catalog_illustrative"
+      ],
+      "id": "do_nothing",
+      "lost_because": {
+        "detail": "min_availability_pct: main critical path reaches 97.995% across 6 components (and 12 more)",
+        "reason": "constraint"
+      },
+      "pareto": false,
+      "payback_months": null,
+      "rank": null,
+      "rank_by_scenario": null,
+      "risk": 0.0,
+      "score": null,
+      "source": "engine",
+      "violation_distance": 14.34,
+      "violations": [
+        {
+          "actual": 98.0,
+          "component": null,
+          "constraint": "min_availability_pct",
+          "detail": "main critical path reaches 97.995% across 6 components",
+          "distance": 2.34,
+          "limit": 99.4
+        },
+        {
+          "actual": null,
+          "component": "backup-storage",
+          "constraint": "data_residency",
+          "detail": "pii data in us-east-1, allowed: eu-*",
+          "distance": 1.0,
+          "limit": null
+        },
+        {
+          "actual": null,
+          "component": "app-db",
+          "constraint": "security.forbid_public_datastores",
+          "detail": "datastore exposed to the internet",
+          "distance": 1.0,
+          "limit": null
+        },
+        {
+          "actual": null,
+          "component": "uploads",
+          "constraint": "security.forbid_public_datastores",
+          "detail": "datastore exposed to the internet",
+          "distance": 1.0,
+          "limit": null
+        },
+        {
+          "actual": null,
+          "component": "old-bastion",
+          "constraint": "security.forbid_world_open_admin_ports",
+          "detail": "open to the world: 22",
+          "distance": 1.0,
+          "limit": null
+        },
+        {
+          "actual": null,
+          "component": "web-server",
+          "constraint": "security.forbid_world_open_admin_ports",
+          "detail": "open to the world: 22",
+          "distance": 1.0,
+          "limit": null
+        },
+        {
+          "actual": null,
+          "component": "app-db",
+          "constraint": "security.require_backups",
+          "detail": "backup retention 0 days, under 7",
+          "distance": 1.0,
+          "limit": null
+        },
+        {
+          "actual": null,
+          "component": "cache",
+          "constraint": "security.require_backups",
+          "detail": "backup retention 0 days, under 7",
+          "distance": 1.0,
+          "limit": null
+        },
+        {
+          "actual": null,
+          "component": "uploads",
+          "constraint": "security.require_backups",
+          "detail": "backup retention 0 days, under 7",
+          "distance": 1.0,
+          "limit": null
+        },
+        {
+          "actual": null,
+          "component": "app-db",
+          "constraint": "security.require_encryption_at_rest",
+          "detail": "datastore not encrypted at rest",
+          "distance": 1.0,
+          "limit": null
+        },
+        {
+          "actual": null,
+          "component": "cache",
+          "constraint": "security.require_encryption_at_rest",
+          "detail": "datastore not encrypted at rest",
+          "distance": 1.0,
+          "limit": null
+        },
+        {
+          "actual": null,
+          "component": "logs-volume",
+          "constraint": "security.require_encryption_at_rest",
+          "detail": "datastore not encrypted at rest",
+          "distance": 1.0,
+          "limit": null
+        },
+        {
+          "actual": null,
+          "component": "queue",
+          "constraint": "security.require_encryption_at_rest",
+          "detail": "datastore not encrypted at rest",
+          "distance": 1.0,
+          "limit": null
+        }
+      ]
+    }
+  ],
+  "closest_if_none_feasible": null,
+  "flags": [],
+  "inputs": {
+    "catalog_illustrative": true,
+    "currency": "EUR",
+    "forecast": "startup-2027-plan",
+    "horizon_months": 24,
+    "infra": "startup"
+  },
+  "schema_version": "1.0",
+  "winner": "agent-serverless-db-eu"
+}

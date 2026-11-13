@@ -25,11 +25,11 @@ const (
 type EventStatus string
 
 const (
-	Started          EventStatus = "started"
-	StepCompleted    EventStatus = "completed"
-	StepFailed       EventStatus = "failed"
-	OpensGate        EventStatus = "awaiting_approval"
-	Approved         EventStatus = "approved"
+	Started       EventStatus = "started"
+	StepCompleted EventStatus = "completed"
+	StepFailed    EventStatus = "failed"
+	OpensGate     EventStatus = "awaiting_approval"
+	Approved      EventStatus = "approved"
 )
 
 type Gate string

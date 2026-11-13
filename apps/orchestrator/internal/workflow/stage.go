@@ -11,7 +11,6 @@ import (
 func (w *Workflow) run(entry *tracked, step run.Step, seq int, command []string, accepted ...int) (Outcome, bool) {
 	outcome, err := w.stages.Run(w.ctx, Invocation{
 		Command: command,
-		Dir:     entry.dir,
 		LogPath: filepath.Join(entry.dir, "logs", fmt.Sprintf("%d-%s.log", seq, step)),
 		Timeout: w.config.Timeouts[step],
 	})
