@@ -1,0 +1,54 @@
+[
+  {
+    "seq": 17,
+    "at": "2026-11-14T09:12:30Z",
+    "step": "present",
+    "status": "completed",
+    "revision": 1,
+    "actor": {
+      "kind": "orchestrator"
+    }
+  },
+  {
+    "seq": 18,
+    "at": "2026-11-14T09:12:31Z",
+    "step": "rehearse",
+    "status": "started",
+    "revision": 1,
+    "actor": {
+      "kind": "orchestrator"
+    }
+  },
+  {
+    "seq": 19,
+    "at": "2026-11-14T09:19:50Z",
+    "step": "rehearse",
+    "status": "completed",
+    "revision": 1,
+    "actor": {
+      "kind": "orchestrator"
+    },
+    "output": {
+      "contract": "rehearsal",
+      "file": {
+        "path": "rehearsal.json",
+        "sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    },
+    "decision": {
+      "kind": "proceed",
+      "reason": "forecast traffic held and the fallback took over when the primary database was stopped"
+    }
+  },
+  {
+    "seq": 20,
+    "at": "2026-11-14T09:19:51Z",
+    "step": "rehearse",
+    "status": "awaiting_approval",
+    "revision": 1,
+    "actor": {
+      "kind": "orchestrator"
+    },
+    "gate": "plan"
+  }
+]
