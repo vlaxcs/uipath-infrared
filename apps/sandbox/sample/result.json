@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "inputs": {
+    "infra": "startup",
+    "forecast": "startup-2027-plan",
+    "catalog_illustrative": true,
+    "horizon_months": 36,
+    "currency": "EUR"
+  },
+  "baseline": {
+    "monthly_eur": 4980,
+    "availability_pct": 99.5,
+    "violations": [
+      { "constraint": "data_residency", "component": "backup-storage", "detail": "us-east-1, pii", "actual": "us-east-1", "limit": "eu-*", "distance": 1 }
+    ],
+    "confidence": "medium",
+    "confidence_reason": "sample values for the sandbox, not engine output"
+  },
+  "candidates": [
+    {
+      "id": "rightsize_multi_az",
+      "source": "agent",
+      "builds_on": null,
+      "feasible": true,
+      "violations": [],
+      "violation_distance": 0,
+      "actions": [
+        { "component": "old-bastion", "action": "delete", "signal": "idle", "reason": "cpu avg 0.8, p95 2.1 over 14 d", "from": "1 x t3.large", "to": "nothing", "saving_eur_month": 66, "confidence": "high", "confidence_reason": "observed usage" },
+        { "component": "logs-volume", "action": "delete", "signal": "orphan", "reason": "status orphan, zero IOPS", "from": "500 GB gp2", "to": "nothing", "saving_eur_month": 46, "confidence": "high", "confidence_reason": "observed attachment state" },
+        { "component": "web-server", "action": "resize", "signal": "oversized", "reason": "cpu avg 12, p95 28 over 14 d", "from": "3 x m5.4xlarge", "to": "2 x m5.2xlarge", "saving_eur_month": 1050, "confidence": "high", "confidence_reason": "observed usage" },
+        { "component": "web-server", "action": "scale", "signal": "single_az", "reason": "web tier in one zone", "from": "1 zone", "to": "2 zones", "saving_eur_month": 0, "confidence": "high", "confidence_reason": "observed zones" },
+        { "component": "app-db", "action": "resize", "signal": "oversized", "reason": "cpu avg 18, p95 42 over 14 d", "from": "db.r5.4xlarge", "to": "db.r5.2xlarge", "saving_eur_month": 620, "confidence": "high", "confidence_reason": "observed usage" },
+        { "component": "app-db", "action": "scale", "signal": "single_az", "reason": "single-AZ database on the critical path", "from": "1 zone", "to": "2 zones", "saving_eur_month": -620, "confidence": "high", "confidence_reason": "observed zones" },
+        { "component": "backup-storage", "action": "move", "signal": "data_residency", "reason": "pii in us-east-1", "from": "aws-s3 us-east-1", "to": "aws-s3 eu-west-1", "saving_eur_month": 4, "confidence": "medium", "confidence_reason": "egress estimated" }
+      ],
+      "cost": {
+        "run_eur_month_now": 3814,
+        "run_eur_month_at_horizon": { "low": 4200, "base": 5100, "high": 6900 },
+        "horizon_by_scenario": { "low": 138000, "base": 159000, "high": 198000 },
+        "horizon_run_eur": 161000,
+        "migration_eur": 3400,
+        "ops_eur_month": 150,
+        "expected_outage_loss_eur_year": 2600,
+        "expected_total_eur": 177600
+      },
+      "availability_pct": 99.9,
+      "risk": 0.12,
+      "effort_hours": 40,
+      "cutover_downtime_hours": 0.5,
+      "payback_months": 2.92,
+      "score": 0,
+      "pareto": true,
+      "rank": 1,
+      "rank_by_scenario": { "low": 1, "base": 1, "high": 1 },
+      "lost_because": null,
+      "confidence": "medium",
+      "confidence_reason": "sample values for the sandbox, not engine output",
+      "flags": ["catalog_illustrative"]
+    },
+    {
+      "id": "do_nothing",
+      "source": "engine",
+      "builds_on": null,
+      "feasible": false,
+      "violations": [
+        { "constraint": "data_residency", "component": "backup-storage", "detail": "us-east-1, pii", "actual": "us-east-1", "limit": "eu-*", "distance": 1 }
+      ],
+      "violation_distance": 1,
+      "actions": [],
+      "cost": {
+        "run_eur_month_now": 4980,
+        "run_eur_month_at_horizon": { "low": 5500, "base": 6700, "high": 9000 },
+        "horizon_by_scenario": { "low": 181000, "base": 208000, "high": 259000 },
+        "horizon_run_eur": 211000,
+        "migration_eur": 0,
+        "ops_eur_month": 150,
+        "expected_outage_loss_eur_year": 13000,
+        "expected_total_eur": 255400
+      },
+      "availability_pct": 99.5,
+      "risk": 0,
+      "effort_hours": 0,
+      "payback_months": null,
+      "score": null,
+      "pareto": false,
+      "rank": null,
+      "rank_by_scenario": null,
+      "lost_because": { "reason": "constraint", "detail": "backup-storage holds pii in us-east-1" },
+      "confidence": "medium",
+      "confidence_reason": "sample values for the sandbox, not engine output",
+      "flags": ["catalog_illustrative"]
+    }
+  ],
+  "winner": "rightsize_multi_az",
+  "closest_if_none_feasible": null,
+  "flags": ["catalog_illustrative"]
+}
