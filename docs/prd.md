@@ -63,6 +63,8 @@ When the company has no on-prem lab, the plan includes setting one up: what it c
 
 **Usage and AI consumption.** Every decision rests on measured CPU, RAM and AI consumption: rightsizing, idle and orphan resources, GPU capacity that sits unused, and token spend that could run cheaper elsewhere.
 
+**Sandbox.** Infrared builds the new infrastructure in a sandbox and tests it there before proposing it: it simulates traffic on it, and checks the fallbacks when components fail. Details in the SPEC.
+
 **Database refactoring.** Infrared reads database schemas and their statistics, and suggests splits at database level, mainly for performance: tables that belong to different domains, hot tables that should live apart, read replicas, partitioning.
 
 **Output of a run**
