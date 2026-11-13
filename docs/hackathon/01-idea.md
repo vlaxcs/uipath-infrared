@@ -66,6 +66,8 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
   - left out: worked hours, access requests.
 - **Mocked for the MVP:** most data, such as the employees' schedule. The mocked data still drives the agent's decisions, e.g. the schedule tells it whether the manager is in the office.
 
+- **Legal check:** parked. Ask a mentor, starting with performance reviews (EU AI Act, Annex III: AI that evaluates workers is high-risk).
+
 ## Open questions
 
 - How does the system learn the agreement was signed?
