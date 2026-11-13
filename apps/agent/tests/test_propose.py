@@ -2,7 +2,7 @@ import json
 import shutil
 import sys
 
-from conftest import FLOW, FakeSession, answer_of, candidate
+from conftest import FakeSession, answer_of, candidate
 
 from agent.adapters.contracts import ContractChecker
 from agent.adapters.engine import EngineCli
@@ -18,8 +18,8 @@ def proposal(run_dir, session, engine, revision=0, feedback=None):
     return Proposal(inputs, session, engine, ContractChecker())
 
 
-def test_evaluate_candidate_answers_exactly_the_engines_figures(run_dir, engine_command):
-    engine_result = json.loads((FLOW / "result.0.json").read_text(encoding="utf-8"))
+def test_evaluate_candidate_answers_exactly_the_engines_figures(run_dir, engine_command, engine_result_0):
+    engine_result = json.loads(engine_result_0.read_text(encoding="utf-8"))
     reply = proposal(run_dir, FakeSession(), EngineCli(engine_command)).evaluate_candidate(candidate(0))
     assert "is_error" not in reply
     assert answer_of(reply) == figures_of(engine_result, "agent-serverless-db")
@@ -72,8 +72,8 @@ def test_propose_exits_0_once_the_model_submits(run_dir, engine_command):
     assert proposal(run_dir, session, EngineCli(engine_command)).run() == 0
 
 
-def test_a_revision_shows_the_model_why_its_candidates_were_sent_back(run_dir, engine_command):
-    shutil.copyfile(FLOW / "result.0.json", run_dir / "result.0.json")
+def test_a_revision_shows_the_model_why_its_candidates_were_sent_back(run_dir, engine_command, engine_result_0):
+    shutil.copyfile(engine_result_0, run_dir / "result.0.json")
     feedback = run_dir / "feedback.1.json"
     feedback.write_text(json.dumps({"revision": 1, "from_step": "evaluate", "reason": "agent-serverless-db breaks data_residency", "result": "result.0.json", "rehearsal": None}), encoding="utf-8")
     session = FakeSession(script=lambda tools: tools["submit_candidates"]({"candidates": [candidate(1)]}))

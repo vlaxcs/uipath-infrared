@@ -150,7 +150,7 @@ func TestARehearsalThatMissesGoesBackToProposeOnce(t *testing.T) {
 			return workflow.Outcome{}, nil
 		},
 		"engine": func(_ context.Context, invocation workflow.Invocation) (workflow.Outcome, error) {
-			copyFile(filepath.Join(fixtures, "result.1.json"), argument(invocation.Command, "--out"))
+			copyFile(filepath.Join(results, "result.1.json"), argument(invocation.Command, "--out"))
 			return workflow.Outcome{}, nil
 		},
 	}

@@ -71,7 +71,7 @@ func defaultStage(name string) stage {
 		case "propose":
 			copyFile(filepath.Join(fixtures, "candidates."+argument(invocation.Command, "--revision")+".json"), out)
 		case "engine":
-			copyFile(filepath.Join(fixtures, "result."+revisionInName.FindStringSubmatch(out)[1]+".json"), out)
+			copyFile(filepath.Join(results, "result."+revisionInName.FindStringSubmatch(out)[1]+".json"), out)
 		case "sandbox":
 			copyFile(filepath.Join(repo, "contracts", "rehearsal.example.json"), out)
 		}
