@@ -104,6 +104,14 @@ A **simulated clock** compresses weeks into minutes, so the demo moves time forw
 - The last day sets the plan: hardware and YubiKey back, a knowledge handover, the exit interview, the account closed on the last day.
 - **The agent decides** what SSO doesn't cut: GitHub org membership, tools outside SSO. *People Ops believes closing the account cuts everything; this is the gap.*
 
+### Two surfaces
+
+- **Phone, the employee's view:** everything the new hire receives during onboarding: the emails, setting up the Slack bot, and the rest of what reaches them.
+- **Platform, HR and the manager's view:**
+  - a side panel with most modules of the previous internal platform (Dashboard, Team Schedule, Tasks, Projects, Performance Review, Org Chart, Employees, Contracts, Leave and the rest), shown but locked;
+  - an **Awaiting onboarding** panel listing the people in onboarding;
+  - for each person, their case as a graph of states: where they are, how they got there, what's next.
+
 ### The demo path
 
 One person, offer to day 1, with 3 disruptions injected live: the manager isn't in the office, the team requires Windows, no clinic slot in time. Then the clock jumps to probation, a review and offboarding. Each disruption is a decision the agent takes from an intermediate result.
