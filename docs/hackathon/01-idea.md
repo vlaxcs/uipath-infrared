@@ -15,6 +15,8 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 
 ## 1. Target
 
+- **Buyer company:** start-ups and small enterprises.
+
 ## 2. Problem
 
 ## 3. Getting into their day
