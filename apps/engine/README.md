@@ -39,6 +39,9 @@ Domain modules:
 | `violation.py` | `Violation` with the constraint ids of `result.json` (`budget`, `migration_budget`, `security.<gate>`) and its `distance` from passing |
 | `security_gates.py` | one check per security gate; a gate that was remediated passes |
 | `remediation.py` | the `security_remediation` layer: one `remediate` action per open gate violation, and its effort |
+| `sizing.py` | the target size of a component from its usage: fewer units for a pool, a smaller or larger tier for a single unit |
+| `signals.py` | facts to signals: orphan, idle, oversized, undersized, static scaling, single-zone stateful, design problem |
+| `strategies/cleanup_orphans.py`, `strategies/rightsize_in_place.py` | the first two cumulative layers, each built with `Candidate.extend` on the one before |
 | `constraints.py` | every hard constraint on an end state; money and hours arrive in `CandidateFigures` |
 
 ## Pricing rule
@@ -63,3 +66,16 @@ Domain modules:
 - A remediated placement still counts as unchanged, so it keeps its reported cost. Only the effort is priced for now.
 - Effort per action, in hours (`EFFORT_HOURS_BY_GATE`): remove public access 4, encrypt at rest 8, close admin ports 1, enable backups 1, turn on audit logging 2. These are estimates, not catalog figures.
 - The actions rest on configuration facts, so their confidence is high.
+
+## Cleanup and rightsizing rules
+
+- `cleanup_orphans`: an orphan is deleted. An idle component is stopped when something is worth keeping (it is stateful, or it is a VM with disks, which stay billed); otherwise it is deleted (a NAT gateway, a stateless cache).
+- `rightsize_in_place` skips whatever the layers before it removed or stopped.
+- Headroom is 30% (`HEADROOM`). A pool is a stateless component with more than one unit; it is sized by its busiest reported resource (CPU, memory, GPU) and changes its unit count. Anything else changes tier.
+- A pool with fixed scaling is autoscaled and billed at its average load plus headroom; other pools are resized to p95 plus headroom. A pool that serves production keeps at least `cto_settings.min_zones` units.
+- A single unit shrinks only to a tier that covers p95 CPU and memory plus headroom and is no larger than today in either. When memory use is not reported, memory is kept; if that blocks the shrink, the component is flagged instead. The same goes for a kind the catalog cannot price.
+- A shrink or an autoscale is kept only when `cost_placement` says it saves money.
+- Undersized (CPU p95 above 80% or memory p95 above 85%) grows to cover p95 plus headroom, whatever it costs.
+- A stateful production component in fewer zones than `min_zones` is scaled to `min_zones`. A component whose zone count is unknown, or whose catalog option is already multi-zone, is left alone.
+- Throttling while consumed capacity stays under 20% of provisioned is a design problem: flagged, no capacity added.
+- Node groups of one cluster that report identical usage are cluster-level copies; their actions are capped at low confidence.
