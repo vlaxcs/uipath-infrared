@@ -23,7 +23,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 ## 2. Problem
 
 - **What the CTO wants:** the best possible ratio of quality, functionality and price.
-- **What stops them:** they need the data centralised, correctly and efficiently.
+- **What stops them:** they need the data centralised, correctly and efficiently. Today it is scattered across different clusters.
 
 ## 3. Getting into their day
 
