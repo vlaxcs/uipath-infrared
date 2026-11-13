@@ -8,7 +8,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 | 2. What is their problem? | done, waits for form answers |
 | 3. How do we get into their day? | done |
 | 4. Business plan | open: pricing model, waits for form answers |
-| 5. Design the product | next |
+| 5. Design the product | in progress |
 | 6. Branding | in parallel, designer |
 
 ## 1. Target
@@ -16,7 +16,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 - **Buyer:** founder or COO of a start-up or small enterprise.
 - **Users:** HR (often the founder), managers, buddies, access owners, and the new hire or the leaver.
 - **Job:** the employee lifecycle, from onboarding to offboarding, done by an agent.
-- **Onboarding** is internal and starts when the offer is accepted and the agreement signed. Recruiting, the offer and the signing are outside the product.
+- **Onboarding** starts at the offer. Recruiting before the offer is outside the product.
 
 ## 2. Problem
 
@@ -54,6 +54,12 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 - **B2B:** the company pays; the new hire and the manager never do.
 - **Open:** subscription per employee per month, or a price per onboarding and offboarding. Decided from form answers 6-8.
 - **Anchors:** floor, an HR suite (Factorial from 8 USD per user per month); ceiling, the cost of one lost hire; our cost, LLM calls per run, measured on real runs.
+
+## 5. Product design
+
+- **One agentic workflow** that covers the whole lifecycle: from the offer, through onboarding, the Enterpreyes flows in between, to offboarding.
+- **It doesn't have to sit next to an existing product.**
+- **Mocked for the MVP:** most data, such as the employees' schedule. The mocked data still drives the agent's decisions, e.g. the schedule tells it whether the manager is in the office.
 
 ## Open questions
 
