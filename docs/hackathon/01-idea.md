@@ -7,8 +7,8 @@ Output of this phase: a one-page PRD the mentors validated. Who pays, what probl
 | Kick-off | 10 min | in progress |
 | 1. Who do we target? | 30 min | done, mentors to confirm |
 | 2. What is their problem? | 30 min | framed, needs form answers |
-| 3. How do we get into their day? | 20 min | in progress |
-| 4. Business plan | 15 min | |
+| 3. How do we get into their day? | 20 min | done |
+| 4. Business plan | 15 min | in progress, waits for form answers |
 | 5. Design the product | 15 min | |
 | 6. Branding | in parallel, designer | |
 
@@ -115,6 +115,8 @@ Missing: a number on the cost of a bad onboarding in a start-up (time to product
 4. At the last departure: how sure are you that every access was removed?
 5. What do you use today for onboarding and offboarding?
 6. How much would you pay per employee per month for this to run on its own, with you approving only the important steps? (0, 1-3, 3-5, 5-10, 10+ EUR)
+7. How many people did you hire, and how many left, in the last 12 months?
+8. Would you rather pay per employee per month, or per hire and per departure?
 
 ### The lifecycle, split by type (input for step 5)
 
@@ -169,6 +171,29 @@ Channels to pick from:
 | Google Workspace (Calendar, Gmail) | Workspace is mandatory in the PRD; availability on the start date comes from Calendar | email alone is slow for approvals |
 | web app | a page for HR to follow the run and correct it: the "follow progress, correct mistakes" part of the rubric | it's one more place to open |
 
+
+## 4. Business plan (15 min)
+
+Pricing comes from the form answers (question 6), not from guesses. No answers yet, so the prices below stay empty until they arrive.
+
+**Who pays:** the company (B2B). The founder or COO buys, HR runs it, everyone else uses it for free. Freemium for end users doesn't apply: the new hire and the manager never pay.
+
+**Three models to choose from:**
+
+| Model | How it works | For | Against |
+| --- | --- | --- | --- |
+| A. Included in Enterpreyes | part of the seat price in the PRD (30 USD seats 1-19, 25 USD from the 20th) | no new price; the agent is a reason to buy Enterpreyes | the hackathon product isn't a business of its own |
+| B. Subscription per active employee | X EUR per employee per month, as an add-on or standalone | predictable revenue, the market is used to it (Factorial from 8 USD per user) | a start-up with 10 people and 2 hires a year pays for 10 months of nothing |
+| C. Per run | Y EUR per onboarding or offboarding | the price follows the value: it's paid exactly when a hire happens; comparable to the cost per hire (~4,700 USD) | unpredictable revenue for us |
+
+**Anchors the price has to sit between:**
+- lower bound: what they pay today for onboarding in an HR suite (Factorial from 8 USD per user per month, a whole suite);
+- upper bound: what one mistake costs them, at least 20,000 EUR for a hire lost in the first 90 days on a 40,000 EUR salary (Finance to check);
+- the client's own cost: the LLM calls per run (OpenRouter now, Vertex AI in the PRD), measured on the first real runs, not estimated.
+
+**What the form has to answer:**
+- question 6, the price per employee per month;
+- add: "How many people did you hire and how many left in the last 12 months?" Without it we can't compare B and C.
 
 ## Sources
 
