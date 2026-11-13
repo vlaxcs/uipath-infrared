@@ -91,6 +91,7 @@ docs/                prd.md, spec.md, team/<name>.md (one task file per person)
 | `AWS_ENDPOINT_URL`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | estate, extractor, agent, sandbox | Floci: `http://localhost:4566`, `us-east-1`, `test`, `test` |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL` | agent | the LLM key; the base URL only when routing through another provider |
 | `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, `SLACK_SIGNING_SECRET` | slack-bot | from the Slack app Vlad creates |
+| `SLACK_WORKSPACE_URL` | phone | the Slack workspace the phone frame opens, where the approvals arrive |
 | `GITHUB_TOKEN` | extractor (runners), orchestrator (phase 2) | a fine-grained token, read-only for runners |
 | `ORCHESTRATOR_ADDR` | orchestrator | the address it listens on |
 | `VITE_ORCHESTRATOR_URL` | dashboard, phone, chrome-extension | where the surfaces reach the orchestrator |
