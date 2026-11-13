@@ -1,0 +1,72 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "neon-scale:cu-hour": {
+      "amount": 0.222,
+      "currency": "USD",
+      "description": "Neon Scale plan, USD per CU-hour (Launch is USD 0.106).",
+      "reference": "https://neon.com/docs/introduction/plans",
+      "unit": "Hrs"
+    },
+    "neon:storage-gb": {
+      "amount": 0.35,
+      "currency": "USD",
+      "description": "Neon storage on Launch and Scale, USD per GB-month.",
+      "reference": "https://neon.com/docs/introduction/plans",
+      "unit": "GB-Mo"
+    },
+    "neon:transfer-gb": {
+      "amount": 0.1,
+      "currency": "USD",
+      "description": "Neon public network transfer beyond 500 GB per project, USD per GB.",
+      "reference": "https://neon.com/docs/introduction/plans",
+      "unit": "GB"
+    },
+    "supabase:compute-2xl": {
+      "amount": 0.562,
+      "currency": "USD",
+      "description": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+      "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
+      "unit": "Hrs"
+    },
+    "supabase:compute-4xl": {
+      "amount": 1.32,
+      "currency": "USD",
+      "description": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+      "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
+      "unit": "Hrs"
+    },
+    "supabase:compute-8xl": {
+      "amount": 2.562,
+      "currency": "USD",
+      "description": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+      "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
+      "unit": "Hrs"
+    },
+    "supabase:compute-large": {
+      "amount": 0.1517,
+      "currency": "USD",
+      "description": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+      "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
+      "unit": "Hrs"
+    },
+    "supabase:compute-xl": {
+      "amount": 0.2877,
+      "currency": "USD",
+      "description": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+      "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
+      "unit": "Hrs"
+    },
+    "supabase:disk-gb": {
+      "amount": 0.125,
+      "currency": "USD",
+      "description": "Supabase disk beyond the 8 GB included, USD per GB-month.",
+      "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
+      "unit": "GB-Mo"
+    }
+  },
+  "source": "manual",
+  "unverified": {},
+  "url": "apps/pricing/config/manual.json",
+  "version": "97fa73febc33"
+}

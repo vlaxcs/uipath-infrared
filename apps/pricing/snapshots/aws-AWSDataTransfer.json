@@ -1,0 +1,16 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "internet-out:first-10tb": {
+      "amount": 0.09,
+      "currency": "USD",
+      "description": "$0.090 per GB - first 10 TB / month data transfer out beyond the global free tier",
+      "reference": "FSEU4E6BRE95JTX8",
+      "unit": "GB"
+    }
+  },
+  "source": "aws-AWSDataTransfer",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSDataTransfer/20261111191941/eu-west-1/index.csv",
+  "version": "20261111191941"
+}

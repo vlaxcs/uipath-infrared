@@ -1,0 +1,16 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "storage:after-free-25gb": {
+      "amount": 0.283,
+      "currency": "USD",
+      "description": "$0.283 per GB-Month of storage used beyond first 25 free GB-Months",
+      "reference": "E6MS5SS3AMMHBJC6",
+      "unit": "GB-Mo"
+    }
+  },
+  "source": "aws-AmazonDynamoDB",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonDynamoDB/20261111153612/eu-west-1/index.csv",
+  "version": "20261111153612"
+}

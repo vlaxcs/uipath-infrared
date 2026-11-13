@@ -1,0 +1,100 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "aurora-postgres:db.r6g.2xlarge": {
+      "amount": 1.146,
+      "currency": "USD",
+      "description": "$ 1.146 per RDS db.r6g.2xlarge Single-AZ instance hour (or partial hour) running Aurora PostgreSQL",
+      "reference": "NU2XN63QGGWNMDN9",
+      "unit": "Hrs"
+    },
+    "aurora-postgres:db.r6g.4xlarge": {
+      "amount": 2.291,
+      "currency": "USD",
+      "description": "$ 2.291 per RDS db.r6g.4xlarge Single-AZ instance hour (or partial hour) running Aurora PostgreSQL",
+      "reference": "CA8J268DX46QHYDE",
+      "unit": "Hrs"
+    },
+    "aurora-postgres:db.r6g.large": {
+      "amount": 0.286,
+      "currency": "USD",
+      "description": "$ 0.286 per RDS db.r6g.large Single-AZ instance hour (or partial hour) running Aurora PostgreSQL",
+      "reference": "EQQGP475ZHNCR63P",
+      "unit": "Hrs"
+    },
+    "aurora-postgres:db.r6g.xlarge": {
+      "amount": 0.573,
+      "currency": "USD",
+      "description": "$ 0.573 per RDS db.r6g.xlarge Single-AZ instance hour (or partial hour) running Aurora PostgreSQL",
+      "reference": "XC3UF43TCQ9F2R72",
+      "unit": "Hrs"
+    },
+    "aurora-postgres:io": {
+      "amount": 2.2e-07,
+      "currency": "USD",
+      "description": "$0.22 per 1 million I/O requests (Aurora PostgreSQL)",
+      "reference": "NHQEGNNU6EXZ7ZD7",
+      "unit": "IOs"
+    },
+    "aurora-postgres:storage": {
+      "amount": 0.11,
+      "currency": "USD",
+      "description": "$0.11 per GB-month of consumed storage (Aurora PostgreSQL)",
+      "reference": "Z57JPT74TUYSYD9G",
+      "unit": "GB-Mo"
+    },
+    "postgres:db.m5.2xlarge": {
+      "amount": 0.788,
+      "currency": "USD",
+      "description": "$0.788 per RDS db.m5.2xlarge Single-AZ instance hour (or partial hour) running PostgreSQL",
+      "reference": "FV3XTTSGU5PPGQCD",
+      "unit": "Hrs"
+    },
+    "postgres:db.m5.large": {
+      "amount": 0.197,
+      "currency": "USD",
+      "description": "$0.197 per RDS db.m5.large Single-AZ instance hour (or partial hour) running PostgreSQL",
+      "reference": "DQYXUS3RESNC7PXF",
+      "unit": "Hrs"
+    },
+    "postgres:db.m5.xlarge": {
+      "amount": 0.394,
+      "currency": "USD",
+      "description": "$0.394 per RDS db.m5.xlarge Single-AZ instance hour (or partial hour) running PostgreSQL",
+      "reference": "567A3JXKZEN8GET6",
+      "unit": "Hrs"
+    },
+    "postgres:db.r6g.2xlarge": {
+      "amount": 1.007,
+      "currency": "USD",
+      "description": "$ 1.007 per RDS db.r6g.2xlarge Single-AZ instance hour (or partial hour) running PostgreSQL",
+      "reference": "GSRDYVMGKBZ83HKZ",
+      "unit": "Hrs"
+    },
+    "postgres:db.r6g.4xlarge": {
+      "amount": 2.014,
+      "currency": "USD",
+      "description": "$ 2.014 per RDS db.r6g.4xlarge Single-AZ instance hour (or partial hour) running PostgreSQL",
+      "reference": "A4SYN4E2KUDUHRUB",
+      "unit": "Hrs"
+    },
+    "postgres:db.r6g.8xlarge": {
+      "amount": 4.028,
+      "currency": "USD",
+      "description": "$ 4.028 per RDS db.r6g.8xlarge Single-AZ instance hour (or partial hour) running PostgreSQL",
+      "reference": "MHCDAJV5J8NB99M8",
+      "unit": "Hrs"
+    },
+    "postgres:gp3-storage": {
+      "amount": 0.127,
+      "currency": "USD",
+      "description": "$0.127 per GB-month of provisioned GP3 storage running PostgreSQL",
+      "reference": "S32D6FQC3879C222",
+      "unit": "GB-Mo"
+    }
+  },
+  "source": "aws-AmazonRDS",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonRDS/20261113215233/eu-west-1/index.csv",
+  "version": "20261113215233"
+}
