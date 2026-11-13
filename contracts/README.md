@@ -7,11 +7,16 @@ Everything the extractor side and the decision-engine side must agree on, plus a
 | `infra.schema.json` | **The contract.** Extractor output: facts about one project's infrastructure. |
 | `forecast.schema.json` / `forecast.example.json` | Roadmap + CTO settings turned into numbers (hand-written for now). |
 | `catalog.schema.json` / `catalog.example.json` | Priced options per `kind` and provider. **Illustrative prices.** |
+| `rehearsal.schema.json` / `rehearsal.example.json` | Sandbox output: traffic profile, failure injected, measured availability/latency, pass/fail verdict. All provenance is `synthetic` on Floci. |
 | `result.schema.json` | Engine output: every candidate priced, checked, scored and ranked, with the winner. |
 | `result.example.json` / `result.example.nothing-feasible.json` | Sample engine output on `demo-shop`: one with a winner, one where no candidate passes the hard constraints. **Sample values, not engine results.** |
 | `mock/demo-shop.infra.json` | The deliberately bad mock project (38 components, 30 edges, 4 stacks). |
 | `mock/demo-shop.expected-signals.md` | What a competent engine should notice in the mock. Engine-side, not input. |
 | `mock/build_demo_shop.py` | Authoring helper for the mock. All numbers typed by hand; reads nothing from `ground_truth/`. |
+| `mock/startup.infra.json` | A second mock: a 10-component start-up, EUR 3,269/month, single-AZ, with deliberate constraints. |
+| `mock/startup.forecast.json` | The start-up's forecast: EUR 12k budget, EU-only, 99.5% availability, 24 months. |
+| `mock/startup.expected-signals.md` | What a competent engine should notice in the start-up mock. Engine-side, not input. |
+| `mock/build_startup.py` | Authoring helper for the start-up mock. All numbers typed by hand. |
 | `candidates.schema.json` / `candidates.example.json` | The agent's proposals: what changes, never what it costs. Input to `engine evaluate --candidates`. |
 | `candidates_integrity.py` / `test_candidates_contract.py` | The candidate rules a JSON Schema can't express, and a test per rule. |
 | `run.schema.json` / `run.example.json` | One run of the workflow: its state and its event log. Written by the orchestrator, read by the surfaces and the flow test. |
@@ -137,6 +142,10 @@ Known Floci gaps: no `CreateSnapshot`, ASG/ECS/EKS resources are real Docker con
 | EFS | `file_system` | |
 | Route53 zone, ECR, KMS, IAM, log groups, secrets | `dns` / `other` / omit | IAM facts go into `security`/`controls`, not components |
 
+## The start-up mock
+
+`mock/startup.infra.json` is a small, deliberately imperfect start-up estate: 10 components, EUR 3,269/month, web and database in one zone, an orphan volume and an idle bastion. `mock/startup.forecast.json` is its forecast. `mock/startup.expected-signals.md` lists what the engine should notice; it is not input. The mock is built in Floci by `apps/estate/startup/` and compared against the extractor output by `apps/estate/compare_startup.py`.
+
 ## The engine's job (suggested, not part of the contract)
 
 - **Sizing**: smallest catalog tier with `vcpu*(1-headroom) >= capacity.vcpu * usage.cpu_pct.p95/100` (same for memory); keep `p95`, not `avg`, in the headroom test.
@@ -161,14 +170,35 @@ Known Floci gaps: no `CreateSnapshot`, ASG/ECS/EKS resources are real Docker con
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r contracts/requirements.txt
-.venv/bin/python contracts/check_mock.py                                       # mock + forecast + catalog + result + candidates + run examples
+.venv/bin/python contracts/check_mock.py                                       # mock + forecast + catalog + result + candidates + run + rehearsal + start-up examples
 .venv/bin/python contracts/check_mock.py contracts/real/floci-estate.infra.json  # extractor output
 .venv/bin/python contracts/check_mock.py path/to/result.json                     # engine output
 .venv/bin/python contracts/check_mock.py path/to/candidates.json                 # agent output
 .venv/bin/python -m unittest discover -s contracts -p "test_*.py"              # the run and candidates contracts' rules
 ```
 
-Last run on this tree: all seven example files pass their schemas (infra, forecast, catalog, two results, candidates, run), 38 components / 30 edges, 21 run events, 0 integrity errors, 0 warnings; 67 contract tests pass (39 run, 28 candidates). The checker also fails correctly on a broken copy (duplicate id, dangling edge, missing provenance, unknown field, bad enum, node_group with a wrong parent, top-level `findings`).
+Last run on this tree: all ten example files pass their schemas (infra, forecast, catalog, two results, candidates, run, rehearsal, start-up infra and forecast), 38 + 10 components, 21 run events, 0 integrity errors, 0 warnings; 67 contract tests pass (39 run, 28 candidates). The checker also fails correctly on a broken copy (duplicate id, dangling edge, missing provenance, unknown field, bad enum, node_group with a wrong parent, top-level `findings`).
+
+## Schema 1.1 additions (optional fields)
+
+`infra.schema.json` is 1.1; `infra.schema.1.0.json` is the saved 1.0. All three additions are optional, so every 1.0 document is a valid 1.1 document. The extractor emits them only with `--extensions` and then writes `"schema_version": "1.1"`.
+
+| Field | Placement | Filled from | Provenance | Why it sits there |
+|---|---|---|---|---|
+| `components[].db_stats` | on a `postgres` component | `pg_stat_user_tables`, `pg_total_relation_size`, `pg_stat_user_indexes` over psycopg (read-only session; never table rows) | per table `observed` | statistics of one database belong to that database, next to its `capacity`/`usage`, where the engine reads them for sizing or splitting ("hot tables" = the engine ranks by `seq_scans`/`idx_scans`/`n_tup_*`; the extractor only orders by activity, it does not label) |
+| `ci_runners` | top level | GitHub Actions API: runs in the window, their jobs; hours per runner type scaled to 30 days | `estimated` (computed from job start/end) | GitHub-hosted CI is not a resource in the scanned account; self-hosted runner machines already appear as `virtual_machine` components |
+| `ai_consumption` | top level | optional input file named by `AI_CONSUMPTION_FILE` | `synthetic` (injected, not observed through an API) | model spend is billed by an external provider, not tied to one component; GPU utilisation already exists as `usage.gpu_pct` |
+
+Proposed schema changes (not applied; for Vlad's review):
+
+1. `db_stats.indexes` is a bare integer without provenance, unlike every other number in the contract. Make it a `static_metric`, or add a `provenance` to `db_stats`.
+2. `pg_stat_*` counters are cumulative since the last statistics reset, not over `window_days`. Add `db_stats.stats_since` (date-time, from `pg_stat_database.stats_reset`) so the engine can turn counters into rates.
+3. `pg_stat_user_tables` is per database and an instance can host several. Add an optional `database` to each table entry (the extractor reads one database per instance today: `DBName` or `postgres`).
+4. `db_stats.connection` is extraction metadata and repeats `config.endpoint`; rename it `database` or drop it.
+5. `ai_consumption.tokens_by_model[].cost_usd` is the only money field not in EUR. Either `monthly_eur` as a `static_metric` (with basis) or keep USD and say so in the description.
+6. `ai_consumption` describes "GPU utilization" but has no GPU field; GPU stays in `usage.gpu_pct`, so drop it from the description.
+7. `ci_runners.runners[]` has `hours_month` but no window and no per-workflow split; the spec asks for "workflow history". Add `window_days` and an optional `workflows: [{name, runs, hours_month}]`.
+8. Allow a `basis` on `ci_runners.runners[]` and `tokens_by_model[]`, like `static_metric`, so `estimated` values state their formula.
 
 ## Versioning
 

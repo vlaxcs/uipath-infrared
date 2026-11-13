@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "id": "startup-2027-plan",
+  "description": "Start-up forecast: small budget, EU-only data residency, cost-focused.",
+  "horizon_months": 24,
+  "currency": "EUR",
+  "scenarios": {
+    "low":  { "probability": 0.25, "monthly_multiplier": { "traffic": 1.00, "data": 1.01 }, "note": "Flat growth, minimal traction." },
+    "base": { "probability": 0.50, "monthly_multiplier": { "traffic": 1.08, "data": 1.06 }, "note": "Steady growth, product-market fit." },
+    "high": { "probability": 0.25, "monthly_multiplier": { "traffic": 1.15, "data": 1.10 }, "note": "Strong traction, viral growth." }
+  },
+  "events": [
+    { "month": 6, "description": "Marketing campaign launch", "traffic_multiplier": 1.3 }
+  ],
+  "hard_constraints": {
+    "data_residency": { "allowed_regions": ["eu-*"], "applies_to": ["pii", "confidential", "unknown"] },
+    "budget": { "max_monthly_run_cost_eur": 12000, "max_one_off_migration_cost_eur": 8000 },
+    "min_availability_pct": 99.5,
+    "allowed_providers": ["aws", "managed_pg"],
+    "max_migration_effort_hours": 200,
+    "max_cutover_downtime_hours": 2,
+    "security_gates": {
+      "forbid_public_datastores": true,
+      "require_encryption_at_rest": true,
+      "forbid_world_open_admin_ports": true,
+      "require_audit_logging": false,
+      "require_backups": true
+    }
+  },
+  "cto_settings": {
+    "ha_level": "multi_az",
+    "min_zones": 2,
+    "weights": { "cost": 0.65, "risk": 0.25, "effort": 0.10 },
+    "tie_break": "lower_cost",
+    "strategies_enabled": ["do_nothing", "cleanup_orphans", "rightsize_in_place", "managed_services"]
+  },
+  "business": {
+    "downtime_cost_per_hour_eur": 800,
+    "downtime_cost_by_stack": {},
+    "engineer_hourly_eur": 75,
+    "discount_rate_annual": 0.05
+  }
+}
