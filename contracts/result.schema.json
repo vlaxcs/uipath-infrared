@@ -156,7 +156,7 @@
       "additionalProperties": false,
       "patternProperties": { "^x_": {} },
       "properties": {
-        "component": { "type": "string", "minLength": 1, "description": "infra.json component id." },
+        "component": { "type": "string", "minLength": 1, "description": "infra.json component id, or `account` for an account-wide control such as audit logging." },
         "action": {
           "enum": ["keep", "delete", "stop", "resize", "scale", "autoscale", "move", "remediate", "flag"],
           "description": "delete = remove the resource. stop = keep it but stop paying for compute. resize = change the unit size. scale = change the unit count or the zones. autoscale = turn autoscaling on. move = change the catalog option (provider, product or region). remediate = close a security gate without moving. flag = a finding with no priced change (e.g. a design problem that capacity does not fix)."
