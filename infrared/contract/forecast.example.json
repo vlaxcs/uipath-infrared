@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "id": "demo-shop-2027-plan",
+  "description": "Hand-written example: EU-only e-commerce company, 3-year horizon, moderate HA appetite, cost-leaning CTO.",
+  "horizon_months": 36,
+  "currency": "EUR",
+  "scenarios": {
+    "low":  { "probability": 0.2, "monthly_multiplier": { "traffic": 1.005, "data": 1.01 }, "note": "Market flat." },
+    "base": { "probability": 0.6, "monthly_multiplier": { "traffic": 1.02,  "data": 1.03 }, "note": "Roadmap delivered, ~27% traffic growth/year." },
+    "high": { "probability": 0.2, "monthly_multiplier": { "traffic": 1.04,  "data": 1.05 }, "note": "Marketplace launch lands well." }
+  },
+  "events": [
+    { "month": 6,  "description": "Marketplace launch", "traffic_multiplier": 1.4 },
+    { "month": 12, "description": "Analytics product GA", "data_multiplier": 1.5 }
+  ],
+  "hard_constraints": {
+    "data_residency": { "allowed_regions": ["eu-*", "onprem-dc1"], "applies_to": ["pii", "confidential", "unknown"] },
+    "budget": { "max_monthly_run_cost_eur": 90000, "max_one_off_migration_cost_eur": 120000 },
+    "min_availability_pct": 99.9,
+    "allowed_providers": ["aws", "managed_pg", "onprem"],
+    "max_migration_effort_hours": 1200,
+    "max_cutover_downtime_hours": 4,
+    "security_gates": {
+      "forbid_public_datastores": true,
+      "require_encryption_at_rest": true,
+      "forbid_world_open_admin_ports": true,
+      "require_audit_logging": true,
+      "require_backups": true
+    }
+  },
+  "cto_settings": {
+    "ha_level": "multi_az",
+    "min_zones": 2,
+    "weights": { "cost": 0.5, "risk": 0.35, "effort": 0.15 },
+    "tie_break": "lower_risk",
+    "strategies_enabled": ["do_nothing", "cleanup_orphans", "rightsize_in_place", "managed_services", "consolidate", "move_to_onprem"]
+  },
+  "business": {
+    "downtime_cost_per_hour_eur": 6500,
+    "downtime_cost_by_stack": { "dev": 0, "legacy": 800 },
+    "engineer_hourly_eur": 85,
+    "discount_rate_annual": 0.08
+  }
+}

@@ -1,0 +1,412 @@
+{
+  "edges": [
+    {
+      "src": "shop-db-subnets",
+      "dst": "vpc-5ea4faf2",
+      "kind": "network",
+      "note": "DB subnet group lives in this VPC"
+    },
+    {
+      "src": "data-db-subnets",
+      "dst": "vpc-5fad6202",
+      "kind": "network",
+      "note": "DB subnet group lives in this VPC"
+    },
+    {
+      "src": "legacy-db-subnets",
+      "dst": "vpc-80ef02a5",
+      "kind": "network",
+      "note": "DB subnet group lives in this VPC"
+    },
+    {
+      "src": "shop-orders-db",
+      "dst": "shop-db-subnets",
+      "kind": "network",
+      "note": "placed via DB subnet group"
+    },
+    {
+      "src": "shop-orders-db",
+      "dst": "sg-3384d04bf3a34776a",
+      "kind": "network",
+      "note": "VPC security group"
+    },
+    {
+      "src": "shop-orders-db-copy",
+      "dst": "shop-db-subnets",
+      "kind": "network",
+      "note": "placed via DB subnet group"
+    },
+    {
+      "src": "shop-orders-db-copy",
+      "dst": "sg-3384d04bf3a34776a",
+      "kind": "network",
+      "note": "VPC security group"
+    },
+    {
+      "src": "shop-analytics-db",
+      "dst": "shop-db-subnets",
+      "kind": "network",
+      "note": "placed via DB subnet group"
+    },
+    {
+      "src": "shop-analytics-db",
+      "dst": "sg-3384d04bf3a34776a",
+      "kind": "network",
+      "note": "VPC security group"
+    },
+    {
+      "src": "legacy-erp-db",
+      "dst": "legacy-db-subnets",
+      "kind": "network",
+      "note": "placed via DB subnet group"
+    },
+    {
+      "src": "legacy-erp-db",
+      "dst": "sg-909f7fa980c179ea6",
+      "kind": "network",
+      "note": "VPC security group"
+    },
+    {
+      "src": "data-aurora-0",
+      "dst": "data-aurora",
+      "kind": "data",
+      "note": "cluster member"
+    },
+    {
+      "src": "data-aurora-1",
+      "dst": "data-aurora",
+      "kind": "data",
+      "note": "cluster member"
+    },
+    {
+      "src": "data-aurora",
+      "dst": "data-db-subnets",
+      "kind": "network",
+      "note": "cluster subnet group"
+    },
+    {
+      "src": "shop-resize-image",
+      "dst": "shop-orders-db",
+      "kind": "data",
+      "note": "DB_HOST env var, connects with admin credentials"
+    },
+    {
+      "src": "shop-resize-image",
+      "dst": "arn:aws:iam::000000000000:role/lambda-all-powerful",
+      "kind": "config",
+      "note": "execution role (AdministratorAccess)"
+    },
+    {
+      "src": "shop-resize-image",
+      "dst": "sg-933a7777cc3783d51",
+      "kind": "network",
+      "note": "VPC-attached Lambda"
+    },
+    {
+      "src": "shop-send-email",
+      "dst": "shop-orders-db",
+      "kind": "data",
+      "note": "DB_HOST env var, connects with admin credentials"
+    },
+    {
+      "src": "shop-send-email",
+      "dst": "arn:aws:iam::000000000000:role/lambda-all-powerful",
+      "kind": "config",
+      "note": "execution role (AdministratorAccess)"
+    },
+    {
+      "src": "shop-send-email",
+      "dst": "sg-933a7777cc3783d51",
+      "kind": "network",
+      "note": "VPC-attached Lambda"
+    },
+    {
+      "src": "legacy-cron",
+      "dst": "legacy-erp-db",
+      "kind": "data",
+      "note": "DB_HOST env var, connects with admin credentials"
+    },
+    {
+      "src": "legacy-cron",
+      "dst": "arn:aws:iam::000000000000:role/lambda-all-powerful",
+      "kind": "config",
+      "note": "execution role (AdministratorAccess)"
+    },
+    {
+      "src": "shop-prod",
+      "dst": "subnet-f6c77ed5",
+      "kind": "network",
+      "note": "cluster VPC config / nodegroups in this subnet only"
+    },
+    {
+      "src": "shop-prod",
+      "dst": "sg-933a7777cc3783d51",
+      "kind": "network",
+      "note": "cluster security group"
+    },
+    {
+      "src": "shop-staging",
+      "dst": "subnet-f6c77ed5",
+      "kind": "network",
+      "note": "cluster VPC config / nodegroups in this subnet only"
+    },
+    {
+      "src": "shop-staging",
+      "dst": "sg-933a7777cc3783d51",
+      "kind": "network",
+      "note": "cluster security group"
+    },
+    {
+      "src": "data-platform",
+      "dst": "subnet-27256f8b",
+      "kind": "network",
+      "note": "cluster VPC config / nodegroups in this subnet only"
+    },
+    {
+      "src": "data-platform",
+      "dst": "sg-c62f04eae3310c905",
+      "kind": "network",
+      "note": "cluster security group"
+    },
+    {
+      "src": "ml-experiments",
+      "dst": "subnet-27256f8b",
+      "kind": "network",
+      "note": "cluster VPC config / nodegroups in this subnet only"
+    },
+    {
+      "src": "ml-experiments",
+      "dst": "sg-c62f04eae3310c905",
+      "kind": "network",
+      "note": "cluster security group"
+    },
+    {
+      "src": "shop-alb",
+      "dst": "vpc-5ea4faf2",
+      "kind": "network",
+      "note": "internet-facing, public subnets"
+    },
+    {
+      "src": "shop-alb",
+      "dst": "sg-933a7777cc3783d51",
+      "kind": "network",
+      "note": "ALB security group"
+    },
+    {
+      "src": "legacy-alb",
+      "dst": "vpc-80ef02a5",
+      "kind": "network",
+      "note": "internet-facing, public subnets"
+    },
+    {
+      "src": "legacy-alb",
+      "dst": "sg-909f7fa980c179ea6",
+      "kind": "network",
+      "note": "ALB security group"
+    },
+    {
+      "src": "legacy-ecs/orders-api",
+      "dst": "legacy-erp-db",
+      "kind": "data",
+      "note": "DB_HOST env var; also has plaintext DB_PASSWORD"
+    },
+    {
+      "src": "legacy-ecs/orders-api",
+      "dst": "legacy-jobs",
+      "kind": "event",
+      "note": "JOBS_QUEUE_URL env var (queue has no consumer)"
+    },
+    {
+      "src": "legacy-ecs/orders-api",
+      "dst": "legacy-reports",
+      "kind": "data",
+      "note": "REPORT_BUCKET env var (public bucket)"
+    },
+    {
+      "src": "legacy-ecs/orders-api",
+      "dst": "sg-909f7fa980c179ea6",
+      "kind": "network",
+      "note": "awsvpc SG, public subnet, public IP"
+    },
+    {
+      "src": "legacy-alb",
+      "dst": "legacy-ecs/orders-api",
+      "kind": "traffic",
+      "note": "target group -> ECS service orders-api:8080"
+    },
+    {
+      "src": "legacy-ecs/invoice-worker",
+      "dst": "legacy-erp-db",
+      "kind": "data",
+      "note": "DB_HOST env var; also has plaintext DB_PASSWORD"
+    },
+    {
+      "src": "legacy-ecs/invoice-worker",
+      "dst": "legacy-jobs",
+      "kind": "event",
+      "note": "JOBS_QUEUE_URL env var (queue has no consumer)"
+    },
+    {
+      "src": "legacy-ecs/invoice-worker",
+      "dst": "legacy-reports",
+      "kind": "data",
+      "note": "REPORT_BUCKET env var (public bucket)"
+    },
+    {
+      "src": "legacy-ecs/invoice-worker",
+      "dst": "sg-909f7fa980c179ea6",
+      "kind": "network",
+      "note": "awsvpc SG, public subnet, public IP"
+    },
+    {
+      "src": "legacy-ecs/admin-portal",
+      "dst": "legacy-erp-db",
+      "kind": "data",
+      "note": "DB_HOST env var; also has plaintext DB_PASSWORD"
+    },
+    {
+      "src": "legacy-ecs/admin-portal",
+      "dst": "legacy-jobs",
+      "kind": "event",
+      "note": "JOBS_QUEUE_URL env var (queue has no consumer)"
+    },
+    {
+      "src": "legacy-ecs/admin-portal",
+      "dst": "legacy-reports",
+      "kind": "data",
+      "note": "REPORT_BUCKET env var (public bucket)"
+    },
+    {
+      "src": "legacy-ecs/admin-portal",
+      "dst": "sg-909f7fa980c179ea6",
+      "kind": "network",
+      "note": "awsvpc SG, public subnet, public IP"
+    },
+    {
+      "src": "legacy-ecs/report-gen",
+      "dst": "legacy-erp-db",
+      "kind": "data",
+      "note": "DB_HOST env var; also has plaintext DB_PASSWORD"
+    },
+    {
+      "src": "legacy-ecs/report-gen",
+      "dst": "legacy-jobs",
+      "kind": "event",
+      "note": "JOBS_QUEUE_URL env var (queue has no consumer)"
+    },
+    {
+      "src": "legacy-ecs/report-gen",
+      "dst": "legacy-reports",
+      "kind": "data",
+      "note": "REPORT_BUCKET env var (public bucket)"
+    },
+    {
+      "src": "legacy-ecs/report-gen",
+      "dst": "sg-909f7fa980c179ea6",
+      "kind": "network",
+      "note": "awsvpc SG, public subnet, public IP"
+    },
+    {
+      "src": "shop-alb",
+      "dst": "web-asg",
+      "kind": "traffic",
+      "note": "ASG attached to ALB target group (port 80)"
+    },
+    {
+      "src": "shop-alerts",
+      "dst": "shop-emails",
+      "kind": "event",
+      "note": "SNS fan-out into SQS (no filter policy, no raw delivery)"
+    },
+    {
+      "src": "shop-emails",
+      "dst": "shop-send-email",
+      "kind": "event",
+      "note": "event source mapping, BatchSize=1"
+    },
+    {
+      "src": "legacy-cron-every-minute",
+      "dst": "legacy-cron",
+      "kind": "event",
+      "note": "EventBridge schedule rate(1 minute)"
+    },
+    {
+      "src": "legacy-cron",
+      "dst": "legacy-erp-db",
+      "kind": "data",
+      "note": "cron job hits the legacy ERP DB every minute"
+    },
+    {
+      "src": "shop-prod-uploads",
+      "dst": "shop-resize-image",
+      "kind": "event",
+      "note": "S3 ObjectCreated notification (bucket allows anonymous PutObject)"
+    },
+    {
+      "src": "shop-prod",
+      "dst": "shop-orders-db",
+      "kind": "data",
+      "note": "pods use the orders DB (node role has admin, DB is public)"
+    },
+    {
+      "src": "shop-prod",
+      "dst": "shop-sessions",
+      "kind": "data",
+      "note": "session store (Redis)"
+    },
+    {
+      "src": "shop-prod",
+      "dst": "shop-orders",
+      "kind": "event",
+      "note": "order queue producer/consumer"
+    },
+    {
+      "src": "shop-sessions",
+      "dst": "sg-933a7777cc3783d51",
+      "kind": "network",
+      "note": "cache SG"
+    },
+    {
+      "src": "clickstream",
+      "dst": "clickstream-to-lake",
+      "kind": "data",
+      "note": "Kinesis -> Firehose"
+    },
+    {
+      "src": "clickstream-to-lake",
+      "dst": "data-lake-raw",
+      "kind": "data",
+      "note": "Firehose -> S3, 60s/1MB buffer, uncompressed, no prefix"
+    },
+    {
+      "src": "data-platform",
+      "dst": "data-aurora",
+      "kind": "data",
+      "note": "Spark jobs read/write Aurora"
+    },
+    {
+      "src": "data-platform",
+      "dst": "data-lake-raw",
+      "kind": "data",
+      "note": "Spark reads the raw lake"
+    },
+    {
+      "src": "data-platform",
+      "dst": "events-raw",
+      "kind": "data",
+      "note": "ingest target"
+    },
+    {
+      "src": "www.shop-example.com",
+      "dst": "shop-alb",
+      "kind": "dns",
+      "note": "CNAME, TTL 5s"
+    },
+    {
+      "src": "www.legacy-example.com",
+      "dst": "legacy-alb",
+      "kind": "dns",
+      "note": "CNAME, TTL 5s"
+    }
+  ]
+}

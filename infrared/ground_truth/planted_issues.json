@@ -1,0 +1,1357 @@
+{
+  "issues": [
+    {
+      "stack": "shared",
+      "service": "iam",
+      "resource": "eks-node-role",
+      "issue": "Node role has inline Action:* Resource:* + AmazonS3FullAccess; every pod inherits it (no IRSA)",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "shared",
+      "service": "iam",
+      "resource": "ecs-task-role",
+      "issue": "ECS task role has AdministratorAccess",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "shared",
+      "service": "iam",
+      "resource": "lambda-all-powerful",
+      "issue": "Single AdministratorAccess role shared by every Lambda",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "shared",
+      "service": "iam",
+      "resource": "cross-account-any",
+      "issue": "Trust policy Principal:* (any AWS account can assume)",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "shared",
+      "service": "iam",
+      "resource": "4 IAM users",
+      "issue": "Human & CI users with AdministratorAccess, static access keys, no MFA, never rotated",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "shared",
+      "service": "iam",
+      "resource": "account password policy",
+      "issue": "Min length 6, no complexity requirements",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "ec2",
+      "resource": "vpc-5ea4faf2",
+      "issue": "VPC has no flow logs; all subnets public (route to IGW), no private tier",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "ec2",
+      "resource": "vpc-5ea4faf2",
+      "issue": "No VPC endpoints for S3/DynamoDB; all AWS traffic goes via internet/NAT",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "ec2",
+      "resource": "vpc-5fad6202",
+      "issue": "VPC has no flow logs; all subnets public (route to IGW), no private tier",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "ec2",
+      "resource": "vpc-5fad6202",
+      "issue": "No VPC endpoints for S3/DynamoDB; all AWS traffic goes via internet/NAT",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "ec2",
+      "resource": "vpc-5fad6202",
+      "issue": "All subnets in a single AZ - no zonal redundancy",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "ec2",
+      "resource": "vpc-80ef02a5",
+      "issue": "VPC has no flow logs; all subnets public (route to IGW), no private tier",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "ec2",
+      "resource": "vpc-80ef02a5",
+      "issue": "No VPC endpoints for S3/DynamoDB; all AWS traffic goes via internet/NAT",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "legacy",
+      "service": "ec2",
+      "resource": "vpc-80ef02a5",
+      "issue": "CIDR 10.0.0.0/16 overlaps shop-prod-vpc - peering/TGW impossible",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "dev",
+      "service": "ec2",
+      "resource": "vpc-99131b6f",
+      "issue": "VPC has no flow logs; all subnets public (route to IGW), no private tier",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "dev",
+      "service": "ec2",
+      "resource": "vpc-99131b6f",
+      "issue": "No VPC endpoints for S3/DynamoDB; all AWS traffic goes via internet/NAT",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "dev",
+      "service": "ec2",
+      "resource": "vpc-99131b6f",
+      "issue": "3 NAT gateways (one per AZ) in a sandbox with ~no traffic: ~$100/mo idle + data processing",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "ec2",
+      "resource": "sg-933a7777cc3783d51",
+      "issue": "Security group allows ALL TCP ports from 0.0.0.0/0",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "ec2",
+      "resource": "sg-3384d04bf3a34776a",
+      "issue": "DB/cache ports (5432/3306/6379) open to the world",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "ec2",
+      "resource": "sg-8a05321dafaf87fae",
+      "issue": "SSH/RDP open to 0.0.0.0/0",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "data-platform",
+      "service": "ec2",
+      "resource": "sg-c62f04eae3310c905",
+      "issue": "All TCP+UDP open to 0.0.0.0/0",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "legacy",
+      "service": "ec2",
+      "resource": "sg-909f7fa980c179ea6",
+      "issue": "SSH + Elasticsearch 9200 open to the world",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "data-platform",
+      "service": "rds",
+      "resource": "data-db-subnets",
+      "issue": "DB subnet group spans only one AZ (all 3 subnets in us-east-1a): Multi-AZ/failover impossible",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-db-subnets",
+      "issue": "DB subnet group uses public subnets (route to IGW) with PubliclyAccessible=true",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-orders-db",
+      "issue": "db.r5.8xlarge with 2000GB gp2 - heavily oversized for observed load (<10% CPU); gp2 not gp3",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-orders-db",
+      "issue": "Single-AZ (MultiAZ=false), backup retention 0 (no PITR), no deletion protection",
+      "category": "reliability",
+      "severity": "critical"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-orders-db",
+      "issue": "PubliclyAccessible=true, StorageEncrypted=false, weak master password",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-orders-db",
+      "issue": "Performance Insights and enhanced monitoring off; auto minor upgrades disabled",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-orders-db",
+      "issue": "Engine 11.x is EOL (RDS Extended Support billing)",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-orders-db-copy",
+      "issue": "db.r5.8xlarge with 2000GB gp2 - heavily oversized for observed load (<10% CPU); gp2 not gp3",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-orders-db-copy",
+      "issue": "Single-AZ (MultiAZ=false), backup retention 0 (no PITR), no deletion protection",
+      "category": "reliability",
+      "severity": "critical"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-orders-db-copy",
+      "issue": "PubliclyAccessible=true, StorageEncrypted=false, weak master password",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-orders-db-copy",
+      "issue": "Performance Insights and enhanced monitoring off; auto minor upgrades disabled",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-orders-db-copy",
+      "issue": "Full-size 'temporary' copy of prod DB left running 24/7, referenced by nothing",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-analytics-db",
+      "issue": "db.m4.4xlarge with 1000GB gp2 - heavily oversized for observed load (<10% CPU); gp2 not gp3",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-analytics-db",
+      "issue": "Single-AZ (MultiAZ=false), backup retention 0 (no PITR), no deletion protection",
+      "category": "reliability",
+      "severity": "critical"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-analytics-db",
+      "issue": "PubliclyAccessible=true, StorageEncrypted=false, weak master password",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-analytics-db",
+      "issue": "Performance Insights and enhanced monitoring off; auto minor upgrades disabled",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "rds",
+      "resource": "shop-analytics-db",
+      "issue": "Analytics queries hit the OLTP primary; no read replica; previous-gen m4 class",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "rds",
+      "resource": "legacy-erp-db",
+      "issue": "db.r4.4xlarge with 500GB gp2 - heavily oversized for observed load (<10% CPU); gp2 not gp3",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "rds",
+      "resource": "legacy-erp-db",
+      "issue": "Single-AZ (MultiAZ=false), backup retention 0 (no PITR), no deletion protection",
+      "category": "reliability",
+      "severity": "critical"
+    },
+    {
+      "stack": "legacy",
+      "service": "rds",
+      "resource": "legacy-erp-db",
+      "issue": "PubliclyAccessible=true, StorageEncrypted=false, weak master password",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "legacy",
+      "service": "rds",
+      "resource": "legacy-erp-db",
+      "issue": "Performance Insights and enhanced monitoring off; auto minor upgrades disabled",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "legacy",
+      "service": "rds",
+      "resource": "legacy-erp-db",
+      "issue": "Previous-gen r4 class, EOL engine",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "rds",
+      "resource": "data-aurora",
+      "issue": "Cluster runs in the default security group (sg-00000000), not a dedicated least-privilege SG",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "rds",
+      "resource": "data-aurora",
+      "issue": "Aurora cluster of 2x r5.4xlarge for a few QPS (Serverless v2 would fit); unencrypted, public instances, 1-day backups",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "elasticache",
+      "resource": "shop-sessions",
+      "issue": "Single-node Redis cache.r5.4xlarge (~104GB) for small session data: no replica/failover, no snapshots, no TLS/AUTH, oversized",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "elasticache",
+      "resource": "legacy-memcache",
+      "issue": "4-node previous-gen memcached, unauthenticated, unused by the app after migration",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "dynamodb",
+      "resource": "shop-orders",
+      "issue": "Partition key 'status' has ~5 distinct values -> hot partitions/throttling",
+      "category": "performance",
+      "severity": "critical"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "dynamodb",
+      "resource": "shop-orders",
+      "issue": "8000 RCU/4000 WCU provisioned, no auto scaling, replicated on 2 GSIs with ALL projection (3x write cost)",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "dynamodb",
+      "resource": "shop-orders",
+      "issue": "No PITR, no TTL, no deletion protection, default (AWS-owned) encryption only",
+      "category": "reliability",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "dynamodb",
+      "resource": "shop-sessions",
+      "issue": "Session table has no TTL attribute -> unbounded growth; provisioned far above use",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "dynamodb",
+      "resource": "events-raw",
+      "issue": "On-demand table with low-cardinality key 'event_type' (hot partition) and 3 ALL-projection GSIs (4x write amplification)",
+      "category": "performance",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "dynamodb",
+      "resource": "legacy-audit",
+      "issue": "Write-once audit log provisioned at 1000/1000 with zero reads - candidate for on-demand/S3",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "s3",
+      "resource": "shop-prod-assets",
+      "issue": "public-read policy, no versioning, no lifecycle, no encryption config, no access logging",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "s3",
+      "resource": "shop-prod-uploads",
+      "issue": "Public PutObject+GetObject via bucket policy (anonymous uploads), no encryption",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "s3",
+      "resource": "shop-prod-backups",
+      "issue": "DB backups in STANDARD forever, no lifecycle to Glacier/expiry, no versioning/MFA delete",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "s3",
+      "resource": "data-lake-raw",
+      "issue": "Raw data in STANDARD, millions of small objects, flat prefix (no date partitioning), no lifecycle/intelligent tiering",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "s3",
+      "resource": "data-lake-logs",
+      "issue": "Access logs accumulating forever with no expiration",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "legacy",
+      "service": "s3",
+      "resource": "legacy-reports",
+      "issue": "Public bucket, reports contain customer data, no encryption",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "legacy",
+      "service": "s3",
+      "resource": "legacy-reports/customers_export.csv",
+      "issue": "PII (SSN column) in a publicly readable bucket",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "efs",
+      "resource": "shop-shared",
+      "issue": "Provisioned throughput 1024 MiB/s (~$6144/mo) on a mostly idle FS; unencrypted; no lifecycle to IA, no backup",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "efs",
+      "resource": "legacy-nfs",
+      "issue": "Provisioned throughput 512 MiB/s (~$3072/mo) on a mostly idle FS; unencrypted; no lifecycle to IA, no backup",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "sqs",
+      "resource": "shop-orders",
+      "issue": "no DLQ, 0s visibility timeout (duplicate processing), short polling (ReceiveMessageWaitTimeSeconds=0), 14d retention",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "sqs",
+      "resource": "shop-emails",
+      "issue": "no DLQ, short polling, unencrypted",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "sqs",
+      "resource": "legacy-jobs",
+      "issue": "no DLQ; backlog never drained; short polling",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "sqs",
+      "resource": "legacy-jobs",
+      "issue": "Backlog of unprocessed messages with no consumer or alarm",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "sns",
+      "resource": "shop-alerts",
+      "issue": "Plain-HTTP subscription, topic unencrypted, no DLQ on subscription",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "kinesis",
+      "resource": "clickstream",
+      "issue": "50 provisioned shards (~$550/mo) for ~100 KB/s; on-demand or 1-2 shards would do; no enhanced fan-out, no encryption",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "lambda",
+      "resource": "shop-resize-image",
+      "issue": "VPC-attached into a single public subnet with wide-open SG and no NAT/endpoints: no internet or AWS API egress, single-AZ",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "lambda",
+      "resource": "shop-resize-image",
+      "issue": "Max memory, 15-min timeout for a task that takes seconds; deprecated python3.8",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "lambda",
+      "resource": "shop-resize-image",
+      "issue": "Secrets in plaintext env vars, no DLQ/destinations, no reserved concurrency, shares admin role, no X-Ray",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "lambda",
+      "resource": "shop-send-email",
+      "issue": "VPC-attached into a single public subnet with wide-open SG and no NAT/endpoints: no internet or AWS API egress, single-AZ",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "lambda",
+      "resource": "shop-send-email",
+      "issue": "Deprecated Node 14, max memory",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "lambda",
+      "resource": "shop-send-email",
+      "issue": "Secrets in plaintext env vars, no DLQ/destinations, no reserved concurrency, shares admin role, no X-Ray",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "lambda",
+      "resource": "legacy-cron",
+      "issue": "Deprecated python3.7; runs every minute via cron",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "legacy",
+      "service": "lambda",
+      "resource": "legacy-cron",
+      "issue": "Secrets in plaintext env vars, no DLQ/destinations, no reserved concurrency, shares admin role, no X-Ray",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "shared",
+      "service": "logs",
+      "resource": "7 log groups",
+      "issue": "No retention policy (never expire), DEBUG-level app logging, no metric filters, not encrypted with KMS",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "shared",
+      "service": "cloudwatch",
+      "resource": "cpu-high-maybe",
+      "issue": "Only alarm in the account: 1h period, 99.9% threshold, no actions. No alarms on RDS, ALB 5xx, SQS depth, DynamoDB throttles, EKS",
+      "category": "ops",
+      "severity": "high"
+    },
+    {
+      "stack": "shared",
+      "service": "cloudtrail/guardduty/config",
+      "resource": "account",
+      "issue": "No CloudTrail, GuardDuty, AWS Config or Security Hub enabled",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "shared",
+      "service": "backup",
+      "resource": "account",
+      "issue": "No AWS Backup plans, no cross-region copies",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "shared",
+      "service": "tagging",
+      "resource": "account",
+      "issue": "No cost-allocation tags (owner/env/cost-center) on anything",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "shared",
+      "service": "secretsmanager",
+      "resource": "3 secrets",
+      "issue": "No rotation, default KMS key, same weak value reused",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "shared",
+      "service": "ssm",
+      "resource": "3 parameters",
+      "issue": "Credentials stored as plain String (not SecureString)",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "shared",
+      "service": "kms",
+      "resource": "3 CMKs",
+      "issue": "Customer keys with no rotation, no alias, no usage ($1/mo each)",
+      "category": "cost",
+      "severity": "low"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-prod",
+      "issue": "Kubernetes 1.28 is out of standard support (extended support surcharge ~$0.60/hr)",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-prod",
+      "issue": "API endpoint public with 0.0.0.0/0, private access disabled",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-prod",
+      "issue": "Control-plane logging fully disabled (api/audit/authenticator...)",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-prod",
+      "issue": "No KMS envelope encryption for Kubernetes secrets",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-prod/general",
+      "issue": "Nodegroup 12x m5.8xlarge pinned min=max=desired; no Cluster Autoscaler/Karpenter headroom, 500GB disks",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-prod/general",
+      "issue": "Single subnet / single AZ nodegroup",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-prod/general",
+      "issue": "AL2 AMI (EOL) and on-demand only - no Spot or Graviton for stateless work",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-prod/cpu-heavy",
+      "issue": "Nodegroup 6x c5.12xlarge pinned min=max=desired; no Cluster Autoscaler/Karpenter headroom, 500GB disks",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-prod/cpu-heavy",
+      "issue": "Single subnet / single AZ nodegroup",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-prod/cpu-heavy",
+      "issue": "AL2 AMI (EOL) and on-demand only - no Spot or Graviton for stateless work",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-staging",
+      "issue": "Kubernetes 1.28 is out of standard support (extended support surcharge ~$0.60/hr)",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-staging",
+      "issue": "API endpoint public with 0.0.0.0/0, private access disabled",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-staging",
+      "issue": "Control-plane logging fully disabled (api/audit/authenticator...)",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-staging",
+      "issue": "No KMS envelope encryption for Kubernetes secrets",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-staging/general",
+      "issue": "Nodegroup 12x m5.8xlarge pinned min=max=desired; no Cluster Autoscaler/Karpenter headroom, 500GB disks",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-staging/general",
+      "issue": "Single subnet / single AZ nodegroup",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-staging/general",
+      "issue": "AL2 AMI (EOL) and on-demand only - no Spot or Graviton for stateless work",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "eks",
+      "resource": "shop-staging",
+      "issue": "Staging is a full-size clone of prod running 24/7 with idle workloads",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "data-platform",
+      "issue": "Kubernetes 1.29 is out of standard support (extended support surcharge ~$0.60/hr)",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "data-platform",
+      "issue": "API endpoint public with 0.0.0.0/0, private access disabled",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "data-platform",
+      "issue": "Control-plane logging fully disabled (api/audit/authenticator...)",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "data-platform",
+      "issue": "No KMS envelope encryption for Kubernetes secrets",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "data-platform/spark",
+      "issue": "Nodegroup 10x r5.16xlarge pinned min=max=desired; no Cluster Autoscaler/Karpenter headroom, 1000GB disks",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "data-platform/spark",
+      "issue": "Single subnet / single AZ nodegroup",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "data-platform/spark",
+      "issue": "AL2 AMI (EOL) and on-demand only - no Spot or Graviton for stateless work",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "data-platform/gpu-ml",
+      "issue": "Nodegroup 4x p3.8xlarge pinned min=max=desired; no Cluster Autoscaler/Karpenter headroom, 500GB disks",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "data-platform/gpu-ml",
+      "issue": "Single subnet / single AZ nodegroup",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "data-platform/gpu-ml",
+      "issue": "AL2 AMI (EOL) and on-demand only - no Spot or Graviton for stateless work",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "data-platform/gpu-ml",
+      "issue": "4x p3.8xlarge GPU nodes (~$49/hr) always on; ML jobs run a few hrs/week",
+      "category": "cost",
+      "severity": "critical"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "ml-experiments",
+      "issue": "Kubernetes 1.28 is out of standard support (extended support surcharge ~$0.60/hr)",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "ml-experiments",
+      "issue": "API endpoint public with 0.0.0.0/0, private access disabled",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "ml-experiments",
+      "issue": "Control-plane logging fully disabled (api/audit/authenticator...)",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "ml-experiments",
+      "issue": "No KMS envelope encryption for Kubernetes secrets",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "ml-experiments/scratch",
+      "issue": "Nodegroup 6x m5.24xlarge pinned min=max=desired; no Cluster Autoscaler/Karpenter headroom, 800GB disks",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "ml-experiments/scratch",
+      "issue": "Single subnet / single AZ nodegroup",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "eks",
+      "resource": "ml-experiments/scratch",
+      "issue": "AL2 AMI (EOL) and on-demand only - no Spot or Graviton for stateless work",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "elbv2",
+      "resource": "shop-alb",
+      "issue": "HTTP-only listener on :80, no HTTPS/redirect, no WAF",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "elbv2",
+      "resource": "shop-alb",
+      "issue": "Health check every 300s, 10 failures to mark unhealthy (~50 min to eject a dead target)",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "elbv2",
+      "resource": "shop-alb",
+      "issue": "Deregistration delay 3600s makes deploys/scale-in glacial; idle timeout 4000s",
+      "category": "performance",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "elbv2",
+      "resource": "shop-alb",
+      "issue": "Access logs disabled, deletion protection off",
+      "category": "ops",
+      "severity": "low"
+    },
+    {
+      "stack": "legacy",
+      "service": "elbv2",
+      "resource": "legacy-alb",
+      "issue": "HTTP-only listener on :80, no HTTPS/redirect, no WAF",
+      "category": "security",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "elbv2",
+      "resource": "legacy-alb",
+      "issue": "Health check every 300s, 10 failures to mark unhealthy (~50 min to eject a dead target)",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "elbv2",
+      "resource": "legacy-alb",
+      "issue": "Deregistration delay 3600s makes deploys/scale-in glacial; idle timeout 4000s",
+      "category": "performance",
+      "severity": "medium"
+    },
+    {
+      "stack": "legacy",
+      "service": "elbv2",
+      "resource": "legacy-alb",
+      "issue": "Access logs disabled, deletion protection off",
+      "category": "ops",
+      "severity": "low"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "legacy-ecs",
+      "issue": "Container Insights disabled - no CPU/mem/network metrics per task",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "orders-api",
+      "issue": "Task sized 4096 CPU / 16384 MiB for a trivial web container (<5% typical use)",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "orders-api",
+      "issue": "Plaintext secrets in container environment; task runs as root",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "orders-api",
+      "issue": "Image tag is mutable (nginx:latest); no logConfiguration, no container healthCheck",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "orders-api",
+      "issue": "Fixed desiredCount=8, no Application Auto Scaling target; minHealthy=0 means deploys cause downtime",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "invoice-worker",
+      "issue": "Task sized 4096 CPU / 30720 MiB for a trivial web container (<5% typical use)",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "invoice-worker",
+      "issue": "Plaintext secrets in container environment; task runs as root",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "invoice-worker",
+      "issue": "Image tag is mutable (nginx:latest); no logConfiguration, no container healthCheck",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "invoice-worker",
+      "issue": "Fixed desiredCount=5, no Application Auto Scaling target; minHealthy=0 means deploys cause downtime",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "admin-portal",
+      "issue": "Task sized 2048 CPU / 8192 MiB for a trivial web container (<5% typical use)",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "admin-portal",
+      "issue": "Plaintext secrets in container environment; task runs as root",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "admin-portal",
+      "issue": "Image tag is mutable (nginx:latest); no logConfiguration, no container healthCheck",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "admin-portal",
+      "issue": "Fixed desiredCount=4, no Application Auto Scaling target; minHealthy=0 means deploys cause downtime",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "report-gen",
+      "issue": "Task sized 4096 CPU / 16384 MiB for a trivial web container (<5% typical use)",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "report-gen",
+      "issue": "Plaintext secrets in container environment; task runs as root",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "report-gen",
+      "issue": "Image tag is mutable (nginx:latest); no logConfiguration, no container healthCheck",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "report-gen",
+      "issue": "Fixed desiredCount=3, no Application Auto Scaling target; minHealthy=0 means deploys cause downtime",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "legacy-ecs-ec2",
+      "issue": "Container Insights disabled - no CPU/mem/network metrics per task",
+      "category": "ops",
+      "severity": "medium"
+    },
+    {
+      "stack": "legacy",
+      "service": "ecs",
+      "resource": "legacy-ecs-ec2",
+      "issue": "Empty cluster left behind, no capacity provider",
+      "category": "ops",
+      "severity": "low"
+    },
+    {
+      "stack": "shared",
+      "service": "ecr",
+      "resource": "shop-web,shop-api,legacy-orders",
+      "issue": "Mutable tags, no scan-on-push, no lifecycle policy (images accumulate)",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "ec2",
+      "resource": "shop-bastion",
+      "issue": "Bastion is m5.4xlarge with public IP, SSH open to world, used ~1h/week",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "ec2",
+      "resource": "shop-bastion",
+      "issue": "IMDSv1 enabled (HttpTokens=optional), 500GB unencrypted gp2 root, no detailed monitoring, only a Name tag",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "ec2",
+      "resource": "shop-legacy-batch",
+      "issue": "c5.9xlarge running 24/7 for a nightly 10-minute cron job",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "ec2",
+      "resource": "shop-legacy-batch",
+      "issue": "IMDSv1 enabled (HttpTokens=optional), 500GB unencrypted gp2 root, no detailed monitoring, only a Name tag",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "dev",
+      "service": "ec2",
+      "resource": "dev-jumpbox-1",
+      "issue": "Forgotten dev instance, r5.2xlarge, ~0% CPU",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "dev",
+      "service": "ec2",
+      "resource": "dev-jumpbox-1",
+      "issue": "IMDSv1 enabled (HttpTokens=optional), 500GB unencrypted gp2 root, no detailed monitoring, only a Name tag",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "dev",
+      "service": "ec2",
+      "resource": "dev-jumpbox-2",
+      "issue": "Forgotten dev instance, r5.2xlarge, ~0% CPU",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "dev",
+      "service": "ec2",
+      "resource": "dev-jumpbox-2",
+      "issue": "IMDSv1 enabled (HttpTokens=optional), 500GB unencrypted gp2 root, no detailed monitoring, only a Name tag",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "data-platform",
+      "service": "ec2",
+      "resource": "old-etl-worker",
+      "issue": "Previous-generation m4 instance (worse price/perf than m6i/m7g)",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "data-platform",
+      "service": "ec2",
+      "resource": "old-etl-worker",
+      "issue": "IMDSv1 enabled (HttpTokens=optional), 500GB unencrypted gp2 root, no detailed monitoring, only a Name tag",
+      "category": "security",
+      "severity": "medium"
+    },
+    {
+      "stack": "shared",
+      "service": "ec2",
+      "resource": "6x 1000GB gp2 volumes",
+      "issue": "Unattached EBS volumes (~$600/mo), gp2 instead of gp3, unencrypted",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shared",
+      "service": "ec2",
+      "resource": "5 Elastic IPs",
+      "issue": "Unassociated Elastic IPs billed hourly",
+      "category": "cost",
+      "severity": "low"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "autoscaling",
+      "resource": "web-asg",
+      "issue": "8x m5.8xlarge, min=max=desired (no scaling), single subnet, EC2-only health checks, 1h grace period, no scaling policies",
+      "category": "cost",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "elbv2",
+      "resource": "shop-alb",
+      "issue": "All ASG targets live in one subnet/AZ although the ALB spans 2: an AZ failure takes the web tier down",
+      "category": "reliability",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "lambda",
+      "resource": "shop-send-email",
+      "issue": "SQS event source mapping BatchSize=1 (one invocation per message), no partial-batch failure reporting, no maximum concurrency; queue visibility 0 < function timeout 900s causes redelivery storms",
+      "category": "performance",
+      "severity": "high"
+    },
+    {
+      "stack": "legacy",
+      "service": "events",
+      "resource": "legacy-cron-every-minute",
+      "issue": "Runs every minute (1440/day) a job whose work changes daily; each run is a cold-start-prone 2GB Lambda",
+      "category": "cost",
+      "severity": "medium"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "s3",
+      "resource": "shop-prod-uploads",
+      "issue": "Anonymous uploads trigger a 3GB Lambda: unauthenticated users can drive compute cost / DoS",
+      "category": "security",
+      "severity": "critical"
+    },
+    {
+      "stack": "data-platform",
+      "service": "firehose",
+      "resource": "clickstream-to-lake",
+      "issue": "1MB/60s buffer, uncompressed, no date-partitioned prefix or Parquet conversion -> endless tiny objects in data-lake-raw",
+      "category": "performance",
+      "severity": "high"
+    },
+    {
+      "stack": "shop-prod",
+      "service": "route53",
+      "resource": "www.shop-example.com",
+      "issue": "5s TTL (no caching benefit, resolver load), CNAME instead of alias, no health check/failover record",
+      "category": "performance",
+      "severity": "low"
+    },
+    {
+      "stack": "legacy",
+      "service": "route53",
+      "resource": "www.legacy-example.com",
+      "issue": "5s TTL (no caching benefit, resolver load), CNAME instead of alias, no health check/failover record",
+      "category": "performance",
+      "severity": "low"
+    }
+  ],
+  "emulator_failures": []
+}
