@@ -9,7 +9,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 | 1. Who do we target? | done |
 | 2. What is their problem? | done; price goes in the form |
 | 3. How do we get into their day? | done |
-| 4. Business plan | in progress: 5-run packs and a cloud-scheduled subscription; price from the form |
+| 4. Business plan | done: 490 USD 5-run pack, 199 USD/mo subscription, per company; to confirm with the form |
 | 5. Design the product | done at PRD level; provider list left for the SPEC |
 | 6. Branding | name done; Miruna proposes the rest |
 
@@ -57,8 +57,8 @@ Gap: nobody turns the financial roadmap into a re-planned architecture across hy
 ## 4. Business plan
 
 - **Billed per company.**
-- **Run packs:** 5 runs.
-- **Subscription:** runs scheduled in the cloud.
+- **Run pack:** 5 runs for 490 USD (proposed; basis in `docs/prd.md`).
+- **Subscription:** 199 USD a month, runs scheduled in the cloud (proposed).
 
 ## 5. Product design
 

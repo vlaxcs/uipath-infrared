@@ -45,10 +45,20 @@ Existing tools each cover one piece: hyperscaler assessments pull towards their 
 ## How we make money
 
 - **Billed per company.**
-- **Run packs:** 5 runs.
-- **Subscription:** runs scheduled in the cloud.
+- **Run pack:** 5 runs for 490 USD (~98 USD a run).
+- **Subscription:** 199 USD a month, runs scheduled in the cloud.
 
-The price comes from the validation form.
+Proposed prices, to confirm against the validation form.
+
+| Alternative | What it does | Price |
+| --- | --- | --- |
+| consultant cost review | one AWS review, report only | 495 USD (Towards The Cloud, from), 2,000 USD (CloudVisor), 5,000-10,000 USD (standalone audit, EaseCloud guide) |
+| Vantage | cost visibility | Pro 30 USD/mo up to 7,500 USD tracked spend; Business 200 USD/mo up to 20,000 USD |
+| Infracost | cost of a planned change, in CI | Starter 250 USD/mo; Cloud 1,000 USD/mo |
+
+- **The pack** costs less than the cheapest single consultant review, for five runs that also re-plan across providers, price HA and on-prem, and write the migration plan.
+- **The subscription** sits at the price of Vantage Business, which only shows spend, and below Infracost Starter.
+- **Our cost per run** (LLM calls) is not measured yet. The team's agent prints its estimated cost per run; measure it on the demo projects before fixing the price.
 
 ## MVP demo
 
@@ -56,7 +66,7 @@ A few mocked projects, each with a deliberately bad infrastructure, running loca
 
 ## Open
 
-- The price the CTO would pay: asked in the form.
+- The prices above: confirm with the form; measure our cost per run.
 - Which providers the agent can move to: decided in the SPEC.
 - infra.new: check whether it already does this.
 
@@ -65,5 +75,10 @@ A few mocked projects, each with a deliberately bad infrastructure, running loca
 - [Flexera State of the Cloud 2026](https://www.flexera.com/about-us/press-center/flexera-finds-cloud-value-is-rising-while-ai-waste-grows)
 - [Cloud Capital survey, via CFOtech](https://cfotech.co.uk/story/cfos-tighten-grip-as-rising-cloud-costs-hit-tech-margins)
 - [Uptime Institute Annual Outage Analysis 2026](https://www.businesswire.com/news/home/20260513289344/en/Uptime-Announces-Annual-Outage-Analysis-Report-2026)
+- [Vantage pricing, via nOps](https://www.nops.io/blog/vantage-pricing-explained/)
+- [Infracost pricing](https://www.infracost.io/pricing)
+- [CloudVisor AWS cost optimisation review](https://cloudvisor.co/services/cost-optimization)
+- [Towards The Cloud AWS cost optimisation](https://towardsthecloud.com/services/aws-cost-optimization)
+- [EaseCloud: AWS consulting pricing 2026](https://blog.easecloud.io/cost-optimization/aws-consulting-pricing-cost-guide/)
 - [Broadcom Private Cloud Outlook 2026, via StorageReview](https://storagereview.com/news/broadcom-2026-survey-cost-overtakes-security-as-top-public-cloud-concern)
 - [infra.new, Y Combinator](https://www.ycombinator.com/companies/infranew)
