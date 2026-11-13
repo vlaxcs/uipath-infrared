@@ -37,15 +37,15 @@ Resources: OpenRouter credentials per team, any language or framework, UiPath pr
 
 ## Team
 
-| Role | Owns during the event | Who |
-| --- | --- | --- |
-| PM / Scrum master + polisher | scribe, scope, timeboxes, gate checks, UI polish | Vlad |
-| Speaker | mentor conversations, pitch, live demo | |
-| Designer / marketer | branding, UI/UX, assets, pitch site, video | |
-| Full-stack | tech stack, repo, core features, deploy | |
-| Finance | market size, pricing, business plan, numbers in the pitch | |
+| Who | Owns |
+| --- | --- |
+| Vlad | PM / Scrum master + polisher; repo setup; the agentic flow end to end; Slack keys |
+| Miruna | branding: palette, mascot, logo |
+| Andrei | the mocked systems; the Slack bot |
+| Robi | the phone frame: everything the employee receives |
+| Remus | the platform UI, once Vlad has set up the repo |
 
-Team: Miruna, Robi, Andrei, Remus, Vlad. The remaining roles get assigned from the CVs.
+Playbook roles not assigned yet: speaker (pitch, live demo), finance (pricing, business plan, numbers in the pitch).
 
 ## Skills map
 
