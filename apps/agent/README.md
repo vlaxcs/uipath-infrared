@@ -36,6 +36,26 @@ From the repo-root `.env`, through `agent/settings.py`; a missing variable stops
 - `AWS_ENDPOINT_URL`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` for investigate.
 - `AGENT_ENGINE_CMD` for propose, e.g. `python -m engine`, with `apps/engine` on `PYTHONPATH`.
 
+## Site store
+
+Listings for the on-prem site step (`docs/onprem-site.md`) live in Postgres with PostGIS. Only the `site_step` role reaches them: select, insert and update on `site_options`, nothing else.
+
+```bash
+docker compose up -d --wait sites-db
+```
+
+The container applies `migrations/001_site_options.sql`, then `migrations/local/900_site_step_login.sql`, which adds the local login `site_step_login` (password `site_step`). The migrations run only on an empty volume: after changing one, `docker compose down -v` and start again.
+
+`SITES_DATABASE_URL` is the site step's connection string. The store tests need two more, and skip without them:
+
+```bash
+export SITES_TEST_ADMIN_URL=postgresql://sites_admin:sites_admin@127.0.0.1:54329/sites
+export SITES_TEST_DATABASE_URL=postgresql://site_step_login:site_step@127.0.0.1:54329/sites
+.venv/bin/python -m pytest -q tests/test_site_store.py
+```
+
+CI runs them in the `site-store` job, against the same image.
+
 ## Run and test
 
 From `apps/agent/`:
