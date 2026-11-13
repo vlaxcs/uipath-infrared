@@ -13,6 +13,7 @@ from engine.domain.structure import stay_together_groups
 CANDIDATE_ID = "move_to_onprem"
 MOVE_SIGNAL = "onprem"
 REJECTED_SIGNAL = "move_rejected"
+NOT_SIZING = frozenset({ActionKind.FLAG, ActionKind.REMEDIATE})
 
 
 @dataclass(frozen=True)
@@ -43,7 +44,7 @@ def move_to_onprem(previous: Candidate, infra: Infra, catalog: Catalog, forecast
     actions: list[Action] = []
     for component_id in sorted(set(moves) | set(rejected)):
         if component_id in wanted:
-            actions.append(_move_action(moves[component_id], end_state.placements[component_id]))
+            actions.append(_move_action(moves[component_id], end_state.placements[component_id], previous))
         elif component_id in rejected:
             actions.append(Action(component_id, ActionKind.FLAG, f"stays off-prem: {rejected[component_id]}", signal=REJECTED_SIGNAL))
     return previous.extend(CANDIDATE_ID, tuple(actions))
@@ -131,9 +132,14 @@ def _hold_groups(
                     rejected.setdefault(member, f"{group.id} moves as one unit and {why}")
 
 
-def _move_action(move: OnpremMove, placement: Placement) -> Action:
+def _move_action(move: OnpremMove, placement: Placement, previous: Candidate) -> Action:
     component = placement.component
-    evidence = tuple(component.capacity[key].evidence for key in ("vcpu", "memory_gb") if key in component.capacity)
+    capacity = tuple(component.capacity[key].evidence for key in ("vcpu", "memory_gb") if key in component.capacity)
+    sizing = tuple(
+        e for a in previous.actions
+        if a.component == component.id and a.kind not in NOT_SIZING for e in a.evidence
+    )
+    evidence = capacity + sizing
     reason = (
         f"move to {move.option.id}: EUR {move.before_eur:,.0f} to EUR {move.after_eur:,.0f} a month "
         "with its platform share and ops"

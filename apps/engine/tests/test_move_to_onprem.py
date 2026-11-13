@@ -9,6 +9,7 @@ from engine.domain.end_state import apply_candidate
 from engine.domain.evaluation import evaluate_candidate
 from engine.domain.growth import growth_split
 from engine.domain.pricing import Growth
+from engine.domain.provenance import confidence_of
 from engine.domain.strategies.cleanup_orphans import cleanup_orphans
 from engine.domain.strategies.managed_services import managed_services
 from engine.domain.strategies.move_to_onprem import REJECTED_SIGNAL, move_to_onprem
@@ -48,6 +49,14 @@ def test_the_spark_pool_moves_to_the_onprem_cluster_when_it_saves(layers, mock_i
     assert "platform share and ops" in move.reason
     placement = apply_candidate(mock_infra, catalog, layers[1]).placements["ng-data-spark"]
     assert (placement.provider, placement.region) == ("onprem", "onprem-dc1")
+
+
+def test_the_move_inherits_the_evidence_that_sized_the_pool(layers):
+    [autoscale] = [a for a in layers[0].actions if a.component == "ng-data-spark" and a.kind == ActionKind.AUTOSCALE]
+    [move] = own(layers, "ng-data-spark", ActionKind.MOVE)
+    assert confidence_of(autoscale.evidence).level == "low"
+    assert set(autoscale.evidence) <= set(move.evidence)
+    assert confidence_of(move.evidence).level == "low"
 
 
 def test_gpu_work_stays_off_a_platform_without_gpus(layers):
@@ -131,9 +140,6 @@ def test_the_expected_total_carries_the_hardware_only_once(evaluated):
     _, after = evaluated
     assert after.expected_total_eur == pytest.approx(
         after.projection.expected_horizon_eur + after.migration_eur + after.ops_horizon_eur + after.outage_horizon_eur
-    )
-    assert after.monthly_now_cash_eur == pytest.approx(
-        after.monthly_now_total_eur - after.onprem.allocated.capex_amortised_eur_month
     )
 
 

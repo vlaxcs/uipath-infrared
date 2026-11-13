@@ -14,7 +14,7 @@ from engine.domain.ranking import Decision, Standing
 from engine.domain.remediation import EFFORT_HOURS_BY_GATE
 from engine.domain.violation import Violation
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 SCENARIOS = ("low", "base", "high")
 
 

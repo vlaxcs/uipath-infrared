@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "illustrative": true,
   "disclaimer": "Placeholder numbers for building and testing the engine. Not real price lists, SLAs or vendor terms. 'managed_pg' is a generic serverless-Postgres vendor, not a specific product.",
   "currency": "EUR",
