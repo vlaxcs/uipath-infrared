@@ -127,6 +127,19 @@ describe('Slack gates', () => {
     expect(run).toMatchObject({ status: 'awaiting_approval', awaiting: 'plan', step: 'rehearse' });
   });
 
+  it('binds the scripted plan to the architecture that was picked', async () => {
+    const flow = startRun();
+    await until(flow.layoutPosted);
+    await flow.clickLayout('consolidate');
+    await until(flow.planPosted);
+
+    const plan = JSON.stringify(flow.card(PLAN_CARD)!.message);
+    expect(plan).toContain('Plan — consolidate');
+    expect(plan).toContain('€133,308/mo → €74,365/mo');
+    expect(plan).toContain('794h effort');
+    expect(plan).not.toContain('managed_services');
+  });
+
   it('opens the approval modal without approving anything', async () => {
     const flow = startRun();
     await until(flow.layoutPosted);
