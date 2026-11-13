@@ -56,6 +56,7 @@ Gap: nobody turns the financial roadmap into a re-planned architecture across hy
 
 ## 4. Business plan
 
+- **Billed per company.**
 - **Run packs:** 5 runs.
 - **Subscription:** runs scheduled in the cloud.
 

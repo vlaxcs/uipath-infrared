@@ -44,6 +44,7 @@ Existing tools each cover one piece: hyperscaler assessments pull towards their 
 
 ## How we make money
 
+- **Billed per company.**
 - **Run packs:** 5 runs.
 - **Subscription:** runs scheduled in the cloud.
 
