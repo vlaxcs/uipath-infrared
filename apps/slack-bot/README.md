@@ -4,10 +4,13 @@ Posts a run's decisions into Slack and lets a person pick the architecture and a
 
 ## What it posts
 
+- **No emoji.** The hierarchy comes from Slack's native blocks: a plain header, one context line, labelled two-column fields for the numbers, dividers between candidates, and plain status words (`Recommended`, `Held`, `Missed`, `Not viable`).
 - **Only the gates and the ending** in the channel: the layout gate, the combined rehearsal + plan gate, and a completion or failure card. The extract/investigate/propose/evaluate narration does not go to the channel.
 - Every event that led to a gate goes into a **thread under that card**, so the channel reads as decisions and the detail is one click away.
-- **Layout card** (`present`, gate `layout`): *"Which architecture should we run?"* — one block per feasible candidate with monthly cost, horizon cost, availability against the target, risk, effort, payback and the number of actions. The engine's rank 1 carries a **RECOMMENDED** marker and the primary button; the others say why they were not picked. Infeasible candidates are listed with the constraint that blocks them. A pick sends a `pick_layout` event with `actor {kind: human, id, surface: slack}`; the card is updated in place when it comes back. Without `x_candidates` the bot falls back to the dashboard notice.
-- **Rehearsal + plan card** (`rehearse`, gate `plan`): the measured availability against the target, the failure that was injected, the p95 latency through the phases, and the plan being approved — steps, actions, monthly cost before and after, effort, downtime and availability. **Approve plan** opens a confirmation modal (see below).
+- **Layout card** (`present`, gate `layout`): *"Which architecture should we run?"* — one block per feasible candidate with labelled fields: Cost now, Horizon, Availability vs target, Risk, Effort, Actions. The engine's rank 1 is marked **Recommended** with the primary button; the others say why they were not picked; infeasible candidates are grouped under **Not viable** by the constraint that blocks them. A pick sends a `pick_layout` event with `actor {kind: human, id, surface: slack}`; the card is updated in place when it comes back. Without `x_candidates` the bot falls back to the dashboard notice.
+- **Rehearsal + plan card** (`rehearse`, gate `plan`): fields for Availability vs target, Result, Latency p95, the injected failure, then the plan being approved — Plan size, Cost before → after, Effort, Availability, and the first changes. **Approve plan** opens a confirmation modal (see below).
+- **Rehearsal progress** is posted in the layout thread: a text bar (`▰▰▱▱▱▱▱▱`) that moves while the sandbox runs and turns into the result in place. This is the only motion in the messages; Slack has no other animation primitive, and GIFs would be out of place here.
+- When an extension object exists but one of its values is missing, the row stays and shows `—` rather than disappearing, so the card layout is stable while the interface is being wired. When the whole extension is absent, the card falls back to a plain version.
 - A configured `DASHBOARD_URL` adds a **Details** button to the cards.
 
 ## Layers
@@ -96,6 +99,19 @@ Plan gate (`rehearse`, gate `plan`):
 
 `x_rehearsal` may also sit on the `rehearse` `completed` event; the bot uses it if the plan gate does not repeat it. The verdict in the card is `passed` when present, otherwise the decision on the rehearsal event.
 
+### Interface handoff
+
+`sample/interface.template.json` is the fill-in placeholder for the orchestrator team: the two gate event bodies with every extension field and `0` / `LABEL` placeholders. The orchestrator adds the contract-owned `seq`, `at`, `revision` and `actor` and replaces the placeholders.
+
+| Event | Extension | Fields |
+| --- | --- | --- |
+| `present`, gate `layout` | `x_target` | `min_availability_pct`, `max_monthly_run_eur`, `horizon_months` |
+| `present`, gate `layout` | `x_candidates[]` | `id`, `feasible`, `recommended`, `rank`, `monthly_eur`, `horizon_eur`, `availability_pct`, `risk`, `effort_hours`, `payback_months`, `actions`, `lost_because {reason, detail}` |
+| `rehearse`, gate `plan` | `x_rehearsal` | `measured_availability_pct`, `target_availability_pct`, `passed`, `gap_pct`, `failure`, `latency_ms {baseline_p95, failure_p95, recovery_p95}` |
+| `rehearse`, gate `plan` | `x_plan` | `layout`, `steps`, `monthly_eur_now`, `monthly_eur_after`, `effort_hours`, `cutover_downtime_hours`, `availability_pct`, `actions[] {component, action, to}` |
+
+Only `x_candidates[].id` and `x_plan.layout` are useful on their own; every other field is optional and renders as `—` when absent. `lost_because.reason` is one of `cost`, `risk`, `effort`, `payback`, `constraint`; for an offered candidate it becomes the short "Not picked" line, and for an infeasible one the detail is grouped under **Not viable**. The approval modal reads the open plan gate from `GET /runs/{id}`, so the plan gate event must still be in the run document when the button is clicked.
+
 ## Approval modal
 
 **Approve plan** opens a Slack modal that repeats the rehearsal result and the plan summary and offers an optional note. The note becomes `decision.reason`; **Cancel** sends nothing. This needs interactivity, which the app already needs for the buttons; no extra Slack scope. A click does not approve: only the modal's **Approve** submits the decision, so a misclick cannot complete the run.
@@ -120,6 +136,6 @@ npm run typecheck
 npm test
 ```
 
-`sample/run.json` is `contracts/run.example.json` cut at the layout gate (seq 14), with the candidates and target from `contracts/result.example.json` and `contracts/forecast.example.json` in `x_candidates` and `x_target`. `sample/after-layout.json` is the scripted continuation after a pick: present completed, the rehearsal with its `proceed` decision and an `x_rehearsal`, and the plan gate with `x_rehearsal` and `x_plan`. `npm run sample` releases one event a second, posts the layout card with the run so far in its thread, waits for a real pick, appends the `pick_layout` event, continues through the scripted rehearsal, posts the combined rehearsal + plan card, waits for the modal approval, appends the `approved` event, marks the run `completed`, and writes the finished run document to `out/sample-run.json`. The sample's timestamps are in the future, so each human event is dated no earlier than the event before it; the hashes are the example's placeholders and the post-layout events are the example's, not a live rehearsal.
+`sample/run.json` is `contracts/run.example.json` cut at the layout gate (seq 14), with the candidates and target from `contracts/result.example.json` and `contracts/forecast.example.json` in `x_candidates` and `x_target`. `sample/interface.template.json` is the placeholder shape for the interface team (see above). `sample/after-layout.json` is the scripted continuation after a pick: present completed, the rehearsal with its `proceed` decision and an `x_rehearsal`, and the plan gate with `x_rehearsal` and `x_plan`; the sample orchestrator rewrites the plan's layout and figures to the candidate that was picked. `npm run sample` releases one event a second, posts the layout card with the run so far in its thread, waits for a real pick, appends the `pick_layout` event, runs the scripted rehearsal with the progress line in the layout thread, posts the combined rehearsal + plan card, waits for the modal approval, appends the `approved` event, marks the run `completed`, and writes the finished run document to `out/sample-run.json`. The sample's timestamps are in the future, so each human event is dated no earlier than the event before it; the hashes are the example's placeholders and the post-layout events are the example's, not a live rehearsal.
 
 To check the finished document against the contract, run `contracts/check_mock.py` from `main` on a copy of `contracts/` whose `run.example.json` is replaced by `out/sample-run.json`: the checker validates a run only as `run.example.json`.

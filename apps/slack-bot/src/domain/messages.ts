@@ -6,7 +6,6 @@ import type { RehearsalSummary } from './rehearsal-summary.js';
 import type { PlanSummary } from './plan-summary.js';
 import { APPROVE_PLAN_ACTION } from './plan-approval.js';
 import { clip, compactEur, eur } from './format.js';
-import { planText, rehearsalText } from './approval-view.js';
 
 export interface BlockKitMessage {
   blocks: any[];
@@ -29,20 +28,12 @@ export interface RunContext {
   dashboardUrl?: string;
 }
 
-const STATUS_ICON: Record<string, string> = {
-  started: '▶️',
-  completed: '✅',
-  failed: '❌',
-  awaiting_approval: '⏸️',
-  approved: '👤',
-};
-
 export function formatEvent(event: RunEvent): BlockKitMessage | null {
   if (event.status === 'started') return null;
   const headline = describeEvent(event);
   return {
     text: headline,
-    blocks: [section(`${STATUS_ICON[event.status]} *${stepLabel(event.step)}*: ${headline}`), ...details(event)],
+    blocks: [section(`*${stepLabel(event.step)}*\n${headline}`), ...details(event)],
   };
 }
 
@@ -57,7 +48,7 @@ export function formatLayoutGate(
   const excluded = candidates.filter(candidate => !candidate.feasible);
   if (offered.length === 0) {
     const blocks: any[] = [
-      header('⏸️ Layout waiting to be picked'),
+      header('Layout waiting to be picked'),
       section('Pick the analyses to keep and the layout to rehearse on the dashboard. The run continues once a layout is picked.'),
     ];
     if (runContext?.dashboardUrl) blocks.push(actions([dashboardButton(runContext.dashboardUrl)]));
@@ -65,20 +56,36 @@ export function formatLayoutGate(
     return { text: describeEvent(event), blocks };
   }
   const lead = [
+    runContext?.project ?? '',
     `${offered.length} options pass the hard constraints`,
     target?.minAvailabilityPct !== undefined ? `target ${target.minAvailabilityPct}% availability` : '',
     target?.maxMonthlyRunEur !== undefined ? `budget ${eur(target.maxMonthlyRunEur)}/mo` : '',
     `revision ${event.revision}`,
   ].filter(Boolean).join(' · ');
-  const blocks: any[] = [
-    header('🏗️ Which architecture should we run?'),
-    context(`${runContext?.project ? `${runContext.project} · ` : ''}${lead}`),
-    ...offered.map(candidate => section(candidateCard(candidate, target))),
-    ...chunks(offered, 5).map(group => layoutButtons(runId, event, group, runContext?.dashboardUrl)),
-  ];
+  const rich = offered.some(candidate =>
+    candidate.monthlyEur !== undefined || candidate.horizonEur !== undefined || candidate.availabilityPct !== undefined ||
+    candidate.risk !== undefined || candidate.effortHours !== undefined || candidate.paybackMonths !== undefined ||
+    candidate.actions !== undefined
+  );
+  const blocks: any[] = [header('Which architecture should we run?'), context(lead)];
+  offered.forEach((candidate, index) => {
+    if (index > 0) blocks.push(divider());
+    blocks.push(section(candidate.recommended ? `*Recommended — ${candidate.id}*` : `*${candidate.id}*`));
+    const fields = candidateFields(candidate, target, rich);
+    if (fields.length > 0) blocks.push(fieldsBlock(fields));
+    if (!candidate.recommended && rich) blocks.push(section(`Not picked: ${lostReason(candidate)}`));
+    const elements: any[] = [layoutButton(runId, event, candidate)];
+    if (index === 0 && runContext?.dashboardUrl) elements.push(dashboardButton(runContext.dashboardUrl));
+    blocks.push(actions(elements));
+  });
   if (excluded.length > 0) {
-    const reasons = excluded.map(candidate => `${candidate.id} (${clip(candidate.lostBecause?.detail ?? candidate.lostBecause?.reason ?? 'infeasible', 70)})`);
-    blocks.push(context(`Not viable: ${reasons.join(' · ')}`));
+    const groups = new Map<string, string[]>();
+    for (const candidate of excluded) {
+      const reason = shortReason(candidate);
+      groups.set(reason, [...(groups.get(reason) ?? []), candidate.id]);
+    }
+    const lines = [...groups].map(([reason, ids]) => `${ids.join(', ')} — ${clip(reason, 100)}`);
+    blocks.push(divider(), section('*Not viable*'), section(lines.join('\n')));
   }
   blocks.push(context(eventContext(event)));
   return { text: 'Which architecture should we run?', blocks };
@@ -93,10 +100,19 @@ export function formatPlanGate(
 ): BlockKitMessage {
   const missed = rehearsal?.passed === false;
   const value: PlanActionValue = { run_id: runId, seq: event.seq };
-  const blocks: any[] = [header(missed ? '🧪 Rehearsal missed the forecast' : '🧪 Rehearsal held — approve the plan?')];
+  const blocks: any[] = [header(missed ? 'Rehearsal missed the forecast' : 'Rehearsal held — approve the plan?')];
   if (runContext?.project) blocks.push(context(`${runContext.project} · revision ${event.revision}`));
-  if (rehearsal) blocks.push(section(rehearsalText(rehearsal)));
-  if (plan) blocks.push(section(planText(plan)));
+  if (rehearsal) {
+    blocks.push(section('*Rehearsal*'));
+    blocks.push(fieldsBlock(rehearsalFields(rehearsal)));
+    blocks.push(section(`*Failure*\n${rehearsal.failure ?? '—'}`));
+  }
+  if (plan) {
+    blocks.push(divider(), section(`*Plan${plan.layout ? ` — ${plan.layout}` : ''}*`));
+    blocks.push(fieldsBlock(planFields(plan)));
+    const lines = (plan.actions ?? []).slice(0, 3).map(action => `• ${action.component}: ${action.action}${action.to ? ` to ${action.to}` : ''}`);
+    blocks.push(section(`*First changes*\n${lines.length > 0 ? lines.join('\n') : '—'}`));
+  }
   if (!rehearsal && !plan) blocks.push(section('Approving the plan completes the run.'));
   const elements: any[] = [{
     type: 'button',
@@ -106,19 +122,44 @@ export function formatPlanGate(
     value: JSON.stringify(value),
   }];
   if (runContext?.dashboardUrl) elements.push(dashboardButton(runContext.dashboardUrl));
-  blocks.push(actions(elements));
-  blocks.push(context(eventContext(event)));
+  blocks.push(actions(elements), context(eventContext(event)));
   return { text: missed ? 'The rehearsal missed the forecast' : 'Rehearsal held — approve the plan', blocks };
+}
+
+export function formatRehearsalRunning(frame: number): BlockKitMessage {
+  const step = Math.max(1, Math.min(frame + 1, 8));
+  const bar = '▰'.repeat(step) + '▱'.repeat(8 - step);
+  return {
+    text: 'Rehearsal running',
+    blocks: [
+      section('*Rehearsal*\nRunning on Floci. The result and the plan follow here.'),
+      context(bar),
+    ],
+  };
+}
+
+export function formatRehearsalProgress(rehearsal?: RehearsalSummary, stopped = false): BlockKitMessage {
+  if (stopped) {
+    return { text: 'Rehearsal stopped', blocks: [section('*Rehearsal*\nStopped before a measurement'), context('The run stopped; see the failure card.')] };
+  }
+  return {
+    text: 'Rehearsal complete',
+    blocks: [section('*Rehearsal*'), fieldsBlock(rehearsalFields(rehearsal ?? {})), context('The plan follows in the channel.')],
+  };
 }
 
 export function formatGateClosed(closing: RunEvent, rehearsal?: RehearsalSummary): BlockKitMessage {
   const kind = closing.decision?.kind;
-  const title = kind === 'approve_plan' ? '✅ Plan approved' : kind === 'pick_layout' ? '✅ Architecture picked' : '✅ Gate closed';
+  const title = kind === 'approve_plan' ? 'Plan approved' : kind === 'pick_layout' ? 'Architecture picked' : 'Gate closed';
   const headline = describeEvent(closing);
-  const blocks: any[] = [header(title), section(`${STATUS_ICON.approved} *${headline}*`)];
+  const blocks: any[] = [header(title), section(`*${headline}*`)];
   if (kind === 'pick_layout') blocks.push(section('Next: the rehearsal runs on Floci. Its result and the plan follow here.'));
   if (kind === 'approve_plan') blocks.push(section('The run is complete.'));
-  if (rehearsal) blocks.push(section(rehearsalText(rehearsal)));
+  if (rehearsal) {
+    blocks.push(divider(), section('*Rehearsal*'));
+    const fields = rehearsalFields(rehearsal);
+    if (fields.length > 0) blocks.push(fieldsBlock(fields));
+  }
   blocks.push(...details(closing));
   return { text: headline, blocks };
 }
@@ -126,50 +167,72 @@ export function formatGateClosed(closing: RunEvent, rehearsal?: RehearsalSummary
 export function formatFailedRun(event: RunEvent): BlockKitMessage {
   const reason = event.decision?.reason ?? 'the run stopped';
   return {
-    text: `Run failed: ${reason}`,
-    blocks: [header('❌ Run failed'), section(`*${stepLabel(event.step)}*: ${describeEvent(event)}\n${reason}`), context(eventContext(event))],
+    text: `Run stopped: ${reason}`,
+    blocks: [header('Run stopped'), section(`*${stepLabel(event.step)}*\n${describeEvent(event)}\n\n${reason}`), context(eventContext(event))],
   };
 }
 
-function layoutButtons(runId: string, event: RunEvent, candidates: LayoutCandidate[], dashboardUrl?: string) {
-  const elements: any[] = candidates.map(candidate => {
-    const value: LayoutActionValue = { run_id: runId, seq: event.seq, layout: candidate.id };
-    const element: any = {
-      type: 'button',
-      text: { type: 'plain_text', text: candidate.recommended ? 'Rehearse this' : 'Rehearse' },
-      action_id: layoutActionId(candidate.id),
-      value: JSON.stringify(value),
-    };
-    if (candidate.recommended) element.style = 'primary';
-    return element;
-  });
-  if (dashboardUrl) elements.push(dashboardButton(dashboardUrl));
-  return { type: 'actions', block_id: `layout_${runId}_${candidates[0].id}`, elements };
+function candidateFields(candidate: LayoutCandidate, target: LayoutTarget | undefined, rich: boolean): string[] {
+  if (!rich) return [];
+  const months = target?.horizonMonths !== undefined ? ` over ${target.horizonMonths} months` : '';
+  const targetSuffix = target?.minAvailabilityPct !== undefined ? ` vs ${target.minAvailabilityPct}% target` : '';
+  const effort = [
+    candidate.effortHours !== undefined ? `${candidate.effortHours}h` : '',
+    candidate.paybackMonths !== undefined ? `${candidate.paybackMonths} months payback` : '',
+  ].filter(Boolean).join(' · ');
+  return [
+    field('Cost now', candidate.monthlyEur !== undefined ? `${eur(candidate.monthlyEur)}/mo` : '—'),
+    field('Horizon', candidate.horizonEur !== undefined ? `${compactEur(candidate.horizonEur)}${months}` : '—'),
+    field('Availability', candidate.availabilityPct !== undefined ? `${candidate.availabilityPct}%${targetSuffix}` : '—'),
+    field('Risk', candidate.risk !== undefined ? `${candidate.risk}` : '—'),
+    field('Effort', effort || '—'),
+    field('Actions', candidate.actions !== undefined ? `${candidate.actions}` : '—'),
+  ];
 }
 
-function candidateCard(candidate: LayoutCandidate, target?: LayoutTarget): string {
-  const title = candidate.recommended ? `⭐ *RECOMMENDED — ${candidate.id}*` : `*${candidate.id}*`;
-  const horizon = candidate.horizonEur !== undefined
-    ? `${compactEur(candidate.horizonEur)} over ${target?.horizonMonths !== undefined ? `${target.horizonMonths} months` : 'the horizon'}`
-    : '';
-  const cost = [candidate.monthlyEur !== undefined ? `${eur(candidate.monthlyEur)}/mo now` : '', horizon].filter(Boolean).join(' · ');
-  const availability = candidate.availabilityPct !== undefined
-    ? `${candidate.availabilityPct}% availability${target?.minAvailabilityPct !== undefined ? ` vs ${target.minAvailabilityPct}% target ${candidate.availabilityPct >= target.minAvailabilityPct ? '✅' : '⚠'}` : ''}`
-    : '';
-  const meta = [
-    candidate.rank !== undefined && !candidate.recommended ? `rank ${candidate.rank}` : '',
-    availability,
-    candidate.risk !== undefined ? `risk ${candidate.risk}` : '',
+function rehearsalFields(rehearsal: RehearsalSummary): string[] {
+  const target = rehearsal.targetAvailabilityPct !== undefined ? ` vs ${rehearsal.targetAvailabilityPct}% target` : '';
+  const latency = rehearsal.latency;
+  const points = latency === undefined
+    ? '—'
+    : [latency.baselineP95, latency.failureP95, latency.recoveryP95].map(value => value === undefined ? '—' : `${value}`).join(' → ');
+  return [
+    field('Availability', rehearsal.measuredAvailabilityPct !== undefined ? `${rehearsal.measuredAvailabilityPct}%${target}` : '—'),
+    field('Result', rehearsal.passed === undefined ? '—' : rehearsal.passed ? 'Held' : 'Missed'),
+    field('Latency p95', `${points} ms`),
+  ];
+}
+
+function planFields(plan: PlanSummary): string[] {
+  const size = [
+    plan.steps !== undefined ? `${plan.steps} steps` : '',
+    plan.actions?.length ? `${plan.actions.length} actions` : '',
   ].filter(Boolean).join(' · ');
+  const cost = plan.monthlyEurNow !== undefined && plan.monthlyEurAfter !== undefined
+    ? `${eur(plan.monthlyEurNow)}/mo → ${eur(plan.monthlyEurAfter)}/mo`
+    : '—';
   const effort = [
-    candidate.effortHours !== undefined ? `${candidate.effortHours}h effort` : '',
-    candidate.paybackMonths !== undefined ? `payback ${candidate.paybackMonths} months` : '',
-    candidate.actions !== undefined ? `${candidate.actions} actions` : '',
+    plan.effortHours !== undefined ? `${plan.effortHours}h effort` : '',
+    plan.cutoverDowntimeHours !== undefined ? `${plan.cutoverDowntimeHours}h downtime` : '',
   ].filter(Boolean).join(' · ');
-  const why = !candidate.recommended && candidate.lostBecause
-    ? `Not picked: ${clip(candidate.lostBecause.detail ?? candidate.lostBecause.reason, 120)}`
-    : '';
-  return [title, cost, meta, effort, why].filter(Boolean).join('\n');
+  return [
+    field('Plan size', size || '—'),
+    field('Cost', cost),
+    field('Effort', effort || '—'),
+    field('Availability', plan.availabilityPct !== undefined ? `${plan.availabilityPct}%` : '—'),
+  ];
+}
+
+function layoutButton(runId: string, event: RunEvent, candidate: LayoutCandidate) {
+  const value: LayoutActionValue = { run_id: runId, seq: event.seq, layout: candidate.id };
+  const element: any = {
+    type: 'button',
+    text: { type: 'plain_text', text: `Rehearse ${candidate.id}` },
+    action_id: layoutActionId(candidate.id),
+    value: JSON.stringify(value),
+  };
+  if (candidate.recommended) element.style = 'primary';
+  return element;
 }
 
 function details(event: RunEvent): any[] {
@@ -187,6 +250,30 @@ function eventContext(event: RunEvent): string {
   return parts.join(' · ');
 }
 
+function lostReason(candidate: LayoutCandidate): string {
+  switch (candidate.lostBecause?.reason) {
+    case 'cost': return 'higher expected total cost';
+    case 'risk': return 'higher risk';
+    case 'effort': return 'more migration effort';
+    case 'payback': return 'slower payback';
+    default: return candidate.lostBecause?.detail ? clip(candidate.lostBecause.detail.split(':')[0], 120) : '—';
+  }
+}
+
+function shortReason(candidate: LayoutCandidate): string {
+  const detail = candidate.lostBecause?.detail;
+  if (detail) return detail.split(':')[0];
+  return candidate.lostBecause?.reason ?? 'a hard constraint';
+}
+
+function field(label: string, value: string): string {
+  return `*${label}*\n${value}`;
+}
+
+function fieldsBlock(fields: string[]) {
+  return { type: 'section', fields: fields.map(text => ({ type: 'mrkdwn', text })) };
+}
+
 function dashboardButton(url: string) {
   return { type: 'button', text: { type: 'plain_text', text: 'Details' }, action_id: 'view_dashboard', url };
 }
@@ -195,10 +282,8 @@ function actions(elements: any[]) {
   return { type: 'actions', elements };
 }
 
-function chunks<T>(items: T[], size: number): T[][] {
-  const groups: T[][] = [];
-  for (let start = 0; start < items.length; start += size) groups.push(items.slice(start, start + size));
-  return groups;
+function divider() {
+  return { type: 'divider' };
 }
 
 function section(text: string) {

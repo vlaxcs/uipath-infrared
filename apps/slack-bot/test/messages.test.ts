@@ -76,21 +76,26 @@ describe('Layout gate card', () => {
     const message = formatLayoutGate(RUN, event, candidatesOf(event), targetOf(event), { project: 'demo-shop' });
     const buttons = message.blocks.filter(block => block.type === 'actions').flatMap(block => block.elements);
     expect(buttons.map(button => button.action_id)).toEqual(['pick_layout_consolidate', 'pick_layout_managed_services', 'pick_layout_move_to_onprem']);
-    expect(buttons[0].text.text).toBe('Rehearse this');
+    expect(buttons[0].text.text).toBe('Rehearse consolidate');
     expect(buttons[0].style).toBe('primary');
-    expect(buttons[1].text.text).toBe('Rehearse');
+    expect(buttons[1].text.text).toBe('Rehearse managed_services');
     expect(buttons[1].style).toBeUndefined();
     expect(JSON.parse(buttons[1].value)).toEqual({ run_id: RUN, seq: 14, layout: 'managed_services' });
     const shown = text(message);
     expect(shown).toContain('Which architecture should we run');
     expect(shown).toContain('demo-shop · 3 options pass the hard constraints');
-    expect(shown).toContain('RECOMMENDED — consolidate');
-    expect(shown).toContain('€74,365/mo now');
+    expect(shown).toContain('Recommended — consolidate');
+    expect(shown).toContain('*Cost now*');
+    expect(shown).toContain('€74,365/mo');
     expect(shown).toContain('€3.81M over 36 months');
-    expect(shown).toContain('99.95% availability vs 99.9% target');
-    expect(shown).toContain('794h effort · payback 1.38 months · 21 actions');
-    expect(shown).toContain('Not picked: risk 0.52 against 0.31 for consolidate');
-    expect(shown).toContain('Not viable: rightsize_in_place');
+    expect(shown).toContain('99.95% vs 99.9% target');
+    expect(shown).toContain('*Effort*');
+    expect(shown).toContain('794h');
+    expect(shown).toContain('1.38 months payback');
+    expect(shown).toContain('Not picked: higher risk');
+    expect(shown).toContain('Not viable');
+    expect(shown).toContain('rightsize_in_place, cleanup_orphans, do_nothing');
+    expect(shown).toContain('min_availability_pct on rds-orders');
   });
 
   it('falls back to the dashboard notice when the gate carries no candidates', () => {
@@ -118,11 +123,15 @@ describe('Plan gate card', () => {
     expect(shown).toContain('Rehearsal held — approve the plan?');
     expect(shown).toContain('99.92%');
     expect(shown).toContain('vs 99.9% target');
+    expect(shown).toContain('*Result*');
+    expect(shown).toContain('Held');
     expect(shown).toContain('stopped the primary database; the fallback took over');
-    expect(shown).toContain('p95 42 → 51 → 44 ms');
+    expect(shown).toContain('Latency p95');
+    expect(shown).toContain('42 → 51 → 44 ms');
     expect(shown).toContain('€133,308/mo → €82,665/mo');
-    expect(shown).toContain('514h effort · 2h downtime');
-    expect(shown).toContain('rds-orders: resize → db.r5.4xlarge');
+    expect(shown).toContain('514h effort');
+    expect(shown).toContain('2h downtime');
+    expect(shown).toContain('rds-orders: resize to db.r5.4xlarge');
   });
 
   it('falls back to the decision when the extensions are absent', () => {
@@ -156,7 +165,7 @@ describe('Failure card', () => {
       actor: { kind: 'orchestrator' }, decision: { kind: 'stop', reason: 'three revisions without a feasible candidate' },
     };
     const shown = text(formatFailedRun(failed));
-    expect(shown).toContain('Run failed');
+    expect(shown).toContain('Run stopped');
     expect(shown).toContain('three revisions without a feasible candidate');
   });
 });
@@ -169,7 +178,30 @@ describe('Approval modal', () => {
     expect(JSON.parse(view.private_metadata)).toEqual({ run_id: RUN, seq: 20, channel_id: 'C1' });
     expect(view.submit.text).toBe('Approve');
     expect(text(view)).toContain('99.92%');
+    expect(text(view)).toContain('Result: Held');
     expect(text(view)).toContain('€133,308/mo → €82,665/mo');
     expect(view.blocks.some((block: any) => block.type === 'input' && block.block_id === 'note')).toBe(true);
+  });
+});
+
+describe('Placeholders', () => {
+  it('keeps every metric row with an em dash when a rich candidate is missing a value', () => {
+    const event = sampleEvent(14);
+    const candidates = candidatesOf(event).map(candidate =>
+      candidate.id === 'consolidate' ? { ...candidate, horizonEur: undefined, risk: undefined, actions: undefined } : candidate
+    );
+    const shown = text(formatLayoutGate(RUN, event, candidates, targetOf(event)));
+    expect(shown).toContain('*Horizon*\\n—');
+    expect(shown).toContain('*Risk*\\n—');
+    expect(shown).toContain('*Actions*\\n—');
+    expect(shown).toContain('*Cost now*');
+  });
+
+  it('keeps the rehearsal rows with an em dash when the summary is partial', () => {
+    const event = { ...afterLayoutEvent(20), x_rehearsal: { passed: true } } as RunEvent;
+    const shown = text(formatPlanGate(RUN, event, rehearsalOf(event), planOf(event)));
+    expect(shown).toContain('*Availability*\\n—');
+    expect(shown).toContain('*Latency p95*\\n— ms');
+    expect(shown).toContain('*Result*\\nHeld');
   });
 });

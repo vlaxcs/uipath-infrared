@@ -96,8 +96,8 @@ describe('Slack gates', () => {
     const gate = flow.card(LAYOUT_CARD)!;
     const buttons = gate.message.blocks.filter(block => block.type === 'actions').flatMap(block => block.elements);
     expect(buttons.map(element => JSON.parse(element.value).layout)).toEqual(['consolidate', 'managed_services', 'move_to_onprem']);
-    expect(buttons[0].text.text).toBe('Rehearse this');
-    expect(JSON.stringify(gate.message)).toContain('RECOMMENDED — consolidate');
+    expect(buttons[0].text.text).toBe('Rehearse consolidate');
+    expect(JSON.stringify(gate.message)).toContain('Recommended — consolidate');
   });
 
   it('records the pick, updates the gate in place and brings back the rehearsal and plan', async () => {
@@ -138,6 +138,20 @@ describe('Slack gates', () => {
     expect(plan).toContain('€133,308/mo → €74,365/mo');
     expect(plan).toContain('794h effort');
     expect(plan).not.toContain('managed_services');
+  });
+
+  it('shows a rehearsal progress line in the layout thread and completes it in place', async () => {
+    const flow = startRun();
+    await until(flow.layoutPosted);
+    const layoutTs = flow.card(LAYOUT_CARD)!.timestamp;
+    await flow.clickLayout('managed_services');
+    await until(flow.planPosted);
+
+    const progress = flow.thread(layoutTs).find(message => message.message.text === 'Rehearsal running');
+    expect(progress).toBeDefined();
+    expect(JSON.stringify(progress!.message)).toMatch(/[▰▱]{8}/);
+    const updates = flow.slack.updates.filter(updated => updated.timestamp === progress!.timestamp);
+    expect(JSON.stringify(updates.at(-1)?.message)).toContain('99.92%');
   });
 
   it('opens the approval modal without approving anything', async () => {

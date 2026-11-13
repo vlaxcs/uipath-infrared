@@ -48,19 +48,18 @@ export function planApprovalView(
 }
 
 export function rehearsalText(rehearsal: RehearsalSummary): string {
-  const lines = ['*Rehearsal*'];
-  if (rehearsal.measuredAvailabilityPct !== undefined) {
-    const verdict = rehearsal.passed === false ? '⚠' : rehearsal.passed === true ? '✅' : '';
-    const target = rehearsal.targetAvailabilityPct !== undefined ? ` vs ${rehearsal.targetAvailabilityPct}% target` : '';
-    const gap = rehearsal.gapPct !== undefined ? ` (${rehearsal.gapPct >= 0 ? '+' : ''}${rehearsal.gapPct})` : '';
-    lines.push(`Availability *${rehearsal.measuredAvailabilityPct}%*${target} ${verdict}${gap}`);
-  }
-  if (rehearsal.failure) lines.push(`Failure ${rehearsal.failure}`);
+  const target = rehearsal.targetAvailabilityPct !== undefined ? ` vs ${rehearsal.targetAvailabilityPct}% target` : '';
+  const lines = [
+    '*Rehearsal*',
+    `Availability: ${rehearsal.measuredAvailabilityPct !== undefined ? `${rehearsal.measuredAvailabilityPct}%${target}` : '—'}`,
+    `Result: ${rehearsal.passed === undefined ? '—' : rehearsal.passed ? 'Held' : 'Missed'}`,
+    `Failure: ${rehearsal.failure ?? '—'}`,
+  ];
   const latency = rehearsal.latency;
-  if (latency && (latency.baselineP95 !== undefined || latency.failureP95 !== undefined || latency.recoveryP95 !== undefined)) {
-    const points = [latency.baselineP95, latency.failureP95, latency.recoveryP95].map(value => value === undefined ? '—' : `${value}`).join(' → ');
-    lines.push(`Latency p95 ${points} ms (baseline / failure / recovery)`);
-  }
+  const points = latency === undefined
+    ? '—'
+    : [latency.baselineP95, latency.failureP95, latency.recoveryP95].map(value => value === undefined ? '—' : `${value}`).join(' → ');
+  lines.push(`Latency p95: ${points} ms`);
   return lines.join('\n');
 }
 
@@ -69,17 +68,18 @@ export function planText(plan: PlanSummary): string {
   const size = [
     plan.steps !== undefined ? `${plan.steps} steps` : '',
     plan.actions?.length ? `${plan.actions.length} actions` : '',
+  ].filter(Boolean).join(' · ');
+  const cost = plan.monthlyEurNow !== undefined && plan.monthlyEurAfter !== undefined
+    ? `${eur(plan.monthlyEurNow)}/mo → ${eur(plan.monthlyEurAfter)}/mo`
+    : '—';
+  const effort = [
     plan.effortHours !== undefined ? `${plan.effortHours}h effort` : '',
     plan.cutoverDowntimeHours !== undefined ? `${plan.cutoverDowntimeHours}h downtime` : '',
   ].filter(Boolean).join(' · ');
-  if (size) lines.push(size);
-  const money = [
-    plan.monthlyEurNow !== undefined && plan.monthlyEurAfter !== undefined
-      ? `${eur(plan.monthlyEurNow)}/mo → ${eur(plan.monthlyEurAfter)}/mo`
-      : '',
-    plan.availabilityPct !== undefined ? `${plan.availabilityPct}% availability` : '',
-  ].filter(Boolean).join(' · ');
-  if (money) lines.push(money);
+  lines.push(`Plan size: ${size || '—'}`);
+  lines.push(`Cost: ${cost}`);
+  lines.push(`Effort: ${effort || '—'}`);
+  lines.push(`Availability: ${plan.availabilityPct !== undefined ? `${plan.availabilityPct}%` : '—'}`);
   for (const action of (plan.actions ?? []).slice(0, 3)) {
     lines.push(`• ${action.component}: ${action.action}${action.to ? ` → ${action.to}` : ''}`);
   }

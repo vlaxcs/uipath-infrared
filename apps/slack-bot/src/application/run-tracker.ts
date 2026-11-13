@@ -4,7 +4,7 @@ import { isFinished, summarize } from '../domain/run-summary.js';
 import { candidatesOf, targetOf } from '../domain/layout-choice.js';
 import { rehearsalOf } from '../domain/rehearsal-summary.js';
 import { planOf } from '../domain/plan-summary.js';
-import { formatEvent, formatFailedRun, formatGateClosed, formatLayoutGate, formatPlanGate } from '../domain/messages.js';
+import { formatEvent, formatFailedRun, formatGateClosed, formatLayoutGate, formatPlanGate, formatRehearsalProgress, formatRehearsalRunning } from '../domain/messages.js';
 
 const GATE_CLOSED_BY: Record<string, Gate> = { pick_layout: 'layout', approve_plan: 'plan' };
 const GATE_DECISIONS = new Set(['pick_layout', 'keep_analyses', 'approve_plan']);
@@ -14,6 +14,9 @@ export class RunTracker {
   private pending: RunEvent[] = [];
   private gates = new Map<Gate, string>();
   private project = '';
+  private layoutThread = '';
+  private progressTs = '';
+  private progressFrame = 0;
 
   constructor(
     private slack: SlackClient,
@@ -30,6 +33,7 @@ export class RunTracker {
     while (!isFinished(summary.status)) {
       const fresh = await this.orchestrator.eventsAfter(runId, this.lastSeq());
       if (fresh.length === 0) {
+        await this.tickProgress();
         await this.wait(this.pollMs);
         continue;
       }
@@ -67,7 +71,13 @@ export class RunTracker {
   }
 
   private async handle(runId: string, event: RunEvent): Promise<void> {
+    if (event.step === 'rehearse' && event.status === 'started') {
+      await this.startProgress();
+      return;
+    }
+    if (event.step === 'rehearse' && event.status === 'completed') await this.finishProgress(event);
     if (event.status === 'failed') {
+      await this.stopProgress();
       await this.postFailed([...this.pending, event]);
       this.pending = [];
       return;
@@ -99,6 +109,7 @@ export class RunTracker {
       : formatLayoutGate(runId, gateEvent, candidatesOf(gateEvent), targetOf(gateEvent), context);
     const ts = await this.slack.postMessage(this.channel, message);
     this.gates.set(gateEvent.gate!, ts);
+    if (gateEvent.gate === 'layout') this.layoutThread = ts;
     for (const event of history) {
       if (event.seq === gateEvent.seq || !isThreadWorthy(event)) continue;
       const reply = formatEvent(event);
@@ -131,6 +142,31 @@ export class RunTracker {
       const reply = formatEvent(event);
       if (reply) await this.slack.postMessage(this.channel, reply, ts);
     }
+  }
+
+  private async startProgress(): Promise<void> {
+    this.progressFrame = 0;
+    this.progressTs = await this.slack.postMessage(this.channel, formatRehearsalRunning(0), this.layoutThread || undefined);
+  }
+
+  private async tickProgress(): Promise<void> {
+    if (!this.progressTs) return;
+    this.progressFrame = (this.progressFrame + 1) % 8;
+    await this.slack.updateMessage(this.channel, this.progressTs, formatRehearsalRunning(this.progressFrame));
+  }
+
+  private async finishProgress(event: RunEvent): Promise<void> {
+    if (!this.progressTs) return;
+    const ts = this.progressTs;
+    this.progressTs = '';
+    await this.slack.updateMessage(this.channel, ts, formatRehearsalProgress(rehearsalOf(event)));
+  }
+
+  private async stopProgress(): Promise<void> {
+    if (!this.progressTs) return;
+    const ts = this.progressTs;
+    this.progressTs = '';
+    await this.slack.updateMessage(this.channel, ts, formatRehearsalProgress(undefined, true));
   }
 
   private rehearsalFor(event: RunEvent) {
