@@ -28,8 +28,8 @@ const dryRun = process.argv.includes('--dry-run') || process.argv.includes('--pr
   const settings = loadSettings();
   const { app, slack } = createBot(settings, orchestrator);
   await app.start();
-  console.log(`Posting sample run ${run.id} to #${settings.slackChannel}; approve the plan from Slack to finish it`);
-  const summary = await new RunTracker(slack, orchestrator, settings.slackChannel, wait, PACE_MS).track(run.id);
+  console.log(`Posting sample run ${run.id} to #${settings.slackChannel}; pick the architecture, then approve the plan`);
+  const summary = await new RunTracker(slack, orchestrator, settings.slackChannel, wait, PACE_MS, settings.dashboardUrl).track(run.id);
   await writeRun(FINISHED, orchestrator.document());
   console.log(`Sample run ${summary.status}; the run document is in ${FINISHED}`);
   await app.stop();

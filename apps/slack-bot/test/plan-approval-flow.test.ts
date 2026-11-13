@@ -5,13 +5,17 @@ import { RunTracker } from '../src/application/run-tracker.js';
 import { PlanApprover } from '../src/application/plan-approver.js';
 import { LayoutPicker } from '../src/application/layout-picker.js';
 import { approvePlanAction } from '../src/entry/plan-action.js';
+import { submitPlanApproval } from '../src/entry/plan-view.js';
 import { pickLayoutAction } from '../src/entry/layout-action.js';
+import { SLACK_APPROVAL_REASON } from '../src/domain/plan-approval.js';
 import { summarize } from '../src/domain/run-summary.js';
-import type { Run, RunSummary } from '../src/domain/run.js';
+import type { RunSummary } from '../src/domain/run.js';
 import { afterLayoutEvents, sampleRun } from './sample.js';
 
 const RUN = 'run-demo-shop-0001';
 const CLICKED_AT = new Date('2026-11-14T09:25:00.123Z');
+const LAYOUT_CARD = 'Which architecture should we run?';
+const PLAN_CARD = 'Rehearsal held — approve the plan';
 const tick = () => new Promise<void>(resolve => setImmediate(resolve));
 
 async function until(condition: () => boolean) {
@@ -25,93 +29,140 @@ function startRun() {
   let summary: RunSummary | undefined;
   const tracking = new RunTracker(slack, orchestrator, 'infrared-runs', tick, 0).track(RUN).then(done => { summary = done; });
   const ephemeral: any[] = [];
-  const client = { chat: { postEphemeral: async (args: any) => { ephemeral.push(args); } } };
-  const button = (messageText: string, actionId: string, matches: (value: any) => boolean) => {
-    const posted = slack.messages.find(message => message.message.text === messageText)!;
+  const opened: any[] = [];
+  const client = {
+    chat: { postEphemeral: async (args: any) => { ephemeral.push(args); } },
+    views: { open: async (args: any) => { opened.push(args); } },
+  };
+  const card = (messageText: string) => slack.messages.find(message => message.message.text === messageText);
+  const channelTexts = () => slack.messages.map(message => message.message.text);
+  const lastUpdate = (timestamp: string) => slack.updates.filter(updated => updated.timestamp === timestamp).at(-1)?.message;
+  const button = (timestamp: string, actionId: string) => {
+    const posted = slack.messages.find(message => message.timestamp === timestamp)!;
     return posted.message.blocks
       .filter(block => block.type === 'actions')
       .flatMap(block => block.elements)
-      .find(element => (element.action_id === actionId || element.action_id.startsWith(`${actionId}_`)) && matches(JSON.parse(element.value)));
+      .find(element => element.action_id === actionId)!;
   };
   const runAction = (handler: any, value: object, user = { id: 'U1', name: 'andrei' }) =>
-    handler({ body: { actions: [{ value: JSON.stringify(value) }], user, channel: { id: 'C1' } }, ack: async () => {}, client });
-  const clickLayout = (layout: string, user?: { id: string; name: string }) =>
-    runAction(pickLayoutAction(new LayoutPicker(orchestrator)), JSON.parse(button('A layout is waiting to be picked', 'pick_layout', value => value.layout === layout)!.value), user);
-  const clickPlan = (user?: { id: string; name: string }) =>
-    runAction(approvePlanAction(new PlanApprover(orchestrator)), JSON.parse(button('The plan is waiting for approval', 'approve_plan', () => true)!.value), user);
-  const layoutPosted = () => slack.messages.some(posted => posted.message.text === 'A layout is waiting to be picked');
-  const planPosted = () => slack.messages.some(posted => posted.message.text === 'The plan is waiting for approval');
+    handler({ body: { actions: [{ value: JSON.stringify(value) }], trigger_id: 'T1', user, channel: { id: 'C1' } }, ack: async () => {}, client });
+  const clickLayout = async (layout: string, user?: { id: string; name: string }) => {
+    const gate = card(LAYOUT_CARD)!;
+    return runAction(pickLayoutAction(new LayoutPicker(orchestrator)), JSON.parse(button(gate.timestamp, `pick_layout_${layout}`).value), user);
+  };
+  const clickPlan = async (user?: { id: string; name: string }) => {
+    const gate = card(PLAN_CARD)!;
+    return runAction(approvePlanAction(orchestrator), JSON.parse(button(gate.timestamp, 'approve_plan').value), user);
+  };
+  const submitPlan = async (note: string | undefined, user = { id: 'U1', name: 'andrei' }) => {
+    const view = opened.at(-1)!.view;
+    const state = note === undefined ? { values: {} } : { values: { note: { reason: { value: note } } } };
+    return submitPlanApproval(new PlanApprover(orchestrator))({
+      ack: async () => {},
+      body: { user },
+      view: { private_metadata: view.private_metadata, state },
+      client,
+    });
+  };
+  const layoutPosted = () => Boolean(card(LAYOUT_CARD));
+  const planPosted = () => Boolean(card(PLAN_CARD));
   return {
-    orchestrator,
-    slack,
-    tracking,
-    clickLayout,
-    clickPlan,
-    runAction,
-    ephemeral,
-    layoutPosted,
-    planPosted,
-    summary: (): RunSummary | undefined => summary,
+    orchestrator, slack, tracking, ephemeral, opened, client, runAction, card, channelTexts, lastUpdate,
+    clickLayout, clickPlan, submitPlan, layoutPosted, planPosted, summary: (): RunSummary | undefined => summary,
   };
 }
 
 describe('Slack gates', () => {
-  it('pauses at the layout gate and offers the feasible architectures', async () => {
+  it('shows the layout gate as the only channel message', async () => {
     const flow = startRun();
     await until(flow.layoutPosted);
     for (let i = 0; i < 50; i++) await tick();
 
+    expect(flow.channelTexts()).toEqual([LAYOUT_CARD]);
     expect(flow.summary()).toBeUndefined();
     expect(flow.orchestrator.document()).toMatchObject({ status: 'awaiting_approval', awaiting: 'layout', step: 'present' });
     expect(flow.orchestrator.document().events).toHaveLength(14);
-    const posted = flow.slack.messages.find(message => message.message.text === 'A layout is waiting to be picked')!;
-    const buttons = posted.message.blocks.filter(block => block.type === 'actions').flatMap(block => block.elements);
+  });
+
+  it('offers the recommended architecture first and carries each layout', async () => {
+    const flow = startRun();
+    await until(flow.layoutPosted);
+    const gate = flow.card(LAYOUT_CARD)!;
+    const buttons = gate.message.blocks.filter(block => block.type === 'actions').flatMap(block => block.elements);
     expect(buttons.map(element => JSON.parse(element.value).layout)).toEqual(['consolidate', 'managed_services', 'move_to_onprem']);
+    expect(buttons[0].text.text).toBe('Rehearse consolidate');
+    expect(JSON.stringify(gate.message)).toContain('Recommended — consolidate');
   });
 
-  it('does not continue to the rehearsal until an architecture is picked', async () => {
+  it('updates the layout card in place through the pick and the rehearsal, then posts the plan card', async () => {
     const flow = startRun();
     await until(flow.layoutPosted);
-    for (let i = 0; i < 100; i++) await tick();
-
-    expect(flow.planPosted()).toBe(false);
-    expect(flow.orchestrator.document().events).toHaveLength(14);
-  });
-
-  it('records the architecture picked from Slack and continues the loop', async () => {
-    const flow = startRun();
-    await until(flow.layoutPosted);
-    const layoutTs = flow.slack.messages.find(message => message.message.text === 'A layout is waiting to be picked')!.timestamp;
+    const layoutTs = flow.card(LAYOUT_CARD)!.timestamp;
     await flow.clickLayout('managed_services');
     await until(flow.planPosted);
 
+    const updates = flow.slack.updates.filter(updated => updated.timestamp === layoutTs);
+    expect(JSON.stringify(updates[0].message)).toContain('Architecture picked');
+    expect(JSON.stringify(updates[0].message)).toContain('andrei (slack) picked the layout managed_services');
+    expect(JSON.stringify(updates.at(-1)?.message)).toContain('Rehearsal complete');
+    expect(JSON.stringify(updates.at(-1)?.message)).toContain('99.92%');
+    expect(JSON.stringify(flow.card(PLAN_CARD)!.message)).toContain('99.92%');
+
+    expect(flow.channelTexts()).toEqual([LAYOUT_CARD, PLAN_CARD]);
     const run = flow.orchestrator.document();
-    expect(run.events[14]).toEqual({
-      seq: 15,
-      at: '2026-11-14T09:25:00Z',
-      step: 'present',
-      status: 'approved',
-      revision: 1,
-      actor: { kind: 'human', id: 'andrei', surface: 'slack' },
-      decision: { kind: 'pick_layout', reason: 'layout picked from Slack', layout: 'managed_services' },
-    });
-    expect(run).toMatchObject({ status: 'awaiting_approval', awaiting: 'plan', step: 'rehearse' });
     expect(run.events).toHaveLength(19);
     expect(run.events.at(-1)).toMatchObject({ seq: 19, gate: 'plan' });
-
-    const update = flow.slack.updates.find(updated => updated.timestamp === layoutTs)!;
-    const shown = JSON.stringify(update.message);
-    expect(update.message.blocks.some(block => block.type === 'actions')).toBe(false);
-    expect(shown).toContain('Layout picked');
-    expect(shown).toContain('andrei (slack) picked the layout managed_services');
+    expect(run).toMatchObject({ status: 'awaiting_approval', awaiting: 'plan', step: 'rehearse' });
   });
 
-  it('completes the run when the plan is approved after the architecture pick', async () => {
+  it('binds the scripted plan to the architecture that was picked', async () => {
+    const flow = startRun();
+    await until(flow.layoutPosted);
+    await flow.clickLayout('consolidate');
+    await until(flow.planPosted);
+
+    const plan = JSON.stringify(flow.card(PLAN_CARD)!.message);
+    expect(plan).toContain('Plan — consolidate');
+    expect(plan).toContain('€133,308/mo → €74,365/mo');
+    expect(plan).toContain('794h effort');
+    expect(plan).not.toContain('managed_services');
+  });
+
+  it('animates the rehearsal progress inside the layout card and finishes it with the measured result', async () => {
+    const flow = startRun();
+    await until(flow.layoutPosted);
+    const layoutTs = flow.card(LAYOUT_CARD)!.timestamp;
+    await flow.clickLayout('managed_services');
+    await until(flow.planPosted);
+
+    const updates = flow.slack.updates.filter(updated => updated.timestamp === layoutTs);
+    expect(updates.some(updated => /[▰▱]{8}/.test(JSON.stringify(updated.message)))).toBe(true);
+    expect(JSON.stringify(updates.at(-1)?.message)).toContain('Rehearsal complete');
+    expect(JSON.stringify(updates.at(-1)?.message)).toContain('99.92%');
+  });
+
+  it('opens the approval modal without approving anything', async () => {
     const flow = startRun();
     await until(flow.layoutPosted);
     await flow.clickLayout('managed_services');
     await until(flow.planPosted);
     await flow.clickPlan();
+
+    expect(flow.opened).toHaveLength(1);
+    expect(flow.opened[0].view.callback_id).toBe('plan_approval');
+    expect(JSON.parse(flow.opened[0].view.private_metadata)).toEqual({ run_id: RUN, seq: 19, channel_id: 'C1' });
+    expect(flow.orchestrator.document().events).toHaveLength(19);
+    expect(flow.summary()).toBeUndefined();
+  });
+
+  it('records the modal note as the reason and completes the run', async () => {
+    const flow = startRun();
+    await until(flow.layoutPosted);
+    await flow.clickLayout('managed_services');
+    await until(flow.planPosted);
+    const planTs = flow.card(PLAN_CARD)!.timestamp;
+    await flow.clickPlan();
+    await flow.submitPlan('looks good');
     await flow.tracking;
 
     const run = flow.orchestrator.document();
@@ -123,24 +174,40 @@ describe('Slack gates', () => {
       status: 'approved',
       revision: 1,
       actor: { kind: 'human', id: 'andrei', surface: 'slack' },
-      decision: { kind: 'approve_plan', reason: 'rehearsal held; plan approved from Slack' },
+      decision: { kind: 'approve_plan', reason: 'looks good' },
     });
     expect(run.events.map(event => event.seq)).toEqual(Array.from({ length: 20 }, (_, i) => i + 1));
-    expect(run).toMatchObject({ status: 'completed', finished_at: '2026-11-14T09:25:00Z', updated_at: '2026-11-14T09:25:00Z' });
-    expect(run).not.toHaveProperty('awaiting');
-    const { schema_version, id, project, max_revisions, inputs, events, ...declared } = run;
-    expect(declared).toEqual(summarize(events));
+    expect(run).toMatchObject({ status: 'completed', finished_at: '2026-11-14T09:25:00Z' });
     expect(flow.summary()?.status).toBe('completed');
+
+    const shown = JSON.stringify(flow.lastUpdate(planTs));
+    expect(shown).toContain('Plan approved');
+    expect(shown).toContain('andrei (slack) approved the plan');
+    expect(shown).toContain('looks good');
+    expect(shown).toContain('The run is complete');
   });
 
-  it('refuses a plan approval at the layout gate and tells the person', async () => {
+  it('uses the default reason when the note is left empty', async () => {
     const flow = startRun();
     await until(flow.layoutPosted);
-    await flow.runAction(approvePlanAction(new PlanApprover(flow.orchestrator)), { run_id: RUN, seq: 14 });
+    await flow.clickLayout('managed_services');
+    await until(flow.planPosted);
+    await flow.clickPlan();
+    await flow.submitPlan(undefined);
+    await flow.tracking;
+
+    expect(flow.orchestrator.document().events.at(-1)?.decision?.reason).toBe(SLACK_APPROVAL_REASON);
+  });
+
+  it('refuses a plan approval at the layout gate', async () => {
+    const flow = startRun();
+    await until(flow.layoutPosted);
+    await flow.runAction(approvePlanAction(flow.orchestrator), { run_id: RUN, seq: 14 });
 
     expect(flow.orchestrator.document().events).toHaveLength(14);
     expect(flow.ephemeral).toHaveLength(1);
-    expect(flow.ephemeral[0].text).toContain('waiting for a layout choice');
+    expect(flow.ephemeral[0].text).toContain('Could not open the approval');
+    expect(flow.ephemeral[0].text).toContain('the plan gate is no longer open');
   });
 
   it('refuses an architecture the result did not offer', async () => {
@@ -153,6 +220,22 @@ describe('Slack gates', () => {
     expect(flow.ephemeral[0].text).toContain('layout do_nothing is not offered');
   });
 
+  it('refuses a second approval after the run is complete', async () => {
+    const flow = startRun();
+    await until(flow.layoutPosted);
+    await flow.clickLayout('managed_services');
+    await until(flow.planPosted);
+    await flow.clickPlan();
+    await flow.submitPlan('looks good');
+    await flow.tracking;
+    await flow.submitPlan('again');
+
+    expect(flow.orchestrator.document().events).toHaveLength(20);
+    expect(flow.ephemeral).toHaveLength(1);
+    expect(flow.ephemeral[0]).toMatchObject({ channel: 'C1', user: 'U1' });
+    expect(flow.ephemeral[0].text).toContain('not waiting at a gate');
+  });
+
   it('never dates an event before the event it follows', async () => {
     const orchestrator = new SampleOrchestrator(sampleRun(), afterLayoutEvents(), tick, 0, () => new Date('2026-11-13T12:00:00Z'));
     for (let i = 0; i < 14; i++) await orchestrator.eventsAfter(RUN, i);
@@ -161,39 +244,7 @@ describe('Slack gates', () => {
     expect(picked.at).toBe('2026-11-14T09:08:16Z');
 
     for (let i = 0; i < 4; i++) await orchestrator.eventsAfter(RUN, 14 + i);
-    const approved = await new PlanApprover(orchestrator).approve(RUN, 'andrei');
+    const approved = await new PlanApprover(orchestrator).approve(RUN, 'andrei', 'looks good');
     expect(approved.at).toBe('2026-11-14T09:19:51Z');
-  });
-
-  it('updates the plan message in place with who approved it and why', async () => {
-    const flow = startRun();
-    await until(flow.layoutPosted);
-    await flow.clickLayout('managed_services');
-    await until(flow.planPosted);
-    const planTs = flow.slack.messages.find(message => message.message.text === 'The plan is waiting for approval')!.timestamp;
-    await flow.clickPlan();
-    await flow.tracking;
-
-    const update = flow.slack.updates.find(updated => updated.timestamp === planTs)!;
-    const shown = JSON.stringify(update.message);
-    expect(update.message.blocks.some(block => block.type === 'actions')).toBe(false);
-    expect(shown).toContain('Plan approved');
-    expect(shown).toContain('andrei (slack) approved the plan');
-    expect(shown).toContain('rehearsal held; plan approved from Slack');
-  });
-
-  it('refuses a second plan click once the run is complete and tells the person', async () => {
-    const flow = startRun();
-    await until(flow.layoutPosted);
-    await flow.clickLayout('managed_services');
-    await until(flow.planPosted);
-    await flow.clickPlan();
-    await flow.tracking;
-    await flow.runAction(approvePlanAction(new PlanApprover(flow.orchestrator)), { run_id: RUN, seq: 19 }, { id: 'U2', name: 'robi' });
-
-    expect(flow.orchestrator.document().events).toHaveLength(20);
-    expect(flow.ephemeral).toHaveLength(1);
-    expect(flow.ephemeral[0]).toMatchObject({ channel: 'C1', user: 'U2' });
-    expect(flow.ephemeral[0].text).toContain('not waiting at a gate');
   });
 });
