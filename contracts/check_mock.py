@@ -3,12 +3,16 @@
 
   python3 check_mock.py                       # all example files against their schemas + integrity checks
   python3 check_mock.py path/to/infra.json    # validate any extractor output (infra) instead of the mock
+  python3 check_mock.py path/to/result.json   # validate any engine output (a file with `candidates`)
 
 Needs `jsonschema` (pip install jsonschema). Exit code 0 = everything passed.
 Checks beyond JSON Schema: unique ids, edge/parent/stack/stay_together references, node_group has a
 kubernetes_cluster parent, every metric carries provenance (also enforced by schema), orphan/idle
 components are not the target of 'traffic' edges, forecast scenario probabilities sum to 1,
 catalog kinds/platform references are consistent, and every kind in the infra has a catalog option.
+Result: unique candidate ids, do_nothing present, feasible exactly when there are no violations,
+violation_distance is the sum of the distances, exactly one of winner / closest_if_none_feasible,
+only feasible candidates are scored and ranked, every loser says why, and component ids exist in the infra.
 """
 import json
 import sys
@@ -140,8 +144,93 @@ def catalog_integrity(cat, infra=None):
         print(f"  kinds in infra without any catalog option (engine keeps them as-is): {uncovered}")
 
 
+def result_integrity(label, r, infra=None):
+    def err(msg):
+        errors.append(f"[integrity] {label}: {msg}")
+
+    cands = r["candidates"]
+    ids = [c["id"] for c in cands]
+    for i, n in Counter(ids).items():
+        if n > 1:
+            err(f"duplicate candidate id {i}")
+    by_id = {c["id"]: c for c in cands}
+    if "do_nothing" not in by_id:
+        err("candidates must contain do_nothing")
+    known = {c["id"] for c in infra["components"]} if infra and infra["project"] == r["inputs"]["infra"] else None
+
+    def check_component(where, comp):
+        if known is not None and comp is not None and comp not in known:
+            err(f"{where}: component {comp} is not in the infra")
+
+    for v in r["baseline"]["violations"]:
+        check_component("baseline", v["component"])
+    for c in cands:
+        cid = c["id"]
+        if c["feasible"] != (not c["violations"]):
+            err(f"{cid}: feasible must be true exactly when violations is empty")
+        dist = sum(v["distance"] for v in c["violations"])
+        if abs(dist - c["violation_distance"]) > 0.01:
+            err(f"{cid}: violation_distance {c['violation_distance']} is not the sum of the distances ({dist:.3f})")
+        if c.get("builds_on") and c["builds_on"] not in by_id:
+            err(f"{cid}: builds_on {c['builds_on']} does not exist")
+        if cid == "do_nothing" and c["actions"]:
+            err("do_nothing must have no actions")
+        for v in c["violations"]:
+            check_component(cid, v["component"])
+        for a in c["actions"]:
+            if a["component"] != "account":
+                check_component(cid, a["component"])
+        ranked = [c["score"] is not None, c["rank"] is not None, c["rank_by_scenario"] is not None]
+        if c["feasible"] and not all(ranked):
+            err(f"{cid}: a feasible candidate needs score, rank and rank_by_scenario")
+        if not c["feasible"] and (any(ranked) or c["pareto"]):
+            err(f"{cid}: an infeasible candidate has no score, rank, rank_by_scenario or pareto")
+        if (c["lost_because"] is None) != (cid == r["winner"]):
+            err(f"{cid}: lost_because is null for the winner and set for every other candidate")
+        if not c["feasible"] and c["lost_because"] and c["lost_because"]["reason"] != "constraint":
+            err(f"{cid}: an infeasible candidate loses on a constraint")
+    feasible = [c for c in cands if c["feasible"]]
+    ranks = sorted(c["rank"] for c in feasible if c["rank"] is not None)
+    if ranks != list(range(1, len(feasible) + 1)):
+        err(f"ranks of the feasible candidates must be 1..{len(feasible)}, got {ranks}")
+    for s in ("low", "base", "high"):
+        got = sorted(c["rank_by_scenario"][s] for c in feasible if c["rank_by_scenario"])
+        if got != list(range(1, len(feasible) + 1)):
+            err(f"rank_by_scenario.{s} must be 1..{len(feasible)}, got {got}")
+    order = [(c["rank"] is None, c["rank"] or 0, c["violation_distance"], c["id"]) for c in cands]
+    if order != sorted(order):
+        err("candidates must be ordered by rank, then violation_distance, then id")
+    closest = r["closest_if_none_feasible"]
+    if feasible:
+        if r["winner"] not in by_id or by_id[r["winner"]]["rank"] != 1:
+            err("winner must be the feasible candidate with rank 1")
+        if closest is not None:
+            err("closest_if_none_feasible must be null when there is a winner")
+    else:
+        if r["winner"] is not None:
+            err("winner must be null when no candidate is feasible")
+        if closest is None:
+            err("closest_if_none_feasible must be set when no candidate is feasible")
+        elif closest["candidate"] not in by_id:
+            err(f"closest_if_none_feasible: candidate {closest['candidate']} does not exist")
+        else:
+            c = by_id[closest["candidate"]]
+            if c["violation_distance"] != min(x["violation_distance"] for x in cands):
+                err("closest_if_none_feasible must be the candidate with the smallest violation_distance")
+            if closest["violation_distance"] != c["violation_distance"] or closest["blocked_by"] != c["violations"]:
+                err("closest_if_none_feasible must repeat the candidate's violation_distance and violations")
+    print(f"  {len(cands)} candidates, {len(feasible)} feasible, winner: {r['winner']}, closest: {closest['candidate'] if closest else None}")
+
+
 def main():
     args = sys.argv[1:]
+    if args and "candidates" in load(args[0]):
+        print("result")
+        r = load(args[0])
+        schema_check(Path(args[0]).name, r, "result.schema.json")
+        if not errors:
+            result_integrity(Path(args[0]).name, r)
+        finish()
     infra_path = Path(args[0]) if args else HERE / "mock/demo-shop.infra.json"
     print("infra")
     infra = load(infra_path)
@@ -157,6 +246,17 @@ def main():
         c = load(HERE / "catalog.example.json")
         schema_check("catalog.example.json", c, "catalog.schema.json")
         catalog_integrity(c, infra)
+        print("result")
+        for name in ("result.example.json", "result.example.nothing-feasible.json"):
+            r = load(HERE / name)
+            before = len(errors)
+            schema_check(name, r, "result.schema.json")
+            if len(errors) == before:
+                result_integrity(name, r, infra)
+    finish()
+
+
+def finish():
     for w in warnings:
         print("  warn:", w)
     for e in errors:

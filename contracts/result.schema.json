@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infrared.local/contract/result.schema.json",
+  "title": "Infrared decision result (engine output)",
+  "description": "What the engine writes after it prices, checks, scores and ranks the candidates for one project. Every number here is computed by deterministic code from infra.json, forecast.json and catalog.json; no model writes or edits a figure. All money is in EUR. The same inputs give the same file, byte for byte.",
+  "type": "object",
+  "required": ["schema_version", "inputs", "baseline", "candidates", "winner", "closest_if_none_feasible"],
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.\\d+$",
+      "description": "Semver major.minor. Additive changes bump minor; anything that removes/renames/retypes a field bumps major. Readers must accept any 1.x."
+    },
+    "inputs": {
+      "type": "object",
+      "description": "Which files this result was computed from.",
+      "required": ["infra", "forecast", "catalog_illustrative", "horizon_months", "currency"],
+      "additionalProperties": false,
+      "patternProperties": { "^x_": {} },
+      "properties": {
+        "infra": { "type": "string", "minLength": 1, "description": "infra.json `project`." },
+        "forecast": { "type": "string", "minLength": 1, "description": "forecast.json `id`." },
+        "catalog_illustrative": { "type": "boolean", "description": "Copied from catalog.json `illustrative`. True means the prices are placeholders and every figure in this file inherits that." },
+        "horizon_months": { "type": "integer", "minimum": 1, "description": "Copied from forecast.json; the horizon behind every `horizon_*` figure." },
+        "currency": { "const": "EUR" }
+      }
+    },
+    "baseline": {
+      "type": "object",
+      "description": "The estate as it is today, before any candidate. The `do_nothing` candidate carries the same estate through the forecast.",
+      "required": ["monthly_eur", "availability_pct", "violations"],
+      "additionalProperties": false,
+      "patternProperties": { "^x_": {} },
+      "properties": {
+        "monthly_eur": { "type": "number", "minimum": 0, "description": "Current run cost per month." },
+        "availability_pct": { "$ref": "#/$defs/availability_pct" },
+        "violations": { "type": "array", "items": { "$ref": "#/$defs/violation" }, "description": "Hard constraints the current estate already breaks." },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "confidence_reason": { "type": "string" },
+        "flags": { "$ref": "#/$defs/flags" }
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Every candidate that was evaluated, `do_nothing` included, feasible or not. Ordered by `rank` (feasible first), then by `violation_distance`, then by `id`.",
+      "items": { "$ref": "#/$defs/candidate" }
+    },
+    "winner": {
+      "type": ["string", "null"],
+      "description": "`id` of the winning candidate. Null only when no candidate is feasible; then `closest_if_none_feasible` is set."
+    },
+    "closest_if_none_feasible": {
+      "description": "Null when there is a winner. Otherwise the candidate that misses the hard constraints by the least, and what blocks it. The engine never answers 'no result'.",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["candidate", "violation_distance", "blocked_by"],
+          "additionalProperties": false,
+          "properties": {
+            "candidate": { "type": "string", "description": "`id` of the closest candidate." },
+            "violation_distance": { "type": "number", "minimum": 0, "description": "Same value as on the candidate." },
+            "blocked_by": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/violation" }, "description": "The violations that keep it infeasible, largest distance first." }
+          }
+        }
+      ]
+    },
+    "flags": { "$ref": "#/$defs/flags" }
+  },
+  "$defs": {
+    "availability_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Availability of the critical path, in percent."
+    },
+    "confidence": {
+      "enum": ["high", "medium", "low"],
+      "description": "The weakest provenance of the inputs behind the figure: observed = high, estimated = medium, synthetic = low."
+    },
+    "flags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+      "description": "Machine-readable caveats, e.g. `egress_unpriced`, `catalog_illustrative`, `usage_synthetic`, `unpriced_components`. Open list; readers show the ones they know and keep the rest as text."
+    },
+    "scenario_eur": {
+      "type": "object",
+      "required": ["low", "base", "high"],
+      "additionalProperties": false,
+      "properties": {
+        "low": { "type": "number", "minimum": 0 },
+        "base": { "type": "number", "minimum": 0 },
+        "high": { "type": "number", "minimum": 0 }
+      }
+    },
+    "scenario_rank": {
+      "type": "object",
+      "required": ["low", "base", "high"],
+      "additionalProperties": false,
+      "properties": {
+        "low": { "type": "integer", "minimum": 1 },
+        "base": { "type": "integer", "minimum": 1 },
+        "high": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "violation": {
+      "type": "object",
+      "description": "One broken hard constraint, with the component that causes it and how far it is from passing.",
+      "required": ["constraint", "component", "detail", "actual", "limit", "distance"],
+      "additionalProperties": false,
+      "patternProperties": { "^x_": {} },
+      "properties": {
+        "constraint": {
+          "enum": [
+            "data_residency",
+            "budget",
+            "migration_budget",
+            "min_availability_pct",
+            "allowed_providers",
+            "forbidden_providers",
+            "max_migration_effort_hours",
+            "max_cutover_downtime_hours",
+            "security.forbid_public_datastores",
+            "security.require_encryption_at_rest",
+            "security.forbid_world_open_admin_ports",
+            "security.require_audit_logging",
+            "security.require_backups"
+          ],
+          "description": "Which forecast.json hard constraint. `budget` is `budget.max_monthly_run_cost_eur` (base scenario, horizon month); `migration_budget` is `budget.max_one_off_migration_cost_eur`; `security.<gate>` is one key of `security_gates`."
+        },
+        "component": {
+          "type": ["string", "null"],
+          "description": "infra.json component id that causes the violation. Null when the violation belongs to the whole estate (budget, effort, estate-wide controls)."
+        },
+        "detail": { "type": "string", "minLength": 1, "description": "One plain sentence fragment a CTO can read, e.g. 'us-east-1, pii'." },
+        "actual": {
+          "type": ["number", "string", "null"],
+          "description": "What the candidate reaches: EUR, percent or hours for numeric constraints, the offending region or provider for the others. Null when there is nothing to quote."
+        },
+        "limit": { "type": ["number", "string", "null"], "description": "The constraint's limit, in the same unit as `actual`." },
+        "distance": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Normalised shortfall, so that violations of different constraints can be added and the infeasible candidates ranked. Larger is further from passing."
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "description": "One change to one component. A candidate with no actions leaves the estate as it is.",
+      "required": ["component", "action", "saving_eur_month", "confidence", "confidence_reason"],
+      "additionalProperties": false,
+      "patternProperties": { "^x_": {} },
+      "properties": {
+        "component": { "type": "string", "minLength": 1, "description": "infra.json component id, or `account` for an account-wide control such as audit logging." },
+        "action": {
+          "enum": ["keep", "delete", "stop", "resize", "scale", "autoscale", "move", "remediate", "flag"],
+          "description": "delete = remove the resource. stop = keep it but stop paying for compute. resize = change the unit size. scale = change the unit count or the zones. autoscale = turn autoscaling on. move = change the catalog option (provider, product or region). remediate = close a security gate without moving. flag = a finding with no priced change (e.g. a design problem that capacity does not fix)."
+        },
+        "layer": {
+          "type": "string",
+          "description": "The strategy layer that added this action, e.g. `cleanup_orphans`, `rightsize_in_place`, `security_remediation`. Candidates are cumulative, so a candidate lists the actions of the layers it builds on too."
+        },
+        "signal": { "type": "string", "pattern": "^[a-z0-9_]+$", "description": "The rule that fired, e.g. `orphan`, `idle`, `oversized`, `undersized`, `single_az`, `hot_partition`." },
+        "reason": { "type": "string", "description": "The evidence in one line, e.g. 'gpu_pct avg 0.4, p95 1.0 over 14 d'." },
+        "from": { "type": "string", "description": "What the component is today: tier, count, zones or catalog option." },
+        "to": { "type": "string", "description": "What it becomes." },
+        "saving_eur_month": { "type": "number", "description": "Run-cost change per month at today's demand. Positive saves money; negative costs more (growing an undersized database, adding a zone). 0 for `flag` and `keep`." },
+        "effort_hours": { "type": "number", "minimum": 0 },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "confidence_reason": { "type": "string", "minLength": 1, "description": "Which input is the weakest, e.g. 'gpu_pct is synthetic'." }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "required": [
+        "run_eur_month_now",
+        "horizon_by_scenario",
+        "horizon_run_eur",
+        "migration_eur",
+        "ops_eur_month",
+        "expected_outage_loss_eur_year",
+        "expected_total_eur"
+      ],
+      "additionalProperties": false,
+      "patternProperties": { "^x_": {} },
+      "properties": {
+        "run_eur_month_now": { "type": "number", "minimum": 0, "description": "Run cost per month of the end state at today's demand." },
+        "run_eur_month_at_horizon": { "$ref": "#/$defs/scenario_eur", "description": "Run cost per month in the horizon month, per scenario. The base value is what the monthly budget is checked against." },
+        "horizon_by_scenario": { "$ref": "#/$defs/scenario_eur", "description": "Discounted run cost summed over the horizon, per scenario." },
+        "horizon_run_eur": { "type": "number", "minimum": 0, "description": "`horizon_by_scenario` weighted by the scenario probabilities." },
+        "migration_eur": { "type": "number", "minimum": 0, "description": "One-off: effort, running old and new side by side, data-transfer egress." },
+        "ops_eur_month": { "type": "number", "minimum": 0 },
+        "expected_outage_loss_eur_year": { "type": "number", "minimum": 0, "description": "(1 - availability) x 8760 x downtime cost per hour." },
+        "expected_total_eur": { "type": "number", "minimum": 0, "description": "Over the horizon: horizon_run_eur + migration_eur + ops + expected outage loss. This is the cost term of the score." },
+        "security_remediation": {
+          "type": "object",
+          "description": "The share of this candidate's cost that comes from the `security_remediation` layer, shown apart so the CTO sees what closing the gates costs. Already included in the totals above.",
+          "required": ["effort_hours", "one_off_eur", "run_delta_eur_month"],
+          "additionalProperties": false,
+          "properties": {
+            "effort_hours": { "type": "number", "minimum": 0 },
+            "one_off_eur": { "type": "number", "minimum": 0 },
+            "run_delta_eur_month": { "type": "number" }
+          }
+        },
+        "onprem_platform": {
+          "type": "object",
+          "description": "Present when the candidate uses an on-prem platform: the full platform cost per month, allocated by the share of capacity used. Already included in the totals above.",
+          "required": ["platform", "capacity_share", "capex_amortised_eur_month", "power_cooling_eur_month", "colocation_eur_month", "disk_replacement_eur_month", "staff_eur_month"],
+          "additionalProperties": false,
+          "properties": {
+            "platform": { "type": "string", "description": "catalog.json `onprem_platforms[].id`." },
+            "platforms_needed": { "type": "integer", "minimum": 1 },
+            "capacity_share": { "type": "number", "exclusiveMinimum": 0 },
+            "capex_eur": { "type": "number", "minimum": 0 },
+            "capex_amortised_eur_month": { "type": "number", "minimum": 0 },
+            "power_cooling_eur_month": { "type": "number", "minimum": 0 },
+            "colocation_eur_month": { "type": "number", "minimum": 0 },
+            "disk_replacement_eur_month": { "type": "number", "minimum": 0 },
+            "staff_eur_month": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "required": [
+        "id",
+        "feasible",
+        "violations",
+        "violation_distance",
+        "actions",
+        "cost",
+        "availability_pct",
+        "risk",
+        "effort_hours",
+        "payback_months",
+        "score",
+        "pareto",
+        "rank",
+        "rank_by_scenario",
+        "lost_because",
+        "confidence",
+        "confidence_reason",
+        "flags"
+      ],
+      "additionalProperties": false,
+      "patternProperties": { "^x_": {} },
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$", "description": "Unique in the file. Engine strategies use the forecast's strategy names (`do_nothing`, `cleanup_orphans`, ...); candidates proposed by the agent keep the id the agent gave them." },
+        "source": { "enum": ["engine", "agent"], "description": "Who proposed the candidate. Either way the engine priced it." },
+        "builds_on": { "type": ["string", "null"], "description": "`id` of the candidate whose actions this one extends, or null." },
+        "feasible": { "type": "boolean", "description": "True exactly when `violations` is empty." },
+        "violations": { "type": "array", "items": { "$ref": "#/$defs/violation" }, "description": "Hard constraints the end state breaks, largest distance first." },
+        "violation_distance": { "type": "number", "minimum": 0, "description": "Sum of `distance` over the violations. 0 when feasible. Orders the infeasible candidates." },
+        "actions": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+        "cost": { "$ref": "#/$defs/cost" },
+        "availability_pct": { "$ref": "#/$defs/availability_pct" },
+        "risk": { "type": "number", "minimum": 0, "maximum": 1, "description": "Mean catalog risk_factor of the moved components, weighted by their monthly cost. 0 when nothing moves." },
+        "effort_hours": { "type": "number", "minimum": 0, "description": "Total migration effort." },
+        "cutover_downtime_hours": { "type": "number", "minimum": 0 },
+        "payback_months": { "type": ["number", "null"], "minimum": 0, "description": "migration_eur / monthly saving against `do_nothing`. Null for `do_nothing` and for a candidate that saves nothing." },
+        "score": { "type": ["number", "null"], "minimum": 0, "maximum": 1, "description": "Weighted, min-max normalised (cost, risk, effort); lower is better. Null when infeasible: only feasible candidates are scored." },
+        "pareto": { "type": "boolean", "description": "On the Pareto frontier of (expected total cost, risk, effort) among the feasible candidates. False when infeasible." },
+        "rank": { "type": ["integer", "null"], "minimum": 1, "description": "Final position among the feasible candidates, 1 = winner. Null when infeasible." },
+        "rank_by_scenario": {
+          "description": "The rank if only that scenario were to happen. Null when infeasible.",
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/scenario_rank" }]
+        },
+        "lost_because": {
+          "description": "Null for the winner. Every other candidate says why it lost.",
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["reason", "detail"],
+              "additionalProperties": false,
+              "properties": {
+                "reason": { "enum": ["constraint", "cost", "risk", "effort", "payback"] },
+                "detail": { "type": "string", "minLength": 1, "description": "One line a CTO can read." }
+              }
+            }
+          ]
+        },
+        "confidence": { "$ref": "#/$defs/confidence", "description": "The weakest confidence among the candidate's actions and the baseline pricing." },
+        "confidence_reason": { "type": "string", "minLength": 1 },
+        "flags": { "$ref": "#/$defs/flags" }
+      }
+    }
+  }
+}
