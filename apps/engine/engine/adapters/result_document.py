@@ -87,7 +87,7 @@ def _candidate(evaluation: Evaluation, standing: Standing) -> dict[str, Any]:
     lost = standing.lost_because
     return {
         "id": evaluation.id,
-        "source": "engine",
+        "source": evaluation.candidate.source,
         "builds_on": evaluation.candidate.builds_on,
         "feasible": evaluation.feasible,
         "violations": _violations(evaluation.check.violations),

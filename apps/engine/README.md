@@ -10,12 +10,13 @@ cd apps/engine
 ../../.venv/bin/python -m pytest -q
 ../../.venv/bin/python -m engine baseline ../../contracts/mock/demo-shop.infra.json ../../contracts/catalog.example.json
 ../../.venv/bin/python -m engine evaluate ../../contracts/mock/demo-shop.infra.json ../../contracts/forecast.example.json ../../contracts/catalog.example.json --out result.json
+../../.venv/bin/python -m engine evaluate ../../contracts/mock/demo-shop.infra.json ../../contracts/forecast.example.json ../../contracts/catalog.example.json --candidates ../../contracts/candidates.example.json --out result.json
 ../../.venv/bin/python ../../contracts/check_mock.py result.json
 ```
 
 `evaluate` validates its own output against `contracts/result.schema.json` before writing it.
 
-Exit code 2 means an input broke its schema; the reason is on stderr.
+Exit code 2 means an input broke its schema or its rules, or a candidate builds on a strategy this forecast did not build; the reason is on stderr, and no result is written.
 
 ## Layout
 
@@ -52,11 +53,20 @@ Domain modules:
 | `growth.py`, `projection.py` | run cost per month and scenario with growth and events, discounted over the horizon |
 | `migration.py`, `ops.py`, `egress.py`, `outage.py` | one-off migration cost and hours, ops cost, egress on new boundaries, expected outage loss |
 | `proposals.py` | the cumulative strategy chain; adds the remediation layer to every strategy |
+| `agent_candidates.py` | the agent's candidates on top of their `builds_on` (rule below) |
 | `action_savings.py` | each action's saving at today's demand, and what the component is before and after |
 | `evaluation.py` | every figure for one candidate |
 | `ranking.py` | step g: Pareto, score, payback, robustness, why each candidate lost, the nothing-feasible fallback |
 
 Strategies plug in through `engine/application/strategies.py`: a builder `(previous, infra, catalog, forecast) -> Candidate` that returns `previous.extend(name, new_actions)`. A strategy enabled in the forecast without a builder is reported as `strategy_not_built_<name>`, never invented.
+
+## Agent candidates
+
+- `--candidates` reads a `candidates.json`. It is checked against `contracts/candidates.schema.json` and the rules in `contracts/candidates_integrity.py`, and its `project` must match the infra's.
+- A candidate starts from the actions of its `builds_on` without their remediation layer: an engine strategy, an earlier candidate in the file, or today's estate for `null`. Its own actions replace the parent's on every component they touch.
+- The `security_remediation` layer is then recomputed on the candidate's end state, as for the engine's own strategies.
+- Agent actions carry the provenance of the component's usage as evidence, so their confidence comes from the data, not from the agent.
+- In `result.json` they appear with `source: agent`, their own `id` and `builds_on`, and are ranked with the engine's candidates.
 
 ## Pricing rule
 
