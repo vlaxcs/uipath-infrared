@@ -6,8 +6,8 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 
 | Step | Status |
 | --- | --- |
-| 1. Who do we target? | in progress |
-| 2. What is their problem? | |
+| 1. Who do we target? | done |
+| 2. What is their problem? | next |
 | 3. How do we get into their day? | |
 | 4. Business plan | |
 | 5. Design the product | |
@@ -18,6 +18,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 - **Buyer company:** start-ups and small enterprises.
 - **Who signs:** CTOs and CFOs.
 - **Day-to-day user:** the CTO.
+- **MVP:** for start-ups, for now. Bill size not fixed.
 
 ## 2. Problem
 
@@ -25,7 +26,12 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 
 ## 4. Business plan
 
+- **Sold as:** one-off runs, or a recurring run (cron job).
+
 ## 5. Product design
+
+- **The roadmap** is the project's financial roadmap.
+- **Demo data:** a few mocked projects, each with a deliberately bad infrastructure, running locally in Floci or another AWS emulator. The agent runs on each one and shows its results.
 
 ## 6. Branding
 
