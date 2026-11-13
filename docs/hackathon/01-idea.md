@@ -7,7 +7,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 | Step | Status |
 | --- | --- |
 | 1. Who do we target? | done |
-| 2. What is their problem? | next |
+| 2. What is their problem? | in progress |
 | 3. How do we get into their day? | |
 | 4. Business plan | |
 | 5. Design the product | |
@@ -21,6 +21,8 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 - **MVP:** for start-ups, for now. Bill size not fixed.
 
 ## 2. Problem
+
+- **What the CTO wants:** the best possible ratio of quality, functionality and price.
 
 ## 3. Getting into their day
 
