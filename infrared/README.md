@@ -28,8 +28,11 @@ Endpoint `http://localhost:4566`, region `us-east-1`, creds `test/test`.
 
 ## Graph view (`synth/graph.py`)
     .venv/bin/python -m synth.graph && open graph/graph.html
-Builds `graph/graph.json` (nodes+edges), `graph/graph.dot` (Graphviz) and a self-contained `graph/graph.html` (force layout
-clustered by stack; filter by stack / connection kind / status; click a node for attributes + connections).
+Builds `graph/graph.json` (nodes+edges), `graph/graph.dot` (Graphviz) and a self-contained `graph/graph.html`: a pseudo-3D orbital map
+rendered on a canvas (no dependencies). The InfraRed glass logo sits at the centre; each stack is an orbit; clusters (VPCs, EKS, ECS)
+are the suns on those orbits, and every other resource is a satellite of its nearest cluster (graph distance, same stack preferred).
+Drag to orbit the camera, scroll to zoom, click a cluster or resource to fly to it, light up its dependencies and open the detail panel.
+Idle / orphan / exposed resources get amber / pink / pulsing-red rings; the dock filters by stack and highlights by status.
 Nodes come from live floci state; edges = `topology.json` + relationships read from the API (placement, roles, containment).
 Stack, idle and orphan are derived from naming and observed metrics, not from the planted-issue ledger. `run.sh` regenerates it.
 

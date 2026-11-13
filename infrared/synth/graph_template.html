@@ -3,221 +3,343 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>InfraRed Estate Graph</title>
+<title>InfraRed Estate Orbit</title>
 <style>
   :root {
-    --bg:#f6f7f9; --panel:#ffffff; --ink:#1b2430; --muted:#5d6b7c; --line:#d5dbe3;
-    --shop:#2f6fdb; --data:#7a4fd6; --legacy:#d9742b; --dev:#2a9d8f; --shared:#6b7686;
-    --idle:#d99a00; --orphan:#d6336c; --exposed:#d6336c;
+    --bg:#07090d; --panel:rgba(16,20,27,.78); --line:rgba(255,255,255,.09); --ink:#e9edf3; --muted:#8d98a8;
+    --idle:#e8b93a; --orphan:#ff5d8f; --exposed:#ff4d3d;
   }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg:#0f141b; --panel:#171e28; --ink:#e6ebf2; --muted:#93a1b3; --line:#2b3644;
-      --shop:#6b9cff; --data:#a78bfa; --legacy:#ff9d5c; --dev:#4fd1c0; --shared:#8b97a8;
-      --idle:#f2c14e; --orphan:#ff6b9a; --exposed:#ff6b9a;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg:#0f141b; --panel:#171e28; --ink:#e6ebf2; --muted:#93a1b3; --line:#2b3644;
-    --shop:#6b9cff; --data:#a78bfa; --legacy:#ff9d5c; --dev:#4fd1c0; --shared:#8b97a8;
-    --idle:#f2c14e; --orphan:#ff6b9a; --exposed:#ff6b9a;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
-    font:13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  #app { display:grid; grid-template-columns: 250px 1fr 300px; height:100vh; }
-  aside { background:var(--panel); border-right:1px solid var(--line); padding:14px 16px; overflow:auto; }
-  #detail { border-right:0; border-left:1px solid var(--line); }
-  h1 { font-size:15px; margin:0 0 2px; }
-  h2 { font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:18px 0 6px; font-weight:600; }
-  .sub { color:var(--muted); font-size:12px; margin-bottom:10px; }
-  label.row, div.row { display:flex; align-items:center; gap:8px; padding:2px 0; cursor:pointer; }
-  .sw { width:11px; height:11px; border-radius:3px; flex:none; }
-  input[type=search] { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink); }
-  button { border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:6px; padding:4px 9px; cursor:pointer; font:inherit; }
-  button:hover { border-color:var(--muted); }
-  #stage { position:relative; min-width:0; }
-  svg { width:100%; height:100%; display:block; cursor:grab; touch-action:none; }
-  svg.panning { cursor:grabbing; }
-  .edge { fill:none; stroke:var(--muted); stroke-opacity:.45; }
-  .edge.hl { stroke-opacity:1; stroke-width:2.2; }
-  .edge.dim, .node.dim { opacity:.08; }
-  .node { cursor:pointer; }
-  .node text { fill:var(--ink); font-size:10.5px; paint-order:stroke; stroke:var(--bg); stroke-width:3px; pointer-events:none; }
-  .halo { fill:none; stroke-width:2.2; }
-  .kv { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; font-size:12px; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink); overflow:hidden;
+    font:13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
+  body { background:radial-gradient(ellipse at 50% 45%, #141922 0%, #0a0d12 55%, #05070a 100%); }
+  canvas { position:fixed; inset:0; display:block; cursor:grab; touch-action:none; }
+  canvas.drag { cursor:grabbing; }
+  canvas.hit { cursor:pointer; }
+  .glass { background:var(--panel); border:1px solid var(--line); border-radius:14px; backdrop-filter:blur(14px) saturate(1.2); -webkit-backdrop-filter:blur(14px) saturate(1.2); }
+  #brand { position:fixed; left:22px; top:18px; pointer-events:none; }
+  #brand h1 { margin:0; font-size:15px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; }
+  #brand h1 b { color:#ff5a45; font-weight:600; }
+  #brand p { margin:2px 0 0; color:var(--muted); font-size:12px; }
+  #search { position:fixed; right:22px; top:16px; width:230px; padding:8px 12px; color:var(--ink); font:inherit; outline:none; }
+  #search:focus { border-color:rgba(255,255,255,.28); }
+  #dock { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); display:flex; gap:6px; align-items:center; padding:7px 9px; max-width:calc(100vw - 24px); overflow-x:auto; }
+  .sep { width:1px; height:20px; background:var(--line); margin:0 4px; flex:none; }
+  .pill { display:inline-flex; align-items:center; gap:7px; padding:5px 11px; border-radius:999px; border:1px solid transparent; background:transparent; color:var(--muted);
+    font:inherit; cursor:pointer; white-space:nowrap; flex:none; transition:background .15s,color .15s; }
+  .pill:hover { color:var(--ink); background:rgba(255,255,255,.05); }
+  .pill.on { color:var(--ink); background:rgba(255,255,255,.08); border-color:var(--line); }
+  .pill i { width:9px; height:9px; border-radius:50%; display:block; }
+  .pill.ring i { background:transparent; border:2px solid currentColor; }
+  .pill em { font-style:normal; opacity:.55; font-size:11px; }
+  #hint { position:fixed; left:22px; bottom:26px; color:var(--muted); font-size:11.5px; pointer-events:none; line-height:1.6; }
+  #panel { background:rgba(14,18,24,.94); position:fixed; right:18px; top:62px; width:320px; max-height:calc(100vh - 150px); overflow:auto; padding:16px 18px; transform:translateX(24px); opacity:0; pointer-events:none; transition:transform .25s ease,opacity .25s ease; }
+  #panel.open { transform:none; opacity:1; pointer-events:auto; }
+  #panel h2 { margin:0; font-size:16px; word-break:break-all; }
+  #panel h3 { font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:16px 0 6px; font-weight:600; }
+  .sub { color:var(--muted); font-size:12px; margin:3px 0 0; }
+  .badge { display:inline-block; padding:1px 8px; border-radius:999px; font-size:11px; border:1px solid currentColor; margin-left:4px; }
+  .kv { display:grid; grid-template-columns:auto 1fr; gap:3px 12px; font-size:12px; }
   .kv span:nth-child(odd) { color:var(--muted); }
-  .badge { display:inline-block; padding:1px 7px; border-radius:999px; font-size:11px; border:1px solid currentColor; }
-  .conn { padding:3px 0; border-bottom:1px solid var(--line); cursor:pointer; }
-  .conn:hover { color:var(--shop); }
-  #tip { position:absolute; pointer-events:none; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 8px; font-size:12px; display:none; z-index:5; }
-  .legend-shape { width:14px; height:14px; flex:none; }
-  @media (max-width: 900px) { #app { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; } aside { border:0; border-bottom:1px solid var(--line); max-height:34vh; } #detail { border-top:1px solid var(--line); max-height:30vh; } }
+  .kv code { font-size:11px; color:#c8d1de; word-break:break-all; }
+  .conn { padding:5px 0; border-bottom:1px solid var(--line); cursor:pointer; font-size:12.5px; }
+  .conn:hover b { text-decoration:underline; }
+  .conn small { display:block; color:var(--muted); font-size:11px; }
+  .x { position:absolute; right:12px; top:10px; background:none; border:0; color:var(--muted); font-size:18px; cursor:pointer; }
+  #tip { position:fixed; pointer-events:none; display:none; padding:5px 9px; font-size:12px; z-index:5; }
+  .ctl { position:fixed; right:22px; bottom:26px; display:flex; gap:6px; }
+  @media (max-width:760px) { #hint { display:none; } #panel { left:12px; right:12px; width:auto; top:auto; bottom:76px; max-height:42vh; } #search { width:150px; } .ctl { display:none; } }
 </style>
 </head>
 <body>
-<div id="app">
-  <aside>
-    <h1>InfraRed estate</h1>
-    <div class="sub" id="meta"></div>
-    <input type="search" id="q" placeholder="Search nodes…" aria-label="Search nodes">
-    <h2>Stacks</h2><div id="stacks"></div>
-    <h2>Connections</h2><div id="kinds"></div>
-    <h2>Status</h2>
-    <div id="statuses"></div>
-    <h2>View</h2>
-    <label class="row"><input type="checkbox" id="iso"> Hide nodes with no edges</label>
-    <label class="row"><input type="checkbox" id="lbl" checked> Show labels</label>
-    <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button id="reheat">Re-layout</button><button id="fit">Fit view</button><button id="theme">Theme</button></div>
-    <h2>Shapes</h2><div id="shapes"></div>
-  </aside>
-  <div id="stage"><svg id="svg" aria-label="Infrastructure graph"><defs></defs><g id="vp"><g id="edges"></g><g id="nodes"></g></g></svg><div id="tip"></div></div>
-  <aside id="detail"><div class="sub">Click a node to inspect it. Drag to move, scroll to zoom.</div></aside>
-</div>
+<canvas id="cv" aria-label="Interactive 3D map of the cloud estate"></canvas>
+<div id="brand"><h1>Infra<b>Red</b></h1><p id="meta"></p></div>
+<input id="search" class="glass" type="search" placeholder="Search resources…" aria-label="Search resources">
+<div id="hint">Drag to orbit · scroll to zoom<br>Click a cluster or resource to inspect</div>
+<div id="panel" class="glass"></div>
+<div id="dock" class="glass"></div>
+<div class="ctl glass" style="padding:6px"><button class="pill" id="pause">Pause</button><button class="pill on" id="links">Links</button><button class="pill" id="reset">Reset</button></div>
+<div id="tip" class="glass"></div>
 <script>
 const G = /*__GRAPH__*/null;
-const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const STACKS = ["shop-prod","data-platform","legacy","dev","shared"];
-const stackVar = {"shop-prod":"--shop","data-platform":"--data","legacy":"--legacy","dev":"--dev","shared":"--shared"};
-const KINDS = {network:{d:"",w:1},data:{d:"",w:1.8},event:{d:"6 4",w:1.6},traffic:{d:"",w:2.4},dns:{d:"2 4",w:1.6},config:{d:"1 5",w:1.2},contains:{d:"",w:1}};
-const STATUS = {active:"Healthy / in use", idle:"Idle (observed low utilisation)", orphan:"Orphan (unattached)", exposed:"Publicly exposed"};
-const SHAPES = {compute:"circle", data:"square", network:"diamond", messaging:"hex", edge:"tri", iam:"pent", registry:"pent", storage:"square"};
-const svg = document.getElementById("svg"), vp = document.getElementById("vp");
-const NS = "http://www.w3.org/2000/svg";
-const el = (t, a={}, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
 
-function shapePath(s, r) {
-  const pts = n => Array.from({length:n}, (_,i) => { const a = -Math.PI/2 + i*2*Math.PI/n; return [r*Math.cos(a), r*Math.sin(a)]; });
-  const poly = a => "M" + a.map(p => p.join(",")).join("L") + "Z";
-  if (s === "circle") return `M${-r},0a${r},${r} 0 1,0 ${2*r},0a${r},${r} 0 1,0 ${-2*r},0`;
-  if (s === "square") return `M${-r*.85},${-r*.85}h${r*1.7}v${r*1.7}h${-r*1.7}Z`;
-  if (s === "diamond") return poly([[0,-r*1.15],[r*1.15,0],[0,r*1.15],[-r*1.15,0]]);
-  if (s === "tri") return poly(pts(3));
-  if (s === "pent") return poly(pts(5));
-  return poly(pts(6));
-}
-const radius = n => 7 + Math.min(11, Math.sqrt(n.degree || 0) * 2.2 + (n.attrs.nodes||0 ? 2 : 0));
+// ---------- palette & config ----------
+const STACK = {
+  "shop-prod":     {c:"#5b9bff", r:270, tilt:.10,  spd:.034},
+  "data-platform": {c:"#a98bff", r:400, tilt:-.08, spd:.026},
+  "dev":           {c:"#3fd8c4", r:520, tilt:.06,  spd:.020},
+  "legacy":        {c:"#ff9a52", r:640, tilt:-.12, spd:.016},
+  "shared":        {c:"#9aa6b8", r:150, tilt:.14,  spd:.05},
+};
+const STATUS = {idle:{c:"#e8b93a", t:"Idle · low utilisation"}, orphan:{c:"#ff5d8f", t:"Orphan · unattached"}, exposed:{c:"#ff4d3d", t:"Publicly exposed"}, active:{c:"#8d98a8", t:"Healthy · in use"}};
+const KIND = {traffic:"#ff7a45", data:"#a98bff", event:"#3fd8c4", dns:"#f2d04e", config:"#9aa6b8", network:"#5b9bff", contains:"#5d6878"};
+const GLYPH = {vpc:"VPC", eks:"EKS", ecs:"ECS", shared:"•••"};
+const HUB_TYPES = new Set(["vpc","eks","ecs"]);
+const F = 900, D = 900;
 
-const state = { stacks:new Set(STACKS), kinds:new Set(Object.keys(KINDS)), statuses:new Set(Object.keys(STATUS)), q:"", iso:false, lbl:true, sel:null };
-const nodes = G.nodes.map(n => ({...n, x:0, y:0, vx:0, vy:0, r:radius(n)}));
+// ---------- build model ----------
+const nodes = G.nodes.map(n => ({...n, pos:[0,0,0], p:null}));
 const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
 const edges = G.edges.filter(e => byId[e.src] && byId[e.dst]).map(e => ({...e, s:byId[e.src], t:byId[e.dst]}));
+const adj = new Map(nodes.map(n => [n.id, []]));
+edges.forEach(e => { adj.get(e.src).push(e.t); adj.get(e.dst).push(e.s); });
 
-// ---- UI chrome ----
-document.getElementById("meta").textContent = `${nodes.length} nodes · ${edges.length} edges · built ${G.generated.replace("T"," ").replace("+00:00"," UTC")}`;
-const mk = (cont, items, setKey, swatch) => { const c = document.getElementById(cont);
-  items.forEach(([k, label, color, extra]) => { const l = document.createElement("label"); l.className = "row";
-    l.innerHTML = `<input type="checkbox" checked><span class="sw" style="background:${color}"></span><span>${label}${extra? ` <span style="color:var(--muted)">${extra}</span>`:""}</span>`;
-    l.querySelector("input").onchange = e => { e.target.checked ? state[setKey].add(k) : state[setKey].delete(k); render(); };
-    c.appendChild(l); }); };
-const cnt = (f) => nodes.filter(f).length;
-mk("stacks", STACKS.map(s => [s, s, `var(${stackVar[s]})`, cnt(n => n.stack===s)]), "stacks");
-mk("kinds", Object.keys(KINDS).map(k => [k, k, "var(--muted)", edges.filter(e => e.kind===k).length]), "kinds");
-mk("statuses", Object.entries(STATUS).map(([k,v]) => [k, v, k==="active" ? "var(--shared)" : k==="idle" ? "var(--idle)" : "var(--orphan)", cnt(n => n.status===k)]), "statuses");
-document.getElementById("shapes").innerHTML = Object.entries(SHAPES).filter(([k]) => cnt(n => n.category===k)).map(([k,s]) =>
-  `<div class="row"><svg class="legend-shape" viewBox="-10 -10 20 20"><path d="${shapePath(s,7)}" fill="var(--muted)"/></svg><span>${k}</span></div>`).join("");
-document.getElementById("q").oninput = e => { state.q = e.target.value.toLowerCase(); render(); };
-document.getElementById("iso").onchange = e => { state.iso = e.target.checked; render(); };
-document.getElementById("lbl").onchange = e => { state.lbl = e.target.checked; render(); };
-document.getElementById("reheat").onclick = () => { nodes.forEach(n => { n.x += (Math.random()-.5)*60; n.y += (Math.random()-.5)*60; }); alpha = 1; tick(); };
-document.getElementById("fit").onclick = () => fit();
-document.getElementById("theme").onclick = () => { const r = document.documentElement; const dark = (r.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark"; r.dataset.theme = dark ? "light" : "dark"; };
-
-// ---- scene ----
-const gE = document.getElementById("edges"), gN = document.getElementById("nodes");
-const defs = svg.querySelector("defs");
-Object.keys(KINDS).forEach(k => { const m = el("marker", {id:"a-"+k, viewBox:"0 0 10 10", refX:9, refY:5, markerWidth:6, markerHeight:6, orient:"auto-start-reverse"}, defs); el("path", {d:"M0,0L10,5L0,10Z", fill:"var(--muted)", "fill-opacity":".7"}, m); });
-edges.forEach(e => { e.el = el("path", {class:"edge", "stroke-width":KINDS[e.kind].w, "stroke-dasharray":KINDS[e.kind].d, "marker-end":e.kind==="contains"||e.kind==="network" ? "" : `url(#a-${e.kind})`}, gE);
-  e.el.innerHTML = `<title>${e.src} → ${e.dst} (${e.kind})${e.note? ": "+e.note : ""}</title>`; });
-nodes.forEach(n => { const g = el("g", {class:"node"}, gN); n.el = g;
-  const col = `var(${stackVar[n.stack]||"--shared"})`;
-  el("path", {d:shapePath(SHAPES[n.category]||"circle", n.r), fill:col, "fill-opacity":.85, stroke:"var(--bg)", "stroke-width":1.5}, g);
-  if (n.status !== "active") el("circle", {class:"halo", r:n.r+5, stroke:n.status==="idle" ? "var(--idle)" : "var(--orphan)", "stroke-dasharray":n.status==="exposed" ? "" : "4 3"}, g);
-  n.txt = el("text", {y:n.r+12, "text-anchor":"middle"}, g); n.txt.textContent = n.label.length>26 ? n.label.slice(0,25)+"…" : n.label;
-  g.addEventListener("mouseenter", ev => { hover(n); tip(ev, n); }); g.addEventListener("mousemove", ev => tip(ev, n));
-  g.addEventListener("mouseleave", () => { hover(null); document.getElementById("tip").style.display = "none"; });
-  g.addEventListener("pointerdown", ev => startDrag(ev, n)); g.addEventListener("click", ev => { if (!n.moved) select(n); });
+// clusters (VPCs, EKS, ECS) become suns; every other resource orbits its nearest one
+const hubs = nodes.filter(n => HUB_TYPES.has(n.type)).map(n => ({n, sats:[], stack:n.stack}));
+hubs.forEach(h => h.n.hub = h);
+function bfs(from) {
+  const d = new Map([[from.id, 0]]), q = [from];
+  while (q.length) { const x = q.shift(); for (const y of adj.get(x.id)) if (!d.has(y.id)) { d.set(y.id, d.get(x.id) + 1); q.push(y); } }
+  return d;
+}
+hubs.forEach(h => h.dist = bfs(h.n));
+let sharedHub = null;
+nodes.filter(n => !n.hub).forEach(n => {
+  let best = null, bs = 99;
+  hubs.forEach(h => { const d = h.dist.get(n.id); if (d === undefined) return; const s = d + (h.stack === n.stack ? 0 : 1.5); if (s < bs) { bs = s; best = h; } });
+  if (!best) best = hubs.find(h => h.stack === n.stack && h.n.type === "vpc");
+  if (!best) {
+    if (!sharedHub) {
+      const pn = {id:"hub:shared", label:"shared services", type:"shared", category:"cluster", stack:"shared", status:"active", attrs:{note:"Resources with no cluster of their own"}, degree:0, pos:[0,0,0], pseudo:true};
+      nodes.push(pn); byId[pn.id] = pn; adj.set(pn.id, []);
+      sharedHub = {n:pn, sats:[], stack:"shared", dist:new Map()}; pn.hub = sharedHub; hubs.push(sharedHub);
+    }
+    best = sharedHub;
+  }
+  n.home = best; best.sats.push(n);
 });
 
-// ---- layout ----
-let W = 1000, H = 700, alpha = 1;
-const anchor = {"shop-prod":[-.55,-.05], "data-platform":[.55,-.05], "legacy":[0,.6], "dev":[.5,.7], "shared":[0,-.55]};
-function size() { const r = svg.getBoundingClientRect(); W = r.width; H = r.height; }
-function visible(n) {
-  if (!state.stacks.has(n.stack) || !state.statuses.has(n.status)) return false;
-  if (state.iso && !edges.some(e => state.kinds.has(e.kind) && (e.s===n || e.t===n))) return false;
+// place clusters on their stack's orbit, satellites on a squashed shell around the cluster
+const rnd = (() => { let s = 7; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
+const byStack = {};
+hubs.forEach(h => (byStack[h.stack] ||= []).push(h));
+Object.entries(byStack).forEach(([st, hs]) => hs.forEach((h, i) => { h.a0 = (i / hs.length) * Math.PI * 2 + (st.length % 5) * .9; h.orbit = STACK[st] || STACK.shared; }));
+hubs.forEach(h => {
+  const k = h.sats.length;
+  h.rad = 44 + 11 * Math.sqrt(k);
+  h.r = 17 + Math.min(10, k * .35);
+  h.motes = Array.from({length:12 + k * 2}, () => { const y = rnd() * 2 - 1, rr = Math.sqrt(1 - y * y), th = rnd() * 6.283;
+    return {u:[Math.cos(th) * rr, y, Math.sin(th) * rr], sr:h.rad * (.4 + rnd() * 1.3), w:(.05 + rnd() * .2) * (rnd() < .5 ? -1 : 1), ph:rnd() * 6.28, sz:1 + rnd() * 2.2, pos:[0, 0, 0]}; });
+  h.sats.sort((a, b) => b.degree - a.degree).forEach((n, i) => {
+    const y = k > 1 ? 1 - (i / (k - 1)) * 2 : 0, rr = Math.sqrt(1 - y * y), th = i * 2.399963;
+    n.u = [Math.cos(th) * rr, y, Math.sin(th) * rr];
+    n.sr = h.rad * (.55 + .5 * (i / Math.max(1, k - 1)) + rnd() * .25);
+    n.w = (.12 + rnd() * .3) * (rnd() < .5 ? -1 : 1);
+    n.ph = rnd() * 6.28;
+    n.sz = 3 + Math.sqrt(n.degree || 0) * 1.05;
+  });
+});
+function orbitPoint(o, a) {
+  const x = o.r * 1.25 * Math.cos(a), z0 = o.r * Math.sin(a);
+  return [x, -z0 * Math.sin(o.tilt), z0 * Math.cos(o.tilt)];
+}
+function update(T) {
+  hubs.forEach(h => { h.n.pos = orbitPoint(h.orbit, h.a0 + h.orbit.spd * T); });
+  hubs.forEach(h => { const hp = h.n.pos; h.motes.forEach(m => { const a = m.ph + m.w * T, c = Math.cos(a), s = Math.sin(a);
+    m.pos = [hp[0] + m.sr * (m.u[0] * c + m.u[2] * s), hp[1] + m.u[1] * m.sr * .55, hp[2] + m.sr * (-m.u[0] * s + m.u[2] * c)]; }); });
+  nodes.forEach(n => {
+    if (!n.home) return;
+    const hp = n.home.n.pos, a = n.ph + n.w * T, c = Math.cos(a), s = Math.sin(a);
+    n.pos = [hp[0] + n.sr * (n.u[0] * c + n.u[2] * s), hp[1] + n.u[1] * n.sr * .55, hp[2] + n.sr * (-n.u[0] * s + n.u[2] * c)];
+  });
+}
+
+// ---------- state / ui ----------
+const state = {stacks:new Set(Object.keys(STACK)), status:new Set(), q:"", links:true, sel:null, hov:null};
+const cnt = f => nodes.filter(f).length;
+document.getElementById("meta").textContent = `${G.nodes.length} resources · ${edges.length} links · ${hubs.length} clusters · ${G.generated.replace("T", " ").replace("+00:00", " UTC")}`;
+const dock = document.getElementById("dock");
+const pill = (html, on, cb, cls = "") => { const b = document.createElement("button"); b.className = "pill " + cls + (on ? " on" : ""); b.innerHTML = html; b.onclick = () => cb(b); dock.appendChild(b); return b; };
+Object.keys(STACK).forEach(s => { if (!cnt(n => n.stack === s)) return;
+  pill(`<i style="background:${STACK[s].c}"></i>${s} <em>${cnt(n => n.stack === s)}</em>`, true, b => { state.stacks.has(s) ? state.stacks.delete(s) : state.stacks.add(s); b.classList.toggle("on"); }); });
+dock.appendChild(Object.assign(document.createElement("div"), {className:"sep"}));
+["idle","orphan","exposed"].forEach(s => { pill(`<i style="color:${STATUS[s].c}"></i>${s} <em>${cnt(n => n.status === s)}</em>`, false,
+  b => { state.status.has(s) ? state.status.delete(s) : state.status.add(s); b.classList.toggle("on"); }, "ring"); });
+document.getElementById("search").oninput = e => { state.q = e.target.value.toLowerCase().trim(); };
+document.getElementById("pause").onclick = e => { paused = !paused; e.target.classList.toggle("on", paused); e.target.textContent = paused ? "Resume" : "Pause"; };
+document.getElementById("links").onclick = e => { state.links = !state.links; e.target.classList.toggle("on", state.links); };
+document.getElementById("reset").onclick = () => { select(null); cam.goalZoom = baseZoom(); cam.pitchG = .42; };
+
+// ---------- camera ----------
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+let W = 0, H = 0, paused = false, T = 0;
+const cam = {yaw:.35, pitch:.42, pitchG:null, zoom:1, goalZoom:null, tx:0, ty:0, tz:0};
+const baseZoom = () => Math.max(.38, Math.min(1.3, W / 1800, H / 960));
+function resize() { const d = devicePixelRatio || 1; W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener("resize", resize); resize(); cam.zoom = baseZoom();
+function proj(p) {
+  const x = p[0] - cam.tx, y = p[1] - cam.ty, z = p[2] - cam.tz;
+  const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), x1 = x * cy + z * sy, z1 = -x * sy + z * cy;
+  const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch), y2 = y * cp - z1 * sp, z2 = y * sp + z1 * cp;
+  const s = 2 * cam.zoom * F / (F + z2 + D);
+  return [W / 2 + x1 * s, H / 2 - 10 + y2 * s, z2, s];
+}
+
+// ---------- background dust ----------
+const dust = Array.from({length:520}, () => { const a = rnd() * 6.283, b = Math.acos(2 * rnd() - 1), r = 700 + rnd() * 1700; return [r * Math.sin(b) * Math.cos(a), (rnd() - .5) * 900, r * Math.sin(b) * Math.sin(a), .4 + rnd() * 1.1]; });
+
+// ---------- helpers ----------
+const visible = n => state.stacks.has(n.stack) && (!n.home || state.stacks.has(n.home.stack)) ;
+const nbrs = n => new Set([n.id, ...adj.get(n.id).map(x => x.id)]);
+const focus = () => state.sel || state.hov;
+function lit(n, f, nb) {
+  if (f) return nb.has(n.id);
+  if (state.status.size) return state.status.has(n.status);
+  if (state.q) return (n.id + " " + JSON.stringify(n.attrs)).toLowerCase().includes(state.q);
   return true;
 }
-function init() { size(); nodes.forEach(n => { const a = anchor[n.stack]||[0,0]; n.x = a[0]*W*.55 + (Math.random()-.5)*160; n.y = a[1]*H*.55 + (Math.random()-.5)*160; }); }
-function step() {
-  const vis = nodes.filter(visible), k = alpha;
-  for (let i = 0; i < vis.length; i++) { const a = vis[i];
-    for (let j = i+1; j < vis.length; j++) { const b = vis[j]; let dx = a.x-b.x, dy = a.y-b.y, d2 = dx*dx+dy*dy+.01, d = Math.sqrt(d2);
-      const rep = 2600/d2, min = a.r+b.r+16; let f = rep; if (d < min) f += (min-d)*.05;
-      dx/=d; dy/=d; a.vx += dx*f*k; a.vy += dy*f*k; b.vx -= dx*f*k; b.vy -= dy*f*k; } }
-  edges.forEach(e => { if (!visible(e.s) || !visible(e.t) || !state.kinds.has(e.kind)) return;
-    let dx = e.t.x-e.s.x, dy = e.t.y-e.s.y, d = Math.sqrt(dx*dx+dy*dy)||1; const len = e.kind==="contains" ? 46 : e.kind==="network" ? 120 : 90;
-    const f = (d-len)*.012*k; dx/=d; dy/=d; e.s.vx += dx*f; e.s.vy += dy*f; e.t.vx -= dx*f; e.t.vy -= dy*f; });
-  vis.forEach(n => { const a = anchor[n.stack]||[0,0]; n.vx += (a[0]*W*.55 - n.x)*.0035*k; n.vy += (a[1]*H*.55 - n.y)*.0035*k;
-    if (n.fixed) { n.vx = n.vy = 0; return; } n.vx *= .82; n.vy *= .82; n.x += n.vx; n.y += n.vy; });
-  alpha *= .985;
+const rgba = (hex, a) => { const v = parseInt(hex.slice(1), 16); return `rgba(${v >> 16},${v >> 8 & 255},${v & 255},${a})`; };
+
+function drawRing(x, y, R) {
+  let g = ctx.createRadialGradient(x, y, R * .5, x, y, R * 3);
+  g.addColorStop(0, "rgba(255,70,50,.20)"); g.addColorStop(.5, "rgba(255,70,50,.05)"); g.addColorStop(1, "rgba(255,70,50,0)");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, R * 3, 0, 6.283); ctx.fill();
+  ctx.save(); ctx.translate(x - Math.sin(cam.yaw) * R * .08, y + Math.sin(T * .6) * 2);
+  const body = new Path2D();
+  body.arc(-.1 * R, 0, .98 * R, 0, 6.283);
+  body.roundRect(-.1 * R, -.98 * R, 1.3 * R, 1.5 * R, .72 * R);
+  body.moveTo(.3 * R, .3 * R); body.lineTo(1.12 * R, 1.12 * R); body.lineTo(.78 * R, 1.2 * R); body.lineTo(.05 * R, .5 * R); body.closePath();
+  g = ctx.createLinearGradient(-R, -R, R, R);
+  g.addColorStop(0, "rgba(255,255,255,.34)"); g.addColorStop(.5, "rgba(140,150,165,.14)"); g.addColorStop(1, "rgba(255,255,255,.28)");
+  ctx.fillStyle = g; ctx.fill(body);
+  g = ctx.createLinearGradient(-R, -R, R, R);
+  g.addColorStop(0, "rgba(255,255,255,.75)"); g.addColorStop(.45, "rgba(255,255,255,.08)"); g.addColorStop(1, "rgba(255,255,255,.45)");
+  ctx.lineWidth = R * .07; ctx.strokeStyle = g; ctx.stroke(body);
+  g = ctx.createRadialGradient(.7 * R, .55 * R, 0, .7 * R, .55 * R, R * .8);
+  g.addColorStop(0, "rgba(255,80,50,.30)"); g.addColorStop(1, "rgba(255,80,50,0)");
+  ctx.fillStyle = g; ctx.fill(body);
+  ctx.beginPath(); ctx.arc(-.1 * R, 0, .56 * R, 0, 6.283); ctx.fillStyle = "#06080b"; ctx.fill();
+  g = ctx.createLinearGradient(-R * .6, -R * .6, R * .5, R * .6);
+  g.addColorStop(0, "rgba(255,255,255,.85)"); g.addColorStop(.5, "rgba(255,255,255,.12)"); g.addColorStop(1, "rgba(255,255,255,.6)");
+  ctx.lineWidth = R * .08; ctx.strokeStyle = g; ctx.stroke();
+  ctx.beginPath(); ctx.arc(-.1 * R, 0, .46 * R, 0, 6.283); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(255,255,255,.14)"; ctx.stroke();
+  ctx.restore();
 }
-function edgePath(e) { const dx = e.t.x-e.s.x, dy = e.t.y-e.s.y, d = Math.sqrt(dx*dx+dy*dy)||1, ux = dx/d, uy = dy/d;
-  const x1 = e.s.x+ux*e.s.r, y1 = e.s.y+uy*e.s.r, x2 = e.t.x-ux*(e.t.r+3), y2 = e.t.y-uy*(e.t.r+3);
-  const mx = (x1+x2)/2 - uy*d*.06, my = (y1+y2)/2 + ux*d*.06; return `M${x1},${y1}Q${mx},${my} ${x2},${y2}`; }
-function draw() {
-  const q = state.q;
-  nodes.forEach(n => { const v = visible(n); n.el.style.display = v ? "" : "none"; n.txt.style.display = state.lbl ? "" : "none";
-    n.el.setAttribute("transform", `translate(${n.x},${n.y})`); n.match = !q || (n.id+" "+JSON.stringify(n.attrs)).toLowerCase().includes(q); });
-  edges.forEach(e => { const v = visible(e.s) && visible(e.t) && state.kinds.has(e.kind); e.el.style.display = v ? "" : "none"; if (v) e.el.setAttribute("d", edgePath(e)); });
-  nodes.forEach(n => n.el.classList.toggle("dim", !n.match && !!q));
-  edges.forEach(e => e.el.classList.toggle("dim", !!q && !(e.s.match && e.t.match)));
+
+function label(text, x, y, a, size = 11, color = "#c9d2de") {
+  ctx.font = `${size}px -apple-system, Inter, sans-serif`; ctx.textAlign = "center";
+  ctx.lineWidth = 3; ctx.strokeStyle = `rgba(7,9,13,${a * .9})`; ctx.strokeText(text, x, y);
+  ctx.fillStyle = rgba(color, a); ctx.fillText(text, x, y);
 }
-let raf = 0;
-function tick() { cancelAnimationFrame(raf); const loop = () => { for (let i = 0; i < 2; i++) step(); draw(); if (alpha > .02) raf = requestAnimationFrame(loop); }; loop(); }
-function render() { alpha = Math.max(alpha, .35); tick(); }
 
-// ---- view transform ----
-let view = {x:0, y:0, k:1};
-const applyView = () => vp.setAttribute("transform", `translate(${view.x},${view.y}) scale(${view.k})`);
-function fit() { const vis = nodes.filter(visible); if (!vis.length) return; const xs = vis.map(n => n.x), ys = vis.map(n => n.y);
-  const x0 = Math.min(...xs)-50, x1 = Math.max(...xs)+50, y0 = Math.min(...ys)-50, y1 = Math.max(...ys)+60;
-  view.k = Math.min(W/(x1-x0), H/(y1-y0), 1.6); view.x = W/2 - view.k*(x0+x1)/2; view.y = H/2 - view.k*(y0+y1)/2; applyView(); }
-const toWorld = ev => { const r = svg.getBoundingClientRect(); return [(ev.clientX-r.left-view.x)/view.k, (ev.clientY-r.top-view.y)/view.k]; };
-svg.addEventListener("wheel", ev => { ev.preventDefault(); const r = svg.getBoundingClientRect(), mx = ev.clientX-r.left, my = ev.clientY-r.top;
-  const k2 = Math.max(.15, Math.min(4, view.k*Math.exp(-ev.deltaY*.0015))); view.x = mx-(mx-view.x)*k2/view.k; view.y = my-(my-view.y)*k2/view.k; view.k = k2; applyView(); }, {passive:false});
-let pan = null;
-svg.addEventListener("pointerdown", ev => { if (ev.target !== svg && ev.target.closest(".node")) return; pan = {x:ev.clientX-view.x, y:ev.clientY-view.y}; svg.classList.add("panning"); svg.setPointerCapture(ev.pointerId); });
-svg.addEventListener("pointermove", ev => { if (pan) { view.x = ev.clientX-pan.x; view.y = ev.clientY-pan.y; applyView(); } });
-svg.addEventListener("pointerup", () => { pan = null; svg.classList.remove("panning"); });
-let drag = null;
-function startDrag(ev, n) { ev.stopPropagation(); n.moved = false; drag = n; n.fixed = true; svg.setPointerCapture(ev.pointerId); }
-svg.addEventListener("pointermove", ev => { if (!drag) return; const [x, y] = toWorld(ev); drag.x = x; drag.y = y; drag.moved = true; alpha = Math.max(alpha, .15); tick(); });
-svg.addEventListener("pointerup", () => { if (drag) { const d = drag; drag = null; setTimeout(() => { d.fixed = false; d.moved = false; }, 0); } });
+// ---------- frame ----------
+let hits = [], last = performance.now(), dragging = null;
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (!paused) { T += dt; if (!dragging && !state.sel) cam.yaw += dt * .018; }
+  if (cam.goalZoom !== null) { cam.zoom += (cam.goalZoom - cam.zoom) * .08; if (Math.abs(cam.goalZoom - cam.zoom) < .004) cam.goalZoom = null; }
+  if (cam.pitchG !== null) { cam.pitch += (cam.pitchG - cam.pitch) * .08; if (Math.abs(cam.pitchG - cam.pitch) < .004) cam.pitchG = null; }
+  update(T);
+  const tgt = state.sel ? state.sel.pos : [0, 0, 0];
+  cam.tx += (tgt[0] - cam.tx) * .07; cam.ty += (tgt[1] - cam.ty) * .07; cam.tz += (tgt[2] - cam.tz) * .07;
 
-// ---- interaction ----
-function neighbors(n) { const s = new Set([n.id]); edges.forEach(e => { if (e.s===n) s.add(e.t.id); if (e.t===n) s.add(e.s.id); }); return s; }
-function hover(n) { if (state.sel) return; applyFocus(n); }
-function applyFocus(n) { if (!n) { nodes.forEach(x => x.el.classList.remove("dim")); edges.forEach(e => e.el.classList.remove("dim","hl")); draw(); return; }
-  const nb = neighbors(n); nodes.forEach(x => x.el.classList.toggle("dim", !nb.has(x.id)));
-  edges.forEach(e => { const on = e.s===n || e.t===n; e.el.classList.toggle("hl", on); e.el.classList.toggle("dim", !on); }); }
-function tip(ev, n) { const t = document.getElementById("tip"), r = document.getElementById("stage").getBoundingClientRect(); t.style.display = "block";
-  t.style.left = (ev.clientX-r.left+14)+"px"; t.style.top = (ev.clientY-r.top+14)+"px"; t.innerHTML = `<b>${n.label}</b> · ${n.type}<br><span style="color:var(--muted)">${n.stack} · ${n.status}</span>`; }
-function select(n) { state.sel = n; applyFocus(n); const d = document.getElementById("detail");
-  const kc = {idle:"var(--idle)", orphan:"var(--orphan)", exposed:"var(--orphan)", active:"var(--muted)"}[n.status];
-  const outs = edges.filter(e => e.s===n), ins = edges.filter(e => e.t===n);
-  const conn = (e, o) => `<div class="conn" data-id="${o.id}">${e.kind} ${e===null?"":(e.s===n?"→":"←")} <b>${o.label}</b> <span style="color:var(--muted)">(${o.type})</span>${e.note? `<div style="color:var(--muted);font-size:11px">${e.note}</div>`:""}</div>`;
-  const attrs = Object.entries(n.attrs).filter(([,v]) => v !== null && v !== undefined && v !== "").map(([k,v]) => `<span>${k}</span><span>${typeof v==="object" ? "<code>"+JSON.stringify(v)+"</code>" : v}</span>`).join("");
-  d.innerHTML = `<h1>${n.label}</h1><div class="sub">${n.type} · ${n.stack} · <span class="badge" style="color:${kc}">${STATUS[n.status]}</span></div>
-    <h2>Attributes</h2><div class="kv">${attrs || "<span>–</span><span></span>"}</div>
-    <h2>Connections (${outs.length+ins.length})</h2>${outs.map(e => conn(e, e.t)).join("")}${ins.map(e => conn(e, e.s)).join("") || ""}
-    <div style="margin-top:12px"><button id="clr">Clear selection</button></div>`;
-  d.querySelectorAll(".conn").forEach(c => c.onclick = () => select(byId[c.dataset.id]));
-  document.getElementById("clr").onclick = () => { state.sel = null; applyFocus(null); d.innerHTML = '<div class="sub">Click a node to inspect it.</div>'; }; }
-svg.addEventListener("click", ev => { if (ev.target === svg && state.sel) { state.sel = null; applyFocus(null); document.getElementById("detail").innerHTML = '<div class="sub">Click a node to inspect it.</div>'; } });
+  ctx.clearRect(0, 0, W, H);
+  // dust
+  dust.forEach(d => { const p = proj(d); if (p[3] <= 0) return; ctx.fillStyle = `rgba(190,205,225,${Math.max(.05, .5 - p[2] / 4500) * .5})`; ctx.fillRect(p[0], p[1], d[3], d[3]); });
+  // orbit rings
+  Object.entries(STACK).forEach(([st, o]) => {
+    if (!byStack[st]) return;
+    ctx.beginPath();
+    for (let i = 0; i <= 160; i++) { const p = proj(orbitPoint(o, i / 160 * 6.2832)); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }
+    ctx.lineWidth = 1; ctx.strokeStyle = state.stacks.has(st) ? rgba(o.c, .16) : "rgba(255,255,255,.04)"; ctx.stroke();
+  });
 
-addEventListener("resize", () => { size(); });
-init(); for (let i = 0; i < 260; i++) step(); alpha = .3; fit(); tick(); setTimeout(fit, 900);
+  const f = focus(), nb = f ? nbrs(f) : null;
+  nodes.forEach(n => { n.p = proj(n.pos); n.vis = visible(n); n.on = lit(n, f, nb); });
+
+  // spokes + faint links
+  nodes.forEach(n => { if (!n.home || !n.vis || !n.home.n.vis) return; const a = n.p, b = n.home.n.p;
+    ctx.strokeStyle = `rgba(255,255,255,${n.on ? .13 : .03})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(b[0], b[1]); ctx.lineTo(a[0], a[1]); ctx.stroke(); });
+  const arc = e => { const a = e.s.pos, b = e.t.pos, d = Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    const c = proj([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - d * .22, (a[2] + b[2]) / 2]); return [e.s.p, c, e.t.p]; };
+  const drawEdge = (e, w, col) => { const [a, c, b] = arc(e); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.quadraticCurveTo(c[0], c[1], b[0], b[1]); ctx.lineWidth = w; ctx.strokeStyle = col; ctx.stroke(); return [a, c, b]; };
+  if (state.links && !f) edges.forEach(e => { if (e.kind === "contains" || !e.s.vis || !e.t.vis) return; if (!(e.s.on && e.t.on)) return; drawEdge(e, 1, rgba(KIND[e.kind] || "#fff", .09)); });
+
+  // depth-sorted bodies
+  hits = []; const items = [{z:proj([0, 0, 0])[2], draw:() => { const p = proj([0, 0, 0]); drawRing(p[0], p[1], 92 * p[3]); }}];
+  hubs.forEach(h => { if (!h.n.vis) return; const hp = h.n.p; h.motes.forEach(m => { const p = proj(m.pos);
+    items.push({z:p[2], draw:() => { const a = (h.n.on ? .32 : .06) * Math.max(.4, 1 - p[2] / 2600);
+      ctx.strokeStyle = `rgba(255,255,255,${a * .35})`; ctx.lineWidth = .8; ctx.beginPath(); ctx.moveTo(hp[0], hp[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
+      ctx.beginPath(); ctx.arc(p[0], p[1], Math.max(.8, m.sz * p[3]), 0, 6.283); ctx.fillStyle = `rgba(215,225,240,${a})`; ctx.fill(); }}); }); });
+  nodes.forEach(n => { if (!n.vis) return; items.push({z:n.p[2], draw:() => (n.hub ? drawHub(n) : drawSat(n))}); });
+  items.sort((a, b) => b.z - a.z).forEach(i => i.draw());
+
+  // highlighted edges on top, with travelling pulses
+  if (f) edges.forEach(e => { if ((e.s !== f && e.t !== f) || !e.s.vis || !e.t.vis) return; const col = KIND[e.kind] || "#fff";
+    const [a, c, b] = drawEdge(e, 1.8, rgba(col, .85));
+    for (let k = 0; k < 2; k++) { const u = ((T * .35 + k * .5 + (e.s.ph || 0)) % 1), m = 1 - u;
+      const x = m * m * a[0] + 2 * m * u * c[0] + u * u * b[0], y = m * m * a[1] + 2 * m * u * c[1] + u * u * b[1];
+      ctx.beginPath(); ctx.arc(x, y, 2.6, 0, 6.283); ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0; } });
+
+  // labels
+  nodes.forEach(n => { if (!n.vis) return; const p = n.p, show = n.hub ? true : (f && nb.has(n.id) && nb.size <= 9) || n === state.hov || (cam.zoom > 1.5 && n.on);
+    if (!show) return; const r = (n.hub ? n.hub.r : n.sz) * p[3];
+    label(n.label.length > 30 ? n.label.slice(0, 29) + "…" : n.label, p[0], p[1] + r + 14, n.on ? Math.max(.45, 1 - p[2] / 3000) : .25, n.hub ? 11.5 : 10.5, n.hub ? "#e3e9f2" : "#aeb8c6"); });
+  requestAnimationFrame(frame);
+}
+
+function statusRing(n, x, y, r, a) {
+  if (n.status === "active") return; const c = STATUS[n.status].c;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.lineWidth = 1.6; ctx.strokeStyle = rgba(c, .85 * a); ctx.stroke();
+  if (n.status === "exposed") { const u = (T * .7 + (n.ph || 0)) % 1; ctx.beginPath(); ctx.arc(x, y, r + u * 12, 0, 6.283); ctx.lineWidth = 1.2; ctx.strokeStyle = rgba(c, (1 - u) * .6 * a); ctx.stroke(); }
+}
+function drawSat(n) {
+  const p = n.p, r = Math.max(1.4, n.sz * p[3]), a = (n.on ? 1 : .16) * Math.max(.5, 1 - p[2] / 2600), col = STACK[n.stack]?.c || "#9aa6b8";
+  const g = ctx.createRadialGradient(p[0] - r * .3, p[1] - r * .3, 0, p[0], p[1], r);
+  g.addColorStop(0, `rgba(255,255,255,${a})`); g.addColorStop(1, rgba(col, a * .75));
+  ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, 6.283); ctx.fillStyle = g; ctx.fill();
+  statusRing(n, p[0], p[1], r + 6 * p[3] + 2, a);
+  if (n === state.sel || n === state.hov) { ctx.beginPath(); ctx.arc(p[0], p[1], r + 4, 0, 6.283); ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.stroke(); }
+  hits.push({n, x:p[0], y:p[1], r:Math.max(7, r + 4)});
+}
+function drawHub(n) {
+  const p = n.p, h = n.hub, r = h.r * p[3], a = n.on ? 1 : .22, col = STACK[n.stack]?.c || "#9aa6b8";
+  let g = ctx.createRadialGradient(p[0], p[1], r * .8, p[0], p[1], r * 2.6);
+  g.addColorStop(0, rgba(col, .20 * a)); g.addColorStop(1, rgba(col, 0));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p[0], p[1], r * 2.6, 0, 6.283); ctx.fill();
+  g = ctx.createLinearGradient(p[0], p[1] - r, p[0], p[1] + r); g.addColorStop(0, `rgba(30,36,46,${a})`); g.addColorStop(1, `rgba(8,10,14,${a})`);
+  ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, 6.283); ctx.fillStyle = g; ctx.fill();
+  ctx.lineWidth = 1.4; ctx.strokeStyle = rgba(col, .75 * a); ctx.stroke();
+  ctx.font = `700 ${Math.max(7, r * .55)}px -apple-system, Inter, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillStyle = rgba(col, a); ctx.fillText(GLYPH[n.type] || "•", p[0], p[1] + .5); ctx.textBaseline = "alphabetic";
+  statusRing(n, p[0], p[1], r + 7 * p[3] + 3, a);
+  if (n === state.sel || n === state.hov) { ctx.beginPath(); ctx.arc(p[0], p[1], r + 3, 0, 6.283); ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.stroke(); }
+  hits.push({n, x:p[0], y:p[1], r:r + 4});
+}
+
+// ---------- interaction ----------
+const tip = document.getElementById("tip"), panel = document.getElementById("panel");
+const pick = (x, y) => { for (let i = hits.length - 1; i >= 0; i--) { const h = hits[i]; if ((x - h.x) ** 2 + (y - h.y) ** 2 <= h.r * h.r) return h.n; } return null; };
+cv.addEventListener("pointerdown", ev => { dragging = {x:ev.clientX, y:ev.clientY, moved:false}; cv.setPointerCapture(ev.pointerId); cv.classList.add("drag"); });
+cv.addEventListener("pointermove", ev => {
+  if (dragging) { const dx = ev.clientX - dragging.x, dy = ev.clientY - dragging.y; if (Math.abs(dx) + Math.abs(dy) > 3) dragging.moved = true;
+    if (dragging.moved) { cam.yaw -= dx * .006; cam.pitch = Math.max(.12, Math.min(1.35, cam.pitch + dy * .005)); cam.pitchG = null; dragging.x = ev.clientX; dragging.y = ev.clientY; } }
+  const n = dragging && dragging.moved ? null : pick(ev.clientX, ev.clientY); state.hov = n; cv.classList.toggle("hit", !!n);
+  if (n) { tip.style.display = "block"; tip.style.left = ev.clientX + 16 + "px"; tip.style.top = ev.clientY + 14 + "px";
+    tip.innerHTML = `<b>${n.label}</b> · ${n.type}<br><span style="color:var(--muted)">${n.stack} · ${STATUS[n.status].t}</span>`; } else tip.style.display = "none";
+});
+cv.addEventListener("pointerup", ev => { const d = dragging; dragging = null; cv.classList.remove("drag"); if (d && !d.moved) select(pick(ev.clientX, ev.clientY)); });
+cv.addEventListener("pointerleave", () => { state.hov = null; tip.style.display = "none"; });
+cv.addEventListener("wheel", ev => { ev.preventDefault(); cam.goalZoom = null; cam.zoom = Math.max(.25, Math.min(3.2, cam.zoom * Math.exp(-ev.deltaY * .0015))); }, {passive:false});
+addEventListener("keydown", ev => { if (ev.key === "Escape") select(null); });
+
+function select(n) {
+  state.sel = n;
+  if (!n) { panel.classList.remove("open"); return; }
+  if (n.hub) cam.goalZoom = Math.max(cam.zoom, baseZoom() * 1.7);
+  const outs = edges.filter(e => e.s === n), ins = edges.filter(e => e.t === n), sc = STATUS[n.status].c;
+  const conn = (e, o, arrow) => `<div class="conn" data-id="${o.id}"><span style="color:${KIND[e.kind]}">${e.kind}</span> ${arrow} <b>${o.label}</b> <span style="color:var(--muted)">(${o.type})</span>${e.note ? `<small>${e.note}</small>` : ""}</div>`;
+  const attrs = Object.entries(n.attrs).filter(([, v]) => v !== null && v !== undefined && v !== "").map(([k, v]) => `<span>${k}</span><span>${typeof v === "object" ? "<code>" + JSON.stringify(v) + "</code>" : v}</span>`).join("");
+  const home = n.home ? `<h3>Orbits</h3>${conn({kind:"cluster", note:""}, n.home.n, "→")}` : n.hub ? `<h3>Satellites (${n.hub.sats.length})</h3>${n.hub.sats.map(s => conn({kind:s.type, note:""}, s, "")).join("")}` : "";
+  panel.innerHTML = `<button class="x" aria-label="Close">×</button><h2>${n.label}</h2>
+    <p class="sub">${n.type} · <span style="color:${STACK[n.stack]?.c}">${n.stack}</span> <span class="badge" style="color:${sc}">${STATUS[n.status].t}</span></p>
+    <h3>Attributes</h3><div class="kv">${attrs || "<span>–</span><span></span>"}</div>
+    <h3>Dependencies (${outs.length + ins.length})</h3>${outs.map(e => conn(e, e.t, "→")).join("")}${ins.map(e => conn(e, e.s, "←")).join("") || (outs.length ? "" : '<div class="sub">None</div>')}${home}`;
+  panel.classList.add("open");
+  panel.querySelector(".x").onclick = () => select(null);
+  panel.querySelectorAll(".conn").forEach(c => c.onclick = () => select(byId[c.dataset.id]));
+}
+requestAnimationFrame(frame);
 </script>
 </body>
 </html>
