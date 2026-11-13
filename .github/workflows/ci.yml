@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secrets:
+    runs-on: [self-hosted, linux, infrared]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Tools on PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Secrets in the whole git history
+        run: gitleaks git --redact --no-banner .
+
+  contracts:
+    runs-on: [self-hosted, linux, infrared]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools on PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Python environment
+        run: |
+          uv venv --python 3.12 .venv
+          uv pip install --python .venv -r contracts/requirements.txt
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+      - name: Mock, forecast and catalog examples
+        run: python contracts/check_mock.py
+      - name: Real Floci extraction
+        if: ${{ !cancelled() }}
+        run: python contracts/check_mock.py contracts/real/floci-estate.infra.json
+
+  python:
+    runs-on: [self-hosted, linux, infrared]
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        app: [estate, extractor, agent]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools on PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Python environment
+        run: |
+          uv venv --python 3.12 .venv
+          uv pip install --python .venv -r apps/${{ matrix.app }}/requirements.txt
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+      - name: Compile
+        run: python -m compileall -q apps/${{ matrix.app }}
+
+  web:
+    runs-on: [self-hosted, linux, infrared]
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        app: [site, phone]
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/${{ matrix.app }}/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Lint
+        run: npm run lint --if-present
+      - name: Types
+        if: ${{ !cancelled() }}
+        run: npm run typecheck
+      - name: Unit tests
+        if: ${{ !cancelled() }}
+        run: npm test
+      - name: Build
+        if: ${{ !cancelled() }}
+        run: npm run build

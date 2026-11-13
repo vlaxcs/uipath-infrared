@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infrared.local/contract/catalog.schema.json",
+  "title": "Infrared service catalog",
+  "description": "Static knowledge the engine prices candidates with: for each component `kind`, the options available per provider, with pricing formula, SLA/failure domains, supported features and migration effort. Hand-maintained, versioned like code. The example file is ILLUSTRATIVE: numbers are rounded, plausible-looking and NOT real price lists.",
+  "type": "object",
+  "required": ["schema_version", "illustrative", "currency", "options"],
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^1\\.\\d+$" },
+    "illustrative": { "type": "boolean", "description": "true = prices are placeholders; engine output must then be labelled 'illustrative'." },
+    "disclaimer": { "type": "string" },
+    "currency": { "const": "EUR" },
+    "hours_per_month": { "type": "number", "default": 730 },
+    "options": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/option" } },
+    "onprem_platforms": {
+      "type": "array",
+      "description": "Own-hardware sites. On-prem options reference one by `platform`; their marginal price is 0 and the real cost is the platform's fixed monthly cost allocated by share of capacity used (or a whole extra rack when capacity is exceeded).",
+      "items": { "$ref": "#/$defs/platform" }
+    }
+  },
+  "$defs": {
+    "option": {
+      "type": "object",
+      "required": ["id", "kind", "provider", "service", "pricing", "sla", "features_supported", "migration"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "kind": { "enum": ["postgres", "nosql", "cache", "stream", "queue", "object_storage", "block_storage", "file_system", "container", "kubernetes_cluster", "node_group", "virtual_machine", "function", "load_balancer", "nat", "cdn", "dns", "other"], "description": "Must equal infra component kinds." },
+        "provider": { "enum": ["aws", "gcp", "azure", "onprem", "managed_pg", "other"] },
+        "service": { "type": "string" },
+        "description": { "type": "string" },
+        "regions": { "type": "array", "items": { "type": "string" }, "description": "Regions the option can run in; prefix wildcards allowed (eu-*). Used for data residency." },
+        "platform": { "type": "string", "description": "onprem_platforms[].id, for provider=onprem." },
+        "pricing": {
+          "type": "object",
+          "required": ["model"],
+          "additionalProperties": false,
+          "properties": {
+            "model": { "enum": ["tiered_instance", "per_unit", "fixed", "onprem_allocated"], "description": "tiered_instance: pick smallest tier fitting demand, price = tier.monthly_eur x quantity. per_unit: sum of per_unit drivers. fixed: fixed_monthly_eur. onprem_allocated: see platform." },
+            "fixed_monthly_eur": { "type": "number", "minimum": 0 },
+            "tiers": {
+              "type": "array",
+              "items": {
+                "type": "object", "required": ["id", "vcpu", "memory_gb", "monthly_eur"], "additionalProperties": false,
+                "properties": {
+                  "id": { "type": "string" }, "vcpu": { "type": "number" }, "memory_gb": { "type": "number" },
+                  "gpus": { "type": "integer", "minimum": 0 }, "monthly_eur": { "type": "number", "minimum": 0 }
+                }
+              }
+            },
+            "per_unit": {
+              "type": "array",
+              "items": {
+                "type": "object", "required": ["driver", "eur_per_unit"], "additionalProperties": false,
+                "properties": {
+                  "driver": { "enum": ["storage_gb_month", "requests_million", "iops_month", "provisioned_rcu_month", "provisioned_wcu_month", "shard_month", "gateway_month", "task_vcpu_month", "task_gb_month", "lcu_month", "other"] },
+                  "eur_per_unit": { "type": "number", "minimum": 0 },
+                  "free_units": { "type": "number", "minimum": 0, "default": 0 }
+                }
+              }
+            },
+            "egress_per_gb_eur": { "type": "number", "minimum": 0, "description": "Charged on edges leaving this option's provider/region towards a component that stays elsewhere (edge.gb_month x this)." },
+            "free_egress_gb": { "type": "number", "minimum": 0, "default": 0 },
+            "multi_az_multiplier": { "type": "number", "minimum": 1, "default": 1, "description": "Price factor when running in >= 2 zones." },
+            "minimum_monthly_eur": { "type": "number", "minimum": 0 }
+          }
+        },
+        "sla": {
+          "type": "object",
+          "required": ["availability_pct", "failure_domain_scope", "failure_domains"],
+          "additionalProperties": false,
+          "properties": {
+            "availability_pct": { "type": "number", "minimum": 90, "maximum": 100, "description": "Contractual or planning figure for one unit in the stated configuration." },
+            "failure_domain_scope": { "enum": ["single_zone", "multi_zone", "multi_region"] },
+            "failure_domains": { "type": "integer", "minimum": 1, "description": "Number of independent domains (zones/regions) it spans in that configuration." },
+            "multi_az_availability_pct": { "type": "number", "minimum": 90, "maximum": 100, "description": "If different when deployed multi-AZ." }
+          }
+        },
+        "features_supported": { "type": "array", "uniqueItems": true, "items": { "type": "string" }, "description": "Superset check against component.features_used." },
+        "migration": {
+          "type": "object",
+          "required": ["effort_hours_fixed", "cutover_downtime_hours", "risk_factor"],
+          "additionalProperties": false,
+          "properties": {
+            "effort_hours_fixed": { "type": "number", "minimum": 0, "description": "Engineer-hours per component moved to this option, cross-provider." },
+            "effort_hours_per_100gb": { "type": "number", "minimum": 0, "default": 0 },
+            "same_provider_factor": { "type": "number", "minimum": 0, "maximum": 1, "default": 1, "description": "Multiplier on effort when the source is already this provider (resize/in-place)." },
+            "cutover_downtime_hours": { "type": "number", "minimum": 0 },
+            "risk_factor": { "type": "number", "minimum": 0, "maximum": 1, "description": "0 = trivial, 1 = very risky. Feeds the risk term of the score." }
+          }
+        },
+        "ops_hours_month_per_unit": { "type": "number", "minimum": 0, "description": "Ongoing operations hours per month per unit (self-managed > managed)." }
+      }
+    },
+    "platform": {
+      "type": "object",
+      "required": ["id", "region", "capacity", "hardware_capex_eur", "amortization_years", "power_cooling_eur_month", "disks", "staff", "availability_pct", "zones"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "region": { "type": "string" },
+        "zones": { "type": "integer", "minimum": 1, "description": "Independent failure domains on site (racks/rooms)." },
+        "availability_pct": { "type": "number" },
+        "capacity": {
+          "type": "object", "required": ["vcpu", "memory_gb", "storage_tb"], "additionalProperties": false,
+          "properties": { "vcpu": { "type": "number" }, "memory_gb": { "type": "number" }, "storage_tb": { "type": "number" } }
+        },
+        "hardware_capex_eur": { "type": "number", "minimum": 0, "description": "Purchase price, written off straight-line over amortization_years." },
+        "amortization_years": { "type": "number", "exclusiveMinimum": 0 },
+        "power_cooling_eur_month": { "type": "number", "minimum": 0 },
+        "colocation_eur_month": { "type": "number", "minimum": 0, "default": 0 },
+        "disks": {
+          "type": "object", "required": ["count", "annual_failure_rate_pct", "replacement_eur", "replacement_labor_hours"], "additionalProperties": false,
+          "properties": {
+            "count": { "type": "integer", "minimum": 0 },
+            "annual_failure_rate_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+            "replacement_eur": { "type": "number", "minimum": 0 },
+            "replacement_labor_hours": { "type": "number", "minimum": 0 }
+          }
+        },
+        "staff": {
+          "type": "object", "required": ["base_hours_month"], "additionalProperties": false,
+          "properties": {
+            "base_hours_month": { "type": "number", "minimum": 0, "description": "Fixed on-call/maintenance hours to run the site at all." },
+            "hours_per_100_vcpu_month": { "type": "number", "minimum": 0, "default": 0 }
+          }
+        }
+      }
+    }
+  }
+}

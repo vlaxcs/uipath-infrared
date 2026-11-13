@@ -80,6 +80,21 @@ docs/                prd.md, spec.md, team/<name>.md (one task file per person)
 - A test that can't fail is deleted. Tests check behaviour someone would notice breaking, not the implementation.
 - Every bug gets a failing test before its fix.
 
+**Configuration**
+- One `.env` at the repo root, never committed. `.env.example` lists every variable with a safe value for local Floci; copy it to `.env` and fill in the secrets.
+- Each app reads its configuration through its own `settings` module and stops at startup, naming the variable, when one it needs is missing. No defaults that hide a missing secret.
+- No secret in code, in logs, in generated files or in dry-run scripts. Dry-run scripts expect the environment to be loaded.
+- Frontend apps only read `VITE_` variables, and those are never secrets: they ship to the browser.
+
+| Variable | Read by | Value |
+| --- | --- | --- |
+| `AWS_ENDPOINT_URL`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | estate, extractor, agent, sandbox | Floci: `http://localhost:4566`, `us-east-1`, `test`, `test` |
+| `ANTHROPIC_API_KEY`, `ANTHROPIC_BASE_URL` | agent | the LLM key; the base URL only when routing through another provider |
+| `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, `SLACK_SIGNING_SECRET` | slack-bot | from the Slack app Vlad creates |
+| `GITHUB_TOKEN` | extractor (runners), orchestrator (phase 2) | a fine-grained token, read-only for runners |
+| `ORCHESTRATOR_ADDR` | orchestrator | the address it listens on |
+| `VITE_ORCHESTRATOR_URL` | dashboard, phone, chrome-extension | where the surfaces reach the orchestrator |
+
 **Git**
 - Every change lands through a pull request into `main`. Nobody pushes to `main` directly.
 - A pull request's description states what it changes, what depends on it, and the manual checks a reviewer runs.
@@ -138,18 +153,13 @@ Extensions the PRD needs, as minor versions of `infra.schema.json`:
 | #3 `contract/` schemas, `check_mock.py`, mock and real extraction | keep | mock and real both pass the checker (0 errors; 1 warning on the real file) |
 | #3 `extract_floci.py` | keep, extend | add AI consumption, database statistics, GitHub runners |
 | #3 `agent/` | keep, change | its savings come from the model's memory; numbers must come from the engine through an `evaluate_candidate` tool; findings must map to `result.json` |
-| #3 `graph/` (graph.html) | keep as prototype | the dependency graph view the dashboard builds on |
+| #3 `graph/` (graph.html) | keep as prototype, in `apps/estate/graph/` next to its generator | the dependency graph view the dashboard builds on |
 | #2 `docs/decision-engine.md` | keep | the engine's design: build steps a to h as written |
 | #2 open decisions (section 5) | accept the proposals | priced `security_remediation` layer; keep the infeasible budget as a demo; add a start-up-sized mock |
 
-**To fix before merging:**
-- Move `infrared/` into the structure in section 3: `synth/` and `ground_truth/` to `apps/estate/`, `extract_floci.py` to `apps/extractor/`, `agent/` to `apps/agent/`, `graph/` to `apps/dashboard/`, the schemas, examples, mocks and checker to `contracts/`.
-- Remove the comments and docstrings (section 4), and split single-file modules into the layers section 4 asks for, starting with `extract_floci.py` (811 lines) and `agent/main.py`.
-- `infrared/agent/README.md` has a path from one laptop (`/Users/...`); use paths relative to the repo.
-- No pinned dependencies: add `requirements.txt` (`boto3`, `claude-agent-sdk`, `jsonschema`).
-- The product name is spelled "InfraRed" in #3 and #2; the product is **Infrared**.
-- `run.sh`, `reset.sh`, `stop-live.sh` are bash only; document that Windows machines run them in Git Bash or WSL.
-- #2 targets #3's branch: merge #3 first, then #2.
+**Done in the repo setup:** #3 and #2 merged into the structure of section 3; configuration read from `.env` (section 4); pinned `requirements.txt` per app; repo-relative paths in the READMEs; the name Infrared; the bash note; the scorer moved next to the ground truth (`apps/estate/score.py`).
+
+**Still to do, by each owner:** remove the comments and docstrings (section 4), and split single-file modules into the layers section 4 asks for, starting with `apps/extractor/extract_floci.py` (811 lines, Andrei) and `apps/agent/agent/main.py` (Vlad).
 
 ## 8. LLM
 
