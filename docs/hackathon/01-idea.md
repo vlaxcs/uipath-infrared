@@ -4,11 +4,11 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 
 | Step | Status |
 | --- | --- |
-| 1. Who do we target? | done, mentors to confirm |
-| 2. What is their problem? | done, validated with UiPath People Ops; form still out |
+| 1. Who do we target? | done, mentors validated |
+| 2. What is their problem? | done, validated with UiPath People Ops; form out, answers pending |
 | 3. How do we get into their day? | done |
 | 4. Business plan | open: pricing model, waits for form answers |
-| 5. Design the product | workflow defined; legal parked; mentors to validate |
+| 5. Design the product | done, mentors validated; legal parked |
 | 6. Branding | name and direction done; designer delivers palette, mascot, logo |
 
 ## 1. Target

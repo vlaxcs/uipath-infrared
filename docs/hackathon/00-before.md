@@ -100,4 +100,5 @@ CVs go in `docs/hackathon/cvs/`. Add here what each CV misses.
 | Idea 5 | Demo path: offer to day 1 with 3 live disruptions (manager away, Windows-only team, no clinic slot), then jump to probation, review, offboarding | each disruption is a decision from an intermediate result |
 | Idea 5 | Two surfaces: a phone demo of what the employee receives (email, Slack bot setup), and a platform with locked modules, an "Awaiting onboarding" panel and a state graph per person | Vlad |
 | Idea 6 | Name: Wellboarder | Vlad |
+| Idea gate | Mentors validated the idea; the validation form is out, answers pending | Vlad |
 | Idea 1 | Rejected as separate jobs: H1 (Slack requests) and H4 (ask HR anything) | H1 can come back as the channel, H4 is a single LLM call with RAG |
