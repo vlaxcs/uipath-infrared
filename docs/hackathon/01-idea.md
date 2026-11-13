@@ -8,8 +8,8 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 | --- | --- |
 | 1. Who do we target? | done |
 | 2. What is their problem? | done; price goes in the form |
-| 3. How do we get into their day? | in progress |
-| 4. Business plan | |
+| 3. How do we get into their day? | done |
+| 4. Business plan | next |
 | 5. Design the product | |
 | 6. Branding | |
 
