@@ -1,6 +1,7 @@
 import type { Orchestrator, Wait } from '../application/ports.js';
 import type { HumanDecision, Run, RunEvent } from '../domain/run.js';
 import { candidatesOf } from '../domain/layout-choice.js';
+import type { LayoutCandidate } from '../domain/layout-choice.js';
 import { summarize } from '../domain/run-summary.js';
 
 export class SampleOrchestrator implements Orchestrator {
@@ -43,7 +44,7 @@ export class SampleOrchestrator implements Orchestrator {
     const event = this.humanEvent(decision);
     this.events.push(event);
     this.released = this.events.length;
-    if (gate === 'layout') this.appendTail();
+    if (gate === 'layout') this.appendTail(decision.decision.layout ?? '');
     return event;
   }
 
@@ -64,7 +65,8 @@ export class SampleOrchestrator implements Orchestrator {
       .map(candidate => candidate.id);
   }
 
-  private appendTail(): void {
+  private appendTail(chosen: string): void {
+    const candidate = this.events.flatMap(event => candidatesOf(event)).find(item => item.id === chosen);
     const scripted = this.tail;
     this.tail = [];
     let previous = this.events.at(-1)!.at;
@@ -72,8 +74,20 @@ export class SampleOrchestrator implements Orchestrator {
     for (const event of scripted) {
       const at = Date.parse(event.at) > Date.parse(previous) ? event.at : this.after(previous);
       previous = at;
-      this.events.push({ ...event, seq: ++seq, at });
+      const next = { ...event, seq: ++seq, at };
+      this.bindPlan(next, chosen, candidate);
+      this.events.push(next);
     }
+  }
+
+  private bindPlan(event: RunEvent, chosen: string, candidate?: LayoutCandidate): void {
+    const plan = (event as RunEvent & { x_plan?: Record<string, unknown> }).x_plan;
+    if (!plan) return;
+    plan.layout = chosen;
+    if (candidate?.monthlyEur !== undefined) plan.monthly_eur_after = candidate.monthlyEur;
+    if (candidate?.effortHours !== undefined) plan.effort_hours = candidate.effortHours;
+    if (candidate?.availabilityPct !== undefined) plan.availability_pct = candidate.availabilityPct;
+    if (chosen !== 'managed_services') delete plan.actions;
   }
 
   private humanEvent(decision: HumanDecision): RunEvent {

@@ -38,6 +38,18 @@
     "decision": {
       "kind": "proceed",
       "reason": "forecast traffic held and the fallback took over when the primary database was stopped"
+    },
+    "x_rehearsal": {
+      "measured_availability_pct": 99.92,
+      "target_availability_pct": 99.9,
+      "passed": true,
+      "gap_pct": 0.02,
+      "failure": "stopped the primary database; the fallback took over",
+      "latency_ms": {
+        "baseline_p95": 42,
+        "failure_p95": 51,
+        "recovery_p95": 44
+      }
     }
   },
   {
@@ -49,6 +61,44 @@
     "actor": {
       "kind": "orchestrator"
     },
-    "gate": "plan"
+    "gate": "plan",
+    "x_rehearsal": {
+      "measured_availability_pct": 99.92,
+      "target_availability_pct": 99.9,
+      "passed": true,
+      "gap_pct": 0.02,
+      "failure": "stopped the primary database; the fallback took over",
+      "latency_ms": {
+        "baseline_p95": 42,
+        "failure_p95": 51,
+        "recovery_p95": 44
+      }
+    },
+    "x_plan": {
+      "layout": "managed_services",
+      "steps": 3,
+      "monthly_eur_now": 133308,
+      "monthly_eur_after": 82665,
+      "effort_hours": 514,
+      "cutover_downtime_hours": 2,
+      "availability_pct": 99.95,
+      "actions": [
+        {
+          "component": "rds-orders",
+          "action": "resize",
+          "to": "db.r5.4xlarge"
+        },
+        {
+          "component": "s3-legacy-reports",
+          "action": "move",
+          "to": "aws-s3 eu-west-1"
+        },
+        {
+          "component": "ng-shop-staging",
+          "action": "resize",
+          "to": "3 x m5.2xlarge"
+        }
+      ]
+    }
   }
 ]

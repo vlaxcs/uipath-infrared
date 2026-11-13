@@ -14,6 +14,7 @@ export interface Settings {
   slackSigningSecret: string;
   orchestratorUrl: string;
   slackChannel: string;
+  dashboardUrl?: string;
 }
 
 function requireEnv(env: NodeJS.ProcessEnv, name: string): string {
@@ -26,11 +27,14 @@ function requireEnv(env: NodeJS.ProcessEnv, name: string): string {
 }
 
 export function loadSettings(env: NodeJS.ProcessEnv = process.env): Settings {
-  return {
+  const settings: Settings = {
     slackBotToken: requireEnv(env, 'SLACK_BOT_TOKEN'),
     slackAppToken: requireEnv(env, 'SLACK_APP_TOKEN'),
     slackSigningSecret: requireEnv(env, 'SLACK_SIGNING_SECRET'),
     orchestratorUrl: env.ORCHESTRATOR_URL || 'http://127.0.0.1:8080',
     slackChannel: env.SLACK_CHANNEL || 'infrared-runs',
   };
+  const dashboardUrl = env.DASHBOARD_URL?.trim();
+  if (dashboardUrl) settings.dashboardUrl = dashboardUrl;
+  return settings;
 }
