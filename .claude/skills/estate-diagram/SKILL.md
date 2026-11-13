@@ -30,7 +30,8 @@ Decorative layouts (force-directed blobs, constellations, 3D orbits) were tried 
 5. **Detail on demand.** Click opens a side panel: attributes, "Depends on", "Used by" (clickable, with edge kind and note).
 6. **Calm visuals.** Neutral surfaces, one accent per stack (on the card header only), soft shadows, system font plus mono for
    identifiers, light and dark themes (`prefers-color-scheme` plus a toggle). Everything readable at 1280px wide, usable on a phone.
-7. **Self-contained.** One HTML file, no network, no build step, no libraries. Plain DOM for boxes, one SVG overlay for links.
+7. **Two views, one model.** Diagram (default) and Graph (node-link, for people who think in topology) share state: filters, search, selection, drawer. Graph mode must stay legible: stack regions, type tag inside each node, labels only for hubs/high-degree/focused nodes, edges coloured by kind with arrows, status as dashed/dotted/solid rings (legend visible). Deep link with `#graph`.
+8. **Self-contained.** One HTML file, no network, no build step, no libraries. Plain DOM for boxes, one SVG overlay for links.
 
 ## Workflow
 1. Edit `infrared/synth/graph_template.html`.

@@ -32,7 +32,7 @@ Builds `graph/graph.json` (nodes+edges), `graph/graph.dot` (Graphviz) and a self
 rather than a force graph. One card per stack (the VPC is the card header with its CIDR); resources sit in fixed tiers (Edge & DNS, Compute,
 Data stores, Messaging, Storage, Network & security, Identity). Idle / orphan / exposed resources carry text pills and the KPI tiles at the top
 filter by them. Hover or click a resource to draw its dependencies (colour = kind) and open a detail panel with "Depends on" / "Used by";
-"All links" draws the rest. Light and dark themes. Design rules live in `.claude/skills/estate-diagram/SKILL.md`.
+"All links" draws the rest. A **Graph** toggle in the header switches to a node-link view (stack regions, type-tagged nodes, arrows coloured by kind, drag/zoom, `#graph` deep link) that shares the same filters and detail drawer. Light and dark themes. Design rules live in `.claude/skills/estate-diagram/SKILL.md`.
 Nodes come from live floci state; edges = `topology.json` + relationships read from the API (placement, roles, containment).
 Stack, idle and orphan are derived from naming and observed metrics, not from the planted-issue ledger. `run.sh` regenerates it.
 

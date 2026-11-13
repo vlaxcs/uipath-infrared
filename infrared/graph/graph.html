@@ -69,7 +69,7 @@
   .pill.idle { color:var(--idle); background:var(--idle-bg); } .pill.orphan { color:var(--orphan); background:var(--orphan-bg); } .pill.exposed { color:var(--exposed); background:var(--exposed-bg); }
   .empty { display:none; padding:40px; text-align:center; color:var(--muted); }
 
-  #drawer { position:fixed; top:0; right:0; width:360px; height:100vh; background:var(--surface); border-left:1px solid var(--line); box-shadow:-10px 0 30px rgba(0,0,0,.08); z-index:30; transform:translateX(100%); transition:transform .22s ease; overflow:auto; padding:18px 18px 40px; }
+  #drawer { position:fixed; top:var(--hh,70px); right:0; width:360px; height:calc(100vh - var(--hh,70px)); background:var(--surface); border-left:1px solid var(--line); box-shadow:-10px 0 30px rgba(0,0,0,.08); z-index:30; transform:translateX(100%); transition:transform .22s ease; overflow:auto; padding:18px 18px 40px; }
   #drawer.open { transform:none; }
   #drawer h2 { margin:8px 0 2px; font-size:17px; word-break:break-all; }
   #drawer h3 { font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:20px 0 7px; font-weight:600; }
@@ -80,14 +80,28 @@
   .dep { display:flex; gap:8px; align-items:flex-start; padding:7px 0; border-bottom:1px solid var(--line); cursor:pointer; }
   .dep:hover .dn { text-decoration:underline; } .dep .dn { font-weight:600; word-break:break-all; } .dep small { display:block; color:var(--muted); font-size:11px; }
   .kp { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 6px; border-radius:4px; color:var(--kc); background:color-mix(in srgb, var(--kc) 14%, transparent); flex:none; margin-top:1px; min-width:52px; text-align:center; }
+  .seg { display:inline-flex; border:1px solid var(--line); border-radius:9px; overflow:hidden; background:var(--surface); }
+  .seg button { border:0; background:none; padding:6px 13px; cursor:pointer; color:var(--muted); } .seg button.on { background:var(--ink); color:var(--bg); }
+  #gv { position:fixed; left:0; right:0; bottom:0; top:var(--hh,70px); background:var(--bg); transition:right .2s; } #gv.panel { right:360px; } #gv[hidden] { display:none; }
+  #gsvg { width:100%; height:100%; display:block; cursor:grab; touch-action:none; } #gsvg.panning { cursor:grabbing; }
+  .gn { cursor:pointer; } .gn text { pointer-events:none; } .gn .tg { fill:#fff; font:700 8px ui-monospace, Menlo, monospace; text-anchor:middle; dominant-baseline:central; }
+  .gn .lb { fill:var(--ink); font-size:11px; text-anchor:middle; paint-order:stroke; stroke:var(--bg); stroke-width:4px; stroke-linejoin:round; }
+  .gn .ring { fill:none; stroke-width:2.6; } .gn .ring.idle { stroke:var(--idle); stroke-dasharray:4 3; } .gn .ring.orphan { stroke:var(--orphan); stroke-dasharray:1.5 3; stroke-linecap:round; } .gn .ring.exposed { stroke:var(--exposed); }
+  .gn.dim, .ge.dim { opacity:.12; } .gn.sel .core { stroke:var(--ink); stroke-width:3; } .gn .core { stroke:var(--bg); stroke-width:2; }
+  .gh text { font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; text-anchor:middle; }
+  .gtools { position:absolute; left:18px; top:14px; display:flex; gap:6px; } .gtools .btn { box-shadow:var(--shadow); }
+  .legend { position:absolute; left:18px; bottom:16px; background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); padding:9px 12px; font-size:11.5px; display:grid; grid-template-columns:repeat(2, auto); gap:3px 18px; color:var(--muted); }
+  .legend span { display:flex; align-items:center; gap:7px; } .legend i { width:10px; height:10px; border-radius:50%; display:block; flex:none; } .legend i.r { background:none; border:2px solid; width:12px; height:12px; }
+  @media (max-width:900px) { #gv.panel { right:0; bottom:55vh; } }
   @media (max-width:900px) { #wrap.panel { padding-right:22px; } #drawer { width:100%; height:55vh; top:auto; bottom:0; border-left:0; border-top:1px solid var(--line); transform:translateY(100%); } #drawer.open { transform:none; } }
 </style>
 </head>
 <body>
-<header>
+<header id="hdr">
   <div><h1>Infra<b>Red</b> · estate</h1><div class="meta" id="meta"></div></div>
   <div class="kpis" id="kpis"></div>
   <div class="spacer"></div>
+  <div class="seg" id="seg" role="tablist"><button data-m="diagram">Diagram</button><button data-m="graph">Graph</button></div>
   <input id="q" type="search" placeholder="Search name, type, attribute…" aria-label="Search">
   <button class="btn" id="all" title="Draw every link instead of only the selected resource's">All links</button>
   <button class="btn" id="theme">Theme</button>
@@ -97,6 +111,11 @@
   <div id="board"></div>
   <svg id="links"><defs></defs><g id="lg"></g></svg>
   <div class="empty" id="empty">No resources match.</div>
+</div>
+<div id="gv" hidden>
+  <svg id="gsvg" aria-label="Dependency graph"><defs id="gdefs"></defs><g id="gvp"><g id="ghulls"></g><g id="gedges"></g><g id="gnodes"></g><g id="glabels"></g></g></svg>
+  <div class="gtools"><button class="btn" id="gfit">Fit</button><button class="btn" id="grelayout">Re-layout</button><button class="btn on" id="glabelbtn">Labels</button></div>
+  <div class="legend" id="legend"></div>
 </div>
 <aside id="drawer" aria-live="polite"></aside>
 <script>
@@ -118,6 +137,8 @@ const nodes = G.nodes.map(n => ({...n}));
 const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
 const edges = G.edges.filter(e => byId[e.src] && byId[e.dst]).map(e => ({...e, s:byId[e.src], t:byId[e.dst]}));
 const vpcOf = Object.fromEntries(nodes.filter(n => n.type === "vpc").map(n => [n.stack, n]));
+let mode = location.hash === "#graph" ? "graph" : "diagram";
+const gstate = {kinds:new Set(KINDS), labels:true, view:{x:0, y:0, k:1}, alpha:0, built:false, drag:null, pan:null, running:false};
 const state = {sel:null, hov:null, status:null, q:"", all:false, kinds:new Set(["traffic","data","event","dns","config"]), closed:new Set(["iam"])};
 
 function facts(n) {
@@ -167,11 +188,14 @@ const kp = $("kpis");
 [["", "Resources", nodes.length], ["idle", "Idle", nodes.filter(n => n.status === "idle").length], ["orphan", "Orphans", nodes.filter(n => n.status === "orphan").length], ["exposed", "Exposed", nodes.filter(n => n.status === "exposed").length]].forEach(([s, l, c]) => {
   const b = document.createElement("button"); b.className = "kpi"; b.dataset.s = s; b.innerHTML = `<small>${l}</small><strong>${c}</strong>`;
   b.onclick = () => { state.status = !s || state.status === s ? null : s; refresh(); }; kp.appendChild(b); });
-const kinds = $("kinds");
-KINDS.forEach(k => { const b = document.createElement("button"); b.className = "kind" + (state.kinds.has(k) ? "" : " off"); b.innerHTML = `<i style="background:var(--k-${k})"></i>${k}`;
-  b.onclick = () => { state.kinds.has(k) ? state.kinds.delete(k) : state.kinds.add(k); b.classList.toggle("off"); draw(); }; kinds.appendChild(b); });
+const kinds = $("kinds"), activeKinds = () => mode === "graph" ? gstate.kinds : state.kinds;
+function buildKinds() {
+  kinds.querySelectorAll(".kind").forEach(b => b.remove());
+  KINDS.forEach(k => { const b = document.createElement("button"); b.className = "kind" + (activeKinds().has(k) ? "" : " off"); b.innerHTML = `<i style="background:var(--k-${k})"></i>${k}`;
+    b.onclick = () => { const set = activeKinds(); set.has(k) ? set.delete(k) : set.add(k); b.classList.toggle("off"); mode === "graph" ? gUpdate() : draw(); }; kinds.appendChild(b); });
+}
 $("q").oninput = e => { state.q = e.target.value.toLowerCase().trim(); refresh(); };
-$("all").onclick = e => { state.all = !state.all; e.target.classList.toggle("on", state.all); kinds.classList.toggle("show", state.all); layout(); };
+$("all").onclick = e => { state.all = !state.all; e.target.classList.toggle("on", state.all); syncChrome(); layout(); };
 $("theme").onclick = () => { const r = document.documentElement, dark = (r.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark"; r.dataset.theme = dark ? "light" : "dark"; };
 
 // ---------- selection & focus ----------
@@ -181,15 +205,15 @@ const matches = n => (!state.status || n.status === state.status) && (!state.q |
 function refresh() {
   const f = focus(), nb = f ? nbrs(f) : null, filtering = !!(state.status || state.q); let shown = 0;
   document.querySelectorAll(".kpi").forEach(k => k.classList.toggle("on", k.dataset.s === (state.status || "")));
-  nodes.forEach(n => { if (!n.el) return; const m = matches(n); if (m) shown++;
+  nodes.forEach(n => { n.match = matches(n); n.on = f ? nb.has(n.id) : !filtering || n.match; if (!n.el) return; const m = n.match; if (m) shown++;
     n.el.classList.toggle("dim", f ? !nb.has(n.id) : filtering && !m); n.el.classList.toggle("sel", n === state.sel); n.el.classList.toggle("nb", !!f && n !== f && nb.has(n.id)); });
-  $("empty").style.display = filtering && !shown ? "block" : "none"; draw();
+  $("empty").style.display = mode === "diagram" && filtering && !shown ? "block" : "none"; draw(); if (mode === "graph") gUpdate();
 }
 function hover(n) { state.hov = n; if (!state.sel) refresh(); }
 function select(n) {
-  state.sel = n; $("wrap").classList.toggle("panel", !!n); $("drawer").classList.toggle("open", !!n);
+  state.sel = n; $("wrap").classList.toggle("panel", !!n); $("gv").classList.toggle("panel", !!n); $("drawer").classList.toggle("open", !!n);
   if (n) { if (n.tier) n.tier.classList.remove("closed"); renderDrawer(n); }
-  refresh(); layout(); if (n && n.el) n.el.scrollIntoView({block:"nearest", behavior:"smooth"});
+  refresh(); layout(); if (n && mode === "diagram" && n.el) n.el.scrollIntoView({block:"nearest", behavior:"smooth"});
 }
 function renderDrawer(n) {
   const outs = edges.filter(e => e.s === n), ins = edges.filter(e => e.t === n), col = TIERS.find(t => t[0] === TIER_OF(n.category));
@@ -223,6 +247,7 @@ function path(a, b, i) {
   return [`M${a.l},${a.y} H${rail + r} Q${rail},${a.y} ${rail},${a.y + sy * r} V${b.y - sy * r} Q${rail},${b.y} ${rail + r},${b.y} H${b.l}`, rail, (a.y + b.y) / 2, false];
 }
 function draw() {
+  if (mode !== "diagram") return;
   lg.innerHTML = ""; const f = focus(), list = [];
   if (f) edges.forEach(e => { if (e.s === f || e.t === f) list.push([e, true]); });
   if (state.all) edges.forEach(e => { if (state.kinds.has(e.kind) && !(f && (e.s === f || e.t === f))) list.push([e, false]); });
@@ -233,7 +258,101 @@ function draw() {
 }
 function layout() { requestAnimationFrame(draw); }
 addEventListener("resize", layout); new ResizeObserver(layout).observe(board);
-refresh();
+// ---------- graph mode ----------
+const ANCH = {"shop-prod":[.27,.5], "data-platform":[.73,.4], "legacy":[.42,.86], "dev":[.9,.82], "shared":[.6,.1]};
+const HUBS = new Set(["vpc","eks","ecs","alb"]), gcol = n => `var(--c-${TIER_OF(n.category)})`;
+const gs = $("gsvg"), gvp = $("gvp"), gHulls = $("ghulls"), gEdges = $("gedges"), gNodes = $("gnodes"), gLabels = $("glabels");
+const gSize = () => { const r = gs.getBoundingClientRect(); return [r.width, r.height]; };
+let gW = 1000, gH = 700;
+$("legend").innerHTML = TIERS.map(t => `<span><i style="background:var(${t[2]})"></i>${t[1].replace(" & ", "/")}</span>`).join("") +
+  ["idle","orphan","exposed"].map(k => `<span><i class="r" style="border-color:var(--${k});border-style:${k === "idle" ? "dashed" : k === "orphan" ? "dotted" : "solid"}"></i>${STATUS[k]}</span>`).join("");
+
+function gBuild() {
+  if (gstate.built) return; gstate.built = true;
+  const defs = $("gdefs"); KINDS.forEach(k => { const m = mk("marker", {id:"g-" + k, viewBox:"0 0 10 10", refX:9, refY:5, markerWidth:6, markerHeight:6, orient:"auto"}, defs); mk("path", {d:"M0,1 L10,5 L0,9 Z", style:`fill:var(--k-${k})`}, m); });
+  [gW, gH] = gSize();
+  nodes.forEach(n => {
+    n.r = 11 + Math.sqrt(n.degree || 0) * 1.7; const a = ANCH[n.stack] || [.5, .5]; n.gx = a[0] * gW + (Math.random() - .5) * 140; n.gy = a[1] * gH + (Math.random() - .5) * 140; n.vx = n.vy = 0;
+    const g = mk("g", {class:"gn"}, gNodes); n.gel = g; mk("title", {}, g).textContent = `${n.label} · ${n.type} · ${n.stack} · ${STATUS[n.status]}`;
+    if (n.status !== "active") mk("circle", {class:"ring " + n.status, r:n.r + 5}, g);
+    mk("circle", {class:"core", r:n.r, style:`fill:${gcol(n)}`}, g);
+    const tag = TAG[n.type] || n.type, t = mk("text", {class:"tg", style:`font-size:${Math.min(9, (2 * n.r - 5) / (tag.length * .62))}px`}, g); t.textContent = tag;
+    n.glb = mk("text", {class:"lb", y:n.r + 14}, g); n.glb.textContent = n.label.length > 28 ? n.label.slice(0, 27) + "…" : n.label;
+    g.addEventListener("pointerdown", ev => { ev.stopPropagation(); gstate.drag = {n, moved:false}; n.fixed = true; gs.setPointerCapture(ev.pointerId); });
+    g.addEventListener("pointerenter", () => hover(n)); g.addEventListener("pointerleave", () => hover(null));
+  });
+  edges.forEach(e => { e.gel = mk("line", {class:"ge", "stroke-linecap":"round", style:`stroke:var(--k-${e.kind})`, "stroke-dasharray":e.kind === "config" ? "5 4" : ""}, gEdges); });
+  for (let i = 0; i < 320; i++) gStep(1 - i / 400);
+  gFit(); gstate.alpha = 0;
+}
+function gStep(k) {
+  const vis = nodes;
+  for (let i = 0; i < vis.length; i++) { const a = vis[i];
+    for (let j = i + 1; j < vis.length; j++) { const b = vis[j]; let dx = a.gx - b.gx, dy = a.gy - b.gy, d2 = dx * dx + dy * dy + .01, d = Math.sqrt(d2);
+      const min = a.r + b.r + 26; let f = 3200 / d2; if (d < min) f += (min - d) * .06; dx /= d; dy /= d; a.vx += dx * f * k; a.vy += dy * f * k; b.vx -= dx * f * k; b.vy -= dy * f * k; } }
+  edges.forEach(e => { if (!gstate.kinds.has(e.kind)) return; let dx = e.t.gx - e.s.gx, dy = e.t.gy - e.s.gy, d = Math.sqrt(dx * dx + dy * dy) || 1;
+    const len = e.kind === "contains" ? 55 : e.kind === "network" ? 95 : 130, f = (d - len) * .018 * k; dx /= d; dy /= d; e.s.vx += dx * f; e.s.vy += dy * f; e.t.vx -= dx * f; e.t.vy -= dy * f; });
+  nodes.forEach(n => { const a = ANCH[n.stack] || [.5, .5], st = n.stack === "shared" ? .012 : .006; n.vx += (a[0] * gW - n.gx) * st * k; n.vy += (a[1] * gH - n.gy) * st * k;
+    if (n.fixed) { n.vx = n.vy = 0; return; } n.vx *= .8; n.vy *= .8; n.gx += n.vx; n.gy += n.vy; });
+  gstate.alpha *= .985;
+}
+function gFit() {
+  [gW, gH] = gSize(); const xs = nodes.map(n => n.gx), ys = nodes.map(n => n.gy), x0 = Math.min(...xs) - 45, x1 = Math.max(...xs) + 45, y0 = Math.min(...ys) - 70, y1 = Math.max(...ys) + 45, v = gstate.view;
+  v.k = Math.min(gW / (x1 - x0), gH / (y1 - y0), 2); v.x = gW / 2 - v.k * (x0 + x1) / 2; v.y = gH / 2 - v.k * (y0 + y1) / 2; gApply();
+}
+const gApply = () => gvp.setAttribute("transform", `translate(${gstate.view.x},${gstate.view.y}) scale(${gstate.view.k})`);
+function hull(pts) { pts = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]); if (pts.length < 3) return pts; const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lo = [], up = [];
+  pts.forEach(p => { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); });
+  pts.slice().reverse().forEach(p => { while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); }); return lo.slice(0, -1).concat(up.slice(0, -1)); }
+function gUpdate() {
+  if (!gstate.built) return; const f = focus(), nb = f ? nbrs(f) : null, filtering = !!(state.status || state.q), z = gstate.view.k;
+  // stack regions
+  gHulls.innerHTML = ""; STACKS.forEach(st => { const list = nodes.filter(n => n.stack === st); if (!list.length) return; const pts = [];
+    list.forEach(n => { for (let a = 0; a < 6.28; a += 1.05) pts.push([n.gx + Math.cos(a) * (n.r + 8), n.gy + Math.sin(a) * (n.r + 8)]); });
+    const h = hull(pts), g = mk("g", {class:"gh", opacity:.11}, gHulls);
+    mk("path", {d:"M" + h.map(p => p.map(Math.round).join(",")).join("L") + "Z", style:`fill:var(--s-${st});stroke:var(--s-${st})`, "stroke-width":28, "stroke-linejoin":"round"}, g);
+    const top = Math.min(...list.map(n => n.gy)) - 40, cx = list.reduce((a, n) => a + n.gx, 0) / list.length;
+    const t = mk("text", {x:cx, y:top, style:`fill:var(--s-${st})`, opacity:1}, gHulls); t.setAttribute("class", "gh"); t.style.opacity = .85; t.style.fontSize = "12px"; t.style.fontWeight = 700; t.style.letterSpacing = ".08em"; t.style.textAnchor = "middle"; t.textContent = st.toUpperCase(); });
+  // edges
+  const shown = []; edges.forEach(e => { const on = gstate.kinds.has(e.kind); e.gel.style.display = on ? "" : "none"; if (!on) return;
+    const dx = e.t.gx - e.s.gx, dy = e.t.gy - e.s.gy, d = Math.sqrt(dx * dx + dy * dy) || 1, ux = dx / d, uy = dy / d, inc = !!f && (e.s === f || e.t === f);
+    e.gel.setAttribute("x1", e.s.gx + ux * (e.s.r + 3)); e.gel.setAttribute("y1", e.s.gy + uy * (e.s.r + 3)); e.gel.setAttribute("x2", e.t.gx - ux * (e.t.r + 6)); e.gel.setAttribute("y2", e.t.gy - uy * (e.t.r + 6));
+    e.gel.setAttribute("stroke-width", inc ? 2.4 : 1.3); e.gel.setAttribute("marker-end", `url(#g-${e.kind})`);
+    e.gel.style.opacity = f ? (inc ? .95 : .06) : filtering ? (e.s.match && e.t.match ? .6 : .05) : .45; if (inc) shown.push(e); });
+  // nodes
+  nodes.forEach(n => { n.gel.setAttribute("transform", `translate(${n.gx},${n.gy})`); n.gel.classList.toggle("dim", f ? !nb.has(n.id) : filtering && !n.match); n.gel.classList.toggle("sel", n === state.sel);
+    const show = gstate.labels && (HUBS.has(n.type) || n.degree >= 4 || z > 1.25 || (f && nb.has(n.id)) || n === state.hov); n.glb.style.display = show ? "" : "none"; });
+  gLabels.innerHTML = ""; if (f && shown.length <= 16) shown.forEach(e => { const t = mk("text", {x:(e.s.gx + e.t.gx) / 2, y:(e.s.gy + e.t.gy) / 2 - 4, style:`font-size:10px;font-weight:700;text-anchor:middle;fill:var(--k-${e.kind});paint-order:stroke;stroke:var(--bg);stroke-width:4px`}, gLabels); t.textContent = e.kind; });
+}
+function gKick(a = .6) { gstate.alpha = Math.max(gstate.alpha, a); if (gstate.running) return; gstate.running = true;
+  const loop = () => { if (mode !== "graph") { gstate.running = false; return; } if (gstate.alpha > .02 || gstate.drag) { gStep(1); gStep(1); gUpdate(); requestAnimationFrame(loop); } else { gstate.running = false; } }; loop(); }
+gs.addEventListener("wheel", ev => { ev.preventDefault(); const r = gs.getBoundingClientRect(), mx = ev.clientX - r.left, my = ev.clientY - r.top, v = gstate.view, k2 = Math.max(.2, Math.min(4, v.k * Math.exp(-ev.deltaY * .0015)));
+  v.x = mx - (mx - v.x) * k2 / v.k; v.y = my - (my - v.y) * k2 / v.k; v.k = k2; gApply(); gUpdate(); }, {passive:false});
+gs.addEventListener("pointerdown", ev => { if (ev.target.closest(".gn")) return; gstate.pan = {x:ev.clientX - gstate.view.x, y:ev.clientY - gstate.view.y, sx:ev.clientX, sy:ev.clientY}; gs.classList.add("panning"); gs.setPointerCapture(ev.pointerId); });
+gs.addEventListener("pointermove", ev => { const v = gstate.view;
+  if (gstate.drag) { const r = gs.getBoundingClientRect(), n = gstate.drag.n; n.gx = (ev.clientX - r.left - v.x) / v.k; n.gy = (ev.clientY - r.top - v.y) / v.k; gstate.drag.moved = true; gKick(.25); }
+  else if (gstate.pan) { v.x = ev.clientX - gstate.pan.x; v.y = ev.clientY - gstate.pan.y; gApply(); } });
+gs.addEventListener("pointerup", ev => { const d = gstate.drag, p = gstate.pan; gstate.drag = null; gstate.pan = null; gs.classList.remove("panning");
+  if (d) { d.n.fixed = false; if (!d.moved) select(d.n); } else if (p && Math.abs(ev.clientX - p.sx) + Math.abs(ev.clientY - p.sy) < 4 && state.sel) select(null); });
+$("gfit").onclick = gFit;
+$("grelayout").onclick = () => { nodes.forEach(n => { n.gx += (Math.random() - .5) * 80; n.gy += (Math.random() - .5) * 80; }); gKick(1); setTimeout(gFit, 700); };
+$("glabelbtn").onclick = e => { gstate.labels = !gstate.labels; e.target.classList.toggle("on", gstate.labels); gUpdate(); };
+
+// ---------- mode switch ----------
+function syncChrome() {
+  kinds.classList.toggle("show", mode === "graph" || state.all); $("all").style.display = mode === "graph" ? "none" : "";
+  document.documentElement.style.setProperty("--hh", $("hdr").offsetHeight + "px");
+}
+function applyMode(m) {
+  mode = m; document.querySelectorAll("#seg button").forEach(b => b.classList.toggle("on", b.dataset.m === m));
+  $("wrap").style.display = m === "diagram" ? "" : "none"; $("gv").hidden = m !== "graph"; buildKinds(); syncChrome();
+  history.replaceState(null, "", m === "graph" ? "#graph" : location.pathname + location.search);
+  if (m === "graph") { gBuild(); } refresh(); layout();
+}
+document.querySelectorAll("#seg button").forEach(b => b.onclick = () => applyMode(b.dataset.m));
+new ResizeObserver(syncChrome).observe($("hdr"));
+addEventListener("resize", () => { if (mode === "graph") { [gW, gH] = gSize(); gUpdate(); } });
+applyMode(mode);
 </script>
 </body>
 </html>
