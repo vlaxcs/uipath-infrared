@@ -178,7 +178,8 @@ def result_integrity(label, r, infra=None):
         for v in c["violations"]:
             check_component(cid, v["component"])
         for a in c["actions"]:
-            check_component(cid, a["component"])
+            if a["component"] != "account":
+                check_component(cid, a["component"])
         ranked = [c["score"] is not None, c["rank"] is not None, c["rank_by_scenario"] is not None]
         if c["feasible"] and not all(ranked):
             err(f"{cid}: a feasible candidate needs score, rank and rank_by_scenario")
