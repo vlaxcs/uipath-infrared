@@ -1,0 +1,21 @@
+services:
+  sites-db:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_DB: sites
+      POSTGRES_USER: sites_admin
+      POSTGRES_PASSWORD: sites_admin
+    command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements"]
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - ./apps/agent/migrations/001_site_options.sql:/docker-entrypoint-initdb.d/001_site_options.sql:ro
+      - ./apps/agent/migrations/local/900_site_step_login.sql:/docker-entrypoint-initdb.d/900_site_step_login.sql:ro
+      - sites-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sites_admin -d sites"]
+      interval: 2s
+      retries: 30
+
+volumes:
+  sites-db:

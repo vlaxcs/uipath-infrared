@@ -1,12 +1,28 @@
+from datetime import datetime
 from pathlib import Path
 from typing import Protocol, Sequence
 
 from agent.application.tools import Tool
 from agent.domain.prompts import Specialist
+from agent.domain.sites import Listing, NearbyOption, Point, SiteKind
 
 
 class EngineRefused(Exception):
     pass
+
+
+class SiteStoreUnavailable(Exception):
+    pass
+
+
+class SiteStore(Protocol):
+    def nearby(self, center: Point, radius_km: float, kinds: Sequence[SiteKind], fresh_since: datetime) -> dict[SiteKind, list[NearbyOption]]: ...
+
+    def save(self, listings: Sequence[Listing]) -> None: ...
+
+
+class ListingSource(Protocol):
+    def search(self, center: Point, radius_km: float, kind: SiteKind) -> list[Listing]: ...
 
 
 class Session(Protocol):

@@ -30,6 +30,10 @@ def aws() -> AwsSettings:
     )
 
 
+def sites_database_url() -> str:
+    return required("SITES_DATABASE_URL")
+
+
 def engine_command() -> list[str]:
     return required("AGENT_ENGINE_CMD").split()
 
