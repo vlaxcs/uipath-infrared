@@ -96,4 +96,6 @@ CVs go in `docs/hackathon/cvs/`. Add here what each CV misses.
 | Idea 5 | Flows in between: focus on contract amendments and performance reviews; moves between projects and departments useful; leave nice to have | amendments and reviews are the least automated today |
 | Idea 5 | Rejected: worked hours | doesn't really matter for this product |
 | Idea 5 | Rejected: access requests | Vlad's call |
+| Idea 5 | Workflow: one case per person, replanned on every event, a simulated clock for the demo; timeline from offer to offboarding in `01-idea.md` | built on the UiPath People Ops interview |
+| Idea 5 | Demo path: offer to day 1 with 3 live disruptions (manager away, Windows-only team, no clinic slot), then jump to probation, review, offboarding | each disruption is a decision from an intermediate result |
 | Idea 1 | Rejected as separate jobs: H1 (Slack requests) and H4 (ask HR anything) | H1 can come back as the channel, H4 is a single LLM call with RAG |

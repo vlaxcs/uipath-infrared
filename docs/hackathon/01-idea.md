@@ -5,10 +5,10 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 | Step | Status |
 | --- | --- |
 | 1. Who do we target? | done, mentors to confirm |
-| 2. What is their problem? | done, waits for form answers |
+| 2. What is their problem? | done, validated with UiPath People Ops; form still out |
 | 3. How do we get into their day? | done |
 | 4. Business plan | open: pricing model, waits for form answers |
-| 5. Design the product | in progress |
+| 5. Design the product | workflow defined; legal parked; mentors to validate |
 | 6. Branding | in parallel, designer |
 
 ## 1. Target
@@ -16,13 +16,15 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 - **Buyer:** founder or COO of a start-up or small enterprise.
 - **Users:** HR (often the founder), managers, buddies, access owners, and the new hire or the leaver.
 - **Job:** the employee lifecycle, from onboarding to offboarding, done by an agent.
-- **Onboarding** starts at the offer. Recruiting before the offer is outside the product.
+- **Starts at the offer.** Offer to day 0 is **pre-onboarding**, day 1 onward is **onboarding** (People Ops' own words). Recruiting before the offer is outside the product.
 
 ## 2. Problem
 
 1. **The same onboarding goes differently every time.** The manager is away on day one, the buddy isn't delegated in time, the access the job needs is wrong, and nobody finds out until the new hire is blocked.
 2. **HR mixes fixed steps with steps that need judgement.** Fixed: create the account, legal deadlines. Judgement: who covers for the absent manager, which access is actually missing. In a start-up one person holds both in their head.
 3. **Offboarding leaves access behind.**
+
+**Validated** in an interview with UiPath People Ops ([notes](interviews/01-uipath-people-ops.md)): paperwork is automated, but occupational medicine, the IT and reception heads-up, hardware, review requests and review meetings are manual, and the same experience across offices is their biggest onboarding challenge.
 
 **Why an agent:** fixed steps run as a workflow; the agent gets only the steps whose path depends on what it finds, and a human approves anything that decides something about a person.
 
@@ -66,11 +68,50 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
   - left out: worked hours, access requests.
 - **Mocked for the MVP:** most data, such as the employees' schedule. The mocked data still drives the agent's decisions, e.g. the schedule tells it whether the manager is in the office.
 
+### How it works: one case per person, replanned on every event
+
+Every person gets a **case** with a goal: productive and welcomed on day X. The agent wakes on events (contract signed, form filled in, schedule changed, a deadline coming up), reads the state, sees what changed and replans. Every decision is logged with its reason, so a run can be replayed step by step.
+
+A **simulated clock** compresses weeks into minutes, so the demo moves time forward and the agent reacts live.
+
+### The timeline
+
+*Italic* = manual at UiPath today, from the interview. **The agent decides** = a step whose path depends on what it finds.
+
+**Pre-onboarding (offer to day 0)**
+- **Offer accepted:** the person lands in the HRIS (Workday at UiPath, mocked). The case opens.
+- **Contract** goes to signing (DocuSign, mocked). Not signed in X days: the agent nudges the recruiter.
+- **Hardware**, after signing: the person picks Mac or Windows in a form. **The agent decides:** Mac wanted but the team requires Windows, it explains to the person and tells IT; Mac out of stock, it proposes an alternative, IT approves. *Manual today.*
+- **Occupational medicine:** **the agent decides** a clinic slot before day 1, the person confirms. No slot in time: it proposes moving the start date, HR decides. *Manual today, "in every company".*
+- **Who receives them on day 1:** **the agent decides** from the schedule. Manager in that office that day? If not, a buddy or a colleague from the same office. Nobody there (e.g. a coworking space): it proposes a remote first day or another date, the manager decides. *Their biggest challenge: the same experience across offices.*
+- **D-2:** the manager gets a Slack message with what to prepare.
+- **D-1:** the agent posts to the IT and reception channel: "X starts tomorrow at 10, Y receives them". *Manual today.*
+- **Accounts:** Microsoft SSO, GitHub by team. A security team also gets a YubiKey task.
+
+**Onboarding (day 1 onward)**
+- **Day 1:** welcome and the first day's plan.
+- **Day 2:** mandatory trainings. The agent tracks completion, nudges, and escalates to the manager at the deadline.
+- **Check-ins, week 1 and month 1:** **the agent decides** a slot both calendars have free. Manager goes on leave: it reschedules.
+- **Probation:** 2 weeks before it ends, the manager gets "probation ends, do you confirm?". The agent gathers the check-in notes; the manager decides. *Suggested by People Ops.*
+
+**In between**
+- **Performance review:** **the agent decides** who to ask for feedback from shared projects, and the template ("one project" or "the whole year"); the manager confirms. It chases the forms and books the face-to-face discussion. *All manual today, and they want it automated.*
+- **Contract amendment:** a salary or position change creates the amendment from a template, routes the approvals, sends it to signing, updates the HRIS.
+- **Move to another team:** the new manager accepts, a buddy in the new team, accounts by team. **The agent decides:** the new team requires Windows, the laptop is swapped; the department changes, an amendment follows.
+- **Leave:** nice to have.
+
+**Offboarding**
+- The last day sets the plan: hardware and YubiKey back, a knowledge handover, the exit interview, the account closed on the last day.
+- **The agent decides** what SSO doesn't cut: GitHub org membership, tools outside SSO. *People Ops believes closing the account cuts everything; this is the gap.*
+
+### The demo path
+
+One person, offer to day 1, with 3 disruptions injected live: the manager isn't in the office, the team requires Windows, no clinic slot in time. Then the clock jumps to probation, a review and offboarding. Each disruption is a decision the agent takes from an intermediate result.
+
 - **Legal check:** parked. Ask a mentor, starting with performance reviews (EU AI Act, Annex III: AI that evaluates workers is high-risk).
 
 ## Open questions
 
-- How does the system learn the agreement was signed?
 - Who on the team is an admin in the Microsoft tenant, for Graph admin consent?
 - Mentors: does an SME buyer hurt "user value" with UiPath judges? Do they want UiPath's stack (Maestro, Action Center) or is OpenRouter enough?
 
