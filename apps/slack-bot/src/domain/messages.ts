@@ -126,25 +126,41 @@ export function formatPlanGate(
   return { text: missed ? 'The rehearsal missed the forecast' : 'Rehearsal held — approve the plan', blocks };
 }
 
-export function formatRehearsalRunning(frame: number): BlockKitMessage {
+export function formatLayoutProgress(pick: RunEvent, frame: number): BlockKitMessage {
   const step = Math.max(1, Math.min(frame + 1, 8));
   const bar = '▰'.repeat(step) + '▱'.repeat(8 - step);
   return {
     text: 'Rehearsal running',
     blocks: [
-      section('*Rehearsal*\nRunning on Floci. The result and the plan follow here.'),
+      header('Architecture picked'),
+      section(`*${describeEvent(pick)}*`),
+      section('Rehearsal running on Floci. The result and the plan follow here.'),
       context(bar),
     ],
   };
 }
 
-export function formatRehearsalProgress(rehearsal?: RehearsalSummary, stopped = false): BlockKitMessage {
-  if (stopped) {
-    return { text: 'Rehearsal stopped', blocks: [section('*Rehearsal*\nStopped before a measurement'), context('The run stopped; see the failure card.')] };
-  }
+export function formatLayoutDone(pick: RunEvent, rehearsal?: RehearsalSummary): BlockKitMessage {
   return {
     text: 'Rehearsal complete',
-    blocks: [section('*Rehearsal*'), fieldsBlock(rehearsalFields(rehearsal ?? {})), context('The plan follows in the channel.')],
+    blocks: [
+      header('Rehearsal complete'),
+      section(`*${describeEvent(pick)}*`),
+      fieldsBlock(rehearsalFields(rehearsal ?? {})),
+      context('The plan follows in the channel.'),
+    ],
+  };
+}
+
+export function formatLayoutStopped(pick: RunEvent, reason?: string): BlockKitMessage {
+  return {
+    text: 'Rehearsal stopped',
+    blocks: [
+      header('Rehearsal stopped'),
+      section(`*${describeEvent(pick)}*`),
+      section(reason ?? 'The rehearsal stopped before a measurement.'),
+      context('The run stopped; see the failure card.'),
+    ],
   };
 }
 

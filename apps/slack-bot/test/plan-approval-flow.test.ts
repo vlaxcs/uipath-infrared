@@ -34,9 +34,9 @@ function startRun() {
     chat: { postEphemeral: async (args: any) => { ephemeral.push(args); } },
     views: { open: async (args: any) => { opened.push(args); } },
   };
-  const card = (messageText: string) => slack.messages.find(message => !message.threadTs && message.message.text === messageText);
-  const thread = (timestamp: string) => slack.messages.filter(message => message.threadTs === timestamp);
-  const channelTexts = () => slack.messages.filter(message => !message.threadTs).map(message => message.message.text);
+  const card = (messageText: string) => slack.messages.find(message => message.message.text === messageText);
+  const channelTexts = () => slack.messages.map(message => message.message.text);
+  const lastUpdate = (timestamp: string) => slack.updates.filter(updated => updated.timestamp === timestamp).at(-1)?.message;
   const button = (timestamp: string, actionId: string) => {
     const posted = slack.messages.find(message => message.timestamp === timestamp)!;
     return posted.message.blocks
@@ -66,25 +66,19 @@ function startRun() {
   };
   const layoutPosted = () => Boolean(card(LAYOUT_CARD));
   const planPosted = () => Boolean(card(PLAN_CARD));
-  return { orchestrator, slack, tracking, ephemeral, opened, client, runAction, card, thread, channelTexts, clickLayout, clickPlan, submitPlan, layoutPosted, planPosted, summary: (): RunSummary | undefined => summary };
+  return {
+    orchestrator, slack, tracking, ephemeral, opened, client, runAction, card, channelTexts, lastUpdate,
+    clickLayout, clickPlan, submitPlan, layoutPosted, planPosted, summary: (): RunSummary | undefined => summary,
+  };
 }
 
 describe('Slack gates', () => {
-  it('shows only the gate in the channel and puts the run steps in a thread', async () => {
+  it('shows the layout gate as the only channel message', async () => {
     const flow = startRun();
     await until(flow.layoutPosted);
     for (let i = 0; i < 50; i++) await tick();
 
     expect(flow.channelTexts()).toEqual([LAYOUT_CARD]);
-    const gate = flow.card(LAYOUT_CARD)!;
-    expect(flow.thread(gate.timestamp).map(reply => reply.message.text)).toEqual([
-      'The estate was extracted',
-      'The investigation finished',
-      'Candidate plans proposed',
-      'A candidate breaks a hard constraint; back to propose',
-      'Revised candidate plans proposed',
-      'The candidates hold; on to present',
-    ]);
     expect(flow.summary()).toBeUndefined();
     expect(flow.orchestrator.document()).toMatchObject({ status: 'awaiting_approval', awaiting: 'layout', step: 'present' });
     expect(flow.orchestrator.document().events).toHaveLength(14);
@@ -100,24 +94,18 @@ describe('Slack gates', () => {
     expect(JSON.stringify(gate.message)).toContain('Recommended — consolidate');
   });
 
-  it('records the pick, updates the gate in place and brings back the rehearsal and plan', async () => {
+  it('updates the layout card in place through the pick and the rehearsal, then posts the plan card', async () => {
     const flow = startRun();
     await until(flow.layoutPosted);
     const layoutTs = flow.card(LAYOUT_CARD)!.timestamp;
     await flow.clickLayout('managed_services');
     await until(flow.planPosted);
 
-    const update = flow.slack.updates.find(updated => updated.timestamp === layoutTs)!;
-    const shown = JSON.stringify(update.message);
-    expect(shown).toContain('Architecture picked');
-    expect(shown).toContain('andrei (slack) picked the layout managed_services');
-    expect(shown).toContain('the rehearsal runs on Floci');
-
-    const planTs = flow.card(PLAN_CARD)!.timestamp;
-    const replies = flow.thread(planTs).map(reply => reply.message.text);
-    expect(replies).toContain('Layout picked; on to rehearse');
-    expect(replies).toContain('The rehearsal held');
-    expect(replies.every(text => !text.includes('The estate was extracted'))).toBe(true);
+    const updates = flow.slack.updates.filter(updated => updated.timestamp === layoutTs);
+    expect(JSON.stringify(updates[0].message)).toContain('Architecture picked');
+    expect(JSON.stringify(updates[0].message)).toContain('andrei (slack) picked the layout managed_services');
+    expect(JSON.stringify(updates.at(-1)?.message)).toContain('Rehearsal complete');
+    expect(JSON.stringify(updates.at(-1)?.message)).toContain('99.92%');
     expect(JSON.stringify(flow.card(PLAN_CARD)!.message)).toContain('99.92%');
 
     expect(flow.channelTexts()).toEqual([LAYOUT_CARD, PLAN_CARD]);
@@ -140,17 +128,16 @@ describe('Slack gates', () => {
     expect(plan).not.toContain('managed_services');
   });
 
-  it('shows a rehearsal progress line in the layout thread and completes it in place', async () => {
+  it('animates the rehearsal progress inside the layout card and finishes it with the measured result', async () => {
     const flow = startRun();
     await until(flow.layoutPosted);
     const layoutTs = flow.card(LAYOUT_CARD)!.timestamp;
     await flow.clickLayout('managed_services');
     await until(flow.planPosted);
 
-    const progress = flow.thread(layoutTs).find(message => message.message.text === 'Rehearsal running');
-    expect(progress).toBeDefined();
-    expect(JSON.stringify(progress!.message)).toMatch(/[▰▱]{8}/);
-    const updates = flow.slack.updates.filter(updated => updated.timestamp === progress!.timestamp);
+    const updates = flow.slack.updates.filter(updated => updated.timestamp === layoutTs);
+    expect(updates.some(updated => /[▰▱]{8}/.test(JSON.stringify(updated.message)))).toBe(true);
+    expect(JSON.stringify(updates.at(-1)?.message)).toContain('Rehearsal complete');
     expect(JSON.stringify(updates.at(-1)?.message)).toContain('99.92%');
   });
 
@@ -193,8 +180,7 @@ describe('Slack gates', () => {
     expect(run).toMatchObject({ status: 'completed', finished_at: '2026-11-14T09:25:00Z' });
     expect(flow.summary()?.status).toBe('completed');
 
-    const update = flow.slack.updates.find(updated => updated.timestamp === planTs)!;
-    const shown = JSON.stringify(update.message);
+    const shown = JSON.stringify(flow.lastUpdate(planTs));
     expect(shown).toContain('Plan approved');
     expect(shown).toContain('andrei (slack) approved the plan');
     expect(shown).toContain('looks good');

@@ -2,7 +2,7 @@ import type { BlockKitMessage } from '../domain/messages.js';
 import type { HumanDecision, Run, RunEvent } from '../domain/run.js';
 
 export interface SlackClient {
-  postMessage(channel: string, message: BlockKitMessage, threadTs?: string): Promise<string>;
+  postMessage(channel: string, message: BlockKitMessage): Promise<string>;
   updateMessage(channel: string, timestamp: string, message: BlockKitMessage): Promise<void>;
 }
 
