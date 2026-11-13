@@ -10,8 +10,8 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 | 2. What is their problem? | done; price goes in the form |
 | 3. How do we get into their day? | done |
 | 4. Business plan | skipped for now; one-off or cron, price from the form |
-| 5. Design the product | in progress |
-| 6. Branding | |
+| 5. Design the product | done at PRD level; provider list left for the SPEC |
+| 6. Branding | next |
 
 ## 1. Target
 
