@@ -51,7 +51,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        app: [estate, extractor, agent, engine]
+        app: [estate, extractor, agent, engine, sandbox]
     steps:
       - uses: actions/checkout@v4
       - name: Tools on PATH
@@ -75,7 +75,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        app: [site, phone]
+        app: [site, phone, slack-bot]
     defaults:
       run:
         working-directory: apps/${{ matrix.app }}
