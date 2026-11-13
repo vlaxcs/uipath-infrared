@@ -66,6 +66,47 @@
       "ops_hours_month_per_unit": 1
     },
     {
+      "id": "managed-pg-platform", "kind": "postgres", "provider": "managed_pg", "service": "postgres-platform",
+      "description": "Generic Postgres platform with auth, storage and APIs bundled in, on fixed compute sizes. Illustrative numbers, not a vendor price list. Lacks pg_partman in this catalog.",
+      "regions": ["eu-central-1", "eu-west-1", "us-east-1"],
+      "pricing": {
+        "model": "tiered_instance",
+        "tiers": [
+          { "id": "p-l",   "vcpu": 2,  "memory_gb": 8,   "monthly_eur": 100 },
+          { "id": "p-xl",  "vcpu": 4,  "memory_gb": 16,  "monthly_eur": 195 },
+          { "id": "p-2xl", "vcpu": 8,  "memory_gb": 32,  "monthly_eur": 390 },
+          { "id": "p-4xl", "vcpu": 16, "memory_gb": 64,  "monthly_eur": 780 },
+          { "id": "p-8xl", "vcpu": 32, "memory_gb": 128, "monthly_eur": 1560 }
+        ],
+        "per_unit": [ { "driver": "storage_gb_month", "eur_per_unit": 0.125 } ],
+        "egress_per_gb_eur": 0.09, "free_egress_gb": 250, "multi_az_multiplier": 2.0
+      },
+      "sla": { "availability_pct": 99.9, "failure_domain_scope": "single_zone", "failure_domains": 1, "multi_az_availability_pct": 99.95 },
+      "features_supported": ["pg_trgm", "uuid-ossp", "postgis", "pgvector", "hstore", "logical_replication"],
+      "migration": { "effort_hours_fixed": 40, "effort_hours_per_100gb": 4, "cutover_downtime_hours": 2, "risk_factor": 0.4 },
+      "ops_hours_month_per_unit": 1
+    },
+    {
+      "id": "managed-pg-branching", "kind": "postgres", "provider": "managed_pg", "service": "serverless-postgres-branching",
+      "description": "Generic serverless Postgres with separate storage and compute, database branching and scale to zero. Illustrative numbers, not a vendor price list. Lacks logical_replication in this catalog.",
+      "regions": ["eu-central-1", "eu-west-1", "us-east-1"],
+      "pricing": {
+        "model": "tiered_instance",
+        "tiers": [
+          { "id": "cu-2",  "vcpu": 2,  "memory_gb": 8,  "monthly_eur": 130 },
+          { "id": "cu-4",  "vcpu": 4,  "memory_gb": 16, "monthly_eur": 260 },
+          { "id": "cu-8",  "vcpu": 8,  "memory_gb": 32, "monthly_eur": 520 },
+          { "id": "cu-16", "vcpu": 16, "memory_gb": 64, "monthly_eur": 1040 }
+        ],
+        "per_unit": [ { "driver": "storage_gb_month", "eur_per_unit": 0.35 } ],
+        "egress_per_gb_eur": 0.09, "free_egress_gb": 100, "multi_az_multiplier": 1.0
+      },
+      "sla": { "availability_pct": 99.95, "failure_domain_scope": "multi_zone", "failure_domains": 3 },
+      "features_supported": ["pg_trgm", "uuid-ossp", "pgvector", "hstore", "pg_partman"],
+      "migration": { "effort_hours_fixed": 45, "effort_hours_per_100gb": 4, "cutover_downtime_hours": 1, "risk_factor": 0.45 },
+      "ops_hours_month_per_unit": 1
+    },
+    {
       "id": "onprem-postgres", "kind": "postgres", "provider": "onprem", "service": "self-hosted-postgres", "platform": "onprem-dc1",
       "regions": ["onprem-dc1"],
       "pricing": { "model": "onprem_allocated" },

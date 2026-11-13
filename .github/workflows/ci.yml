@@ -51,7 +51,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        app: [estate, extractor, agent]
+        app: [estate, extractor, agent, engine]
     steps:
       - uses: actions/checkout@v4
       - name: Tools on PATH
@@ -63,6 +63,10 @@ jobs:
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - name: Compile
         run: python -m compileall -q apps/${{ matrix.app }}
+      - name: Tests
+        if: ${{ hashFiles(format('apps/{0}/tests/**', matrix.app)) != '' }}
+        working-directory: apps/${{ matrix.app }}
+        run: python -m pytest -q
 
   web:
     runs-on: [self-hosted, linux, infrared]
