@@ -12,10 +12,10 @@ Built against `docs/spec.md`. P0 is the demo path and lands before the feature f
 
 | Pri | Task | Done when |
 | --- | --- | --- |
-| P0 | Repo setup: merge #3, then #2; fix the items in spec section 5 (paths, `requirements.txt`, the name, bash note); CI runs `check_mock.py` on every pull request | `main` has the estate, the contract and the engine design; CI is green |
+| P0 | Repo setup: merge #3, then #2; move them into `apps/` and `contracts/` (spec section 3); fix the items in spec section 7; CI runs `check_mock.py`, lint and tests on every pull request | `main` follows the structure in spec section 3; CI is green |
 | P0 | Settle LLM access: Anthropic key, or the agent through OpenRouter | one agent run completes on the mock |
 | P0 | `run.schema.json`: run state and events | the dashboard and the Slack bot can read a sample run |
-| P0 | Orchestrator in Go: runs steps 1 to 6 of the workflow (spec section 3), holds run state, logs every decision with its reason, exposes runs and events over HTTP | a run on the mock reaches step 6 with every step logged |
+| P0 | Orchestrator in Go: runs steps 1 to 6 of the workflow (spec section 5), holds run state, logs every decision with its reason, exposes runs and events over HTTP | a run on the mock reaches step 6 with every step logged |
 | P0 | The revise loop: engine violations and sandbox gaps go back to the agent, bounded by a maximum number of revisions | an injected constraint failure triggers exactly one revision |
 | P0 | Approval endpoints: pick the analyses to keep, approve the plan | the dashboard and Slack can both approve |
 | P1 | Agent change: an `evaluate_candidate` tool that calls the engine, so the agent's numbers come from the engine | no number in the output comes from the model |
@@ -47,10 +47,11 @@ Continues the estate in #3.
 | P1 | Extractor extensions: AI consumption, Postgres statistics for refactoring, GitHub runners | the new fields pass the extended schema |
 | P1 | Slack bot: run summaries and approval buttons, calling the orchestrator API (Vlad provides the Slack keys) | the plan is approved from Slack and the run continues |
 
-## Robi: dashboard
+## Robi: dashboard and phone
 
 | Pri | Task | Done when |
 | --- | --- | --- |
+| P0 | Phone frame (`apps/phone`): an iPhone screen on the laptop, running a browser logged into Slack | the plan is approved from Slack inside the frame, next to the dashboard |
 | P0 | Run view: the steps of a run, live, with each decision and its reason | a run on the mock is followed step by step |
 | P0 | Dependency graph, built from the prototype in #3 `graph/` | the start-up mock's graph renders with its edges |
 | P0 | Candidates: cost, availability, risk, effort, why each lost; the winner's change step by step | renders a `result.json` from the engine |
@@ -64,8 +65,9 @@ Continues the estate in #3.
 | --- | --- | --- |
 | P0 | Palette, mascot, logo | approved by Vlad |
 | P0 | Design tokens (colours, type, spacing, radii) as global CSS variables, handed to Robi | the dashboard uses only the tokens |
+| P0 | Product page (`apps/site`, imported from an earlier product page): retheme it as Infrared with the new branding, and replace the old product's content and assets | no trace of the earlier product remains; the page uses only the tokens |
 | P0 | Dashboard screens: run view, graph, candidates, approvals | Robi builds from them |
-| P1 | Pitch website: content from the PRD, screenshots from the dashboard, the rubric mapped slide by slide | a live URL |
+| P1 | Pitch pages in `apps/site`: content from the PRD, screenshots from the dashboard, the rubric mapped slide by slide | a live URL |
 | P1 | Video: screen recordings, Rive animations, AI voiceover, the sound library | a finished cut |
 
 ## Needs a decision

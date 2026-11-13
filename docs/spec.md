@@ -32,10 +32,58 @@ The technical design for building Infrared, as described in `docs/prd.md`. This 
 | Dashboard | runs, the dependency graph, candidates, the step-by-step change, approvals | web (TypeScript) | prototype graph exists (#3) |
 | Slack bot | run summaries and approvals | Go or TypeScript | new |
 | Chrome extension | Infrared inside the GitHub organisation: runners, run status | TypeScript | new |
+| Phone frame | an iPhone screen on the laptop, running a browser logged into Slack, where approvals happen live in the demo | TypeScript | new |
+| Product page | the vertical page that carries the theme and doubles as the pitch site | TypeScript, React | started (`apps/site`, imported from an earlier product page) |
 
 **How components connect.** The pipeline stages exchange contract files (`infra.json`, `forecast.json`, `catalog.json`, `result.json`), validated against their schemas. The orchestrator calls each stage as a subprocess or over HTTP, and serves run state and events to the surfaces over an HTTP JSON API. gRPC is reserved for Go-to-Go calls if more Go services appear; with one Go service, plain HTTP and the existing JSON Schemas avoid maintaining a second set of definitions in protobuf.
 
-## 3. The agentic workflow
+## 3. Repository structure
+
+Every service lives under `apps/`, one folder per service. Contracts are shared and live outside the services.
+
+```
+apps/
+  estate/            Floci estate simulator, synthetic metrics, ground truth
+  extractor/         infra.json from the cloud APIs
+  agent/             investigation and candidate proposals
+  engine/            pricing, constraints, ranking
+  sandbox/           rehearsal: traffic and failure simulation
+  orchestrator/      the workflow, run state, approvals, HTTP API (Go)
+  dashboard/         the web app
+  slack-bot/
+  chrome-extension/
+  phone/             the iPhone frame with Slack
+  site/              the product page: theme and pitch
+contracts/           JSON Schemas, examples, mocks, check_mock.py
+docs/                prd.md, spec.md, tasks.md
+```
+
+`apps/estate/ground_truth/` is the agent's answer key: no other service reads it.
+
+## 4. Engineering rules
+
+**Structure**
+- Respect the structure above. A file lives in the service it belongs to; nothing shared lives inside a service.
+- No single-layer services. Each service separates its entry point (CLI, HTTP handler, bot event), its application logic, its domain, and its adapters to the outside world (cloud APIs, Floci, Slack, GitHub, the LLM). The domain never imports an adapter.
+- One responsibility per file. A file that needs a section banner to be readable is two files.
+
+**Code**
+- No comments. The only exceptions are license headers and pragmas the tooling requires. If code needs a comment to be readable, rename things until it doesn't.
+- Sophisticated, not complicated: if an approach can't be explained in two sentences, it's the wrong approach.
+- No premature pessimisation, in this order: never call an API or a query inside a loop when a batch exists; never read fields you don't use, and never ship them to the client; batch writes; pick the right data structure before the input grows.
+- Never claim something is fast without a measurement.
+- Frontend: design tokens (colours, type, spacing, radii) live as global CSS variables. No hardcoded values or inline styles in components.
+
+**Tests**
+- Every behaviour in this spec gets a test, written while it is built, not after.
+- A test that can't fail is deleted. Tests check behaviour someone would notice breaking, not the implementation.
+- Every bug gets a failing test before its fix.
+
+**Git**
+- Every change lands through a pull request into `main`. Nobody pushes to `main` directly.
+- A pull request's description states what it changes, what depends on it, and the manual checks a reviewer runs.
+
+## 5. The agentic workflow
 
 One run, per project:
 
@@ -56,7 +104,7 @@ The loop between 3, 4 and 5 is what makes Infrared an agent and not a fixed pipe
 
 **Decision criteria per project.** Each project has its own `forecast.json`, with its own criteria: high availability (`ha_level`, `min_availability_pct`), cost (`weights`, budget), and zones (`min_zones`, residency).
 
-## 4. Contracts
+## 6. Contracts
 
 | Contract | Owner | Status |
 | --- | --- | --- |
@@ -72,7 +120,7 @@ Extensions the PRD needs, as minor versions of `infra.schema.json`:
 - Database schemas: tables, sizes, hot tables, from Postgres statistics, for the refactoring suggestions. Schemas and statistics only, never table rows.
 - GitHub runners: runner type, hours, workflow history.
 
-## 5. What we keep from #2 and #3
+## 7. What we keep from #2 and #3
 
 | Piece | Verdict | Why |
 | --- | --- | --- |
@@ -86,29 +134,31 @@ Extensions the PRD needs, as minor versions of `infra.schema.json`:
 | #2 open decisions (section 5) | accept the proposals | priced `security_remediation` layer; keep the infeasible budget as a demo; add a start-up-sized mock |
 
 **To fix before merging:**
+- Move `infrared/` into the structure in section 3: `synth/` and `ground_truth/` to `apps/estate/`, `extract_floci.py` to `apps/extractor/`, `agent/` to `apps/agent/`, `graph/` to `apps/dashboard/`, the schemas, examples, mocks and checker to `contracts/`.
+- Remove the comments and docstrings (section 4), and split single-file modules into the layers section 4 asks for, starting with `extract_floci.py` (811 lines) and `agent/main.py`.
 - `infrared/agent/README.md` has a path from one laptop (`/Users/...`); use paths relative to the repo.
 - No pinned dependencies: add `requirements.txt` (`boto3`, `claude-agent-sdk`, `jsonschema`).
 - The product name is spelled "InfraRed" in #3 and #2; the product is **Infrared**.
 - `run.sh`, `reset.sh`, `stop-live.sh` are bash only; document that Windows machines run them in Git Bash or WSL.
 - #2 targets #3's branch: merge #3 first, then #2.
 
-## 6. LLM
+## 8. LLM
 
 The agent runs on the Claude Agent SDK, which expects an Anthropic API key. The hackathon provides OpenRouter credentials. Before building on it, confirm one of: the team has an Anthropic key, or the SDK runs through OpenRouter's Anthropic-compatible endpoint. Until confirmed, this is the biggest risk to the agent.
 
-## 7. Demo path
+## 9. Demo path
 
 1. A start-up-sized project in Floci with a poor infrastructure, and its `forecast.json`.
 2. A run starts from the dashboard; the steps appear live.
 3. The engine rejects one candidate for a hard constraint (a zone the project does not allow); the agent revises it.
 4. The sandbox rehearses the winner, a failure is injected, the fallback holds.
 5. The dashboard shows the dependency graph, the candidates with why each lost, and the change step by step.
-6. The CTO picks the analyses to keep and approves the plan from Slack.
+6. The CTO picks the analyses to keep and approves the plan from Slack, on the phone frame next to the dashboard.
 7. Phase 2, if built: the first step opens a pull request; after merge, Infrared verifies against the forecast.
 
 A recorded run of the same path is kept as a fallback.
 
-## 8. Testing
+## 10. Testing
 
 - Contracts: `check_mock.py` on every contract file, in CI.
 - Engine: build steps a to h, each tested against `mock/demo-shop.expected-signals.md` (#2 section 7); never against `ground_truth/`.
@@ -116,15 +166,15 @@ A recorded run of the same path is kept as a fallback.
 - Determinism: the same inputs give the same `result.json`, byte for byte.
 - Workflow: a run on the mock reaches step 6 with every step logged; an injected constraint failure triggers exactly one revision.
 
-## 9. Open decisions
+## 11. Open decisions
 
 - Engine language: Python, as designed in #2, or Go with the orchestrator.
-- LLM access: Anthropic key or OpenRouter (section 6).
+- LLM access: Anthropic key or OpenRouter (section 8).
 - Which targets the catalog prices first (the PRD lists more than the catalog covers).
 - Who chooses the criteria for a project.
 - Phase 2 infrastructure code: OpenTofu or Terraform, and which repository the pull requests go to in the demo.
 
-## 10. Out of scope today
+## 12. Out of scope today
 
 - Providers other than AWS as the source cloud.
 - Applying any change outside Floci.
