@@ -137,7 +137,19 @@ Questions for mentors in this step:
 
 ## 3. How do we get into their day? (20 min)
 
-Rule: plug into habits they already have; be a helper for their judgement, not a replacement.
+Plug into habits they already have instead of asking them to install something new. Proposed answer, the team decides:
+
+**Helper for their judgement, not a replacement.** The agent prepares and chases. HR, the manager and the access owner decide. It never approves access or picks a cover on its own: it proposes, they tap.
+
+**Channel: Slack.** In a start-up, HR, managers, buddies and IT are already on Slack all day. The agent writes to each of them there, approvals included. No new tool to install. Before day one the new hire isn't on Slack yet, so they get emails from the company's Workspace.
+
+**Linked to what they already do:**
+- Google Calendar: who is away on the start date, and when the first day happens;
+- Google Workspace: the account and its groups;
+- GitHub and GCP: the access the first tasks need, and the access left behind at offboarding;
+- what HR uses today (a spreadsheet or an HR tool): the agent reads the start date and the position from there, it doesn't replace them.
+
+A web page shows the run step by step, for whoever wants to follow it or correct a step. It's what the rubric's "follow progress, correct mistakes" needs, but people's day stays in Slack.
 
 Where each person already is, during onboarding and offboarding:
 
@@ -157,10 +169,6 @@ Channels to pick from:
 | Google Workspace (Calendar, Gmail) | Workspace is mandatory in the PRD; availability on the start date comes from Calendar | email alone is slow for approvals |
 | web app | a page for HR to follow the run and correct it: the "follow progress, correct mistakes" part of the rubric | it's one more place to open |
 
-Questions for the team:
-- which channel does the approval go through?
-- where does HR follow the run: in Slack, or on a page in the app?
-- what does the new hire see before day one, when they're not on Slack yet?
 
 ## Sources
 
