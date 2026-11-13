@@ -43,7 +43,7 @@ The Electron window passes the Slack address to the page in the query string; th
 
 ## Spike outcome
 
-Slack's sign-in page fits 396 px, but the signed-in client lays out at 668 px and clips the conversation. The Slack view is therefore zoomed to `0.55` when its page is ready (`electron/zoom.ts`), which gives it 720 px of layout inside the 396 px screen: the full client fits and stays readable.
+Slack's sign-in page fits 396 px, but the signed-in client is desktop-only: it lays out at 668 px and clips the conversation at 396 px (a mobile user agent is sent to the app handoff page). The Slack view is therefore zoomed when its page is ready (`electron/zoom.ts`) to the largest factor at which the full client still fits: `396 / 668 ≈ 0.59`, rounded down to two decimals. That gives it about 671 px of layout inside the 396 px screen — full client and as large as the screen permits.
 
 ## Risks
 
