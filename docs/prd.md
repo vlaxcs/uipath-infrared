@@ -7,7 +7,7 @@ MVP for the UiPath hackathon "Agents in Action". Built from the decisions in `do
 An end-to-end agentic workflow. It analyses the client's infrastructure against their internal projects, whose expectations are known, and makes decisions on three criteria:
 1. high availability;
 2. cost reduction;
-3. the zones wanted for each project (to confirm).
+3. the zones wanted for each project.
 
 The decisions can move infrastructure across providers: hyperscalers, platforms such as Supabase, and on-prem. Each run produces:
 - the analysis of the current infrastructure;
