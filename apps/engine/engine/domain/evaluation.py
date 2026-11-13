@@ -12,6 +12,7 @@ from engine.domain.forecast import Forecast
 from engine.domain.growth import growth_split, total_split
 from engine.domain.migration import Migration, migration_of
 from engine.domain.model import Infra
+from engine.domain.onprem import OnpremPlatformCost, platform_cost
 from engine.domain.ops import ops_monthly_eur
 from engine.domain.outage import expected_outage_loss_eur_year
 from engine.domain.pricing import Growth
@@ -39,6 +40,7 @@ class Evaluation:
     ops_eur_month: float
     outage_eur_year: float
     egress_eur_month: float
+    onprem: OnpremPlatformCost | None
     remediation_hours: float
     remediation_eur: float
     migration_eur: float
@@ -95,6 +97,9 @@ def evaluate_candidate(
     egress = new_boundary_egress(end_state, infra, catalog)
     split = total_split(growth_split(c, end_state.placements[c.component]) for c in costs)
     split[Growth.TRAFFIC] += egress.monthly_eur
+    onprem = platform_cost(end_state, catalog, business)
+    if onprem is not None:
+        split[Growth.FIXED] += onprem.allocated_monthly_eur
     projection = project(split, forecast)
     migration = migration_of(
         end_state, catalog, business,
@@ -127,6 +132,7 @@ def evaluate_candidate(
         ops_eur_month=ops,
         outage_eur_year=outage,
         egress_eur_month=egress.monthly_eur,
+        onprem=onprem,
         remediation_hours=remediation_hours,
         remediation_eur=remediation_eur,
         migration_eur=migration_eur,

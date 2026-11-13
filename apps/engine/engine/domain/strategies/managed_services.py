@@ -6,6 +6,7 @@ from engine.domain.costing import cost_placement
 from engine.domain.end_state import EndState, Placement, apply_action, apply_candidate
 from engine.domain.forecast import Forecast, HardConstraints
 from engine.domain.model import Infra, StayTogether
+from engine.domain.placement_size import unit_size
 from engine.domain.regions import region_matches
 from engine.domain.structure import stay_together_groups
 from engine.domain.tiers import resolve_tier
@@ -91,7 +92,7 @@ def _assess(
 ) -> Assessment:
     component = placement.component
     before = cost_placement(placement, catalog).monthly_eur
-    vcpu, memory_gb = _effective_size(placement, catalog)
+    vcpu, memory_gb = unit_size(placement, catalog)
     moves, rejected = [], []
     for option in _targets(placement, catalog):
         lacking = option.lacks_features(component.features_used)
@@ -118,14 +119,6 @@ def _assess(
         evidence = cost.catalog.evidence if cost.catalog else ()
         moves.append(Move(component.id, option, tier, before, cost.monthly_eur, evidence))
     return Assessment(component.id, tuple(moves), tuple(rejected))
-
-
-def _effective_size(placement: Placement, catalog: Catalog) -> tuple[float | None, float | None]:
-    if placement.tier_id and placement.option_id:
-        for tier in catalog.option(placement.option_id).pricing.tiers:
-            if tier.id == placement.tier_id:
-                return tier.vcpu, tier.memory_gb
-    return placement.unit_vcpu(), placement.unit_memory_gb()
 
 
 def _provider_allowed(provider: str, constraints: HardConstraints) -> bool:
