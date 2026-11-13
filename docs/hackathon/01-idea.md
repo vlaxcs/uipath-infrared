@@ -1,4 +1,4 @@
-﻿# Idea phase (2 hours) -> one-page PRD
+# Idea phase (2 hours) -> one-page PRD
 
 Output of this phase: a one-page PRD the mentors validated. Who pays, what problem, why now, how we make money. Nothing in here is decided until it lands in the decision log in `00-before.md`.
 
