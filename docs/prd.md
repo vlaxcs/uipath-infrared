@@ -1,4 +1,4 @@
-# InfraRed PRD
+# Infrared PRD
 
 MVP for the UiPath hackathon "Agents in Action". Built from the decisions in `docs/hackathon/01-idea.md`; reasons and rejected ideas are in the decision log in `docs/hackathon/00-before.md`.
 

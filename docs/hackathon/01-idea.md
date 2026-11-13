@@ -66,7 +66,7 @@ Gap: nobody turns the financial roadmap into a re-planned architecture across hy
 
 ## 6. Branding
 
-- **Name:** InfraRed.
+- **Name:** Infrared.
 - **Palette, mascot, logo:** Miruna proposes them.
 
 ## Open questions

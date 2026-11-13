@@ -103,7 +103,7 @@ CVs go in `docs/hackathon/cvs/`. Add here what each CV misses.
 | Idea 5 | Real, not simulated: the Slack bot, the new hire's Microsoft account and email, Microsoft SSO sign-in; replaces "simulated in the phone frame" | Vlad |
 | Idea 5 | Occupational medicine at Regina Maria moves to the trainings: slots proposed by email, the slot read from the reply, then booked | Vlad |
 | Idea 5 | On-prem as an option, with hidden costs (lab setup, cooling, disk replacement, risks); we choose the sources; several analyses per run, the CTO (client) picks which carry into later plans | jury feedback |
-| Idea 6 | Name: InfraRed | Vlad |
+| Idea 6 | Name: Infrared (one capital letter) | Vlad |
 | Pivot | Wellboarder rejected; playbook restarts from step 1 with a new problem: re-plan a company's cloud infrastructure across providers from the roadmap and financial forecast | mentor: every company grants access through different providers and services, so onboarding is hard to generalise across companies |
 | Idea gate | A second mentor: the onboarding idea is fairly common | originality at risk (15 points); direction to decide |
 | Idea gate | Mentors validated the idea; the validation form is out, answers pending | Vlad |
