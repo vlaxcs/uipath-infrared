@@ -1,0 +1,64 @@
+:root {
+  color-scheme: light;
+
+  --color-canvas: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-surface-muted: #eef0f3;
+  --color-border: #dde1e7;
+  --color-border-strong: #c3c9d2;
+  --color-fg: #14171c;
+  --color-fg-muted: #5a6270;
+  --color-fg-subtle: #7a8290;
+  --color-accent: #3557d6;
+  --color-on-accent: #ffffff;
+  --color-focus: #3557d6;
+  --color-status-running: #2f6fdb;
+  --color-status-awaiting: #966200;
+  --color-status-completed: #1c7a4d;
+  --color-status-failed: #b3261e;
+  --color-status-neutral: #5a6270;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-label: 0.875rem;
+  --text-label--line-height: 1.25rem;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+  --text-title: 1.25rem;
+  --text-title--line-height: 1.75rem;
+  --text-display: 1.5rem;
+  --text-display--line-height: 2rem;
+
+  --radius-control: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-pill: 9999px;
+
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --color-canvas: #0d1015;
+    --color-surface: #141920;
+    --color-surface-muted: #1b222b;
+    --color-border: #29323d;
+    --color-border-strong: #3a4653;
+    --color-fg: #e7ebf1;
+    --color-fg-muted: #9aa4b2;
+    --color-fg-subtle: #7b8594;
+    --color-accent: #8aa2ff;
+    --color-on-accent: #0d1015;
+    --color-focus: #8aa2ff;
+    --color-status-running: #6b9cff;
+    --color-status-awaiting: #e0a83c;
+    --color-status-completed: #56c98a;
+    --color-status-failed: #ff7b72;
+    --color-status-neutral: #9aa4b2;
+  }
+}
