@@ -20,10 +20,15 @@ class Placement:
     running: bool = True
     autoscaled: bool = False
     removed: bool = False
+    origin_option_id: str | None = None
 
     @property
     def unchanged(self) -> bool:
-        return self == initial_placement(self.component, self.option_id)
+        return _footprint(self) == _footprint(initial_placement(self.component, self.origin_option_id))
+
+    @property
+    def switched_option(self) -> bool:
+        return self.option_id != self.origin_option_id
 
     @property
     def moved(self) -> bool:
@@ -53,6 +58,15 @@ def initial_placement(component: Component, option_id: str | None) -> Placement:
         region=component.region,
         zones=component.zones or 1,
         quantity=component.quantity,
+        origin_option_id=option_id,
+    )
+
+
+def _footprint(placement: Placement) -> tuple:
+    return (
+        placement.option_id, placement.provider, placement.region, placement.zones, placement.quantity,
+        placement.tier_id, placement.vcpu, placement.memory_gb, placement.running, placement.autoscaled,
+        placement.removed,
     )
 
 
