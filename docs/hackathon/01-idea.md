@@ -9,8 +9,8 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 | 1. Who do we target? | done |
 | 2. What is their problem? | done; price goes in the form |
 | 3. How do we get into their day? | done |
-| 4. Business plan | next |
-| 5. Design the product | |
+| 4. Business plan | skipped for now; one-off or cron, price from the form |
+| 5. Design the product | in progress |
 | 6. Branding | |
 
 ## 1. Target
