@@ -33,6 +33,40 @@ clustered by stack; filter by stack / connection kind / status; click a node for
 Nodes come from live floci state; edges = `topology.json` + relationships read from the API (placement, roles, containment).
 Stack, idle and orphan are derived from naming and observed metrics, not from the planted-issue ledger. `run.sh` regenerates it.
 
+## Start-up estate (`startup/`)
+A second, smaller estate (~10 components, every resource prefixed `startup-`) that mirrors
+`contracts/mock/startup.infra.json`: one production stack, about EUR 3k/month. The engine is tested on it as a
+start-up-sized project. Run everything from `apps/estate` with the repo-root `.env` exported.
+
+    cd apps/estate
+    set -a && source ../../.env && set +a
+    ../../.venv/bin/python -m startup.build     # creates what is missing, reuses the rest (safe to re-run)
+    ../../.venv/bin/python -m startup.metrics   # 14 days of hourly CloudWatch points for the startup- resources
+    ../../.venv/bin/python -m startup.teardown  # deletes every startup- resource (ask before running it)
+
+`build` looks every resource up by its Name tag or identifier before creating it, so a second run creates nothing.
+The three web servers are one Auto Scaling Group `startup-web` (desired 3), which the extractor reports as one
+`virtual_machine` with quantity 3. `metrics` gives the statuses the mock declares: steady SQS traffic keeps
+`startup-queue` active, and ~0.8% CPU with no network out makes `startup-old-bastion` idle. Re-running it adds a
+second point per hour; averages stay the same.
+
+Compare against the mock (write the extraction outside the repo, never to `contracts/real/`):
+
+    cd apps/extractor && ../../.venv/bin/python extract_floci.py --out /tmp/startup-extraction.json
+    cd ../estate && ../../.venv/bin/python compare_startup.py /tmp/startup-extraction.json ../../contracts/mock/startup.infra.json
+    ../../.venv/bin/python -m pytest -q test_compare_startup.py
+
+The comparison keeps extractor components whose name contains `startup`, plus the orphan volume. The extractor
+names that volume after its type and size (`vol-orphan-gp2-500gb`), so it is matched by kind, type and size. Other
+components match by kind and name: `startup-<mock id>` first, then name similarity. It compares `quantity`, `zones` and `status`, and
+`security.public_exposure`, `encryption_at_rest` and `backup_retention_days` only where the extractor emits the key.
+An omitted value equals `null`. The run passes only with nothing missing, nothing mismatched and no extra
+`startup` component.
+
+Floci keeps terminated instances listed forever, and the extractor does not skip them yet. Instances from an
+earlier build therefore show up as extra `startup-web-*` / `startup-old-bastion` components until the extractor
+filters `terminated` instances or Floci is reset.
+
 ## Extractor (`apps/extractor/`)
 Reads the live estate through API calls only and writes `contracts/real/floci-estate.infra.json` in the `contracts/infra.schema.json`
 format. See `apps/extractor/README.md` for how it differs from the mock. It never reads `ground_truth/`.
