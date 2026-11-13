@@ -53,7 +53,7 @@ func (w *Workflow) proposeToPresent(entry *tracked) {
 
 func (w *Workflow) propose(entry *tracked, revision int) bool {
 	candidates := fmt.Sprintf("candidates.%d.json", revision)
-	arguments := []string{"propose", "--infra", w.path(entry, "infra.json"), "--forecast", w.path(entry, "forecast.json"), "--findings", w.path(entry, "findings.json"), "--revision", fmt.Sprint(revision)}
+	arguments := []string{"propose", "--infra", w.path(entry, "infra.json"), "--forecast", w.path(entry, "forecast.json"), "--catalog", w.path(entry, "catalog.json"), "--findings", w.path(entry, "findings.json"), "--revision", fmt.Sprint(revision)}
 	if revision > 0 {
 		arguments = append(arguments, "--feedback", w.path(entry, feedbackFile(revision)))
 	}

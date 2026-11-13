@@ -18,7 +18,7 @@ Every stage is a subprocess. Its command prefix comes from configuration (sectio
 | --- | --- | --- | --- |
 | extract | `<extract> --project <project> --out infra.json` | `infra.json` | `infra.schema.json` |
 | investigate | `<agent> investigate --infra infra.json --out findings.json` | `findings.json` | a JSON object |
-| propose | `<agent> propose --infra infra.json --forecast forecast.json --findings findings.json --revision <n> [--feedback feedback.<n>.json] --out candidates.<n>.json` | `candidates.<n>.json` | `candidates.schema.json`, and its `revision` equals `n` |
+| propose | `<agent> propose --infra infra.json --forecast forecast.json --catalog catalog.json --findings findings.json --revision <n> [--feedback feedback.<n>.json] --out candidates.<n>.json` | `candidates.<n>.json` | `candidates.schema.json`, and its `revision` equals `n` |
 | evaluate | `<engine> evaluate infra.json forecast.json catalog.json --candidates candidates.<n>.json --out result.<n>.json` | `result.<n>.json` | `result.schema.json` |
 | rehearse | `<sandbox> rehearse --result result.<n>.json --candidate <layout> --infra infra.json --forecast forecast.json --out rehearsal.<n>.json` | `rehearsal.<n>.json` | `rehearsal.schema.json` |
 
@@ -130,10 +130,13 @@ One run of the demo path (`docs/spec.md` section 9) through the real orchestrato
 The agent becomes the two stage commands of section 2. Built after the orchestrator.
 
 - `python -m agent investigate --infra <f> --out <f>`: the current lead and specialists, on the current read-only tools. `record_finding` appends to the findings document instead of `out/findings.jsonl`; `monthly_saving_usd` and `saving_basis` leave the tool, because the model's numbers are not numbers Infrared shows. The file is `{"findings": [...]}`, written once at the end.
-- `python -m agent propose --infra --forecast --findings --revision <n> [--feedback] --out <f>`: one agent with the findings, the forecast's criteria and the feedback in its prompt, and two tools:
+- `python -m agent propose --infra --forecast --catalog --findings --revision <n> [--feedback] --out <f>`: one agent with the findings, the forecast's criteria and the feedback in its prompt, and two tools:
   - `evaluate_candidate`: takes one candidate in the candidates contract's shape, writes it as a one-candidate `candidates.json` in a temporary directory, runs the engine (`AGENT_ENGINE_CMD`, same prefix rule as section 2) and answers with that candidate's entry of the result: `feasible`, `violations`, `cost.run_eur_month_now`, `availability_pct`, `risk`, `rank`. An engine error comes back as a tool error with the engine's stderr line;
   - `submit_candidates`: takes the candidates, sets `schema_version`, `project`, `revision` and `proposed_by`, checks the document against `candidates.schema.json` and `contracts/candidates_integrity.py`, and writes `--out`. A broken document comes back as a tool error with the reasons, and nothing is written.
 - `propose` exits 1 when the model finishes without a successful `submit_candidates`.
+- Both prompts list the infra.json components (id, kind, region, zones, classification), so findings and actions name components by id. On a revision, the propose prompt also carries the engine's verdict on the agent's previous candidates, read from the feedback's `result`.
+- The SDK session's working directory is the directory of `--out`, the run's directory, so the ground truth stays out of reach.
+- `apps/estate/score.py` reads the findings document, and still reads an older `findings.jsonl`.
 - Layers: `agent/cli.py` (entry), `agent/application/` (the two use cases), `agent/domain/` (prompts, the candidates document), `agent/adapters/` (the SDK, AWS, the engine subprocess, files). The module docstrings and comments go.
 - Tests, with no model: `evaluate_candidate` answers exactly the engine's figures for the same candidate; `submit_candidates` refuses a candidate carrying a price and writes nothing; `propose` exits 1 when a fake model never submits; `investigate` writes a findings document with no saving field.
 - `AGENT_ENGINE_CMD` joins `.env.example`.

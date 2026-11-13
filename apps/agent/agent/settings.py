@@ -30,6 +30,10 @@ def aws() -> AwsSettings:
     )
 
 
+def engine_command() -> list[str]:
+    return required("AGENT_ENGINE_CMD").split()
+
+
 @dataclass(frozen=True)
 class LlmSettings:
     api_key: str

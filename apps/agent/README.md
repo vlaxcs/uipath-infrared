@@ -1,109 +1,74 @@
 # Infrared optimizer agent
 
-A Claude Agent SDK app that reviews the simulated AWS estate (floci, see `apps/estate/README.md`) and
-proposes what to optimize: rightsizing, idle/orphan removal, consolidation, and migration to a better-fit
-service. It is **read-only**. Proposed changes are written as dry-run scripts for a human to review; the
-agent never applies them.
+A Claude Agent SDK app with two commands, the investigate and propose steps of the orchestrator (`docs/orchestrator.md` sections 2 and 8). It reviews the simulated AWS estate (floci, see `apps/estate/README.md`) and proposes candidate plans for the engine. It is **read-only**, and it never states a number: the engine prices, checks and ranks every candidate.
 
-## How it works
-
-```
-                    ┌──────────────── lead agent (agent/main.py) ────────────────┐
- floci :4566  <───  │ inventory -> delegate in parallel -> cross-cutting findings │
- (boto3, CW)        │ -> ranked summary (top 10 by saving, total)                 │
-                    └───────┬───────────────────┬───────────────────┬─────────────┘
-                     compute-analyst      data-analyst       network-analyst
-                     ec2/asg/eks/ecs/     rds/elasticache/   vpc/nat/eip/elb/
-                     lambda               dynamodb/s3/ebs/   route53 + dependency
-                                          efs/kinesis/sqs    map
-                            └──── all use the same 4 MCP tools (agent/tools.py) ────┘
-```
-
-1. The lead takes a quick inventory to find the stacks, then runs the three specialists in parallel.
-2. Each specialist investigates its domain with the tools below and calls `record_finding` once per issue.
-3. The lead fills gaps and records cross-cutting migration/consolidation findings (these need the
-   dependency view), then writes the ranked summary.
-
-### Tools (`agent/tools.py`, in-process MCP server `infra`)
-
-| tool | purpose |
-|---|---|
-| `aws_read` | Any boto3 `describe_` / `list_` / `get_` / `batch_get_` / `lookup_` call against floci. Other operations are rejected. Output is truncated at ~20k chars. |
-| `list_metrics` | Discover CloudWatch series; filter by namespace and/or a substring of a dimension value. |
-| `metric_summary` | avg / min / p50 / p95 / max / sum over N days (default 14, hourly), plus first-half vs second-half average for trend. |
-| `record_finding` | Store one finding with evidence, saving estimate and basis, confidence, risk, migration notes, and an optional dry-run script. |
-
-### Guardrails
-
-- Built-in tools are disabled (`Bash`, `Write`, `Edit`, `Read`, `Glob`, `Grep`, web tools), so the agent
-  only has the four tools above. `permission_mode="dontAsk"`.
-- The agent runs with `cwd=out/`, so `ground_truth/` is out of its reach. Do not copy it into `out/`.
-- Metrics are **synthetic** (floci produces none; `synth/metrics.py` pushes them). The prompt tells the agent
-  to say so and to cap confidence at `medium` unless a configuration fact alone proves the point (e.g. an
-  unattached volume).
-- Savings figures are rough USD/month estimates from the model's knowledge of list prices, with the basis
-  stated in `saving_basis`. Treat them as order-of-magnitude, not billing data.
-
-## Run it
-
-Prerequisites: floci running and the estate built (`apps/estate/run.sh`), and a `.env` at the repo root
-copied from `.env.example`, with `ANTHROPIC_API_KEY` filled in. The SDK launches the Claude Code CLI, so an
-existing Claude Code login may work without the key.
-
-Run from `apps/agent/` (on Windows, in Git Bash or WSL):
+## Commands
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # once
-
-.venv/bin/python -m agent.main                                   # full review
-.venv/bin/python -m agent.main --focus "NAT gateways and orphan storage"   # cheaper, narrower
-.venv/bin/python -m agent.main --model opus --max-turns 200      # stronger model, more headroom
+python -m agent investigate --infra infra.json --out findings.json
+python -m agent propose --infra infra.json --forecast forecast.json --catalog catalog.json \
+  --findings findings.json --revision 0 [--feedback feedback.1.json] --out candidates.0.json
 ```
 
-Flags: `--focus TEXT` (narrow the review), `--model` (default `sonnet`), `--max-turns` (default 150).
-Progress prints each tool call; the final line shows turns and the SDK's estimated cost. A full run makes
-many API calls (lead + three subagents), so try `--focus` first.
+Global flags, before the command: `--model` (default `sonnet`), `--max-turns` (default 150).
 
-Each run **deletes and recreates `out/`**.
+- **investigate**: a lead and three specialists (compute, data, network) read the estate through the tools below and record one finding per issue. Writes `{"findings": [...]}` once at the end. A finding has `id`, `title`, `category`, `stack`, `resources`, `evidence`, `recommendation`, `confidence`, `risk`, `migration_notes` and `dry_run_script`; no saving and no price.
+- **propose**: one agent with the findings, the forecast's hard constraints and enabled strategies, and on a revision the reason and the engine's verdict on its previous candidates. It checks each candidate with `evaluate_candidate` and ends with `submit_candidates`. Exits 1 when the model finishes without a successful submit.
 
-## Output (`out/`, gitignored)
+## Tools
 
-| path | content |
-|---|---|
-| `findings.jsonl` | one JSON object per finding: `id`, `title`, `category`, `stack`, `resources`, `evidence`, `recommendation`, `monthly_saving_usd`, `saving_basis`, `confidence`, `risk`, `migration_notes`, `dry_run_script` (path) |
-| `report.md` | the lead's final ranked summary |
-| `dryrun/F00N.sh` | proposed change for finding `F00N`, using the aws CLI against floci. Review before running; nothing executes it. |
+| tool | command | does |
+|---|---|---|
+| `aws_read` | investigate | any boto3 `describe_` / `list_` / `get_` / `batch_get_` / `lookup_` call against floci; others are rejected; output cut at ~20k chars |
+| `list_metrics` | investigate | CloudWatch series, filtered by namespace and a substring of a dimension value |
+| `metric_summary` | investigate | avg / min / p50 / p95 / max / sum over N days, and the trend |
+| `record_finding` | investigate | stores one finding; refuses an unknown category |
+| `evaluate_candidate` | propose | runs the engine on one candidate and answers with its verdict: `feasible`, `violations`, `run_eur_month_now`, `availability_pct`, `risk`, `rank` |
+| `submit_candidates` | propose | checks the candidates against `contracts/candidates.schema.json` and `contracts/candidates_integrity.py`, then writes `--out`; refuses with the reasons and writes nothing when they break |
 
-Applying one by hand, from the repo root: `set -a; . ./.env; set +a; bash apps/agent/out/dryrun/F003.sh`. The script holds no endpoint or credentials; it stops if the environment is not loaded.
+Built-in tools are disabled (`Bash`, `Write`, `Edit`, `Read`, `Glob`, `Grep`, web tools) and `permission_mode` is `dontAsk`. The session's working directory is the directory of `--out`, so `apps/estate/ground_truth/` stays out of reach. Metrics are synthetic: the prompt says so and caps confidence at `medium` unless a configuration fact alone proves the point.
+
+## Configuration
+
+From the repo-root `.env`, through `agent/settings.py`; a missing variable stops the agent at startup, naming it.
+
+- `ANTHROPIC_API_KEY`, and `ANTHROPIC_BASE_URL` only when routing through another provider.
+- `AWS_ENDPOINT_URL`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` for investigate.
+- `AGENT_ENGINE_CMD` for propose, e.g. `python -m engine`, with `apps/engine` on `PYTHONPATH`.
+
+## Run and test
+
+From `apps/agent/`:
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/python -m pytest -q
+```
+
+The tests run with no model: a fake session calls the tools directly, the engine is the real one.
 
 ## Score it
 
-The scorer lives with the ground truth, in `apps/estate/`:
+The scorer lives with the ground truth, in `apps/estate/`. It reads the findings document (or an older `findings.jsonl`):
 
 ```bash
-python apps/estate/score.py                     # reads apps/agent/out/findings.jsonl
+python apps/estate/score.py runs/run-startup-0001/findings.json
 ```
 
-Compares the findings with `apps/estate/ground_truth/planted_issues.json` and prints recall overall and per
-category, how many findings match a planted issue, and the missed non-security issues. Matching is by
-resource name tokens, so it is crude: read the misses and the unmatched findings by hand (unmatched may be
-real extra findings, not false positives). Run it yourself; never expose the ground truth to the agent.
+It compares the findings with `apps/estate/ground_truth/planted_issues.json` and prints recall overall and per category. Matching is by resource name tokens, so read the misses by hand. Run it yourself; never expose the ground truth to the agent.
 
 ## Known limits
 
 - EKS pods are not simulated, so Kubernetes rightsizing relies on node and ContainerInsights metrics.
-- Metric series aren't keyed to the planted-issue ledger; the agent must match series to resources itself.
-- Not yet verified: that subagents can call the `mcp__infra__*` tools. If a run shows the specialists
-  failing on tool access, move the tool calls to the lead or adjust `AGENTS[...].tools` in `agent/main.py`.
-- Output is not yet converted to a contract format; `findings.jsonl` is its own shape.
+- Not yet verified: that subagents can call the `mcp__infra__*` tools.
+- Not yet run against a model since the CLI split: see the pull request's manual checks.
 
-## Files
+## Layout
 
-```
-apps/agent/
-  agent/main.py      lead + subagent definitions, prompts, run loop
-  agent/tools.py     read-only MCP tools and finding/dry-run writer
-  agent/aws.py       boto3 clients built from the environment
-  agent/settings.py  reads .env, stops when a variable is missing
-  requirements.txt
-```
+| Path | Layer | Holds |
+|---|---|---|
+| `agent/cli.py`, `agent/__main__.py` | entry point | arguments, wiring |
+| `agent/application/` | application | `investigate`, `propose` (`Proposal`), the tool shape, the ports |
+| `agent/domain/` | domain | prompts, the findings log, the candidates document and the figures read from a result |
+| `agent/adapters/` | adapters | the SDK session, AWS clients and read tools, the engine subprocess, the contract checker |
+| `agent/settings.py` | configuration | the environment and `.env` |

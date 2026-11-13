@@ -33,7 +33,7 @@ investigating.add_argument("--infra", required=True)
 investigating.add_argument("--out", required=True)
 investigating.set_defaults(handler=investigate)
 proposing = commands.add_parser("propose")
-for name in ("--infra", "--forecast", "--findings", "--out"):
+for name in ("--infra", "--forecast", "--catalog", "--findings", "--out"):
     proposing.add_argument(name, required=True)
 proposing.add_argument("--revision", type=int, required=True)
 proposing.add_argument("--feedback")
