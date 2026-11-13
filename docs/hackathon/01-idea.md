@@ -50,6 +50,8 @@ Gap: nobody turns the financial roadmap into a re-planned architecture across hy
 
 ## 3. Getting into their day
 
+- **Channel:** a dashboard and Slack.
+
 ## 4. Business plan
 
 - **Sold as:** one-off runs, or a recurring run (cron job).
