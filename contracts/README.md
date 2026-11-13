@@ -7,6 +7,7 @@ Everything the extractor side and the decision-engine side must agree on, plus a
 | `infra.schema.json` | **The contract.** Extractor output: facts about one project's infrastructure. |
 | `forecast.schema.json` / `forecast.example.json` | Roadmap + CTO settings turned into numbers (hand-written for now). |
 | `catalog.schema.json` / `catalog.example.json` | Priced options per `kind` and provider. **Illustrative prices.** |
+| `real/catalog.json` | The same catalog with real, dated prices: built by `apps/pricing` from its committed snapshots (AWS Price List, ECB rate, checked vendor quotes). `x_price_sources` traces every price; `x_unsourced` lists what is still illustrative. Generated: do not edit by hand. |
 | `rehearsal.schema.json` / `rehearsal.example.json` | Sandbox output: traffic profile, failure injected, measured availability/latency, pass/fail verdict. All provenance is `synthetic` on Floci. |
 | `result.schema.json` | Engine output: every candidate priced, checked, scored and ranked, with the winner. |
 | `result.example.json` / `result.example.nothing-feasible.json` | Sample engine output on `demo-shop`: one with a winner, one where no candidate passes the hard constraints. **Sample values, not engine results.** |

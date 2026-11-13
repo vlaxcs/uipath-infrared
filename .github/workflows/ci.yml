@@ -51,7 +51,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        app: [estate, extractor, agent, engine, sandbox]
+        app: [estate, extractor, agent, engine, sandbox, pricing]
     steps:
       - uses: actions/checkout@v4
       - name: Tools on PATH

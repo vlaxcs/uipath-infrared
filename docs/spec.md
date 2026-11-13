@@ -27,6 +27,7 @@ The technical design for building Infrared, as described in `docs/prd.md`. This 
 | Extractor | reads the estate through read-only APIs, writes `infra.json` | Python | exists (#3) |
 | Agent | investigates, records qualitative findings, proposes candidate plans | Python, Claude Agent SDK | exists, read-only (#3) |
 | Engine | prices, checks constraints, scores and ranks candidates; writes `result.json` | Python | designed (#2), not built |
+| Pricing | collects prices offline into dated snapshots (AWS Price List, ECB rates, checked vendor quotes) and builds `catalog.json` from them | Python | new |
 | Sandbox | builds the proposed infrastructure in Floci, simulates traffic and failures | Python | new |
 | Orchestrator | runs the workflow, holds run state, gates approvals, exposes the API | Go | built, steps 1 to 6 (`docs/orchestrator.md`) |
 | Dashboard | runs, the dependency graph, candidates, the step-by-step change, approvals | web (TypeScript) | prototype graph exists (#3) |
@@ -47,6 +48,7 @@ apps/
   extractor/         infra.json from the cloud APIs
   agent/             investigation and candidate proposals
   engine/            pricing, constraints, ranking
+  pricing/           price snapshots from public price lists, and the catalog built from them
   sandbox/           rehearsal: traffic and failure simulation
   orchestrator/      the workflow, run state, approvals, HTTP API (Go)
   dashboard/         the web app
