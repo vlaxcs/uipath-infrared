@@ -13,6 +13,7 @@ catalog kinds/platform references are consistent, and every kind in the infra ha
 Result: unique candidate ids, do_nothing present, feasible exactly when there are no violations,
 violation_distance is the sum of the distances, exactly one of winner / closest_if_none_feasible,
 only feasible candidates are scored and ranked, every loser says why, and component ids exist in the infra.
+For the run example: the summary fields agree with the event log (see run_integrity.py).
 """
 import json
 import sys
@@ -23,6 +24,8 @@ try:
     from jsonschema import Draft202012Validator
 except ImportError:
     sys.exit("jsonschema missing: pip install jsonschema")
+
+from run_integrity import run_integrity_errors
 
 HERE = Path(__file__).parent
 errors, warnings = [], []
@@ -253,6 +256,13 @@ def main():
             schema_check(name, r, "result.schema.json")
             if len(errors) == before:
                 result_integrity(name, r, infra)
+        print("run")
+        run = load(HERE / "run.example.json")
+        schema_errors_before = len(errors)
+        schema_check("run.example.json", run, "run.schema.json")
+        if len(errors) == schema_errors_before:
+            errors.extend(f"[integrity] run: {e}" for e in run_integrity_errors(run))
+            print(f"  {len(run['events'])} events, {run['revision']} revision(s), status {run['status']}")
     finish()
 
 
