@@ -33,6 +33,18 @@ def rightsize_in_place(previous: Candidate, infra: Infra, catalog: Catalog, fore
                 component_id, ActionKind.SCALE, f"{signal.detail}: run it in {forecast.cto.min_zones} zones",
                 signal=signal.kind, zones=forecast.cto.min_zones,
             ))
+        if SignalKind.SINGLE_ZONE_POOL in signals:
+            signal = signals[SignalKind.SINGLE_ZONE_POOL]
+            actions.append(Action(
+                component_id, ActionKind.SCALE, f"{signal.detail}: spread it over {forecast.cto.min_zones} zones",
+                signal=signal.kind, zones=forecast.cto.min_zones,
+            ))
+        if SignalKind.RESIDENCY in signals:
+            signal = signals[SignalKind.RESIDENCY]
+            actions.append(Action(
+                component_id, ActionKind.MOVE, signal.detail, signal=signal.kind,
+                option=signal.relocation.option, region=signal.relocation.region,
+            ))
         if SignalKind.DESIGN_PROBLEM in signals:
             signal = signals[SignalKind.DESIGN_PROBLEM]
             actions.append(Action(component_id, ActionKind.FLAG, signal.detail, signal=signal.kind, evidence=signal.evidence))

@@ -5,8 +5,9 @@ from engine.domain.catalog import Catalog
 from engine.domain.forecast import Forecast
 from engine.domain.model import Component, Infra
 from engine.domain.provenance import Evidence, Provenance
+from engine.domain.relocation import Relocation, residency_relocation
 from engine.domain.sizing import Target, grow_target, shrink_target
-from engine.domain.structure import serves_production
+from engine.domain.structure import critical_paths, serves_production
 
 DESIGN_PROBLEM_MAX_CONSUMED_SHARE = 0.2
 THROTTLE_KEYS = ("throttled_requests", "write_throttled", "read_throttled")
@@ -24,6 +25,8 @@ class SignalKind(StrEnum):
     UNDERSIZED = "undersized"
     STATIC_SCALING = "static_scaling"
     SINGLE_ZONE_STATEFUL = "single_zone_stateful"
+    SINGLE_ZONE_POOL = "single_zone_pool"
+    RESIDENCY = "residency"
     DESIGN_PROBLEM = "design_problem"
 
 
@@ -34,16 +37,20 @@ class Signal:
     detail: str
     evidence: tuple[Evidence, ...] = ()
     target: Target | None = None
+    relocation: Relocation | None = None
 
 
 def detect_signals(infra: Infra, catalog: Catalog, forecast: Forecast) -> tuple[Signal, ...]:
     caveats = usage_caveats(infra)
+    on_a_path = {component for path in critical_paths(infra) for component in path.components}
     signals: list[Signal] = []
     for component in infra.components:
         found = _status(component) or (
             _sizing(component, catalog, pool_floor(component, infra, forecast))
             + _static_scaling(component)
             + _single_zone(component, infra, catalog, forecast)
+            + _single_zone_pool(component, on_a_path, catalog, forecast)
+            + _residency(component, infra, catalog, forecast)
             + _design_problem(component)
         )
         extra = caveats.get(component.id, ())
@@ -68,7 +75,7 @@ def usage_evidence(component: Component) -> tuple[Evidence, ...]:
 def _with_evidence(signal: Signal, extra: tuple[Evidence, ...]) -> Signal:
     if not extra or not signal.evidence:
         return signal
-    return Signal(signal.component, signal.kind, signal.detail, signal.evidence + extra, signal.target)
+    return Signal(signal.component, signal.kind, signal.detail, signal.evidence + extra, signal.target, signal.relocation)
 
 
 def _status(component: Component) -> list[Signal]:
@@ -108,6 +115,27 @@ def _single_zone(component: Component, infra: Infra, catalog: Catalog, forecast:
     if option is not None and option.sla.failure_domain_scope != SINGLE_ZONE_SCOPE:
         return []
     return [Signal(component.id, SignalKind.SINGLE_ZONE_STATEFUL, f"stateful in {zones} zone, the CTO asks for {wanted}")]
+
+
+def _single_zone_pool(component: Component, on_a_path: set[str], catalog: Catalog, forecast: Forecast) -> list[Signal]:
+    zones, wanted = component.zones, forecast.cto.min_zones
+    if component.stateful or component.id not in on_a_path or zones is None or zones >= wanted:
+        return []
+    option = catalog.current_option(component)
+    if option is not None and option.sla.failure_domain_scope != SINGLE_ZONE_SCOPE:
+        return []
+    detail = f"serves a production critical path from {zones} zone, the CTO asks for {wanted}"
+    return [Signal(component.id, SignalKind.SINGLE_ZONE_POOL, detail)]
+
+
+def _residency(component: Component, infra: Infra, catalog: Catalog, forecast: Forecast) -> list[Signal]:
+    residency = forecast.constraints.residency
+    if residency is None or not component.stateful or component.data_classification not in residency.applies_to:
+        return []
+    relocation = residency_relocation(component, infra, catalog, residency)
+    if relocation is None:
+        return []
+    return [Signal(component.id, SignalKind.RESIDENCY, relocation.reason, relocation=relocation)]
 
 
 def _design_problem(component: Component) -> list[Signal]:

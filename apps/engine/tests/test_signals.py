@@ -56,3 +56,13 @@ def test_grow_covers_p95_with_headroom(mock_infra, catalog):
 def test_only_node_groups_sharing_identical_usage_are_copies(mock_infra, real_infra):
     assert usage_caveats(mock_infra) == {}
     assert set(usage_caveats(real_infra)) == {"ng-shop-prod-cpu-heavy", "ng-shop-prod-general"}
+
+
+def test_residency_finds_no_allowed_region_on_the_real_estate(real_infra, catalog, forecast):
+    found = kinds(real_infra, catalog, forecast)
+    assert not any(SignalKind.RESIDENCY in signals for signals in found.values())
+
+
+def test_a_component_inside_its_residency_is_left_alone(mock_infra, catalog, forecast):
+    found = kinds(mock_infra, catalog, forecast)
+    assert [c for c, signals in found.items() if SignalKind.RESIDENCY in signals] == ["s3-legacy-reports"]

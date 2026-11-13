@@ -29,6 +29,7 @@ class Action:
     memory_gb: float | None = None
     zones: int | None = None
     option: str | None = None
+    region: str | None = None
 
     @property
     def confidence(self) -> Confidence:

@@ -120,7 +120,7 @@ def _move(placement: Placement, option: Option, action: Action, catalog: Catalog
         placement,
         option_id=option.id,
         provider=option.provider,
-        region=_target_region(placement.region, option, catalog),
+        region=action.region or _target_region(placement.region, option, catalog),
         tier_id=action.tier,
         zones=action.zones or placement.zones,
     )

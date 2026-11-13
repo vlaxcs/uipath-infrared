@@ -44,7 +44,8 @@ Domain modules:
 | `security_gates.py` | one check per security gate; a gate that was remediated passes |
 | `remediation.py` | the `security_remediation` layer: one `remediate` action per open gate violation, and its effort |
 | `sizing.py` | the target size of a component from its usage: fewer units for a pool, a smaller or larger tier for a single unit |
-| `signals.py` | facts to signals: orphan, idle, oversized, undersized, static scaling, single-zone stateful, design problem |
+| `signals.py` | facts to signals: orphan, idle, oversized, undersized, static scaling, single-zone stateful, single-zone pool, residency, design problem |
+| `relocation.py` | the allowed region a component breaking residency moves to |
 | `strategies/cleanup_orphans.py`, `strategies/rightsize_in_place.py` | the first two cumulative layers, each built with `Candidate.extend` on the one before |
 | `constraints.py` | every hard constraint on an end state; money and hours arrive in `CandidateFigures` |
 | `growth.py`, `projection.py` | run cost per month and scenario with growth and events, discounted over the horizon |
@@ -90,6 +91,8 @@ Strategies plug in through `engine/application/strategies.py`: a builder `(previ
 - Undersized (CPU p95 above 80% or memory p95 above 85%) grows to cover p95 plus headroom, whatever it costs.
 - A stateful production component in fewer zones than `min_zones` is scaled to `min_zones`. A component whose zone count is unknown, or whose catalog option is already multi-zone, is left alone.
 - Throttling while consumed capacity stays under 20% of provisioned is a design problem: flagged, no capacity added.
+- A stateless component on a production critical path in fewer zones than `min_zones` is spread to `min_zones`, keeping its unit count. It costs more only if the catalog's `multi_az_multiplier` says so.
+- A stateful component that breaks `data_residency` moves, on its current catalog option, to the allowed region that most of its stack already uses (then the estate, then the allowed or offered concrete regions). When its option serves no allowed region, it stays and the violation stands. The move is priced and its migration counted like any other.
 - Node groups of one cluster that report identical usage are cluster-level copies; their actions are capped at low confidence.
 
 ## Evaluation rules
