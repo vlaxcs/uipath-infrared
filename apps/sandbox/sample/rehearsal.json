@@ -1,0 +1,473 @@
+{
+  "schema_version": "1.0",
+  "candidate_id": "rightsize_multi_az",
+  "forecast_id": "startup-2027-plan",
+  "traffic_profile": {
+    "pattern": "constant",
+    "duration_s": 78,
+    "target_endpoint": "http://10.100.1.11:8080/ http://10.100.2.10:8080/",
+    "requests_per_second": 5,
+    "total_requests": 320
+  },
+  "failure": {
+    "type": "instance_stop",
+    "target_component": "web-server",
+    "injected_at_s": 15.02,
+    "duration_s": 48.13,
+    "detail": "stop instance i-faa63d2e8bf72ce93 in us-east-1a, one of 2 with no load balancer in front. stop_instances i-faa63d2e8bf72ce93: running -> stopping; Floci reported the failure in effect 33.1s after the call (stopped); restore: start_instances i-faa63d2e8bf72ce93: stopped -> pending"
+  },
+  "phases": {
+    "baseline": {
+      "duration_s": 15.01,
+      "requests_total": 75,
+      "requests_successful": 75,
+      "requests_failed": 0,
+      "availability_pct": {
+        "value": 100.0,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s"
+      },
+      "error_rate_pct": {
+        "value": 0.0,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s"
+      },
+      "latency_p50_ms": {
+        "value": 4.53,
+        "unit": "ms",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s, successful requests only"
+      },
+      "latency_p95_ms": {
+        "value": 5.792,
+        "unit": "ms",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s, successful requests only"
+      },
+      "latency_p99_ms": {
+        "value": 6.133,
+        "unit": "ms",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s, successful requests only"
+      }
+    },
+    "failure": {
+      "duration_s": 48.12,
+      "requests_total": 170,
+      "requests_successful": 160,
+      "requests_failed": 10,
+      "availability_pct": {
+        "value": 94.118,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s"
+      },
+      "error_rate_pct": {
+        "value": 5.882,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s"
+      },
+      "latency_p50_ms": {
+        "value": 4.455,
+        "unit": "ms",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s, successful requests only"
+      },
+      "latency_p95_ms": {
+        "value": 6.089,
+        "unit": "ms",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s, successful requests only"
+      },
+      "latency_p99_ms": {
+        "value": 6.887,
+        "unit": "ms",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s, successful requests only"
+      }
+    },
+    "recovery": {
+      "duration_s": 15.0,
+      "requests_total": 75,
+      "requests_successful": 38,
+      "requests_failed": 37,
+      "availability_pct": {
+        "value": 50.667,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s"
+      },
+      "error_rate_pct": {
+        "value": 49.333,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s"
+      },
+      "latency_p50_ms": {
+        "value": 3.515,
+        "unit": "ms",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s, successful requests only"
+      },
+      "latency_p95_ms": {
+        "value": 5.598,
+        "unit": "ms",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s, successful requests only"
+      },
+      "latency_p99_ms": {
+        "value": 5.653,
+        "unit": "ms",
+        "provenance": "synthetic",
+        "basis": "http probes from the in-VPC load generator at 5/s, successful requests only"
+      }
+    }
+  },
+  "component_results": [
+    {
+      "component_id": "nat",
+      "kind": "nat",
+      "status": "healthy",
+      "note": "27/27 checks ok (baseline 5/5, failure 17/17, recovery 5/5). 1 NAT gateway(s), one per zone",
+      "availability_pct": {
+        "value": 100.0,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "27 api checks"
+      }
+    },
+    {
+      "component_id": "web-server",
+      "kind": "virtual_machine",
+      "status": "degraded",
+      "note": "failure injected here: stop instance i-faa63d2e8bf72ce93 in us-east-1a, one of 2 with no load balancer in front. 309/374 checks ok (baseline 85/85, failure 177/204, recovery 47/85). failures: URLError x47; i-faa63d2e8bf72ce93 state stopping x11; i-faa63d2e8bf72ce93 state stopped x6. 2 x m5.2xlarge over 2 zone(s); served i-faa63d2e8bf72ce93 113, i-053f536a72bf3bca9 160 successful HTTP responses",
+      "availability_pct": {
+        "value": 82.62,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "54 api checks + 320 data-plane http checks"
+      }
+    },
+    {
+      "component_id": "app-db",
+      "kind": "postgres",
+      "status": "healthy",
+      "note": "91/91 checks ok (baseline 20/20, failure 51/51, recovery 20/20). postgres db.r5.2xlarge, MultiAZ requested True, Floci reports MultiAZ True",
+      "availability_pct": {
+        "value": 100.0,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "27 api checks + 64 data-plane tcp checks"
+      }
+    },
+    {
+      "component_id": "cache",
+      "kind": "cache",
+      "status": "healthy",
+      "note": "91/91 checks ok (baseline 20/20, failure 51/51, recovery 20/20). redis cache.r5.xlarge, 1 node",
+      "availability_pct": {
+        "value": 100.0,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "27 api checks + 64 data-plane tcp checks"
+      }
+    },
+    {
+      "component_id": "queue",
+      "kind": "queue",
+      "status": "healthy",
+      "note": "27/27 checks ok (baseline 5/5, failure 17/17, recovery 5/5). SQS queue sandbox-e167a9-queue",
+      "availability_pct": {
+        "value": 100.0,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "27 api checks"
+      }
+    },
+    {
+      "component_id": "uploads",
+      "kind": "object_storage",
+      "status": "healthy",
+      "note": "27/27 checks ok (baseline 5/5, failure 17/17, recovery 5/5). S3 bucket sandbox-e167a9-uploads",
+      "availability_pct": {
+        "value": 100.0,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "27 api checks"
+      }
+    },
+    {
+      "component_id": "backup-storage",
+      "kind": "object_storage",
+      "status": "healthy",
+      "note": "27/27 checks ok (baseline 5/5, failure 17/17, recovery 5/5). S3 bucket sandbox-e167a9-backup-storage",
+      "availability_pct": {
+        "value": 100.0,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "27 api checks"
+      }
+    },
+    {
+      "component_id": "worker",
+      "kind": "function",
+      "status": "healthy",
+      "note": "27/27 checks ok (baseline 5/5, failure 17/17, recovery 5/5). python3.9 1024MB, first invoke status 200 in 544 ms (cold start)",
+      "availability_pct": {
+        "value": 100.0,
+        "unit": "percent",
+        "provenance": "synthetic",
+        "basis": "27 api checks"
+      }
+    }
+  ],
+  "verdict": {
+    "passed": false,
+    "forecast_min_availability_pct": 99.5,
+    "measured_availability_pct": 85.312,
+    "gap_pct": -14.188,
+    "reason": "Overall availability 85.31% falls short of threshold 99.50% by 14.19%"
+  },
+  "timestamps": {
+    "started_at": "2026-11-13T21:08:28.839841+00:00",
+    "completed_at": "2026-11-13T21:10:58.152513+00:00",
+    "elapsed_s": 149.31
+  },
+  "infrastructure": {
+    "vpc_id": "vpc-ff2e508a",
+    "name_prefix": "sandbox-e167a9-",
+    "endpoint": "http://localhost:4566",
+    "components_created": [
+      "nat",
+      "web-server",
+      "app-db",
+      "cache",
+      "queue",
+      "uploads",
+      "backup-storage",
+      "worker"
+    ],
+    "teardown_status": "success"
+  },
+  "x_decision": {
+    "kind": "revise",
+    "reason": "Overall availability 85.31% falls short of threshold 99.50% by 14.19% with stop instance i-faa63d2e8bf72ce93 in us-east-1a, one of 2 with no load balancer in front"
+  },
+  "x_actions_skipped": [
+    {
+      "component": "backup-storage",
+      "action": "move",
+      "to": "aws-s3 eu-west-1",
+      "reason": "the provider, product or region change is not rehearsed on Floci; built as in infra.json"
+    }
+  ],
+  "x_actions_not_built": [
+    {
+      "component_id": "logs-volume",
+      "kind": "block_storage",
+      "action": "delete",
+      "reason": "action is delete: nothing to build"
+    },
+    {
+      "component_id": "old-bastion",
+      "kind": "virtual_machine",
+      "action": "delete",
+      "reason": "action is delete: nothing to build"
+    }
+  ],
+  "x_components_built": [
+    {
+      "component_id": "nat",
+      "kind": "nat",
+      "sku": "per-az",
+      "zones": 1,
+      "detail": "1 NAT gateway(s), one per zone",
+      "resources": [
+        {
+          "type": "elastic_ip",
+          "name": "sandbox-e167a9-nat-eip-us-east-1a",
+          "id": "eipalloc-02dab820773954db0",
+          "zone": "us-east-1a"
+        },
+        {
+          "type": "nat_gateway",
+          "name": "sandbox-e167a9-nat-us-east-1a",
+          "id": "nat-30e8f0521c8f951d1",
+          "zone": "us-east-1a"
+        }
+      ]
+    },
+    {
+      "component_id": "web-server",
+      "kind": "virtual_machine",
+      "sku": "m5.2xlarge",
+      "zones": 2,
+      "detail": "2 x m5.2xlarge over 2 zone(s)",
+      "resources": [
+        {
+          "type": "instance",
+          "name": "sandbox-e167a9-web-server-us-east-1a",
+          "id": "i-faa63d2e8bf72ce93",
+          "zone": "us-east-1a"
+        },
+        {
+          "type": "instance",
+          "name": "sandbox-e167a9-web-server-us-east-1b",
+          "id": "i-053f536a72bf3bca9",
+          "zone": "us-east-1b"
+        }
+      ]
+    },
+    {
+      "component_id": "app-db",
+      "kind": "postgres",
+      "sku": "db.r5.2xlarge",
+      "zones": 2,
+      "detail": "postgres db.r5.2xlarge, MultiAZ requested True, Floci reports MultiAZ True",
+      "resources": [
+        {
+          "type": "db_subnet_group",
+          "name": "sandbox-e167a9-app-db-subnets",
+          "id": "sandbox-e167a9-app-db-subnets",
+          "zone": ""
+        },
+        {
+          "type": "db_instance",
+          "name": "sandbox-e167a9-app-db",
+          "id": "sandbox-e167a9-app-db",
+          "zone": "us-east-1a"
+        }
+      ]
+    },
+    {
+      "component_id": "cache",
+      "kind": "cache",
+      "sku": "cache.r5.xlarge",
+      "zones": 1,
+      "detail": "redis cache.r5.xlarge, 1 node",
+      "resources": [
+        {
+          "type": "cache_subnet_group",
+          "name": "sandbox-e167a9-cache-subnets",
+          "id": "sandbox-e167a9-cache-subnets",
+          "zone": ""
+        },
+        {
+          "type": "cache_cluster",
+          "name": "sandbox-e167a9-cache",
+          "id": "sandbox-e167a9-cache",
+          "zone": ""
+        }
+      ]
+    },
+    {
+      "component_id": "queue",
+      "kind": "queue",
+      "sku": "standard",
+      "zones": 1,
+      "detail": "SQS queue sandbox-e167a9-queue",
+      "resources": [
+        {
+          "type": "queue",
+          "name": "sandbox-e167a9-queue",
+          "id": "http://localhost:4566/000000000000/sandbox-e167a9-queue",
+          "zone": ""
+        }
+      ]
+    },
+    {
+      "component_id": "uploads",
+      "kind": "object_storage",
+      "sku": "standard",
+      "zones": 1,
+      "detail": "S3 bucket sandbox-e167a9-uploads",
+      "resources": [
+        {
+          "type": "bucket",
+          "name": "sandbox-e167a9-uploads",
+          "id": "sandbox-e167a9-uploads",
+          "zone": ""
+        }
+      ]
+    },
+    {
+      "component_id": "backup-storage",
+      "kind": "object_storage",
+      "sku": "standard",
+      "zones": 1,
+      "detail": "S3 bucket sandbox-e167a9-backup-storage",
+      "resources": [
+        {
+          "type": "bucket",
+          "name": "sandbox-e167a9-backup-storage",
+          "id": "sandbox-e167a9-backup-storage",
+          "zone": ""
+        }
+      ]
+    },
+    {
+      "component_id": "worker",
+      "kind": "function",
+      "sku": "python3.9/1024MB",
+      "zones": 1,
+      "detail": "python3.9 1024MB, first invoke status 200 in 544 ms (cold start)",
+      "resources": [
+        {
+          "type": "function",
+          "name": "sandbox-e167a9-worker",
+          "id": "sandbox-e167a9-worker",
+          "zone": ""
+        }
+      ]
+    }
+  ],
+  "x_readiness": {
+    "ready": true,
+    "waited_s": 54.3,
+    "instances": {
+      "i-33257ce2a0387e7c5": "running",
+      "i-faa63d2e8bf72ce93": "running",
+      "i-053f536a72bf3bca9": "running"
+    },
+    "targets": {},
+    "load_generator_samples_before_baseline": 21
+  },
+  "x_measurement_notes": [
+    "All values are synthetic: measured against Floci containers on one machine, not against AWS.",
+    "Everything is built in the Floci region us-east-1, whatever region infra.json names.",
+    "Traffic comes from a load-generator instance inside the sandbox VPC (sandbox-e167a9-loadgen). Floci serves ALB listeners on port 80 inside its own container and does not publish that port to the host, and instance IPs are not routable from the host either, so HTTP is only possible from inside the VPC.",
+    "Phases are labelled by the load generator from a control object the sandbox writes to S3 at each transition, so phase boundaries are accurate to about one second.",
+    "Latency percentiles use successful requests only; failed requests are counted in availability and error rate.",
+    "The end state has no load balancer, so the load generator spreads requests round-robin over the web instances' private IPs; a stopped instance keeps receiving its share.",
+    "Floci does not rerun UserData when a stopped instance starts again, so the web server on a restarted instance stays down; recovery shows how the rest of the layout coped.",
+    "Postgres and cache are checked once a second from the load generator with a protocol handshake (postgres SSLRequest, redis PING) on the endpoint Floci returns.",
+    "Floci accepts MultiAZ on RDS but runs a single postgres container with no standby; a forced failover restarts that container.",
+    "Queue, bucket and function checks are real API calls against Floci every few seconds: send_message, put_object, invoke.",
+    "NAT gateways are checked on the control plane only (describe state); no egress traffic is sent through them."
+  ],
+  "x_teardown": {
+    "prefix": "sandbox-e167a9-",
+    "checked_resource_types": [
+      "auto_scaling_group",
+      "load_balancer",
+      "target_group",
+      "instance",
+      "function",
+      "queue",
+      "bucket",
+      "cache_cluster",
+      "db_instance",
+      "nat_gateway",
+      "cache_subnet_group",
+      "db_subnet_group",
+      "elastic_ip",
+      "security_group",
+      "subnet",
+      "vpc"
+    ],
+    "remaining": []
+  }
+}

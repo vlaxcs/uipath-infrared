@@ -1,0 +1,241 @@
+{
+  "schema_version": "1.0",
+  "id": "run-demo-shop-0001",
+  "project": "demo-shop",
+  "status": "awaiting_approval",
+  "step": "present",
+  "awaiting": "layout",
+  "revision": 1,
+  "max_revisions": 2,
+  "started_at": "2026-11-14T09:00:00Z",
+  "updated_at": "2026-11-14T09:08:16Z",
+  "inputs": {
+    "forecast": {
+      "path": "forecast.json",
+      "sha256": "c0b12c14aef4cbe9346800f7cd5c888564436da6cfb84d5c094573e6a49b074a"
+    },
+    "catalog": {
+      "path": "catalog.json",
+      "sha256": "dee1b43b5dacffa760568c4eedaed503d727338dbce8253de04415491120b29f"
+    }
+  },
+  "events": [
+    {
+      "seq": 1,
+      "at": "2026-11-14T09:00:00Z",
+      "step": "extract",
+      "status": "started",
+      "revision": 0,
+      "actor": {
+        "kind": "orchestrator"
+      }
+    },
+    {
+      "seq": 2,
+      "at": "2026-11-14T09:00:42Z",
+      "step": "extract",
+      "status": "completed",
+      "revision": 0,
+      "actor": {
+        "kind": "orchestrator"
+      },
+      "output": {
+        "contract": "infra",
+        "file": {
+          "path": "infra.json",
+          "sha256": "0419f2c6a8b081355b9fa2ae3b7dbcbc2d9a01ee09ba2eed73bcd761f35f7ec5"
+        }
+      }
+    },
+    {
+      "seq": 3,
+      "at": "2026-11-14T09:00:43Z",
+      "step": "investigate",
+      "status": "started",
+      "revision": 0,
+      "actor": {
+        "kind": "orchestrator"
+      }
+    },
+    {
+      "seq": 4,
+      "at": "2026-11-14T09:04:10Z",
+      "step": "investigate",
+      "status": "completed",
+      "revision": 0,
+      "actor": {
+        "kind": "orchestrator"
+      }
+    },
+    {
+      "seq": 5,
+      "at": "2026-11-14T09:04:11Z",
+      "step": "propose",
+      "status": "started",
+      "revision": 0,
+      "actor": {
+        "kind": "orchestrator"
+      }
+    },
+    {
+      "seq": 6,
+      "at": "2026-11-14T09:06:30Z",
+      "step": "propose",
+      "status": "completed",
+      "revision": 0,
+      "actor": {
+        "kind": "orchestrator"
+      }
+    },
+    {
+      "seq": 7,
+      "at": "2026-11-14T09:06:31Z",
+      "step": "evaluate",
+      "status": "started",
+      "revision": 0,
+      "actor": {
+        "kind": "orchestrator"
+      }
+    },
+    {
+      "seq": 8,
+      "at": "2026-11-14T09:06:39Z",
+      "step": "evaluate",
+      "status": "completed",
+      "revision": 0,
+      "actor": {
+        "kind": "orchestrator"
+      },
+      "output": {
+        "contract": "result",
+        "file": {
+          "path": "result.0.json",
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+        }
+      },
+      "decision": {
+        "kind": "revise",
+        "reason": "managed_services moves rds-orders (pii) to us-east-1; data_residency allows only eu-* and onprem-dc1"
+      }
+    },
+    {
+      "seq": 9,
+      "at": "2026-11-14T09:06:40Z",
+      "step": "propose",
+      "status": "started",
+      "revision": 1,
+      "actor": {
+        "kind": "orchestrator"
+      }
+    },
+    {
+      "seq": 10,
+      "at": "2026-11-14T09:08:05Z",
+      "step": "propose",
+      "status": "completed",
+      "revision": 1,
+      "actor": {
+        "kind": "orchestrator"
+      }
+    },
+    {
+      "seq": 11,
+      "at": "2026-11-14T09:08:06Z",
+      "step": "evaluate",
+      "status": "started",
+      "revision": 1,
+      "actor": {
+        "kind": "orchestrator"
+      }
+    },
+    {
+      "seq": 12,
+      "at": "2026-11-14T09:08:14Z",
+      "step": "evaluate",
+      "status": "completed",
+      "revision": 1,
+      "actor": {
+        "kind": "orchestrator"
+      },
+      "output": {
+        "contract": "result",
+        "file": {
+          "path": "result.1.json",
+          "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      },
+      "decision": {
+        "kind": "proceed",
+        "reason": "every revised candidate passes the hard constraints"
+      }
+    },
+    {
+      "seq": 13,
+      "at": "2026-11-14T09:08:15Z",
+      "step": "present",
+      "status": "started",
+      "revision": 1,
+      "actor": {
+        "kind": "orchestrator"
+      }
+    },
+    {
+      "seq": 14,
+      "at": "2026-11-14T09:08:16Z",
+      "step": "present",
+      "status": "awaiting_approval",
+      "revision": 1,
+      "actor": {
+        "kind": "orchestrator"
+      },
+      "gate": "layout",
+      "x_candidates": [
+        {
+          "id": "consolidate",
+          "feasible": true,
+          "rank": 1,
+          "monthly_eur": 74365,
+          "availability_pct": 99.95,
+          "risk": 0.31
+        },
+        {
+          "id": "managed_services",
+          "feasible": true,
+          "rank": 2,
+          "monthly_eur": 82665,
+          "availability_pct": 99.95,
+          "risk": 0.18
+        },
+        {
+          "id": "move_to_onprem",
+          "feasible": true,
+          "rank": 3,
+          "monthly_eur": 66405,
+          "availability_pct": 99.9,
+          "risk": 0.52
+        },
+        {
+          "id": "rightsize_in_place",
+          "feasible": false,
+          "monthly_eur": 81405,
+          "availability_pct": 99.2,
+          "risk": 0
+        },
+        {
+          "id": "cleanup_orphans",
+          "feasible": false,
+          "monthly_eur": 124564,
+          "availability_pct": 99.2,
+          "risk": 0
+        },
+        {
+          "id": "do_nothing",
+          "feasible": false,
+          "monthly_eur": 133308,
+          "availability_pct": 99.2,
+          "risk": 0
+        }
+      ]
+    }
+  ]
+}

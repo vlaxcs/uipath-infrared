@@ -4,6 +4,8 @@ from engine.domain.catalog import Catalog
 from engine.domain.end_state import Placement
 from engine.domain.pricing import Price, catalog_price
 
+ONPREM_ALLOCATED = "onprem_allocated"
+
 
 @dataclass(frozen=True)
 class ComponentCost:
@@ -24,6 +26,8 @@ def cost_placement(placement: Placement, catalog: Catalog) -> ComponentCost:
     price = catalog_price(placement, option, catalog.hours_per_month) if option else None
     if placement.unchanged and reported is not None:
         return ComponentCost(component.id, reported, "reported", reported, price)
+    if price is not None and ONPREM_ALLOCATED in price.gaps:
+        return ComponentCost(component.id, 0.0, "onprem", reported, price)
     if price is not None and price.complete:
         return ComponentCost(component.id, price.monthly_eur, "catalog", reported, price)
     if price is not None and price.lines:

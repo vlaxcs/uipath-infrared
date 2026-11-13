@@ -41,6 +41,7 @@ class Candidate:
     id: str
     actions: tuple[Action, ...]
     builds_on: str | None = None
+    source: str = "engine"
 
     def extend(self, candidate_id: str, actions: tuple[Action, ...]) -> "Candidate":
         return Candidate(candidate_id, self.actions + actions, builds_on=self.id)

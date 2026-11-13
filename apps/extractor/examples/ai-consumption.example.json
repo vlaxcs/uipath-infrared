@@ -1,0 +1,8 @@
+{
+  "window_days": 30,
+  "models": [
+    {"model": "claude-sonnet-4", "provider": "anthropic", "input_tokens": 182000000, "output_tokens": 21000000, "cost_usd": 861.0},
+    {"model": "gpt-4o-mini", "provider": "openai", "input_tokens": 54000000, "output_tokens": 9000000, "cost_usd": 13.5},
+    {"model": "titan-embed-text-v2", "provider": "bedrock", "input_tokens": 410000000}
+  ]
+}
