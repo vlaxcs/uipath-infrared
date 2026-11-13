@@ -111,6 +111,11 @@
         "amortization_years": { "type": "number", "exclusiveMinimum": 0 },
         "power_cooling_eur_month": { "type": "number", "minimum": 0 },
         "colocation_eur_month": { "type": "number", "minimum": 0, "default": 0 },
+        "maintenance_pct_of_capex_year": { "type": "number", "minimum": 0, "default": 0, "description": "Support contracts, spare parts and failures other than disks (servers, power supplies, switches), as a yearly % of hardware_capex_eur." },
+        "network_eur_month": { "type": "number", "minimum": 0, "default": 0, "description": "Uplinks, transit and network gear support." },
+        "licences_eur_month": { "type": "number", "minimum": 0, "default": 0, "description": "Virtualisation, OS, backup and monitoring software support." },
+        "setup_one_off_eur": { "type": "number", "minimum": 0, "default": 0, "description": "Racking, cabling, network gear and installation, paid once." },
+        "contingency_pct": { "type": "number", "minimum": 0, "default": 0, "description": "Safety margin for costs nobody listed, as a % of every monthly line except capex." },
         "disks": {
           "type": "object", "required": ["count", "annual_failure_rate_pct", "replacement_eur", "replacement_labor_hours"], "additionalProperties": false,
           "properties": {

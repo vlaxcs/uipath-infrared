@@ -923,12 +923,20 @@
           "platform": "onprem-dc1",
           "platforms_needed": 1,
           "capacity_share": 0.62,
+          "capacity_share_at_horizon": 0.91,
           "capex_eur": 310000,
+          "upfront_hardware_eur": 192200,
+          "setup_eur": 18600,
+          "total_eur_month": 12894,
           "capex_amortised_eur_month": 3204,
           "power_cooling_eur_month": 1150,
           "colocation_eur_month": 1400,
           "disk_replacement_eur_month": 95,
-          "staff_eur_month": 3570
+          "staff_eur_month": 3570,
+          "maintenance_eur_month": 1281,
+          "network_eur_month": 372,
+          "licences_eur_month": 558,
+          "contingency_eur_month": 1264
         }
       },
       "availability_pct": 99.9,

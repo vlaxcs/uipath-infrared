@@ -37,7 +37,7 @@ def move_to_onprem(previous: Candidate, infra: Infra, catalog: Catalog, forecast
         if reason:
             rejected[placement.component.id] = reason
         else:
-            moves[placement.component.id] = _price(placement, option, catalog, forecast.business)
+            moves[placement.component.id] = _price(placement, option, catalog, forecast)
     wanted = {cid for cid, move in moves.items() if move.saving_eur > 0}
     _hold_groups(stay_together_groups(infra), end_state, moves, wanted, rejected)
     actions: list[Action] = []
@@ -86,10 +86,11 @@ def _rejection(placement: Placement, option: Option, catalog: Catalog, constrain
     return None
 
 
-def _price(placement: Placement, option: Option, catalog: Catalog, business: Business) -> OnpremMove:
+def _price(placement: Placement, option: Option, catalog: Catalog, forecast: Forecast) -> OnpremMove:
+    business = forecast.business
     before = cost_placement(placement, catalog).monthly_eur + _ops_eur(placement.option_id, placement, catalog, business)
     platform = catalog.platforms[option.platform]
-    share = platform_cost_for(platform, platform_use((placement,), catalog), business).allocated_monthly_eur
+    share = platform_cost_for(platform, platform_use((placement,), catalog), forecast).allocated_monthly_eur
     after = share + _ops_eur(option.id, placement, catalog, business)
     return OnpremMove(placement.component.id, option, before, after)
 

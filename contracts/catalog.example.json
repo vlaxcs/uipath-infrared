@@ -227,6 +227,8 @@
       "capacity": { "vcpu": 768, "memory_gb": 6144, "storage_tb": 200 },
       "hardware_capex_eur": 310000, "amortization_years": 5,
       "power_cooling_eur_month": 2400, "colocation_eur_month": 1800,
+      "maintenance_pct_of_capex_year": 8, "network_eur_month": 600, "licences_eur_month": 900,
+      "setup_one_off_eur": 30000, "contingency_pct": 15,
       "disks": { "count": 96, "annual_failure_rate_pct": 2.0, "replacement_eur": 420, "replacement_labor_hours": 2 },
       "staff": { "base_hours_month": 60, "hours_per_100_vcpu_month": 6 }
     }

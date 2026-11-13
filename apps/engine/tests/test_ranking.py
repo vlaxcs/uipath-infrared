@@ -15,12 +15,18 @@ class Fake:
     effort_hours: float = 0.0
     migration_eur: float = 0.0
     monthly_now_total_eur: float = 100.0
+    upfront_hardware_eur: float = 0.0
+    capex_amortised_eur_month: float = 0.0
     by_scenario: dict = field(default_factory=dict)
     violations: tuple = ()
 
     @property
     def feasible(self):
         return not self.violations
+
+    @property
+    def monthly_now_cash_eur(self):
+        return self.monthly_now_total_eur - self.capex_amortised_eur_month
 
     @property
     def expected_total_eur(self):
@@ -55,6 +61,15 @@ def test_payback_is_migration_over_the_monthly_saving(forecast):
     decision = decide([Fake("do_nothing"), Fake("cleanup_orphans", migration_eur=600, monthly_now_total_eur=40)], forecast)
     assert decision.standings["cleanup_orphans"].payback_months == pytest.approx(10)
     assert decision.standings["do_nothing"].payback_months is None
+
+
+def test_on_prem_payback_pays_the_hardware_up_front_and_saves_cash(forecast):
+    onprem = Fake(
+        "move_to_onprem", migration_eur=100, upfront_hardware_eur=300,
+        monthly_now_total_eur=50, capex_amortised_eur_month=30,
+    )
+    decision = decide([Fake("do_nothing"), onprem], forecast)
+    assert decision.standings["move_to_onprem"].payback_months == pytest.approx((100 + 300) / (100 - 20))
 
 
 def test_a_winner_that_does_not_pay_back_in_the_horizon_loses_to_do_nothing(forecast):

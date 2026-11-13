@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from typing import Any, Sequence
 
 from engine.domain.action_savings import ActionOutcome
@@ -154,15 +155,14 @@ def _scenarios(values: Any) -> dict[str, float]:
 
 
 def _onprem_platform(onprem: OnpremPlatformCost) -> dict[str, Any]:
-    share = onprem.capacity_share
     return {
         "platform": onprem.platform,
         "platforms_needed": onprem.platforms_needed,
-        "capacity_share": share,
+        "capacity_share": onprem.capacity_share,
+        "capacity_share_at_horizon": onprem.capacity_share_at_horizon,
         "capex_eur": onprem.capex_eur,
-        "capex_amortised_eur_month": onprem.capex_amortised_eur_month * share,
-        "power_cooling_eur_month": onprem.power_cooling_eur_month * share,
-        "colocation_eur_month": onprem.colocation_eur_month * share,
-        "disk_replacement_eur_month": onprem.disk_replacement_eur_month * share,
-        "staff_eur_month": onprem.staff_eur_month * share,
+        "upfront_hardware_eur": onprem.upfront_hardware_eur,
+        "setup_eur": onprem.setup_eur,
+        "total_eur_month": onprem.allocated_monthly_eur,
+        **asdict(onprem.allocated),
     }
