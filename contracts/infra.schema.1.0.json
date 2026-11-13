@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infrared.local/contract/infra.schema.json",
+  "title": "Infrared infrastructure snapshot (extractor output)",
+  "description": "One JSON document describing a project's infrastructure as FACTS. The extractor (colleague A) writes it; the decision engine (colleague B) reads it. It deliberately contains no findings, scores, recommendations or 'issues': the engine derives all of those itself (otherwise the engine would be graded on the extractor's opinions, and two engines could never be compared on the same input). Fields outside `usage`, `cost` and `edges[].gb_month` are configuration facts read from the provider API and are 'observed' by definition. Unknown values are omitted or null, never guessed. Extension fields must start with 'x_'.",
+  "type": "object",
+  "required": ["schema_version", "project", "source", "components", "edges"],
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.\\d+$",
+      "description": "Semver major.minor. Additive changes bump minor; anything that removes/renames/retypes a field bumps major. Engine must accept any 1.x."
+    },
+    "project": { "type": "string", "minLength": 1, "description": "Project / account label, e.g. 'demo-shop'." },
+    "source": {
+      "type": "object",
+      "required": ["extractor", "generated_at"],
+      "additionalProperties": false,
+      "properties": {
+        "extractor": { "type": "string", "description": "Name of the extractor, e.g. 'infrared-extractor' or 'hand-written-mock'." },
+        "extractor_version": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "endpoint": { "type": ["string", "null"], "description": "API endpoint scanned, e.g. http://localhost:4566 for Floci; null for mocks." },
+        "regions_scanned": { "type": "array", "items": { "type": "string" } },
+        "is_mock": { "type": "boolean", "description": "True when the document was written by hand, not extracted." },
+        "notes": { "type": "string" }
+      }
+    },
+    "stacks": {
+      "type": "array",
+      "description": "Optional logical groupings (team/product/environment). Components reference one by id via `stack`.",
+      "items": {
+        "type": "object",
+        "required": ["id"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "name": { "type": "string" },
+          "environment": { "enum": ["prod", "staging", "dev", "shared", "unknown"] },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "controls": {
+      "type": "object",
+      "description": "Account-level security/ops controls that are NOT tied to one component. Used by security gates in the forecast. null = could not be determined.",
+      "additionalProperties": false,
+      "properties": {
+        "audit_logging_enabled": { "type": ["boolean", "null"], "description": "CloudTrail (or equivalent) on." },
+        "threat_detection_enabled": { "type": ["boolean", "null"], "description": "GuardDuty (or equivalent) on." },
+        "config_recording_enabled": { "type": ["boolean", "null"] },
+        "backup_plans_exist": { "type": ["boolean", "null"], "description": "Any AWS Backup plan or equivalent." },
+        "vpc_flow_logs_enabled": { "type": ["boolean", "null"] },
+        "mfa_enforced": { "type": ["boolean", "null"] }
+      }
+    },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/component" }
+    },
+    "edges": {
+      "type": "array",
+      "description": "Directed dependencies. `from` depends on / calls / writes to `to`. Parent/child containment (cluster -> node group) is NOT an edge: use `parent`.",
+      "items": { "$ref": "#/$defs/edge" }
+    },
+    "stay_together": {
+      "type": "array",
+      "description": "Optional hints: sets of components that should be moved as one unit or kept within one failure domain (chatty, transactional or latency-bound). The engine may also derive groups from edges; hints from the extractor/owner win.",
+      "items": {
+        "type": "object",
+        "required": ["id", "members", "scope", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "members": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+          "scope": { "enum": ["zone", "region", "provider"], "description": "Boundary the members must NOT be split across: 'zone' = same AZ, 'region' = same region, 'provider' = same provider (moving one means moving all)." },
+          "reason": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Lowercase slug, unique within the document." },
+    "provenance": {
+      "enum": ["observed", "estimated", "synthetic"],
+      "description": "observed = read as-is from the system's API/metrics. estimated = computed by the extractor from observed inputs with a stated formula (e.g. list price x hours). synthetic = injected fake data (Floci has no real telemetry/billing; its metrics come from synth/metrics.py). The engine must carry the weakest provenance of the inputs it used into the confidence of every recommendation."
+    },
+    "static_metric": {
+      "type": "object",
+      "description": "A single point value with provenance (capacity, size, cost, edge volume).",
+      "required": ["value", "provenance"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "basis": { "type": "string", "description": "For estimated values: how it was computed, e.g. 'list price 4.032 USD/h x 730 h x 0.92 EUR/USD'." }
+      }
+    },
+    "series_metric": {
+      "type": "object",
+      "description": "Summary of a time series over a window. Values are PER UNIT when the component has quantity > 1 (e.g. cpu_pct is the per-instance average). `sum` is over the whole window; the engine scales to a month with 30/window_days.",
+      "required": ["unit", "window_days", "provenance"],
+      "additionalProperties": false,
+      "properties": {
+        "unit": { "type": "string", "description": "e.g. percent, count, bytes, gb, iops, per_second, messages, ms" },
+        "window_days": { "type": "integer", "minimum": 1 },
+        "resolution_seconds": { "type": "integer", "minimum": 1, "description": "Datapoint period used to compute avg/p95/max, e.g. 3600." },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "avg": { "type": "number" },
+        "min": { "type": "number" },
+        "p50": { "type": "number" },
+        "p95": { "type": "number" },
+        "max": { "type": "number" },
+        "sum": { "type": "number" },
+        "basis": { "type": "string", "description": "Source, e.g. 'CloudWatch AWS/RDS CPUUtilization, Average, period 3600'." }
+      },
+      "anyOf": [
+        { "required": ["avg"] }, { "required": ["p95"] }, { "required": ["max"] },
+        { "required": ["sum"] }, { "required": ["min"] }, { "required": ["p50"] }
+      ]
+    },
+    "component": {
+      "type": "object",
+      "required": ["id", "kind", "provider", "service", "quantity", "region", "status", "stateful"],
+      "additionalProperties": false,
+      "patternProperties": { "^x_": {} },
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "description": "Human name / the provider's own identifier." },
+        "kind": {
+          "enum": [
+            "postgres", "nosql", "cache", "stream", "queue",
+            "object_storage", "block_storage", "file_system",
+            "container", "kubernetes_cluster", "node_group", "virtual_machine", "function",
+            "load_balancer", "nat", "cdn", "dns", "other"
+          ],
+          "description": "Provider-neutral class. The catalog maps each kind to per-provider options, so this list must match catalog `kind` exactly. `container` = a containerised service (ECS/Fargate service, Cloud Run); `node_group` = a pool of worker nodes whose `parent` is a kubernetes_cluster; `other` for anything not worth modelling (put what it is in `service`)."
+        },
+        "stack": { "$ref": "#/$defs/id", "description": "Optional reference to stacks[].id." },
+        "parent": { "$ref": "#/$defs/id", "description": "Containment, e.g. node_group -> kubernetes_cluster." },
+        "provider": { "enum": ["aws", "gcp", "azure", "onprem", "managed_pg", "other"] },
+        "service": { "type": "string", "description": "Provider service, e.g. rds, aurora-postgresql, eks-managed-nodegroup, ecs-fargate, dynamodb, s3." },
+        "sku": { "type": "string", "description": "Provider size/class, e.g. db.r5.8xlarge, m5.8xlarge, '4vcpu/16GB'. Free text; the engine uses `capacity` for sizing, not this." },
+        "quantity": { "type": "integer", "minimum": 0, "description": "Number of identical units this component stands for (12 nodes, 3 NAT gateways, 8 tasks). `usage` is per unit; `cost.monthly_eur` and `capacity` x quantity are totals/per-unit as documented on each field." },
+        "region": { "type": "string", "description": "Provider region id (eu-west-1) or a site id for on-prem (onprem-dc1). Floci only has us-east-1; mocks may set others by hand to exercise residency constraints." },
+        "zones": { "type": "integer", "minimum": 1, "description": "Number of availability zones the component actually runs in (placement, not what the service could do). 1 = single-AZ." },
+        "zone_ids": { "type": "array", "items": { "type": "string" } },
+        "status": {
+          "enum": ["active", "idle", "orphan"],
+          "description": "active = in use. idle = running and attached but doing ~nothing over the window. orphan = not referenced by anything / not attached (unattached volume, copy nobody connects to). The extractor sets this from API facts (attachment state, zero connections over the window); the engine decides what to do about it."
+        },
+        "stateful": { "type": "boolean", "description": "Holds data that must be migrated, not just redeployed." },
+        "data_gb": { "$ref": "#/$defs/static_metric", "description": "Data actually stored (not allocated). unit: GB." },
+        "data_classification": { "enum": ["public", "internal", "confidential", "pii", "unknown"], "default": "unknown", "description": "From tags where present; otherwise 'unknown'. Never guess pii from a name." },
+        "capacity": {
+          "type": "object",
+          "description": "PER-UNIT provisioned/allocated capacity as static metrics. Conventional keys (extend freely): vcpu, memory_gb, storage_gb, disk_gb, gpus, provisioned_iops, provisioned_rcu, provisioned_wcu, shards, throughput_mibps, object_count, timeout_s.",
+          "additionalProperties": { "$ref": "#/$defs/static_metric" }
+        },
+        "usage": {
+          "type": "object",
+          "description": "PER-UNIT observed load as series summaries. Conventional keys: cpu_pct, memory_pct, gpu_pct, connections, read_iops, write_iops, network_in_gb, network_out_gb, requests, invocations, duration_ms, messages_sent, messages_received, messages_visible, consumed_rcu, consumed_wcu, throttled_requests, incoming_bytes_per_s, hit_rate_pct, evictions.",
+          "additionalProperties": { "$ref": "#/$defs/series_metric" }
+        },
+        "scaling": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "min": { "type": "integer" }, "max": { "type": "integer" }, "desired": { "type": "integer" },
+            "autoscaling_enabled": { "type": "boolean" }
+          }
+        },
+        "engine": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "name": { "type": "string" }, "version": { "type": "string" } },
+          "description": "Database/engine or runtime and version (postgres 11.22, kubernetes 1.28, python3.8)."
+        },
+        "features_used": {
+          "type": "array", "uniqueItems": true, "items": { "type": "string" },
+          "description": "Extensions/capabilities the workload actually relies on (pgvector, pg_partman, logical_replication, postgis). Engine rules out targets whose catalog `features_supported` lacks any of them."
+        },
+        "security": {
+          "type": "object",
+          "description": "Facts needed for hard security gates. null = unknown.",
+          "additionalProperties": false,
+          "properties": {
+            "public_exposure": { "enum": ["none", "vpc_only", "internet", "unknown"] },
+            "encryption_at_rest": { "type": ["boolean", "null"] },
+            "encryption_in_transit": { "type": ["boolean", "null"] },
+            "backup_retention_days": { "type": ["integer", "null"], "minimum": 0 },
+            "deletion_protection": { "type": ["boolean", "null"] },
+            "world_open_ports": { "type": "array", "items": { "type": "integer" }, "description": "Ports reachable from 0.0.0.0/0 via attached security groups. -1 means every port." },
+            "plaintext_secrets_suspected": { "type": ["boolean", "null"], "description": "Heuristic: secret-looking values in env vars / parameters." },
+            "admin_privileges": { "type": ["boolean", "null"], "description": "Attached role grants Action:* on Resource:*." }
+          }
+        },
+        "cost": {
+          "type": "object",
+          "description": "OPTIONAL. Floci has no billing, so extractors normally estimate from list prices. The engine must not depend on it: it prices the catalog itself and uses this only to cross-check the current-state baseline.",
+          "additionalProperties": false,
+          "properties": {
+            "monthly_eur": { "$ref": "#/$defs/static_metric", "description": "TOTAL for all `quantity` units, in EUR/month." }
+          }
+        },
+        "tags": { "type": "object", "additionalProperties": { "type": "string" } },
+        "config": { "type": "object", "description": "Raw service settings as read from the API (visibility_timeout_s, partition_key, k8s_version, ...). Opaque to the schema; engine rules may read documented keys (see README) but must tolerate absence.", "additionalProperties": true }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "required": ["from", "to", "kind", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "from": { "$ref": "#/$defs/id" },
+        "to": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["network", "data", "event", "traffic", "dns", "config"], "description": "traffic = user/request path (LB -> backend). data = reads/writes a datastore. event = async messaging (queue, notification, schedule). network = placement/reachability only (SG, subnet, VPC attachment). dns = name resolution. config = references via env/parameter." },
+        "evidence": { "enum": ["declared", "observed", "inferred"], "description": "declared = explicit in config (target group, event mapping, env var). observed = seen in flow logs/metrics. inferred = extractor guess." },
+        "gb_month": { "$ref": "#/$defs/static_metric", "description": "OPTIONAL monthly volume. Floci produces no traffic data, so this is estimated or synthetic there; omit rather than invent when unknown. Used for egress cost; kind and stay_together decide which components move together." },
+        "requests_month": { "$ref": "#/$defs/static_metric" },
+        "latency_sensitive": { "type": "boolean" },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}

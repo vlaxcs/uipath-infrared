@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://infrared.local/contract/infra.schema.json",
   "title": "Infrared infrastructure snapshot (extractor output)",
-  "description": "One JSON document describing a project's infrastructure as FACTS. The extractor (colleague A) writes it; the decision engine (colleague B) reads it. It deliberately contains no findings, scores, recommendations or 'issues': the engine derives all of those itself (otherwise the engine would be graded on the extractor's opinions, and two engines could never be compared on the same input). Fields outside `usage`, `cost` and `edges[].gb_month` are configuration facts read from the provider API and are 'observed' by definition. Unknown values are omitted or null, never guessed. Extension fields must start with 'x_'.",
+  "description": "One JSON document describing a project's infrastructure as FACTS. The extractor (colleague A) writes it; the decision engine (colleague B) reads it. It deliberately contains no findings, scores, recommendations or 'issues': the engine derives all of those itself (otherwise the engine would be graded on the extractor's opinions, and two engines could never be compared on the same input). Fields outside `usage`, `cost` and `edges[].gb_month` are configuration facts read from the provider API and are 'observed' by definition. Unknown values are omitted or null, never guessed. Extension fields must start with 'x_'. Schema version 1.1 adds optional AI consumption, database statistics, and CI runner fields.",
   "type": "object",
   "required": ["schema_version", "project", "source", "components", "edges"],
   "additionalProperties": false,
@@ -11,7 +11,7 @@
     "schema_version": {
       "type": "string",
       "pattern": "^1\\.\\d+$",
-      "description": "Semver major.minor. Additive changes bump minor; anything that removes/renames/retypes a field bumps major. Engine must accept any 1.x."
+      "description": "Semver major.minor. Additive changes bump minor; anything that removes/renames/retypes a field bumps major. Engine must accept any 1.x. Version 1.1 adds AI consumption, database statistics, and CI runners."
     },
     "project": { "type": "string", "minLength": 1, "description": "Project / account label, e.g. 'demo-shop'." },
     "source": {
@@ -65,6 +65,54 @@
       "type": "array",
       "description": "Directed dependencies. `from` depends on / calls / writes to `to`. Parent/child containment (cluster -> node group) is NOT an edge: use `parent`.",
       "items": { "$ref": "#/$defs/edge" }
+    },
+    "ai_consumption": {
+      "type": "object",
+      "description": "Optional AI/ML consumption metrics: token spend per model and provider, GPU utilization. Added in schema 1.1.",
+      "additionalProperties": false,
+      "properties": {
+        "tokens_by_model": {
+          "type": "array",
+          "description": "Token consumption per model and provider",
+          "items": {
+            "type": "object",
+            "required": ["model", "provider", "window_days", "provenance"],
+            "additionalProperties": false,
+            "properties": {
+              "model": { "type": "string", "description": "Model name, e.g. 'gpt-4', 'claude-sonnet-4'" },
+              "provider": { "type": "string", "description": "Provider, e.g. 'openai', 'anthropic', 'bedrock'" },
+              "input_tokens": { "type": "integer", "minimum": 0 },
+              "output_tokens": { "type": "integer", "minimum": 0 },
+              "cost_usd": { "type": "number", "minimum": 0 },
+              "window_days": { "type": "integer", "minimum": 1 },
+              "provenance": { "$ref": "#/$defs/provenance" }
+            }
+          }
+        }
+      }
+    },
+    "ci_runners": {
+      "type": "object",
+      "description": "Optional GitHub runner statistics. Added in schema 1.1.",
+      "additionalProperties": false,
+      "properties": {
+        "runners": {
+          "type": "array",
+          "description": "GitHub Actions runner usage",
+          "items": {
+            "type": "object",
+            "required": ["runner_type", "hours_month", "provenance"],
+            "additionalProperties": false,
+            "properties": {
+              "runner_type": { "type": "string", "description": "Runner type, e.g. 'ubuntu-latest', 'self-hosted'" },
+              "hours_month": { "type": "number", "minimum": 0 },
+              "workflow_runs": { "type": "integer", "minimum": 0 },
+              "provenance": { "$ref": "#/$defs/provenance" }
+            }
+          }
+        },
+        "source_repo": { "type": "string", "description": "GitHub repository analyzed" }
+      }
     },
     "stay_together": {
       "type": "array",
@@ -205,6 +253,43 @@
           "additionalProperties": false,
           "properties": {
             "monthly_eur": { "$ref": "#/$defs/static_metric", "description": "TOTAL for all `quantity` units, in EUR/month." }
+          }
+        },
+        "db_stats": {
+          "type": "object",
+          "description": "Optional database statistics for postgres components. Schemas and statistics only, never table rows. Added in schema 1.1.",
+          "additionalProperties": false,
+          "properties": {
+            "tables": {
+              "type": "array",
+              "description": "Table statistics from pg_stat_user_tables",
+              "items": {
+                "type": "object",
+                "required": ["schema", "table", "size_bytes", "provenance"],
+                "additionalProperties": false,
+                "properties": {
+                  "schema": { "type": "string" },
+                  "table": { "type": "string" },
+                  "size_bytes": { "type": "integer", "minimum": 0 },
+                  "row_estimate": { "type": "integer", "minimum": 0 },
+                  "seq_scans": { "type": "integer", "minimum": 0 },
+                  "idx_scans": { "type": "integer", "minimum": 0 },
+                  "n_tup_ins": { "type": "integer", "minimum": 0 },
+                  "n_tup_upd": { "type": "integer", "minimum": 0 },
+                  "n_tup_del": { "type": "integer", "minimum": 0 },
+                  "provenance": { "$ref": "#/$defs/provenance" }
+                }
+              }
+            },
+            "indexes": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Total index count across all tables"
+            },
+            "connection": {
+              "type": "string",
+              "description": "Connection endpoint used for extraction"
+            }
           }
         },
         "tags": { "type": "object", "additionalProperties": { "type": "string" } },

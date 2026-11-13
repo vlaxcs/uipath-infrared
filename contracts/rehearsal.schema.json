@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infrared.local/contract/rehearsal.schema.json",
+  "title": "Infrared rehearsal result (sandbox output)",
+  "description": "The sandbox's output: traffic profile used, failure(s) injected, measured availability and latency before/during/after the failure, pass/fail against the forecast's min_availability_pct. Every measurement carries its provenance (synthetic on Floci). The orchestrator passes this to the dashboard and uses the pass/fail verdict to decide whether to loop back or proceed to approval.",
+  "type": "object",
+  "required": ["schema_version", "candidate_id", "forecast_id", "traffic_profile", "failure", "phases", "verdict", "timestamps"],
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.\\d+$",
+      "description": "Semver major.minor. Additive changes bump minor; anything that removes/renames/retypes a field bumps major."
+    },
+    "candidate_id": {
+      "type": "string",
+      "description": "Which candidate/layout was rehearsed, from result.json."
+    },
+    "forecast_id": {
+      "type": "string",
+      "description": "The forecast this rehearsal was checked against."
+    },
+    "traffic_profile": {
+      "type": "object",
+      "description": "The traffic pattern sent to the infrastructure during the rehearsal.",
+      "required": ["pattern", "duration_s", "target_endpoint"],
+      "additionalProperties": false,
+      "properties": {
+        "pattern": {
+          "enum": ["constant", "ramp", "burst", "diurnal"],
+          "description": "constant = steady requests/s; ramp = linearly increasing; burst = spikes; diurnal = time-of-day curve."
+        },
+        "duration_s": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Total duration of the traffic generation in seconds."
+        },
+        "target_endpoint": {
+          "type": "string",
+          "description": "The ALB or entry point URL that received the traffic."
+        },
+        "requests_per_second": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Request rate for constant pattern, or base rate for others."
+        },
+        "peak_requests_per_second": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Peak rate for ramp/burst/diurnal patterns."
+        },
+        "total_requests": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of requests sent across all phases."
+        }
+      }
+    },
+    "failure": {
+      "type": "object",
+      "description": "The single failure injected during the rehearsal.",
+      "required": ["type", "target_component", "injected_at_s", "duration_s"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": ["instance_stop", "task_stop", "zone_down", "network_partition", "resource_exhaustion"],
+          "description": "instance_stop = EC2 instance stopped; task_stop = ECS/EKS task stopped; zone_down = entire AZ fails; network_partition = network cut; resource_exhaustion = CPU/memory spike."
+        },
+        "target_component": {
+          "type": "string",
+          "description": "Component id (from infra.json) that the failure was applied to."
+        },
+        "injected_at_s": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Seconds from the start of the rehearsal when the failure was injected."
+        },
+        "duration_s": {
+          "type": "number",
+          "minimum": 0,
+          "description": "How long the failure lasted."
+        },
+        "detail": {
+          "type": "string",
+          "description": "Additional details about the failure (which instance, which zone, etc.)."
+        }
+      }
+    },
+    "phases": {
+      "type": "object",
+      "description": "Measurements broken into three phases: before the failure (baseline), during the failure, and after recovery.",
+      "required": ["baseline", "failure", "recovery"],
+      "additionalProperties": false,
+      "properties": {
+        "baseline": { "$ref": "#/$defs/phase_measurement" },
+        "failure": { "$ref": "#/$defs/phase_measurement" },
+        "recovery": { "$ref": "#/$defs/phase_measurement" }
+      }
+    },
+    "component_results": {
+      "type": "array",
+      "description": "Per-component measurements during the rehearsal.",
+      "items": {
+        "type": "object",
+        "required": ["component_id", "kind", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "component_id": { "type": "string" },
+          "kind": { "type": "string" },
+          "status": {
+            "enum": ["healthy", "degraded", "failed"],
+            "description": "healthy = component stayed up; degraded = partial failure; failed = component went down."
+          },
+          "availability_pct": { "$ref": "#/$defs/metric_with_provenance" },
+          "cpu_pct": { "$ref": "#/$defs/metric_with_provenance" },
+          "memory_pct": { "$ref": "#/$defs/metric_with_provenance" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "verdict": {
+      "type": "object",
+      "description": "Pass/fail decision against the forecast's min_availability_pct.",
+      "required": ["passed", "forecast_min_availability_pct", "measured_availability_pct"],
+      "additionalProperties": false,
+      "properties": {
+        "passed": {
+          "type": "boolean",
+          "description": "True if measured availability meets or exceeds the forecast's minimum."
+        },
+        "forecast_min_availability_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "The threshold from forecast.json."
+        },
+        "measured_availability_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "The overall availability measured during the rehearsal."
+        },
+        "gap_pct": {
+          "type": "number",
+          "description": "Shortfall (negative) or excess (positive) vs the threshold."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why it passed or failed."
+        }
+      }
+    },
+    "timestamps": {
+      "type": "object",
+      "required": ["started_at", "completed_at"],
+      "additionalProperties": false,
+      "properties": {
+        "started_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the rehearsal began."
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the rehearsal finished."
+        },
+        "elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Total elapsed time in seconds."
+        }
+      }
+    },
+    "infrastructure": {
+      "type": "object",
+      "description": "Details about the infrastructure built for this rehearsal.",
+      "additionalProperties": false,
+      "properties": {
+        "vpc_id": { "type": "string" },
+        "name_prefix": { "type": "string" },
+        "endpoint": { "type": "string", "description": "Floci endpoint or AWS region." },
+        "components_created": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of component ids successfully created."
+        },
+        "teardown_status": {
+          "enum": ["success", "partial", "failed"],
+          "description": "Whether all resources were torn down."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "metric_with_provenance": {
+      "type": "object",
+      "required": ["value", "provenance"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" },
+        "provenance": {
+          "enum": ["observed", "estimated", "synthetic"],
+          "description": "observed = real metrics from the system; estimated = computed; synthetic = fake data (Floci)."
+        },
+        "basis": {
+          "type": "string",
+          "description": "How the value was obtained, e.g. 'CloudWatch metric' or 'HTTP probe'."
+        }
+      }
+    },
+    "phase_measurement": {
+      "type": "object",
+      "description": "Measurements for one phase of the rehearsal.",
+      "required": ["duration_s"],
+      "additionalProperties": false,
+      "properties": {
+        "duration_s": {
+          "type": "number",
+          "minimum": 0,
+          "description": "How long this phase lasted."
+        },
+        "availability_pct": { "$ref": "#/$defs/metric_with_provenance" },
+        "latency_p50_ms": { "$ref": "#/$defs/metric_with_provenance" },
+        "latency_p95_ms": { "$ref": "#/$defs/metric_with_provenance" },
+        "latency_p99_ms": { "$ref": "#/$defs/metric_with_provenance" },
+        "requests_total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total requests sent during this phase."
+        },
+        "requests_successful": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Requests that returned 2xx."
+        },
+        "requests_failed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Requests that failed or timed out."
+        },
+        "error_rate_pct": { "$ref": "#/$defs/metric_with_provenance" }
+      }
+    }
+  }
+}
