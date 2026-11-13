@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "project": "startup",
+  "revision": 0,
+  "proposed_by": { "agent": "flow-test-stub", "model": "none" },
+  "candidates": [
+    {
+      "id": "agent-serverless-db",
+      "builds_on": "rightsize_in_place",
+      "rationale": "app-db runs one instance in one zone; a serverless Postgres in two zones removes the single-zone risk.",
+      "actions": [
+        {
+          "component": "app-db",
+          "action": "move",
+          "reason": "single-zone stateful database",
+          "signal": "single_zone_stateful",
+          "to": { "option": "managed-pg-serverless", "region": "us-east-1", "tier": "c4", "zones": 2 }
+        }
+      ]
+    }
+  ]
+}

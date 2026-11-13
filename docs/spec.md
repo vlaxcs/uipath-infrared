@@ -28,7 +28,7 @@ The technical design for building Infrared, as described in `docs/prd.md`. This 
 | Agent | investigates, records qualitative findings, proposes candidate plans | Python, Claude Agent SDK | exists, read-only (#3) |
 | Engine | prices, checks constraints, scores and ranks candidates; writes `result.json` | Python | designed (#2), not built |
 | Sandbox | builds the proposed infrastructure in Floci, simulates traffic and failures | Python | new |
-| Orchestrator | runs the workflow, holds run state, gates approvals, exposes the API | Go | new |
+| Orchestrator | runs the workflow, holds run state, gates approvals, exposes the API | Go | built, steps 1 to 6 (`docs/orchestrator.md`) |
 | Dashboard | runs, the dependency graph, candidates, the step-by-step change, approvals | web (TypeScript) | prototype graph exists (#3) |
 | Slack bot | run summaries and approvals | Go or TypeScript | new |
 | Chrome extension | Infrared inside the GitHub organisation: runners, run status | TypeScript | new |
@@ -170,7 +170,7 @@ What the agent proposes in step 3 and the engine evaluates in step 4. Field rule
 - **Targets are catalog terms:** an option, a region it runs in, a tier it offers, a count, zones.
 - **Bounded:** at most 10 candidates per revision. `revision` matches the run's; `revises` names the candidate of the previous revision it replaces.
 
-Not in the run contract: the payload of the run list, which lands with the orchestrator API; what an analysis is: `result.json` lists candidates and their actions, but no analyses, so `decision.analyses` points to nothing yet; and the check that a picked layout is a feasible candidate in the run's `result.json`.
+Not in the run contract: the payload of the run list, defined by the orchestrator API in `docs/orchestrator.md`; what an analysis is: `result.json` lists candidates and their actions, but no analyses, so `decision.analyses` points to nothing yet; and the check that a picked layout is a feasible candidate in the run's `result.json`.
 
 ## 7. What we keep from #2 and #3
 
@@ -187,7 +187,7 @@ Not in the run contract: the payload of the run list, which lands with the orche
 
 **Done in the repo setup:** #3 and #2 merged into the structure of section 3; configuration read from `.env` (section 4); pinned `requirements.txt` per app; repo-relative paths in the READMEs; the name Infrared; the bash note; the scorer moved next to the ground truth (`apps/estate/score.py`).
 
-**Still to do, by each owner:** remove the comments and docstrings (section 4), and split single-file modules into the layers section 4 asks for, starting with `apps/extractor/extract_floci.py` (811 lines, Andrei) and `apps/agent/agent/main.py` (Vlad).
+**Still to do, by each owner:** remove the comments and docstrings (section 4), and split single-file modules into the layers section 4 asks for, starting with `apps/extractor/extract_floci.py` (811 lines, Andrei). `apps/agent/` is split and clean (`docs/orchestrator.md` section 8).
 
 ## 8. LLM
 

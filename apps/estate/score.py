@@ -1,6 +1,6 @@
 """Score the agent's findings against ground_truth/planted_issues.json (run by a human, never by the agent).
 
-    python score.py [path/to/findings.jsonl]
+    python score.py [path/to/findings.json]
 
 A planted issue counts as found when a finding's resources/title/evidence mention its resource name (or the
 numeric/word tokens of it) and the stack or service is plausible. Crude on purpose: read the misses by hand.
@@ -18,10 +18,20 @@ def tokens(s: str) -> set[str]:
     return {t for t in re.split(r"[^a-z0-9]+", s.lower()) if len(t) > 2}
 
 
+def load_findings(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    text = path.read_text()
+    try:
+        return json.loads(text)["findings"]
+    except (json.JSONDecodeError, TypeError, KeyError):
+        return [json.loads(line) for line in text.splitlines() if line.strip()]
+
+
 def main() -> None:
     truth = json.loads((ESTATE / "ground_truth/planted_issues.json").read_text())["issues"]
     path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_FINDINGS
-    findings = [json.loads(l) for l in path.read_text().splitlines()] if path.exists() else []
+    findings = load_findings(path)
     blobs = [(f["id"], " ".join([f.get("title", ""), " ".join(map(str, f.get("resources", []))),
                                   f.get("recommendation", "")]).lower()) for f in findings]
     hit, miss = [], []

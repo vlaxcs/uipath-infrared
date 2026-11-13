@@ -15,3 +15,5 @@ __pycache__/
 apps/estate/logs/
 apps/agent/out/
 apps/slack-bot/out/
+runs/
+.bin/

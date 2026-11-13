@@ -21,6 +21,17 @@ def test_base_url_is_optional(monkeypatch):
     assert settings.llm().base_url is None
 
 
+def test_a_missing_engine_command_stops_propose_naming_the_variable(monkeypatch):
+    monkeypatch.delenv("AGENT_ENGINE_CMD", raising=False)
+    with pytest.raises(SystemExit, match="AGENT_ENGINE_CMD"):
+        settings.engine_command()
+
+
+def test_the_engine_command_splits_on_spaces(monkeypatch):
+    monkeypatch.setenv("AGENT_ENGINE_CMD", "python -m engine")
+    assert settings.engine_command() == ["python", "-m", "engine"]
+
+
 def test_base_url_routes_through_another_provider(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "key")
     monkeypatch.setenv("ANTHROPIC_BASE_URL", "https://openrouter.ai/api")

@@ -68,6 +68,35 @@ jobs:
         working-directory: apps/${{ matrix.app }}
         run: python -m pytest -q
 
+  orchestrator:
+    runs-on: [self-hosted, linux, infrared]
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/orchestrator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: apps/orchestrator/go.mod
+          cache-dependency-path: apps/orchestrator/go.sum
+      - name: Tools on PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Python environment for the engine and the contract checker
+        working-directory: .
+        run: |
+          uv venv --python 3.12 .venv
+          uv pip install --python .venv -r apps/engine/requirements.txt -r contracts/requirements.txt
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+      - name: Format
+        run: test -z "$(gofmt -l .)"
+      - name: Vet
+        if: ${{ !cancelled() }}
+        run: go vet ./...
+      - name: Unit tests and the flow test
+        if: ${{ !cancelled() }}
+        run: go test ./... -count=1
+
   web:
     runs-on: [self-hosted, linux, infrared]
     timeout-minutes: 15

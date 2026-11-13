@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "project": "startup",
+  "revision": 1,
+  "proposed_by": { "agent": "flow-test-stub", "model": "none" },
+  "candidates": [
+    {
+      "id": "agent-serverless-db-eu",
+      "builds_on": "rightsize_in_place",
+      "revises": "agent-serverless-db",
+      "rationale": "The same serverless Postgres in two zones, kept in the EU where the project's personal data must stay.",
+      "actions": [
+        {
+          "component": "app-db",
+          "action": "move",
+          "reason": "single-zone stateful database",
+          "signal": "single_zone_stateful",
+          "to": { "option": "managed-pg-serverless", "region": "eu-west-1", "tier": "c4", "zones": 2 }
+        }
+      ]
+    }
+  ]
+}
