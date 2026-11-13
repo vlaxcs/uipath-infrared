@@ -41,6 +41,10 @@ The Electron window passes the Slack address to the page in the query string; th
 | 6 | Window behaviour: the bezel drags the window, it stays on top | it sits beside the dashboard without getting buried |
 | 7 | CI and pull request | typecheck, tests and build are green; the PR lists the manual checks |
 
+## Spike outcome
+
+Slack's sign-in page fits 396 px, but the signed-in client lays out at 668 px and clips the conversation. The Slack view is therefore zoomed to `0.55` when its page is ready (`electron/zoom.ts`), which gives it 720 px of layout inside the 396 px screen: the full client fits and stays readable.
+
 ## Risks
 
 - **Slack at phone width.** Slack's web client is built for desktop, and with a mobile user agent it sends you to the app store. The fallback is rendering it wider and zooming the view out. Step 1 settles this.
@@ -52,6 +56,7 @@ The Electron window passes the Slack address to the page in the query string; th
 - Settings: a missing workspace URL stops startup and names the variable.
 - Navigation: Slack addresses are allowed, others are not.
 - Frame: shows the Slack view when the Electron window hosts it and the placeholder in a browser.
+- Zoom: the Slack view is zoomed to fit the phone screen when its page is ready.
 - The existing frame tests stay.
 
 The Slack view itself is checked by hand: log in, open the approval channel, click a button in a message.

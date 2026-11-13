@@ -4,6 +4,7 @@ import { app } from "electron";
 import { guardWebContents } from "./guard";
 import { readSettings, type Settings } from "./settings";
 import { openPhoneWindow } from "./window";
+import { fitSlackViews } from "./zoom";
 
 function loadSettings(): Settings {
   const envFile = join(app.getAppPath(), "../../.env");
@@ -26,5 +27,6 @@ function pageUrl(): string {
 const settings = loadSettings();
 app.userAgentFallback = app.userAgentFallback.replace(/ Electron\/\S+/, "").replace(` ${app.getName()}/${app.getVersion()}`, "");
 guardWebContents(app);
+fitSlackViews(app);
 app.on("window-all-closed", () => app.quit());
 void app.whenReady().then(() => openPhoneWindow(pageUrl(), settings.slackWorkspaceUrl));
