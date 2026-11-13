@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { Run } from "~/runs/types";
 import { formatTimestamp } from "~/runs/format";
 import { runStatusMeta } from "~/runs/status";
-import { StatusBadge } from "~/runs/StatusBadge";
+import { StatusBadge } from "~/ui/StatusBadge";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (

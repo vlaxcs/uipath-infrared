@@ -1,5 +1,5 @@
 import type { Section } from "~/navigation/sections";
-import { StatusBadge } from "~/runs/StatusBadge";
+import { StatusBadge } from "~/ui/StatusBadge";
 
 export function SectionPlaceholder({ section }: { section: Section }) {
   return (

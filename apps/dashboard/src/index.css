@@ -2,6 +2,11 @@
 @import "./styles/tokens.css";
 
 @theme inline {
+  --color-*: initial;
+  --font-*: initial;
+  --text-*: initial;
+  --radius-*: initial;
+
   --color-canvas: var(--color-canvas);
   --color-surface: var(--color-surface);
   --color-surface-muted: var(--color-surface-muted);

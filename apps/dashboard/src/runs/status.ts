@@ -1,4 +1,5 @@
-import type { EventStatus, RunStatus, StatusTone } from "~/runs/types";
+import type { EventStatus, RunStatus } from "~/runs/types";
+import type { StatusTone } from "~/ui/StatusBadge";
 
 type StatusMeta = {
   label: string;

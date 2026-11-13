@@ -1,4 +1,4 @@
-import type { StatusTone } from "~/runs/types";
+export type StatusTone = "running" | "awaiting" | "completed" | "failed" | "neutral";
 
 const TONE_CLASSES: Record<StatusTone, string> = {
   running: "border-status-running text-status-running",

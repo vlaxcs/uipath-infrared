@@ -2,7 +2,7 @@ import { useState } from "react";
 import { sectionById, type SectionId } from "~/navigation/sections";
 import { sampleRuns } from "~/runs/sampleRun";
 import { RunsSection } from "~/runs/RunsSection";
-import { StatusBadge } from "~/runs/StatusBadge";
+import { StatusBadge } from "~/ui/StatusBadge";
 import { AppShell } from "~/shell/AppShell";
 import { SectionPlaceholder } from "~/shell/SectionPlaceholder";
 

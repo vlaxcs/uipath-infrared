@@ -1,7 +1,6 @@
 export type RunStatus = "running" | "awaiting_approval" | "completed" | "failed";
 export type EventStatus = "started" | "completed" | "failed" | "awaiting_approval" | "approved";
 export type RunStep = "extract" | "investigate" | "propose" | "evaluate" | "present" | "rehearse";
-export type StatusTone = "running" | "awaiting" | "completed" | "failed" | "neutral";
 
 export type RunFile = {
   path: string;
