@@ -47,7 +47,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 ## 3. Getting into their day
 
 - **A helper, not a replacement:** the agent prepares and chases; people decide with one tap.
-- **Channel:** Slack approvals, simulated in the demo's phone frame. The same approvals as buttons on the run's web page, as a fallback and for following the run.
+- **Channel:** a real Slack bot for approvals and messages. The same approvals as buttons on the run's web page, as a fallback and for following the run.
 - **New hire before day one:** emails from the company's Microsoft account.
 - **Linked to:** the Microsoft organisation (Entra ID SSO, groups as permissions, Outlook Calendar, through Microsoft Graph), GitHub and GCP for access, and whatever HR uses today for the start date and position.
 
@@ -106,7 +106,7 @@ A **simulated clock** compresses weeks into minutes, so the demo moves time forw
 
 ### Two surfaces
 
-- **Phone, the employee's view:** everything the new hire receives during onboarding: the emails, setting up the Slack bot, and the rest of what reaches them. Shown in a phone frame on the laptop, not on a real phone. Email and Slack inside the frame are simulated.
+- **Phone, the employee's view:** everything the new hire receives during onboarding: the emails, setting up the Slack bot, and the rest of what reaches them. Shown in a phone frame on the laptop, not on a real phone. Real: the Slack bot, the Microsoft account with its email, and SSO sign-in, created by the agent.
 - **Platform, HR and the manager's view:**
   - a side panel with most modules of the previous internal platform (Dashboard, Team Schedule, Tasks, Projects, Performance Review, Org Chart, Employees, Contracts, Leave and the rest), shown but locked;
   - an **Awaiting onboarding** panel listing the people in onboarding;
