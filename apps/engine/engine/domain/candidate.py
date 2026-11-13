@@ -13,6 +13,7 @@ class ActionKind(StrEnum):
     AUTOSCALE = "autoscale"
     MOVE = "move"
     FLAG = "flag"
+    REMEDIATE = "remediate"
 
 
 @dataclass(frozen=True)
@@ -47,4 +48,5 @@ class Candidate:
         return self.actions[len(parent.actions):] if parent else self.actions
 
 
+ACCOUNT_SCOPE = "account"
 DO_NOTHING = Candidate("do_nothing", ())

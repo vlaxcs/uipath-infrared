@@ -1,7 +1,7 @@
 from dataclasses import dataclass, replace
 from typing import Mapping
 
-from engine.domain.candidate import Action, ActionKind, Candidate
+from engine.domain.candidate import ACCOUNT_SCOPE, Action, ActionKind, Candidate
 from engine.domain.catalog import Catalog, Option
 from engine.domain.model import Component, Infra
 
@@ -21,6 +21,7 @@ class Placement:
     autoscaled: bool = False
     removed: bool = False
     origin_option_id: str | None = None
+    remediated: frozenset[str] = frozenset()
 
     @property
     def unchanged(self) -> bool:
@@ -45,6 +46,7 @@ class Placement:
 class EndState:
     candidate: Candidate
     placements: Mapping[str, Placement]
+    remediated_controls: frozenset[str] = frozenset()
 
     def live(self) -> tuple[Placement, ...]:
         return tuple(p for p in self.placements.values() if not p.removed)
@@ -75,9 +77,13 @@ def apply_candidate(infra: Infra, catalog: Catalog, candidate: Candidate) -> End
     for component in infra.components:
         current = catalog.current_option(component)
         placements[component.id] = initial_placement(component, current.id if current else None)
+    controls = set()
     for action in candidate.actions:
-        placements[action.component] = _apply(placements[action.component], action, catalog)
-    return EndState(candidate, placements)
+        if action.component == ACCOUNT_SCOPE:
+            controls.add(action.signal)
+        else:
+            placements[action.component] = _apply(placements[action.component], action, catalog)
+    return EndState(candidate, placements, frozenset(controls))
 
 
 def _apply(placement: Placement, action: Action, catalog: Catalog) -> Placement:
@@ -102,6 +108,8 @@ def _apply(placement: Placement, action: Action, catalog: Catalog) -> Placement:
                 autoscaled=True,
                 quantity=placement.quantity if action.quantity is None else action.quantity,
             )
+        case ActionKind.REMEDIATE:
+            return replace(placement, remediated=placement.remediated | {action.signal})
         case ActionKind.MOVE:
             return _move(placement, catalog.option(action.option), action, catalog)
     return placement
