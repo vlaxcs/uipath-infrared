@@ -24,7 +24,7 @@ type Runs interface {
 	Decide(id string, event run.Event) (run.Event, error)
 }
 
-func Handler(runs Runs) http.Handler {
+func Handler(runs Runs, allowedOrigins ...string) http.Handler {
 	api := &api{runs: runs}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /runs", api.list)
@@ -32,7 +32,7 @@ func Handler(runs Runs) http.Handler {
 	mux.HandleFunc("GET /runs/{id}", api.get)
 	mux.HandleFunc("GET /runs/{id}/events", api.events)
 	mux.HandleFunc("POST /runs/{id}/decisions", api.decide)
-	return mux
+	return withCORS(mux, allowedOrigins)
 }
 
 type api struct {
