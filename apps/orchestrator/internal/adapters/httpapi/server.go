@@ -22,6 +22,8 @@ type Runs interface {
 	EventsAfter(id string, seq int) ([]run.Event, error)
 	List(project string, limit int) []run.Summary
 	Decide(id string, event run.Event) (run.Event, error)
+	ListFiles(id string) ([]run.Artifact, error)
+	ReadFile(id, name string) ([]byte, error)
 }
 
 func Handler(runs Runs, allowedOrigins ...string) http.Handler {
@@ -32,6 +34,8 @@ func Handler(runs Runs, allowedOrigins ...string) http.Handler {
 	mux.HandleFunc("GET /runs/{id}", api.get)
 	mux.HandleFunc("GET /runs/{id}/events", api.events)
 	mux.HandleFunc("POST /runs/{id}/decisions", api.decide)
+	mux.HandleFunc("GET /runs/{id}/files", api.files)
+	mux.HandleFunc("GET /runs/{id}/files/{name}", api.file)
 	return withCORS(mux, allowedOrigins)
 }
 
@@ -103,6 +107,26 @@ func (a *api) decide(w http.ResponseWriter, r *http.Request) {
 	reply(w, http.StatusCreated, appended)
 }
 
+func (a *api) files(w http.ResponseWriter, r *http.Request) {
+	artifacts, err := a.runs.ListFiles(r.PathValue("id"))
+	if err != nil {
+		failWith(w, err)
+		return
+	}
+	reply(w, http.StatusOK, artifacts)
+}
+
+func (a *api) file(w http.ResponseWriter, r *http.Request) {
+	data, err := a.runs.ReadFile(r.PathValue("id"), r.PathValue("name"))
+	if err != nil {
+		failWith(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(data)
+}
+
 func decode(w http.ResponseWriter, r *http.Request, into any) bool {
 	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxBodyBytes))
 	decoder.DisallowUnknownFields()
@@ -133,6 +157,8 @@ func failWith(w http.ResponseWriter, err error) {
 		status = http.StatusBadRequest
 	case errors.Is(err, workflow.ErrLayoutNotFeasible):
 		status = http.StatusUnprocessableEntity
+	case errors.Is(err, run.ErrArtifactTooLarge):
+		status = http.StatusRequestEntityTooLarge
 	}
 	fail(w, status, err.Error())
 }

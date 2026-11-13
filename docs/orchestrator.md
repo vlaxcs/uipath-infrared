@@ -81,6 +81,8 @@ JSON in and out, `Content-Type: application/json`. Errors are `{"error": "<reaso
 | `GET /runs/{id}` | `200`, the run document. `404` |
 | `GET /runs/{id}/events?after=<seq>` | `200`, the events with `seq` greater than `after`, in order; `[]` when there is none. `after` defaults to 0; `400` when it is not a non-negative integer. `404` |
 | `POST /runs/{id}/decisions` | `201`, the appended event. `400` when the body breaks the rules below. `404`. `409` when the gate it targets is not open. `422` when `pick_layout` names a candidate that is not a feasible candidate of the latest result |
+| `GET /runs/{id}/files` | `200`, the allowlisted run artifacts as `{path, size}`. `404` |
+| `GET /runs/{id}/files/{path}` | `200`, the file's raw JSON. `404` when the name is not an allowlisted artifact or the file is missing; `413` over 16 MiB |
 
 A decision's body is the contract's `approved` event without the fields the orchestrator owns (`seq`, `at`, `revision`), as the Slack bot already sends it:
 
@@ -98,6 +100,8 @@ A decision's body is the contract's `approved` event without the fields the orch
 **Browsers.** The dashboard runs on another origin (Vite's dev server), so it needs CORS. Only the origins in `ORCHESTRATOR_ALLOWED_ORIGINS` get `Access-Control-Allow-Origin`, echoed back exactly, with `Vary: Origin`; a preflight from one of them answers `204` with `GET, POST` and `Content-Type`, and a preflight from any other origin answers `403`. With the variable unset, no CORS headers are sent and the API stays same-origin. Never `*`: there is no authentication, so an open CORS policy would let any page open in the CTO's browser approve a plan on `localhost`.
 
 Reads come from memory: the orchestrator holds every run, so a run, its events after a `seq`, and the run list need no disk read. Events after a `seq` are a slice of the log, since `seq` is gapless.
+
+**Run files.** The two file routes read the run directory on disk. They serve only the stage artifacts: `infra.json`, `findings.json`, `candidates.<n>.json`, `feedback.<n>.json`, `result.<n>.json` and `rehearsal.<n>.json`. `run.json`, the copied inputs and the logs are never served. A path is a single file name; `..`, separators, directories and symlinks are refused, and a file over 16 MiB gets `413`. They use the same CORS policy as the rest of the API.
 
 ## 6. Configuration
 
@@ -121,7 +125,7 @@ One run of the demo path (`docs/spec.md` section 9) through the real orchestrato
 - It starts the orchestrator's HTTP handler in-process, on a temporary runs dir, with the start-up project (`contracts/mock/startup.forecast.json`) and `contracts/catalog.example.json`.
 - Stages, today: extract and agent are stubs; the engine is the real one, `python -m engine` from `apps/engine/`; the sandbox is a stub. The extract stub copies `contracts/mock/startup.infra.json`. The agent stub writes `{"findings": []}` for investigate and, for propose, a fixed candidates file per revision: revision 0 has a candidate that moves the database out of the EU, revision 1 keeps it in the EU. The sandbox stub copies `contracts/rehearsal.example.json` and exits 0.
 - Which stage is real is chosen per stage by `FLOW_<STAGE>_CMD` variables, so swapping a stub for a real component changes configuration, not the test.
-- The path: start a run; poll events until gate `layout`; the evaluate in revision 0 has decided `revise` and the one in revision 1 `proceed`; keep one analysis from the dashboard; pick the first feasible candidate from the dashboard; poll until gate `plan`; approve the plan from Slack; the run is `completed` with exactly one revision.
+- The path: start a run; poll events until gate `layout`; the evaluate in revision 0 has decided `revise` and the one in revision 1 `proceed`; list and read `infra.json` through the file routes; keep one analysis from the dashboard; pick the first feasible candidate from the dashboard; poll until gate `plan`; approve the plan from Slack; the run is `completed` with exactly one revision.
 - The finished `run.json` is then checked by `python contracts/check_run.py <file>`: the schema and every rule of `contracts/run_integrity.py`. The oracle is the contracts' own Python checker, not the orchestrator's code.
 - It runs in CI in a new `orchestrator` job: `go vet`, `go test ./...` with the flow test, on Go 1.26 and the engine's Python environment. The CI trigger stays as it is (manual dispatch, #10).
 - The agent stays a stub in CI for good: the team's LLM key never goes into CI. The real agent is checked by hand (section 8).
