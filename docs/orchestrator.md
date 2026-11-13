@@ -118,7 +118,7 @@ Read once at startup by the orchestrator's settings package from the environment
 
 One run of the demo path (`docs/spec.md` section 9) through the real orchestrator, over its HTTP API, as a Go test in `apps/orchestrator/`.
 
-- It starts the orchestrator's HTTP handler in-process, on a temporary runs dir, with the start-up project (`contracts/mock/startup.forecast.json`) and `contracts/catalog.example.json`.
+- It starts the orchestrator's HTTP handler in-process, on a temporary runs dir, with the start-up project (`contracts/mock/startup.forecast.json`) and `contracts/real/catalog.json`, the catalog `apps/pricing` builds from real price snapshots.
 - Stages, today: extract and agent are stubs; the engine is the real one, `python -m engine` from `apps/engine/`; the sandbox is a stub. The extract stub copies `contracts/mock/startup.infra.json`. The agent stub writes `{"findings": []}` for investigate and, for propose, a fixed candidates file per revision: revision 0 has a candidate that moves the database out of the EU, revision 1 keeps it in the EU. The sandbox stub copies `contracts/rehearsal.example.json` and exits 0.
 - Which stage is real is chosen per stage by `FLOW_<STAGE>_CMD` variables, so swapping a stub for a real component changes configuration, not the test.
 - The path: start a run; poll events until gate `layout`; the evaluate in revision 0 has decided `revise` and the one in revision 1 `proceed`; keep one analysis from the dashboard; pick the first feasible candidate from the dashboard; poll until gate `plan`; approve the plan from Slack; the run is `completed` with exactly one revision.

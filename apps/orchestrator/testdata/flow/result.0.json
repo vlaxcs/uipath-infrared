@@ -137,7 +137,7 @@
           "from": "aws-ec2-general t3.large x1, 1 zone",
           "layer": "cleanup_orphans",
           "reason": "idle: stop it and keep its data and disks",
-          "saving_eur_month": 56.0,
+          "saving_eur_month": 56.02,
           "signal": "idle",
           "to": "aws-ec2-general t3.large x1, 1 zone, stopped"
         },
@@ -149,7 +149,7 @@
           "from": "aws-rds-postgres db.r5.4xlarge x1, 1 zone",
           "layer": "rightsize_in_place",
           "reason": "stateful in 1 zone, the CTO asks for 2: run it in 2 zones",
-          "saving_eur_month": -1206.0,
+          "saving_eur_month": -1428.03,
           "signal": "single_zone_stateful",
           "to": "aws-rds-postgres db.r5.4xlarge x1, 2 zones"
         },
@@ -161,7 +161,7 @@
           "from": "aws-s3 standard x1, 1 zone",
           "layer": "rightsize_in_place",
           "reason": "pii data in us-east-1 breaks residency (eu-*): move it to eu-west-1, where 9 of the other 9 main components already run",
-          "saving_eur_month": 1.36,
+          "saving_eur_month": 1.4,
           "signal": "residency",
           "to": "aws-s3 standard x1, 1 zone"
         },
@@ -197,7 +197,7 @@
           "from": "aws-ec2-general m5.4xlarge x3, 1 zone",
           "layer": "rightsize_in_place",
           "reason": "oversized, shrink it: memory_pct p95 35% across 3 units, 30% headroom: 2 units",
-          "saving_eur_month": 439.0,
+          "saving_eur_month": 428.28,
           "signal": "oversized",
           "to": "aws-ec2-general m5.4xlarge x2, 1 zone"
         },
@@ -220,8 +220,8 @@
           "confidence_reason": "memory_gb, storage_gb, vcpu are observed",
           "from": "aws-rds-postgres db.r5.4xlarge x1, 2 zones",
           "layer": "managed_services",
-          "reason": "move to managed-pg-serverless c16: EUR 2,473 to EUR 970 a month, stays in eu-west-1 with web-tier",
-          "saving_eur_month": 1503.0,
+          "reason": "move to managed-pg-serverless c16: EUR 2,695 to EUR 970 a month, stays in eu-west-1 with web-tier",
+          "saving_eur_month": 1725.03,
           "signal": "managed_service",
           "to": "managed-pg-serverless c16 x1, 2 zones"
         },
@@ -362,21 +362,21 @@
       "confidence_reason": "cost.monthly_eur is estimated",
       "cost": {
         "expected_outage_loss_eur_year": 40268.7,
-        "expected_total_eur": 184497.4,
+        "expected_total_eur": 184896.66,
         "horizon_by_scenario": {
-          "base": 88282.98,
-          "high": 115876.32,
-          "low": 68108.15
+          "base": 88674.36,
+          "high": 116391.34,
+          "low": 68409.13
         },
-        "horizon_run_eur": 90137.61,
-        "migration_eur": 8369.8,
+        "horizon_run_eur": 90537.3,
+        "migration_eur": 8369.37,
         "ops_eur_month": 412.5,
         "run_eur_month_at_horizon": {
-          "base": 5041.87,
-          "high": 8012.59,
-          "low": 3148.55
+          "base": 5064.2,
+          "high": 8048.19,
+          "low": 3162.43
         },
-        "run_eur_month_now": 2432.71,
+        "run_eur_month_now": 2443.38,
         "security_remediation": {
           "effort_hours": 37.0,
           "one_off_eur": 2775.0,
@@ -394,7 +394,7 @@
       "id": "managed_services",
       "lost_because": null,
       "pareto": true,
-      "payback_months": 6.15,
+      "payback_months": 6.2,
       "rank": 1,
       "rank_by_scenario": {
         "base": 1,
@@ -429,7 +429,7 @@
           "from": "aws-ec2-general t3.large x1, 1 zone",
           "layer": "cleanup_orphans",
           "reason": "idle: stop it and keep its data and disks",
-          "saving_eur_month": 56.0,
+          "saving_eur_month": 56.02,
           "signal": "idle",
           "to": "aws-ec2-general t3.large x1, 1 zone, stopped"
         },
@@ -441,7 +441,7 @@
           "from": "aws-rds-postgres db.r5.4xlarge x1, 1 zone",
           "layer": "rightsize_in_place",
           "reason": "stateful in 1 zone, the CTO asks for 2: run it in 2 zones",
-          "saving_eur_month": -1206.0,
+          "saving_eur_month": -1428.03,
           "signal": "single_zone_stateful",
           "to": "aws-rds-postgres db.r5.4xlarge x1, 2 zones"
         },
@@ -453,7 +453,7 @@
           "from": "aws-s3 standard x1, 1 zone",
           "layer": "rightsize_in_place",
           "reason": "pii data in us-east-1 breaks residency (eu-*): move it to eu-west-1, where 9 of the other 9 main components already run",
-          "saving_eur_month": 1.36,
+          "saving_eur_month": 1.4,
           "signal": "residency",
           "to": "aws-s3 standard x1, 1 zone"
         },
@@ -489,7 +489,7 @@
           "from": "aws-ec2-general m5.4xlarge x3, 1 zone",
           "layer": "rightsize_in_place",
           "reason": "oversized, shrink it: memory_pct p95 35% across 3 units, 30% headroom: 2 units",
-          "saving_eur_month": 439.0,
+          "saving_eur_month": 428.28,
           "signal": "oversized",
           "to": "aws-ec2-general m5.4xlarge x2, 1 zone"
         },
@@ -642,21 +642,21 @@
       "confidence_reason": "cost.monthly_eur is estimated",
       "cost": {
         "expected_outage_loss_eur_year": 40268.7,
-        "expected_total_eur": 241557.2,
+        "expected_total_eur": 250258.56,
         "horizon_by_scenario": {
-          "base": 143411.02,
-          "high": 188403.0,
-          "low": 110514.81
+          "base": 151932.1,
+          "high": 199612.67,
+          "low": 117070.11
         },
-        "horizon_run_eur": 146434.96,
-        "migration_eur": 3997.8,
+        "horizon_run_eur": 155136.75,
+        "migration_eur": 3997.37,
         "ops_eur_month": 637.5,
         "run_eur_month_at_horizon": {
-          "base": 8181.49,
-          "high": 13016.91,
-          "low": 5100.19
+          "base": 8668.0,
+          "high": 13792.23,
+          "low": 5402.66
         },
-        "run_eur_month_now": 3932.64,
+        "run_eur_month_now": 4165.34,
         "security_remediation": {
           "effort_hours": 37.0,
           "one_off_eur": 2775.0,
@@ -673,7 +673,7 @@
       ],
       "id": "rightsize_in_place",
       "lost_because": {
-        "detail": "EUR 57,060 more expected over the horizon than managed_services",
+        "detail": "EUR 65,362 more expected over the horizon than managed_services",
         "reason": "cost"
       },
       "pareto": true,
@@ -712,7 +712,7 @@
           "from": "aws-ec2-general t3.large x1, 1 zone",
           "layer": "cleanup_orphans",
           "reason": "idle: stop it and keep its data and disks",
-          "saving_eur_month": 56.0,
+          "saving_eur_month": 56.02,
           "signal": "idle",
           "to": "aws-ec2-general t3.large x1, 1 zone, stopped"
         },
@@ -724,7 +724,7 @@
           "from": "aws-s3 standard x1, 1 zone",
           "layer": "rightsize_in_place",
           "reason": "pii data in us-east-1 breaks residency (eu-*): move it to eu-west-1, where 9 of the other 9 main components already run",
-          "saving_eur_month": 1.36,
+          "saving_eur_month": 1.4,
           "signal": "residency",
           "to": "aws-s3 standard x1, 1 zone"
         },
@@ -760,7 +760,7 @@
           "from": "aws-ec2-general m5.4xlarge x3, 1 zone",
           "layer": "rightsize_in_place",
           "reason": "oversized, shrink it: memory_pct p95 35% across 3 units, 30% headroom: 2 units",
-          "saving_eur_month": 439.0,
+          "saving_eur_month": 428.28,
           "signal": "oversized",
           "to": "aws-ec2-general m5.4xlarge x2, 1 zone"
         },
@@ -925,21 +925,21 @@
       "confidence_reason": "cost.monthly_eur is estimated",
       "cost": {
         "expected_outage_loss_eur_year": 40268.7,
-        "expected_total_eur": 159805.26,
+        "expected_total_eur": 160204.52,
         "horizon_by_scenario": {
-          "base": 64103.59,
-          "high": 84067.89,
-          "low": 49506.81
+          "base": 64494.97,
+          "high": 84582.9,
+          "low": 49807.79
         },
-        "horizon_run_eur": 65445.47,
-        "migration_eur": 8369.8,
+        "horizon_run_eur": 65845.16,
+        "migration_eur": 8369.37,
         "ops_eur_month": 412.5,
         "run_eur_month_at_horizon": {
-          "base": 3661.83,
-          "high": 5813.28,
-          "low": 2290.55
+          "base": 3684.16,
+          "high": 5848.87,
+          "low": 2304.43
         },
-        "run_eur_month_now": 1772.71,
+        "run_eur_month_now": 1783.38,
         "security_remediation": {
           "effort_hours": 37.0,
           "one_off_eur": 2775.0,
@@ -960,7 +960,7 @@
         "reason": "constraint"
       },
       "pareto": false,
-      "payback_months": 4.14,
+      "payback_months": 4.16,
       "rank": null,
       "rank_by_scenario": null,
       "risk": 0.13,
@@ -1000,7 +1000,7 @@
           "from": "aws-ec2-general t3.large x1, 1 zone",
           "layer": "cleanup_orphans",
           "reason": "idle: stop it and keep its data and disks",
-          "saving_eur_month": 56.0,
+          "saving_eur_month": 56.02,
           "signal": "idle",
           "to": "aws-ec2-general t3.large x1, 1 zone, stopped"
         },
@@ -1141,21 +1141,21 @@
       "confidence_reason": "cost.monthly_eur is estimated",
       "cost": {
         "expected_outage_loss_eur_year": 140486.01,
-        "expected_total_eur": 405665.61,
+        "expected_total_eur": 405670.58,
         "horizon_by_scenario": {
-          "base": 115336.75,
-          "high": 151470.13,
-          "low": 88917.63
+          "base": 115341.6,
+          "high": 151476.8,
+          "low": 88921.15
         },
-        "horizon_run_eur": 117765.31,
+        "horizon_run_eur": 117770.29,
         "migration_eur": 2775.0,
         "ops_eur_month": 787.5,
         "run_eur_month_at_horizon": {
-          "base": 6580.1,
-          "high": 10464.72,
-          "low": 4104.61
+          "base": 6580.18,
+          "high": 10464.88,
+          "low": 4104.65
         },
-        "run_eur_month_now": 3167.0,
+        "run_eur_month_now": 3166.98,
         "security_remediation": {
           "effort_hours": 37.0,
           "one_off_eur": 2775.0,
@@ -1209,19 +1209,19 @@
       "confidence_reason": "cost.monthly_eur is estimated",
       "cost": {
         "expected_outage_loss_eur_year": 140486.01,
-        "expected_total_eur": 408641.19,
+        "expected_total_eur": 408646.59,
         "horizon_by_scenario": {
-          "base": 117664.36,
-          "high": 153797.75,
-          "low": 91245.24
+          "base": 117669.65,
+          "high": 153804.84,
+          "low": 91249.2
         },
-        "horizon_run_eur": 120092.93,
+        "horizon_run_eur": 120098.33,
         "migration_eur": 0,
         "ops_eur_month": 937.5,
         "run_eur_month_at_horizon": {
-          "base": 6682.1,
-          "high": 10566.72,
-          "low": 4206.61
+          "base": 6682.2,
+          "high": 10566.9,
+          "low": 4206.67
         },
         "run_eur_month_now": 3269.0
       },

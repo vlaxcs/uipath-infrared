@@ -159,7 +159,7 @@ func build(t *testing.T, opts options) (*harness, error) {
 	config := workflow.Config{
 		Commands:     workflow.Commands{Extract: []string{"extract"}, Agent: []string{"agent"}, Engine: []string{"engine"}, Sandbox: []string{"sandbox"}},
 		ProjectsDir:  opts.projectsDir,
-		CatalogPath:  filepath.Join(repo, "contracts", "catalog.example.json"),
+		CatalogPath:  filepath.Join(repo, "contracts", "real", "catalog.json"),
 		MaxRevisions: opts.maxRevisions,
 		Timeouts:     timeouts,
 	}

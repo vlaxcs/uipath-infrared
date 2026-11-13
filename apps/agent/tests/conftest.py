@@ -31,7 +31,7 @@ def answer_of(reply: dict):
 def run_dir(tmp_path):
     shutil.copyfile(MOCK / "startup.infra.json", tmp_path / "infra.json")
     shutil.copyfile(MOCK / "startup.forecast.json", tmp_path / "forecast.json")
-    shutil.copyfile(REPO / "contracts" / "catalog.example.json", tmp_path / "catalog.json")
+    shutil.copyfile(REPO / "contracts" / "real" / "catalog.json", tmp_path / "catalog.json")
     (tmp_path / "findings.json").write_text('{"findings": []}', encoding="utf-8")
     return tmp_path
 

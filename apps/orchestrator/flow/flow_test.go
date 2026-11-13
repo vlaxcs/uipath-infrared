@@ -31,7 +31,7 @@ func TestDemoPathEndToEnd(t *testing.T) {
 	t.Setenv("ORCHESTRATOR_RUNS_DIR", runsDir)
 	t.Setenv("ORCHESTRATOR_CONTRACTS_DIR", filepath.Join(repo, "contracts"))
 	t.Setenv("ORCHESTRATOR_PROJECTS_DIR", filepath.Join(repo, "contracts", "mock"))
-	t.Setenv("ORCHESTRATOR_CATALOG", filepath.Join(repo, "contracts", "catalog.example.json"))
+	t.Setenv("ORCHESTRATOR_CATALOG", filepath.Join(repo, "contracts", "real", "catalog.json"))
 	t.Setenv("ORCHESTRATOR_MAX_REVISIONS", "2")
 	t.Setenv("ORCHESTRATOR_EXTRACT_CMD", envOr("FLOW_EXTRACT_CMD", python+" "+filepath.Join(stubs, "extract.py")))
 	t.Setenv("ORCHESTRATOR_AGENT_CMD", envOr("FLOW_AGENT_CMD", python+" "+filepath.Join(stubs, "agent.py")))
