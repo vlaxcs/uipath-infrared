@@ -17,7 +17,7 @@ app.command('/infrared', async ({ command, ack, client }) => {
     await client.chat.postEphemeral({ channel: command.channel_id, user: command.user_id, text: 'Usage: /infrared status <run-id>' });
     return;
   }
-  new RunTracker(slack, orchestrator, command.channel_id, wait, POLL_MS).track(runId).catch(async error => {
+  new RunTracker(slack, orchestrator, command.channel_id, wait, POLL_MS, settings.dashboardUrl).track(runId).catch(async error => {
     await client.chat.postEphemeral({ channel: command.channel_id, user: command.user_id, text: `Tracking ${runId} stopped: ${error.message}` });
   });
 });

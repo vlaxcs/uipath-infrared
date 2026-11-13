@@ -6,10 +6,11 @@ export class BoltSlackClient implements SlackClient {
 
   constructor(private app: any) {}
 
-  async postMessage(channel: string, message: BlockKitMessage): Promise<string> {
+  async postMessage(channel: string, message: BlockKitMessage, threadTs?: string): Promise<string> {
     const result = await this.app.client.chat.postMessage({
       channel,
       ...message,
+      ...(threadTs ? { thread_ts: threadTs } : {}),
     });
     this.channelIds.set(channel, result.channel as string);
     return result.ts as string;
@@ -25,13 +26,15 @@ export class BoltSlackClient implements SlackClient {
 }
 
 export class FakeSlackClient implements SlackClient {
-  public messages: Array<{ channel: string; message: BlockKitMessage; timestamp: string }> = [];
+  public messages: Array<{ channel: string; message: BlockKitMessage; timestamp: string; threadTs?: string }> = [];
   public updates: Array<{ channel: string; timestamp: string; message: BlockKitMessage }> = [];
   private nextTimestamp = 1000;
 
-  async postMessage(channel: string, message: BlockKitMessage): Promise<string> {
+  async postMessage(channel: string, message: BlockKitMessage, threadTs?: string): Promise<string> {
     const timestamp = `${this.nextTimestamp++}`;
-    this.messages.push({ channel, message, timestamp });
+    const posted: { channel: string; message: BlockKitMessage; timestamp: string; threadTs?: string } = { channel, message, timestamp };
+    if (threadTs) posted.threadTs = threadTs;
+    this.messages.push(posted);
     return timestamp;
   }
 
