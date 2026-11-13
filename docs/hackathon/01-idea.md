@@ -121,7 +121,7 @@ One person, offer to day 1, with 3 disruptions injected live: the manager isn't 
 ## 6. Branding
 
 - **Name:** Wellboarder.
-- **Palette:** from scratch, not from the friendeyes theme.
+- **Palette:** from scratch, not from the friendeyes theme. Leads with warmth and welcome.
 
 ## Open questions
 
