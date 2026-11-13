@@ -32,7 +32,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 
 - **The roadmap** is the project's financial roadmap.
 - **On-prem is an option too, with its hidden costs:** if the company has no on-prem lab, the plan covers setting one up: what it costs, its configuration (cooling, disk replacement and the rest), and its risks. *From the jury.*
-- **Sources:** we choose the data sources. Each run produces several analyses, and the user picks which ones carry into the following plans. *From the jury.*
+- **Sources:** we choose the data sources. Each run produces several analyses, and the CTO (our client) picks which ones carry into the following plans. *From the jury.*
 - **Demo data:** a few mocked projects, each with a deliberately bad infrastructure, running locally in Floci or another AWS emulator. The agent runs on each one and shows its results.
 
 ## 6. Branding
