@@ -67,6 +67,7 @@ def _component(raw: Mapping[str, Any]) -> Component:
         security=dict(raw.get("security") or {}),
         config=dict(raw.get("config") or {}),
         reported_cost=_metric("cost.monthly_eur", (raw.get("cost") or {}).get("monthly_eur")),
+        tags=dict(raw.get("tags") or {}),
     )
 
 

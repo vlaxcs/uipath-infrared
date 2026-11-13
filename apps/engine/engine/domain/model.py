@@ -87,6 +87,7 @@ class Component:
     security: Mapping[str, object] = field(default_factory=dict)
     config: Mapping[str, object] = field(default_factory=dict)
     reported_cost: Metric | None = None
+    tags: Mapping[str, str] = field(default_factory=dict)
 
     def capacity_value(self, key: str) -> float | None:
         metric = self.capacity.get(key)
