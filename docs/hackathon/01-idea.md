@@ -6,8 +6,8 @@ Output of this phase: a one-page PRD the mentors validated. Who pays, what probl
 | --- | --- | --- |
 | Kick-off | 10 min | in progress |
 | 1. Who do we target? | 30 min | done, mentors to confirm |
-| 2. What is their problem? | 30 min | in progress |
-| 3. How do we get into their day? | 20 min | |
+| 2. What is their problem? | 30 min | framed, needs form answers |
+| 3. How do we get into their day? | 20 min | in progress |
 | 4. Business plan | 15 min | |
 | 5. Design the product | 15 min | |
 | 6. Branding | in parallel, designer | |
@@ -78,6 +78,25 @@ Statement 2 is also our pitch for "why an agent": the product runs the fixed ste
 | 44% of organisations aren't confident former employees were removed from the network; a quarter take over a week to deprovision | OneLogin survey, 2017 | old, look for something newer |
 | 70% lack confidence that former employees' accounts are deactivated in time; 14% remove access immediately on an HR status change | One Identity | date to confirm |
 
+### What it costs: money and risk
+
+| Cost | Figure | Source | Status |
+| --- | --- | --- | --- |
+| replacing someone who leaves | 50-200% of annual salary, depending on level | attributed to SHRM, via vendor blogs | find the SHRM original before quoting |
+| cost per hire, before ramp-up and vacancy | ~4,700 USD | attributed to SHRM | same |
+| leaving in the first 90 days | 24% of respondents have done it (Employ, 2024); "1 in 3" (Jobvite) | vendor blogs | pick one, cite the original |
+| window to win a new hire over | 44 days on average | BambooHR, via a vendor blog | soft, use as framing only |
+| breach started by a malicious insider | 4.92M USD on average, the costliest vector; 260 days to resolve | IBM Cost of a Data Breach 2025 | primary source; it doesn't separate out former employees |
+| personal data breach under GDPR | fines up to 20M EUR or 4% of global turnover | GDPR art. 83 | law |
+
+Risks with no clean number yet:
+- **security:** a former employee who still has access to GCP, GitHub or Workspace (see the offboarding surveys above);
+- **legal (Romania):** a contract not registered in REVISAL before the first day; fine amount to confirm in the Labour Code;
+- **legal (GDPR):** access to personal data kept after it is no longer needed;
+- **people:** the new hire's first week with no manager, no buddy and no access, the thing Gallup ties to the 12%.
+
+Example for the pitch, an assumption Finance has to check: a start-up that loses one hire in the first 90 days, on a 40,000 EUR salary, loses at least 20,000 EUR at the lowest end of the SHRM range.
+
 Missing: a number on the cost of a bad onboarding in a start-up (time to productivity, early leavers), and something on HR load in companies under 50 people.
 
 ### Competitors and what they miss (to verify, not researched yet)
@@ -116,9 +135,40 @@ Questions for mentors in this step:
 - do you know any company that has this pain today, so we can ask them?
 - does UiPath want its own stack integrated (Maestro, Action Center), or is OpenRouter enough?
 
+## 3. How do we get into their day? (20 min)
+
+Rule: plug into habits they already have; be a helper for their judgement, not a replacement.
+
+Where each person already is, during onboarding and offboarding:
+
+| Who | Where they already work | What the agent does there |
+| --- | --- | --- |
+| HR (often the founder, in a small start-up) | Slack, Gmail, Calendar, the HR tool or spreadsheet they have today | gets an approval card, sees the run's progress, corrects a step |
+| manager | Slack, Calendar | "you're away on Maria's first day: pick a cover" with one tap |
+| buddy | Slack | is asked, accepts or declines; the agent looks for someone else if they decline |
+| new hire | personal email before day one, Slack after | sees what is ready for them and who to ask |
+| access owner (IT, CTO) | Slack, GitHub, GCP console | approves the access the first tasks need |
+
+Channels to pick from:
+
+| Channel | For | Against |
+| --- | --- | --- |
+| Slack bot | everyone above already lives there; approvals in one tap; the PRD already has a Slack bot | needs a Slack app per workspace |
+| Google Workspace (Calendar, Gmail) | Workspace is mandatory in the PRD; availability on the start date comes from Calendar | email alone is slow for approvals |
+| web app | a page for HR to follow the run and correct it: the "follow progress, correct mistakes" part of the rubric | it's one more place to open |
+
+Questions for the team:
+- which channel does the approval go through?
+- where does HR follow the run: in Slack, or on a page in the app?
+- what does the new hire see before day one, when they're not on Slack yet?
+
 ## Sources
 
 - [Gallup: Perspective on creating an exceptional onboarding journey (PDF)](https://www.gallup.com/file/workplace/247076/Gallup_Perspective_on_Creating_an_Exceptional_Onboarding_Journey_for_Your_New_Employees.pdf)
 - [Gallup: onboarding new employees](https://www.gallup.com/workplace/235121/onboarding-new-employees.aspx)
 - [OneLogin 2017 survey, via BetaNews](https://betanews.com/2017/07/18/exemployees-access-corporate-apps)
 - [One Identity on dormant accounts, via Identity Week](https://identityweek.net/one-identity-finds-that-dormant-accounts-pose-major-risk/)
+- [SHRM: employers risk driving new hires away with poor onboarding](https://www.shrm.org/mena/topics-tools/news/talent-acquisition/employers-risk-driving-new-hires-away-poor-onboarding)
+- [EmpTrust: the true cost of new hire turnover](https://www.emptrust.com/?p=22802)
+- [HR Cloud: 1 in 3 new hires leave within 90 days](https://www.hrcloud.com/blog/new-hire-onboarding-software-guide)
+- [IBM Cost of a Data Breach Report 2025 (PDF, via Baker Donelson)](https://www.bakerdonelson.com/webfiles/Publications/20250822_Cost-of-a-Data-Breach-Report-2025.pdf)
