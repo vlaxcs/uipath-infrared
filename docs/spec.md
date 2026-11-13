@@ -55,7 +55,8 @@ apps/
   phone/             the iPhone frame with Slack
   site/              the product page: theme and pitch
 contracts/           JSON Schemas, examples, mocks, check_mock.py
-docs/                prd.md, spec.md, tasks.md
+design/              tokens.css, shared by the dashboard, the phone and the site
+docs/                prd.md, spec.md, team/<name>.md (one task file per person)
 ```
 
 `apps/estate/ground_truth/` is the agent's answer key: no other service reads it.
