@@ -3,221 +3,237 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>InfraRed Estate Graph</title>
+<title>InfraRed Estate</title>
 <style>
   :root {
-    --bg:#f6f7f9; --panel:#ffffff; --ink:#1b2430; --muted:#5d6b7c; --line:#d5dbe3;
-    --shop:#2f6fdb; --data:#7a4fd6; --legacy:#d9742b; --dev:#2a9d8f; --shared:#6b7686;
-    --idle:#d99a00; --orphan:#d6336c; --exposed:#d6336c;
+    --bg:#f4f5f8; --surface:#ffffff; --surface2:#f8f9fb; --ink:#161b26; --muted:#667085; --line:#e2e5ec; --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.05);
+    --idle:#b97a00; --idle-bg:#fff3d6; --orphan:#c2255c; --orphan-bg:#ffe3ee; --exposed:#c92a2a; --exposed-bg:#ffe0e0; --ok:#2b8a3e;
+    --c-edge:#0e8fb3; --c-compute:#2f6fdb; --c-data:#7a4fd6; --c-messaging:#12907f; --c-storage:#6b7686; --c-network:#4a8f2f; --c-iam:#a2653a;
+    --s-shop-prod:#2f6fdb; --s-data-platform:#7a4fd6; --s-legacy:#d9742b; --s-dev:#12907f; --s-shared:#6b7686;
+    --k-traffic:#e8590c; --k-data:#7a4fd6; --k-event:#12907f; --k-dns:#c9a100; --k-config:#7a8699; --k-network:#2f6fdb; --k-contains:#98a2b3;
   }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg:#0f141b; --panel:#171e28; --ink:#e6ebf2; --muted:#93a1b3; --line:#2b3644;
-      --shop:#6b9cff; --data:#a78bfa; --legacy:#ff9d5c; --dev:#4fd1c0; --shared:#8b97a8;
-      --idle:#f2c14e; --orphan:#ff6b9a; --exposed:#ff6b9a;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg:#0f141b; --panel:#171e28; --ink:#e6ebf2; --muted:#93a1b3; --line:#2b3644;
-    --shop:#6b9cff; --data:#a78bfa; --legacy:#ff9d5c; --dev:#4fd1c0; --shared:#8b97a8;
-    --idle:#f2c14e; --orphan:#ff6b9a; --exposed:#ff6b9a;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
-    font:13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  #app { display:grid; grid-template-columns: 250px 1fr 300px; height:100vh; }
-  aside { background:var(--panel); border-right:1px solid var(--line); padding:14px 16px; overflow:auto; }
-  #detail { border-right:0; border-left:1px solid var(--line); }
-  h1 { font-size:15px; margin:0 0 2px; }
-  h2 { font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:18px 0 6px; font-weight:600; }
-  .sub { color:var(--muted); font-size:12px; margin-bottom:10px; }
-  label.row, div.row { display:flex; align-items:center; gap:8px; padding:2px 0; cursor:pointer; }
-  .sw { width:11px; height:11px; border-radius:3px; flex:none; }
-  input[type=search] { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink); }
-  button { border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:6px; padding:4px 9px; cursor:pointer; font:inherit; }
-  button:hover { border-color:var(--muted); }
-  #stage { position:relative; min-width:0; }
-  svg { width:100%; height:100%; display:block; cursor:grab; touch-action:none; }
-  svg.panning { cursor:grabbing; }
-  .edge { fill:none; stroke:var(--muted); stroke-opacity:.45; }
-  .edge.hl { stroke-opacity:1; stroke-width:2.2; }
-  .edge.dim, .node.dim { opacity:.08; }
-  .node { cursor:pointer; }
-  .node text { fill:var(--ink); font-size:10.5px; paint-order:stroke; stroke:var(--bg); stroke-width:3px; pointer-events:none; }
-  .halo { fill:none; stroke-width:2.2; }
-  .kv { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; font-size:12px; }
-  .kv span:nth-child(odd) { color:var(--muted); }
-  .badge { display:inline-block; padding:1px 7px; border-radius:999px; font-size:11px; border:1px solid currentColor; }
-  .conn { padding:3px 0; border-bottom:1px solid var(--line); cursor:pointer; }
-  .conn:hover { color:var(--shop); }
-  #tip { position:absolute; pointer-events:none; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 8px; font-size:12px; display:none; z-index:5; }
-  .legend-shape { width:14px; height:14px; flex:none; }
-  @media (max-width: 900px) { #app { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; } aside { border:0; border-bottom:1px solid var(--line); max-height:34vh; } #detail { border-top:1px solid var(--line); max-height:30vh; } }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0e1218; --surface:#161c25; --surface2:#1b222d; --ink:#e7ebf2; --muted:#8e9aac; --line:#273040; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.25);
+    --idle:#f2c14e; --idle-bg:#3a2e0d; --orphan:#ff7aa6; --orphan-bg:#3d1626; --exposed:#ff8080; --exposed-bg:#431a1a; --ok:#6fcf86;
+    --c-edge:#4cc3e6; --c-compute:#6b9cff; --c-data:#a78bfa; --c-messaging:#4fd1c0; --c-storage:#98a3b5; --c-network:#8bd16c; --c-iam:#e0a077;
+    --s-shop-prod:#6b9cff; --s-data-platform:#a78bfa; --s-legacy:#ff9d5c; --s-dev:#4fd1c0; --s-shared:#98a3b5;
+    --k-traffic:#ff8a4c; --k-data:#a78bfa; --k-event:#4fd1c0; --k-dns:#f2d04e; --k-config:#9aa6b8; --k-network:#6b9cff; --k-contains:#6d7787; } }
+  :root[data-theme="dark"] { --bg:#0e1218; --surface:#161c25; --surface2:#1b222d; --ink:#e7ebf2; --muted:#8e9aac; --line:#273040; --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.25);
+    --idle:#f2c14e; --idle-bg:#3a2e0d; --orphan:#ff7aa6; --orphan-bg:#3d1626; --exposed:#ff8080; --exposed-bg:#431a1a; --ok:#6fcf86;
+    --c-edge:#4cc3e6; --c-compute:#6b9cff; --c-data:#a78bfa; --c-messaging:#4fd1c0; --c-storage:#98a3b5; --c-network:#8bd16c; --c-iam:#e0a077;
+    --s-shop-prod:#6b9cff; --s-data-platform:#a78bfa; --s-legacy:#ff9d5c; --s-dev:#4fd1c0; --s-shared:#98a3b5;
+    --k-traffic:#ff8a4c; --k-data:#a78bfa; --k-event:#4fd1c0; --k-dns:#f2d04e; --k-config:#9aa6b8; --k-network:#6b9cff; --k-contains:#6d7787; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--ink); font:13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
+  .mono { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  button, input { font:inherit; color:inherit; }
+  header { position:sticky; top:0; z-index:20; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); padding:12px 22px; display:flex; gap:18px; align-items:center; flex-wrap:wrap; }
+  h1 { font-size:16px; margin:0; letter-spacing:-.01em; } h1 b { color:#e5484d; }
+  .meta { color:var(--muted); font-size:12px; }
+  .kpis { display:flex; gap:8px; flex-wrap:wrap; }
+  .kpi { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:6px 12px; cursor:pointer; box-shadow:var(--shadow); text-align:left; min-width:92px; }
+  .kpi small { display:block; color:var(--muted); font-size:11px; }
+  .kpi strong { font-size:18px; line-height:1.1; }
+  .kpi.on { outline:2px solid var(--ink); outline-offset:1px; }
+  .kpi[data-s=idle] strong { color:var(--idle); } .kpi[data-s=orphan] strong { color:var(--orphan); } .kpi[data-s=exposed] strong { color:var(--exposed); }
+  .spacer { flex:1; }
+  #q { width:210px; padding:7px 11px; border:1px solid var(--line); border-radius:8px; background:var(--surface); outline:none; }
+  #q:focus { border-color:var(--muted); }
+  .btn { border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:6px 11px; cursor:pointer; }
+  .btn:hover { border-color:var(--muted); } .btn.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  #kinds { display:none; gap:6px; flex-wrap:wrap; width:100%; align-items:center; font-size:12px; color:var(--muted); }
+  #kinds.show { display:flex; }
+  .kind { display:inline-flex; align-items:center; gap:6px; padding:2px 9px; border:1px solid var(--line); border-radius:999px; background:var(--surface); cursor:pointer; color:var(--ink); }
+  .kind i { width:14px; height:3px; border-radius:2px; display:block; } .kind.off { opacity:.45; }
+
+  #wrap { position:relative; padding:18px 22px 60px; transition:padding-right .2s; } #wrap.panel { padding-right:372px; }
+  #board { position:relative; display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:16px; align-items:start; }
+  #links { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:6; overflow:visible; }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); overflow:hidden; }
+  .head { padding:12px 14px; border-top:4px solid var(--sc); display:flex; flex-direction:column; gap:2px; cursor:default; }
+  .head.node { cursor:pointer; } .head.node:hover { background:var(--surface2); }
+  .head .top { display:flex; align-items:center; gap:8px; }
+  .head h2 { margin:0; font-size:14.5px; } .head .sub { color:var(--muted); font-size:12px; }
+  .tag { display:inline-block; font:600 10px/1 ui-monospace, Menlo, monospace; letter-spacing:.04em; text-transform:uppercase; padding:3px 5px; border-radius:4px; color:var(--tc); background:color-mix(in srgb, var(--tc) 14%, transparent); flex:none; }
+  .tier { padding:2px 10px 10px; }
+  .tier > .th { display:flex; align-items:center; gap:6px; width:100%; background:none; border:0; padding:8px 4px 5px; cursor:pointer; color:var(--muted); font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; font-weight:600; text-align:left; }
+  .tier > .th::before { content:""; width:7px; height:7px; border-radius:2px; background:var(--tc); }
+  .tier > .th .n { margin-left:auto; font-weight:500; letter-spacing:0; } .tier > .th .car { font-size:9px; transition:transform .15s; } .tier.closed > .th .car { transform:rotate(-90deg); }
+  .tier.closed .items { display:none; }
+  .items { display:flex; flex-direction:column; gap:5px; }
+  .res { display:grid; grid-template-columns:auto 1fr auto; gap:2px 8px; align-items:center; padding:6px 9px; border:1px solid var(--line); border-left:3px solid var(--tc); border-radius:8px; background:var(--surface2); cursor:pointer; transition:opacity .15s, box-shadow .15s, border-color .15s; }
+  .res:hover { border-color:var(--muted); border-left-color:var(--tc); }
+  .res .nm { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+  .res .facts { grid-column:1 / -1; color:var(--muted); font-size:11.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-left:1px; }
+  .res.sel { box-shadow:0 0 0 2px var(--ink); } .res.dim, .head.dim { opacity:.28; } .res.nb { box-shadow:0 0 0 1.5px var(--muted); }
+  .pill { font-size:10px; font-weight:700; letter-spacing:.04em; padding:2px 6px; border-radius:999px; text-transform:uppercase; }
+  .pill.idle { color:var(--idle); background:var(--idle-bg); } .pill.orphan { color:var(--orphan); background:var(--orphan-bg); } .pill.exposed { color:var(--exposed); background:var(--exposed-bg); }
+  .empty { display:none; padding:40px; text-align:center; color:var(--muted); }
+
+  #drawer { position:fixed; top:0; right:0; width:360px; height:100vh; background:var(--surface); border-left:1px solid var(--line); box-shadow:-10px 0 30px rgba(0,0,0,.08); z-index:30; transform:translateX(100%); transition:transform .22s ease; overflow:auto; padding:18px 18px 40px; }
+  #drawer.open { transform:none; }
+  #drawer h2 { margin:8px 0 2px; font-size:17px; word-break:break-all; }
+  #drawer h3 { font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:20px 0 7px; font-weight:600; }
+  .x { position:absolute; right:12px; top:10px; border:0; background:none; font-size:22px; cursor:pointer; color:var(--muted); }
+  .why { margin:10px 0 0; padding:8px 10px; border-radius:8px; font-size:12px; }
+  .why.idle { background:var(--idle-bg); color:var(--idle); } .why.orphan { background:var(--orphan-bg); color:var(--orphan); } .why.exposed { background:var(--exposed-bg); color:var(--exposed); }
+  .kv { display:grid; grid-template-columns:minmax(80px,auto) 1fr; gap:4px 12px; font-size:12px; } .kv span:nth-child(odd) { color:var(--muted); } .kv code { font-size:11px; word-break:break-all; }
+  .dep { display:flex; gap:8px; align-items:flex-start; padding:7px 0; border-bottom:1px solid var(--line); cursor:pointer; }
+  .dep:hover .dn { text-decoration:underline; } .dep .dn { font-weight:600; word-break:break-all; } .dep small { display:block; color:var(--muted); font-size:11px; }
+  .kp { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 6px; border-radius:4px; color:var(--kc); background:color-mix(in srgb, var(--kc) 14%, transparent); flex:none; margin-top:1px; min-width:52px; text-align:center; }
+  @media (max-width:900px) { #wrap.panel { padding-right:22px; } #drawer { width:100%; height:55vh; top:auto; bottom:0; border-left:0; border-top:1px solid var(--line); transform:translateY(100%); } #drawer.open { transform:none; } }
 </style>
 </head>
 <body>
-<div id="app">
-  <aside>
-    <h1>InfraRed estate</h1>
-    <div class="sub" id="meta"></div>
-    <input type="search" id="q" placeholder="Search nodes…" aria-label="Search nodes">
-    <h2>Stacks</h2><div id="stacks"></div>
-    <h2>Connections</h2><div id="kinds"></div>
-    <h2>Status</h2>
-    <div id="statuses"></div>
-    <h2>View</h2>
-    <label class="row"><input type="checkbox" id="iso"> Hide nodes with no edges</label>
-    <label class="row"><input type="checkbox" id="lbl" checked> Show labels</label>
-    <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button id="reheat">Re-layout</button><button id="fit">Fit view</button><button id="theme">Theme</button></div>
-    <h2>Shapes</h2><div id="shapes"></div>
-  </aside>
-  <div id="stage"><svg id="svg" aria-label="Infrastructure graph"><defs></defs><g id="vp"><g id="edges"></g><g id="nodes"></g></g></svg><div id="tip"></div></div>
-  <aside id="detail"><div class="sub">Click a node to inspect it. Drag to move, scroll to zoom.</div></aside>
+<header>
+  <div><h1>Infra<b>Red</b> · estate</h1><div class="meta" id="meta"></div></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="spacer"></div>
+  <input id="q" type="search" placeholder="Search name, type, attribute…" aria-label="Search">
+  <button class="btn" id="all" title="Draw every link instead of only the selected resource's">All links</button>
+  <button class="btn" id="theme">Theme</button>
+  <div id="kinds"><span>Link kinds:</span></div>
+</header>
+<div id="wrap">
+  <div id="board"></div>
+  <svg id="links"><defs></defs><g id="lg"></g></svg>
+  <div class="empty" id="empty">No resources match.</div>
 </div>
+<aside id="drawer" aria-live="polite"></aside>
 <script>
 const G = /*__GRAPH__*/null;
-const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
 const STACKS = ["shop-prod","data-platform","legacy","dev","shared"];
-const stackVar = {"shop-prod":"--shop","data-platform":"--data","legacy":"--legacy","dev":"--dev","shared":"--shared"};
-const KINDS = {network:{d:"",w:1},data:{d:"",w:1.8},event:{d:"6 4",w:1.6},traffic:{d:"",w:2.4},dns:{d:"2 4",w:1.6},config:{d:"1 5",w:1.2},contains:{d:"",w:1}};
-const STATUS = {active:"Healthy / in use", idle:"Idle (observed low utilisation)", orphan:"Orphan (unattached)", exposed:"Publicly exposed"};
-const SHAPES = {compute:"circle", data:"square", network:"diamond", messaging:"hex", edge:"tri", iam:"pent", registry:"pent", storage:"square"};
-const svg = document.getElementById("svg"), vp = document.getElementById("vp");
-const NS = "http://www.w3.org/2000/svg";
-const el = (t, a={}, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const TIERS = [["edge","Edge & DNS","--c-edge"],["compute","Compute","--c-compute"],["data","Data stores","--c-data"],["messaging","Messaging & events","--c-messaging"],
+  ["storage","Storage","--c-storage"],["network","Network & security","--c-network"],["iam","Identity & registry","--c-iam"]];
+const TIER_OF = c => c === "registry" ? "iam" : c;
+const KINDS = ["traffic","data","event","dns","config","network","contains"];
+const STATUS = {active:"Healthy", idle:"Idle", orphan:"Orphan", exposed:"Exposed"};
+const TAG = {vpc:"VPC", sg:"SG", nat:"NAT", eip:"EIP", eks:"EKS", ecs:"ECS", "ecs-svc":"SVC", asg:"ASG", ec2:"EC2", lambda:"λ", alb:"ALB", dns:"DNS", rds:"RDS", "rds-cluster":"AURORA",
+  cache:"CACHE", ddb:"DDB", s3:"S3", efs:"EFS", sqs:"SQS", sns:"SNS", kinesis:"KIN", firehose:"FH", rule:"RULE", "iam-role":"IAM", ecr:"ECR", ebs:"EBS"};
+const FACT_KEYS = [["instance_type",""],["cls",""],["node_type",""],["engine",""],["version","v"],["runtime",""],["cidr",""],["shards","shards "],["key","key "],["size_gb","GB "],["backlog","backlog "],["desired","desired "]];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-function shapePath(s, r) {
-  const pts = n => Array.from({length:n}, (_,i) => { const a = -Math.PI/2 + i*2*Math.PI/n; return [r*Math.cos(a), r*Math.sin(a)]; });
-  const poly = a => "M" + a.map(p => p.join(",")).join("L") + "Z";
-  if (s === "circle") return `M${-r},0a${r},${r} 0 1,0 ${2*r},0a${r},${r} 0 1,0 ${-2*r},0`;
-  if (s === "square") return `M${-r*.85},${-r*.85}h${r*1.7}v${r*1.7}h${-r*1.7}Z`;
-  if (s === "diamond") return poly([[0,-r*1.15],[r*1.15,0],[0,r*1.15],[-r*1.15,0]]);
-  if (s === "tri") return poly(pts(3));
-  if (s === "pent") return poly(pts(5));
-  return poly(pts(6));
-}
-const radius = n => 7 + Math.min(11, Math.sqrt(n.degree || 0) * 2.2 + (n.attrs.nodes||0 ? 2 : 0));
-
-const state = { stacks:new Set(STACKS), kinds:new Set(Object.keys(KINDS)), statuses:new Set(Object.keys(STATUS)), q:"", iso:false, lbl:true, sel:null };
-const nodes = G.nodes.map(n => ({...n, x:0, y:0, vx:0, vy:0, r:radius(n)}));
+const nodes = G.nodes.map(n => ({...n}));
 const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
 const edges = G.edges.filter(e => byId[e.src] && byId[e.dst]).map(e => ({...e, s:byId[e.src], t:byId[e.dst]}));
+const vpcOf = Object.fromEntries(nodes.filter(n => n.type === "vpc").map(n => [n.stack, n]));
+const state = {sel:null, hov:null, status:null, q:"", all:false, kinds:new Set(["traffic","data","event","dns","config"]), closed:new Set(["iam"])};
 
-// ---- UI chrome ----
-document.getElementById("meta").textContent = `${nodes.length} nodes · ${edges.length} edges · built ${G.generated.replace("T"," ").replace("+00:00"," UTC")}`;
-const mk = (cont, items, setKey, swatch) => { const c = document.getElementById(cont);
-  items.forEach(([k, label, color, extra]) => { const l = document.createElement("label"); l.className = "row";
-    l.innerHTML = `<input type="checkbox" checked><span class="sw" style="background:${color}"></span><span>${label}${extra? ` <span style="color:var(--muted)">${extra}</span>`:""}</span>`;
-    l.querySelector("input").onchange = e => { e.target.checked ? state[setKey].add(k) : state[setKey].delete(k); render(); };
-    c.appendChild(l); }); };
-const cnt = (f) => nodes.filter(f).length;
-mk("stacks", STACKS.map(s => [s, s, `var(${stackVar[s]})`, cnt(n => n.stack===s)]), "stacks");
-mk("kinds", Object.keys(KINDS).map(k => [k, k, "var(--muted)", edges.filter(e => e.kind===k).length]), "kinds");
-mk("statuses", Object.entries(STATUS).map(([k,v]) => [k, v, k==="active" ? "var(--shared)" : k==="idle" ? "var(--idle)" : "var(--orphan)", cnt(n => n.status===k)]), "statuses");
-document.getElementById("shapes").innerHTML = Object.entries(SHAPES).filter(([k]) => cnt(n => n.category===k)).map(([k,s]) =>
-  `<div class="row"><svg class="legend-shape" viewBox="-10 -10 20 20"><path d="${shapePath(s,7)}" fill="var(--muted)"/></svg><span>${k}</span></div>`).join("");
-document.getElementById("q").oninput = e => { state.q = e.target.value.toLowerCase(); render(); };
-document.getElementById("iso").onchange = e => { state.iso = e.target.checked; render(); };
-document.getElementById("lbl").onchange = e => { state.lbl = e.target.checked; render(); };
-document.getElementById("reheat").onclick = () => { nodes.forEach(n => { n.x += (Math.random()-.5)*60; n.y += (Math.random()-.5)*60; }); alpha = 1; tick(); };
-document.getElementById("fit").onclick = () => fit();
-document.getElementById("theme").onclick = () => { const r = document.documentElement; const dark = (r.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark"; r.dataset.theme = dark ? "light" : "dark"; };
+function facts(n) {
+  const out = []; for (const [k, p] of FACT_KEYS) { const v = n.attrs[k]; if (v !== null && v !== undefined && v !== "" && typeof v !== "object") out.push(p + v); if (out.length === 2) break; }
+  const cpu = n.attrs.cpu_avg_24h ?? n.attrs.node_cpu_avg_24h; if (cpu !== null && cpu !== undefined) out.push(`CPU ${cpu}%`);
+  if (n.attrs.open_to_world && n.attrs.open_to_world.length) out.push("open " + n.attrs.open_to_world.map(p => p.replace(/^tcp:/, "")).join(", "));
+  if (n.attrs.public_policy) out.push("public bucket policy"); if (n.attrs.public) out.push("publicly accessible");
+  return out.join(" · ");
+}
+function why(n) {
+  const a = n.attrs, cpu = a.cpu_avg_24h ?? a.node_cpu_avg_24h;
+  if (n.status === "idle") return a.connections_avg_24h !== undefined ? `Idle: ${a.connections_avg_24h} avg connections over 24h.` : a.bytes_out_per_hour !== undefined ? `Idle: ${a.bytes_out_per_hour ?? 0} bytes/h out over 24h.` : cpu !== null && cpu !== undefined ? `Idle: ${cpu}% average CPU over 24h.` : "Idle: low observed utilisation.";
+  if (n.status === "orphan") return "Orphan: not attached to anything, still billed.";
+  if (n.status === "exposed") return a.open_to_world ? `Exposed: open to 0.0.0.0/0 on ${a.open_to_world.join(", ")}.` : "Exposed: reachable from the public internet.";
+  return "";
+}
 
-// ---- scene ----
-const gE = document.getElementById("edges"), gN = document.getElementById("nodes");
-const defs = svg.querySelector("defs");
-Object.keys(KINDS).forEach(k => { const m = el("marker", {id:"a-"+k, viewBox:"0 0 10 10", refX:9, refY:5, markerWidth:6, markerHeight:6, orient:"auto-start-reverse"}, defs); el("path", {d:"M0,0L10,5L0,10Z", fill:"var(--muted)", "fill-opacity":".7"}, m); });
-edges.forEach(e => { e.el = el("path", {class:"edge", "stroke-width":KINDS[e.kind].w, "stroke-dasharray":KINDS[e.kind].d, "marker-end":e.kind==="contains"||e.kind==="network" ? "" : `url(#a-${e.kind})`}, gE);
-  e.el.innerHTML = `<title>${e.src} → ${e.dst} (${e.kind})${e.note? ": "+e.note : ""}</title>`; });
-nodes.forEach(n => { const g = el("g", {class:"node"}, gN); n.el = g;
-  const col = `var(${stackVar[n.stack]||"--shared"})`;
-  el("path", {d:shapePath(SHAPES[n.category]||"circle", n.r), fill:col, "fill-opacity":.85, stroke:"var(--bg)", "stroke-width":1.5}, g);
-  if (n.status !== "active") el("circle", {class:"halo", r:n.r+5, stroke:n.status==="idle" ? "var(--idle)" : "var(--orphan)", "stroke-dasharray":n.status==="exposed" ? "" : "4 3"}, g);
-  n.txt = el("text", {y:n.r+12, "text-anchor":"middle"}, g); n.txt.textContent = n.label.length>26 ? n.label.slice(0,25)+"…" : n.label;
-  g.addEventListener("mouseenter", ev => { hover(n); tip(ev, n); }); g.addEventListener("mousemove", ev => tip(ev, n));
-  g.addEventListener("mouseleave", () => { hover(null); document.getElementById("tip").style.display = "none"; });
-  g.addEventListener("pointerdown", ev => startDrag(ev, n)); g.addEventListener("click", ev => { if (!n.moved) select(n); });
+// ---------- board ----------
+const board = $("board");
+STACKS.forEach(st => {
+  const list = nodes.filter(n => n.stack === st && n.type !== "vpc"); const vpc = vpcOf[st]; if (!list.length && !vpc) return;
+  const card = document.createElement("section"); card.className = "card"; card.style.setProperty("--sc", `var(--s-${st})`);
+  const head = document.createElement("div"); head.className = "head" + (vpc ? " node" : "");
+  head.innerHTML = `<div class="top">${vpc ? '<span class="tag" style="--tc:var(--sc)">VPC</span>' : ""}<h2>${esc(st)}</h2></div><div class="sub mono">${vpc ? esc(vpc.attrs.cidr) + " · " + esc(vpc.attrs.id) + " · " : ""}${list.length} resources</div>`;
+  if (vpc) { vpc.el = head; vpc.anchor = head; head.onclick = ev => { ev.stopPropagation(); select(vpc); }; head.onmouseenter = () => hover(vpc); head.onmouseleave = () => hover(null); }
+  card.appendChild(head);
+  TIERS.forEach(([cat, title, col]) => {
+    const items = list.filter(n => TIER_OF(n.category) === cat).sort((a, b) => a.type.localeCompare(b.type) || a.label.localeCompare(b.label)); if (!items.length) return;
+    const tier = document.createElement("div"); tier.className = "tier" + (state.closed.has(cat) ? " closed" : ""); tier.style.setProperty("--tc", `var(${col})`);
+    const th = document.createElement("button"); th.className = "th"; th.innerHTML = `<span class="car">▼</span>${title}<span class="n">${items.length}</span>`;
+    th.onclick = () => { tier.classList.toggle("closed"); layout(); }; tier.appendChild(th);
+    const box = document.createElement("div"); box.className = "items";
+    items.forEach(n => {
+      const r = document.createElement("div"); r.className = "res"; r.tabIndex = 0; r.title = n.id; n.el = r; n.anchor = th; n.tier = tier;
+      r.innerHTML = `<span class="tag" style="--tc:var(${col})">${TAG[n.type] || esc(n.type)}</span><span class="nm">${esc(n.label)}</span>${n.status !== "active" ? `<span class="pill ${n.status}">${STATUS[n.status]}</span>` : "<span></span>"}<span class="facts">${esc(facts(n)) || "&nbsp;"}</span>`;
+      r.onclick = ev => { ev.stopPropagation(); select(n); }; r.onkeydown = ev => { if (ev.key === "Enter") select(n); };
+      r.onmouseenter = () => hover(n); r.onmouseleave = () => hover(null); box.appendChild(r);
+    });
+    tier.appendChild(box); card.appendChild(tier);
+  });
+  board.appendChild(card);
 });
 
-// ---- layout ----
-let W = 1000, H = 700, alpha = 1;
-const anchor = {"shop-prod":[-.55,-.05], "data-platform":[.55,-.05], "legacy":[0,.6], "dev":[.5,.7], "shared":[0,-.55]};
-function size() { const r = svg.getBoundingClientRect(); W = r.width; H = r.height; }
-function visible(n) {
-  if (!state.stacks.has(n.stack) || !state.statuses.has(n.status)) return false;
-  if (state.iso && !edges.some(e => state.kinds.has(e.kind) && (e.s===n || e.t===n))) return false;
-  return true;
+// ---------- header ----------
+$("meta").textContent = `${nodes.length} resources · ${edges.length} dependencies · built ${G.generated.replace("T", " ").replace("+00:00", " UTC")}`;
+const kp = $("kpis");
+[["", "Resources", nodes.length], ["idle", "Idle", nodes.filter(n => n.status === "idle").length], ["orphan", "Orphans", nodes.filter(n => n.status === "orphan").length], ["exposed", "Exposed", nodes.filter(n => n.status === "exposed").length]].forEach(([s, l, c]) => {
+  const b = document.createElement("button"); b.className = "kpi"; b.dataset.s = s; b.innerHTML = `<small>${l}</small><strong>${c}</strong>`;
+  b.onclick = () => { state.status = !s || state.status === s ? null : s; refresh(); }; kp.appendChild(b); });
+const kinds = $("kinds");
+KINDS.forEach(k => { const b = document.createElement("button"); b.className = "kind" + (state.kinds.has(k) ? "" : " off"); b.innerHTML = `<i style="background:var(--k-${k})"></i>${k}`;
+  b.onclick = () => { state.kinds.has(k) ? state.kinds.delete(k) : state.kinds.add(k); b.classList.toggle("off"); draw(); }; kinds.appendChild(b); });
+$("q").oninput = e => { state.q = e.target.value.toLowerCase().trim(); refresh(); };
+$("all").onclick = e => { state.all = !state.all; e.target.classList.toggle("on", state.all); kinds.classList.toggle("show", state.all); layout(); };
+$("theme").onclick = () => { const r = document.documentElement, dark = (r.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark"; r.dataset.theme = dark ? "light" : "dark"; };
+
+// ---------- selection & focus ----------
+const focus = () => state.sel || state.hov;
+const nbrs = n => { const s = new Set([n.id]); edges.forEach(e => { if (e.s === n) s.add(e.t.id); if (e.t === n) s.add(e.s.id); }); return s; };
+const matches = n => (!state.status || n.status === state.status) && (!state.q || (n.id + " " + n.type + " " + n.stack + " " + JSON.stringify(n.attrs)).toLowerCase().includes(state.q));
+function refresh() {
+  const f = focus(), nb = f ? nbrs(f) : null, filtering = !!(state.status || state.q); let shown = 0;
+  document.querySelectorAll(".kpi").forEach(k => k.classList.toggle("on", k.dataset.s === (state.status || "")));
+  nodes.forEach(n => { if (!n.el) return; const m = matches(n); if (m) shown++;
+    n.el.classList.toggle("dim", f ? !nb.has(n.id) : filtering && !m); n.el.classList.toggle("sel", n === state.sel); n.el.classList.toggle("nb", !!f && n !== f && nb.has(n.id)); });
+  $("empty").style.display = filtering && !shown ? "block" : "none"; draw();
 }
-function init() { size(); nodes.forEach(n => { const a = anchor[n.stack]||[0,0]; n.x = a[0]*W*.55 + (Math.random()-.5)*160; n.y = a[1]*H*.55 + (Math.random()-.5)*160; }); }
-function step() {
-  const vis = nodes.filter(visible), k = alpha;
-  for (let i = 0; i < vis.length; i++) { const a = vis[i];
-    for (let j = i+1; j < vis.length; j++) { const b = vis[j]; let dx = a.x-b.x, dy = a.y-b.y, d2 = dx*dx+dy*dy+.01, d = Math.sqrt(d2);
-      const rep = 2600/d2, min = a.r+b.r+16; let f = rep; if (d < min) f += (min-d)*.05;
-      dx/=d; dy/=d; a.vx += dx*f*k; a.vy += dy*f*k; b.vx -= dx*f*k; b.vy -= dy*f*k; } }
-  edges.forEach(e => { if (!visible(e.s) || !visible(e.t) || !state.kinds.has(e.kind)) return;
-    let dx = e.t.x-e.s.x, dy = e.t.y-e.s.y, d = Math.sqrt(dx*dx+dy*dy)||1; const len = e.kind==="contains" ? 46 : e.kind==="network" ? 120 : 90;
-    const f = (d-len)*.012*k; dx/=d; dy/=d; e.s.vx += dx*f; e.s.vy += dy*f; e.t.vx -= dx*f; e.t.vy -= dy*f; });
-  vis.forEach(n => { const a = anchor[n.stack]||[0,0]; n.vx += (a[0]*W*.55 - n.x)*.0035*k; n.vy += (a[1]*H*.55 - n.y)*.0035*k;
-    if (n.fixed) { n.vx = n.vy = 0; return; } n.vx *= .82; n.vy *= .82; n.x += n.vx; n.y += n.vy; });
-  alpha *= .985;
+function hover(n) { state.hov = n; if (!state.sel) refresh(); }
+function select(n) {
+  state.sel = n; $("wrap").classList.toggle("panel", !!n); $("drawer").classList.toggle("open", !!n);
+  if (n) { if (n.tier) n.tier.classList.remove("closed"); renderDrawer(n); }
+  refresh(); layout(); if (n && n.el) n.el.scrollIntoView({block:"nearest", behavior:"smooth"});
 }
-function edgePath(e) { const dx = e.t.x-e.s.x, dy = e.t.y-e.s.y, d = Math.sqrt(dx*dx+dy*dy)||1, ux = dx/d, uy = dy/d;
-  const x1 = e.s.x+ux*e.s.r, y1 = e.s.y+uy*e.s.r, x2 = e.t.x-ux*(e.t.r+3), y2 = e.t.y-uy*(e.t.r+3);
-  const mx = (x1+x2)/2 - uy*d*.06, my = (y1+y2)/2 + ux*d*.06; return `M${x1},${y1}Q${mx},${my} ${x2},${y2}`; }
+function renderDrawer(n) {
+  const outs = edges.filter(e => e.s === n), ins = edges.filter(e => e.t === n), col = TIERS.find(t => t[0] === TIER_OF(n.category));
+  const dep = (e, o) => `<div class="dep" data-id="${esc(o.id)}"><span class="kp" style="--kc:var(--k-${e.kind})">${e.kind}</span><div><span class="dn mono">${esc(o.label)}</span> <span class="tag" style="--tc:var(--muted)">${TAG[o.type] || esc(o.type)}</span>${e.note ? `<small>${esc(e.note)}</small>` : ""}</div></div>`;
+  const attrs = Object.entries(n.attrs).filter(([, v]) => v !== null && v !== undefined && v !== "").map(([k, v]) => `<span>${esc(k)}</span><span>${typeof v === "object" ? "<code>" + esc(JSON.stringify(v)) + "</code>" : esc(v)}</span>`).join("");
+  $("drawer").innerHTML = `<button class="x" aria-label="Close">×</button><span class="tag" style="--tc:var(${col ? col[2] : "--muted"})">${TAG[n.type] || esc(n.type)}</span>
+    <h2 class="mono">${esc(n.label)}</h2><div class="meta">${esc(n.type)} · stack <b style="color:var(--s-${n.stack})">${esc(n.stack)}</b> · ${STATUS[n.status]}</div>
+    ${why(n) ? `<div class="why ${n.status}">${esc(why(n))}</div>` : ""}
+    <h3>Attributes</h3><div class="kv">${attrs || "<span>–</span><span></span>"}</div>
+    <h3>Depends on (${outs.length})</h3>${outs.map(e => dep(e, e.t)).join("") || '<div class="meta">Nothing</div>'}
+    <h3>Used by (${ins.length})</h3>${ins.map(e => dep(e, e.s)).join("") || '<div class="meta">Nothing</div>'}`;
+  $("drawer").scrollTop = 0; $("drawer").querySelector(".x").onclick = () => select(null);
+  $("drawer").querySelectorAll(".dep").forEach(d => d.onclick = () => select(byId[d.dataset.id]));
+}
+$("wrap").addEventListener("click", ev => { if (state.sel && !ev.target.closest(".res,.head.node")) select(null); });
+addEventListener("keydown", ev => { if (ev.key === "Escape" && state.sel) select(null); });
+
+// ---------- links ----------
+const svg = $("links"), lg = $("lg"), NS = "http://www.w3.org/2000/svg";
+const mk = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+KINDS.forEach(k => { const m = mk("marker", {id:"m-" + k, viewBox:"0 0 10 10", refX:9, refY:5, markerWidth:7, markerHeight:7, orient:"auto"}, svg.querySelector("defs")); mk("path", {d:"M0,1 L10,5 L0,9 Z", style:`fill:var(--k-${k})`}, m); });
+function rectOf(n) {
+  let el = n.el; if (!el || el.offsetParent === null || (n.tier && n.tier.classList.contains("closed"))) el = n.anchor;
+  if (!el) return null; const b = el.getBoundingClientRect(), w = board.getBoundingClientRect();
+  return {l:b.left - w.left, r:b.right - w.left, y:b.top - w.top + b.height / 2};
+}
+function path(a, b, i) {
+  if (b.l > a.r - 6) { const dx = Math.max(40, (b.l - a.r) / 2); return [`M${a.r},${a.y} C${a.r + dx},${a.y} ${b.l - dx},${b.y} ${b.l},${b.y}`, (a.r + b.l) / 2, (a.y + b.y) / 2, true]; }
+  if (b.r < a.l + 6) { const dx = Math.max(40, (a.l - b.r) / 2); return [`M${a.l},${a.y} C${a.l - dx},${a.y} ${b.r + dx},${b.y} ${b.r},${b.y}`, (a.l + b.r) / 2, (a.y + b.y) / 2, true]; }
+  const rail = Math.min(a.l, b.l) - 5 - (i % 4) * 3, r = 5, sy = Math.sign(b.y - a.y) || 1;   // same column: elbow connector on a rail
+  return [`M${a.l},${a.y} H${rail + r} Q${rail},${a.y} ${rail},${a.y + sy * r} V${b.y - sy * r} Q${rail},${b.y} ${rail + r},${b.y} H${b.l}`, rail, (a.y + b.y) / 2, false];
+}
 function draw() {
-  const q = state.q;
-  nodes.forEach(n => { const v = visible(n); n.el.style.display = v ? "" : "none"; n.txt.style.display = state.lbl ? "" : "none";
-    n.el.setAttribute("transform", `translate(${n.x},${n.y})`); n.match = !q || (n.id+" "+JSON.stringify(n.attrs)).toLowerCase().includes(q); });
-  edges.forEach(e => { const v = visible(e.s) && visible(e.t) && state.kinds.has(e.kind); e.el.style.display = v ? "" : "none"; if (v) e.el.setAttribute("d", edgePath(e)); });
-  nodes.forEach(n => n.el.classList.toggle("dim", !n.match && !!q));
-  edges.forEach(e => e.el.classList.toggle("dim", !!q && !(e.s.match && e.t.match)));
+  lg.innerHTML = ""; const f = focus(), list = [];
+  if (f) edges.forEach(e => { if (e.s === f || e.t === f) list.push([e, true]); });
+  if (state.all) edges.forEach(e => { if (state.kinds.has(e.kind) && !(f && (e.s === f || e.t === f))) list.push([e, false]); });
+  const label = list.length <= 14;
+  list.forEach(([e, hot], i) => { const a = rectOf(e.s), b = rectOf(e.t); if (!a || !b) return; const [d, mx, my, lab] = path(a, b, i);
+    mk("path", {d, fill:"none", style:`stroke:var(--k-${e.kind})`, "stroke-width":hot ? 2.2 : 1.2, "stroke-opacity":hot ? (state.sel ? .95 : .7) : .3, "stroke-dasharray":e.kind === "config" ? "5 4" : "", "marker-end":`url(#m-${e.kind})`}, lg);
+    if (hot && label && lab) { const t = mk("text", {x:mx, y:my - 5, "text-anchor":"middle", style:`font-size:10.5px;font-weight:600;fill:var(--k-${e.kind});paint-order:stroke;stroke:var(--bg);stroke-width:4px`}, lg); t.textContent = e.kind; } });
 }
-let raf = 0;
-function tick() { cancelAnimationFrame(raf); const loop = () => { for (let i = 0; i < 2; i++) step(); draw(); if (alpha > .02) raf = requestAnimationFrame(loop); }; loop(); }
-function render() { alpha = Math.max(alpha, .35); tick(); }
-
-// ---- view transform ----
-let view = {x:0, y:0, k:1};
-const applyView = () => vp.setAttribute("transform", `translate(${view.x},${view.y}) scale(${view.k})`);
-function fit() { const vis = nodes.filter(visible); if (!vis.length) return; const xs = vis.map(n => n.x), ys = vis.map(n => n.y);
-  const x0 = Math.min(...xs)-50, x1 = Math.max(...xs)+50, y0 = Math.min(...ys)-50, y1 = Math.max(...ys)+60;
-  view.k = Math.min(W/(x1-x0), H/(y1-y0), 1.6); view.x = W/2 - view.k*(x0+x1)/2; view.y = H/2 - view.k*(y0+y1)/2; applyView(); }
-const toWorld = ev => { const r = svg.getBoundingClientRect(); return [(ev.clientX-r.left-view.x)/view.k, (ev.clientY-r.top-view.y)/view.k]; };
-svg.addEventListener("wheel", ev => { ev.preventDefault(); const r = svg.getBoundingClientRect(), mx = ev.clientX-r.left, my = ev.clientY-r.top;
-  const k2 = Math.max(.15, Math.min(4, view.k*Math.exp(-ev.deltaY*.0015))); view.x = mx-(mx-view.x)*k2/view.k; view.y = my-(my-view.y)*k2/view.k; view.k = k2; applyView(); }, {passive:false});
-let pan = null;
-svg.addEventListener("pointerdown", ev => { if (ev.target !== svg && ev.target.closest(".node")) return; pan = {x:ev.clientX-view.x, y:ev.clientY-view.y}; svg.classList.add("panning"); svg.setPointerCapture(ev.pointerId); });
-svg.addEventListener("pointermove", ev => { if (pan) { view.x = ev.clientX-pan.x; view.y = ev.clientY-pan.y; applyView(); } });
-svg.addEventListener("pointerup", () => { pan = null; svg.classList.remove("panning"); });
-let drag = null;
-function startDrag(ev, n) { ev.stopPropagation(); n.moved = false; drag = n; n.fixed = true; svg.setPointerCapture(ev.pointerId); }
-svg.addEventListener("pointermove", ev => { if (!drag) return; const [x, y] = toWorld(ev); drag.x = x; drag.y = y; drag.moved = true; alpha = Math.max(alpha, .15); tick(); });
-svg.addEventListener("pointerup", () => { if (drag) { const d = drag; drag = null; setTimeout(() => { d.fixed = false; d.moved = false; }, 0); } });
-
-// ---- interaction ----
-function neighbors(n) { const s = new Set([n.id]); edges.forEach(e => { if (e.s===n) s.add(e.t.id); if (e.t===n) s.add(e.s.id); }); return s; }
-function hover(n) { if (state.sel) return; applyFocus(n); }
-function applyFocus(n) { if (!n) { nodes.forEach(x => x.el.classList.remove("dim")); edges.forEach(e => e.el.classList.remove("dim","hl")); draw(); return; }
-  const nb = neighbors(n); nodes.forEach(x => x.el.classList.toggle("dim", !nb.has(x.id)));
-  edges.forEach(e => { const on = e.s===n || e.t===n; e.el.classList.toggle("hl", on); e.el.classList.toggle("dim", !on); }); }
-function tip(ev, n) { const t = document.getElementById("tip"), r = document.getElementById("stage").getBoundingClientRect(); t.style.display = "block";
-  t.style.left = (ev.clientX-r.left+14)+"px"; t.style.top = (ev.clientY-r.top+14)+"px"; t.innerHTML = `<b>${n.label}</b> · ${n.type}<br><span style="color:var(--muted)">${n.stack} · ${n.status}</span>`; }
-function select(n) { state.sel = n; applyFocus(n); const d = document.getElementById("detail");
-  const kc = {idle:"var(--idle)", orphan:"var(--orphan)", exposed:"var(--orphan)", active:"var(--muted)"}[n.status];
-  const outs = edges.filter(e => e.s===n), ins = edges.filter(e => e.t===n);
-  const conn = (e, o) => `<div class="conn" data-id="${o.id}">${e.kind} ${e===null?"":(e.s===n?"→":"←")} <b>${o.label}</b> <span style="color:var(--muted)">(${o.type})</span>${e.note? `<div style="color:var(--muted);font-size:11px">${e.note}</div>`:""}</div>`;
-  const attrs = Object.entries(n.attrs).filter(([,v]) => v !== null && v !== undefined && v !== "").map(([k,v]) => `<span>${k}</span><span>${typeof v==="object" ? "<code>"+JSON.stringify(v)+"</code>" : v}</span>`).join("");
-  d.innerHTML = `<h1>${n.label}</h1><div class="sub">${n.type} · ${n.stack} · <span class="badge" style="color:${kc}">${STATUS[n.status]}</span></div>
-    <h2>Attributes</h2><div class="kv">${attrs || "<span>–</span><span></span>"}</div>
-    <h2>Connections (${outs.length+ins.length})</h2>${outs.map(e => conn(e, e.t)).join("")}${ins.map(e => conn(e, e.s)).join("") || ""}
-    <div style="margin-top:12px"><button id="clr">Clear selection</button></div>`;
-  d.querySelectorAll(".conn").forEach(c => c.onclick = () => select(byId[c.dataset.id]));
-  document.getElementById("clr").onclick = () => { state.sel = null; applyFocus(null); d.innerHTML = '<div class="sub">Click a node to inspect it.</div>'; }; }
-svg.addEventListener("click", ev => { if (ev.target === svg && state.sel) { state.sel = null; applyFocus(null); document.getElementById("detail").innerHTML = '<div class="sub">Click a node to inspect it.</div>'; } });
-
-addEventListener("resize", () => { size(); });
-init(); for (let i = 0; i < 260; i++) step(); alpha = .3; fit(); tick(); setTimeout(fit, 900);
+function layout() { requestAnimationFrame(draw); }
+addEventListener("resize", layout); new ResizeObserver(layout).observe(board);
+refresh();
 </script>
 </body>
 </html>
