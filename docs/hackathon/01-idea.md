@@ -9,7 +9,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 | 3. How do we get into their day? | done |
 | 4. Business plan | open: pricing model, waits for form answers |
 | 5. Design the product | workflow defined; legal parked; mentors to validate |
-| 6. Branding | in progress: name done |
+| 6. Branding | name and direction done; designer delivers palette, mascot, logo |
 
 ## 1. Target
 
@@ -122,6 +122,7 @@ One person, offer to day 1, with 3 disruptions injected live: the manager isn't 
 
 - **Name:** Wellboarder.
 - **Palette:** from scratch, not from the friendeyes theme. Leads with warmth and welcome. The designer proposes the colours.
+- **Mascot and logo:** the designer picks the mascot; the logo is built around it.
 
 ## Open questions
 
