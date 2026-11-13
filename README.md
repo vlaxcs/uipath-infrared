@@ -1,5 +1,5 @@
-# uipath-sqloco
+# Infrared
 
-UiPath hackathon, "Agents in Action". An agentic MVP built around the Enterpreyes PRD.
+An end-to-end agentic workflow that re-plans a company's infrastructure around the projects it runs.
 
-Hackathon knowledge base: [docs/hackathon/00-before.md](docs/hackathon/00-before.md).
+Product reference: [docs/prd.md](docs/prd.md).
