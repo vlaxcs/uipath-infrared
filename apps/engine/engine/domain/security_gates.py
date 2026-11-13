@@ -8,52 +8,60 @@ ADMIN_PORTS = frozenset({22, 3389})
 ALL_PORTS = -1
 MIN_BACKUP_RETENTION_DAYS = 7
 AUDIT_LOGGING_CONTROL = "audit_logging_enabled"
-CONSTRAINT = "security_gates"
+AUDIT_LOGGING_GATE = "require_audit_logging"
+CONSTRAINT_PREFIX = "security."
 
 
 def check_security_gates(end_state: EndState, infra: Infra, gates: SecurityGates) -> tuple[Violation, ...]:
-    components = [p.component for p in end_state.live()]
-    violations: list[Violation] = []
-    if gates.forbid_public_datastores:
-        violations += [
-            _gate("forbid_public_datastores", c.id, "datastore exposed to the internet")
-            for c in components if c.stateful and c.security.get("public_exposure") == PUBLIC_EXPOSURE
-        ]
-    if gates.require_encryption_at_rest:
-        violations += [
-            _gate("require_encryption_at_rest", c.id, "datastore not encrypted at rest")
-            for c in components if c.stateful and c.security.get("encryption_at_rest") is False
-        ]
-    if gates.forbid_world_open_admin_ports:
-        violations += [
-            _gate("forbid_world_open_admin_ports", c.id, f"open to the world: {_ports_text(ports)}")
-            for c in components if (ports := _world_open_admin_ports(c))
-        ]
-    if gates.require_audit_logging and infra.controls.get(AUDIT_LOGGING_CONTROL) is False:
-        violations.append(_gate("require_audit_logging", None, "audit logging is off for the account"))
-    if gates.require_backups:
-        violations += [
-            _gate("require_backups", c.id, f"backup retention {days:g} days, under {MIN_BACKUP_RETENTION_DAYS}")
-            for c in components if (days := _short_retention(c)) is not None
-        ]
+    violations = [
+        Violation(CONSTRAINT_PREFIX + gate, placement.component.id, detail)
+        for gate, finding in COMPONENT_GATES
+        if getattr(gates, gate)
+        for placement in end_state.live()
+        if gate not in placement.remediated and (detail := finding(placement.component)) is not None
+    ]
+    audit_fixed = AUDIT_LOGGING_GATE in end_state.remediated_controls
+    if gates.require_audit_logging and not audit_fixed and infra.controls.get(AUDIT_LOGGING_CONTROL) is False:
+        violations.append(Violation(
+            CONSTRAINT_PREFIX + AUDIT_LOGGING_GATE, None, "audit logging is off for the account",
+        ))
     return tuple(violations)
 
 
-def _gate(rule: str, component: str | None, detail: str) -> Violation:
-    return Violation(CONSTRAINT, component, detail, rule=rule)
+def gate_of(violation: Violation) -> str | None:
+    if not violation.constraint.startswith(CONSTRAINT_PREFIX):
+        return None
+    return violation.constraint.removeprefix(CONSTRAINT_PREFIX)
 
 
-def _world_open_admin_ports(component: Component) -> list[int]:
+def _public_datastore(component: Component) -> str | None:
+    exposed = component.stateful and component.security.get("public_exposure") == PUBLIC_EXPOSURE
+    return "datastore exposed to the internet" if exposed else None
+
+
+def _unencrypted(component: Component) -> str | None:
+    unencrypted = component.stateful and component.security.get("encryption_at_rest") is False
+    return "datastore not encrypted at rest" if unencrypted else None
+
+
+def _open_admin_ports(component: Component) -> str | None:
     ports = component.security.get("world_open_ports") or []
-    return sorted(port for port in ports if port in ADMIN_PORTS or port == ALL_PORTS)
+    admin = sorted(port for port in ports if port in ADMIN_PORTS or port == ALL_PORTS)
+    if not admin:
+        return None
+    return "open to the world: " + ", ".join("all ports" if port == ALL_PORTS else str(port) for port in admin)
 
 
-def _ports_text(ports: list[int]) -> str:
-    return ", ".join("all ports" if port == ALL_PORTS else str(port) for port in ports)
-
-
-def _short_retention(component: Component) -> float | None:
+def _no_backups(component: Component) -> str | None:
     days = component.security.get("backup_retention_days")
     if not component.stateful or days is None or days >= MIN_BACKUP_RETENTION_DAYS:
         return None
-    return float(days)
+    return f"backup retention {days:g} days, under {MIN_BACKUP_RETENTION_DAYS}"
+
+
+COMPONENT_GATES = (
+    ("forbid_public_datastores", _public_datastore),
+    ("require_encryption_at_rest", _unencrypted),
+    ("forbid_world_open_admin_ports", _open_admin_ports),
+    ("require_backups", _no_backups),
+)

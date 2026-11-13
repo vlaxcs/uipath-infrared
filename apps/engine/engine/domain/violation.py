@@ -12,8 +12,6 @@ class Violation:
     detail: str
     actual: float | None = None
     limit: float | None = None
-    unit: str | None = None
-    rule: str | None = None
 
     @property
     def distance(self) -> float:

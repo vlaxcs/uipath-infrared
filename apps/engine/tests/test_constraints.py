@@ -20,11 +20,8 @@ def only(forecast, **constraints):
     return replace(forecast, constraints=HardConstraints(**constraints))
 
 
-def components(result, constraint, rule=None):
-    return sorted(
-        v.component for v in result.violations
-        if v.constraint == constraint and v.rule == rule and v.component is not None
-    )
+def components(result, constraint):
+    return sorted(v.component for v in result.violations if v.constraint == constraint and v.component is not None)
 
 
 def test_do_nothing_is_infeasible_on_residency(mock_infra, catalog, forecast):
@@ -40,7 +37,7 @@ def test_do_nothing_is_infeasible_on_single_zone_rds(mock_infra, catalog, foreca
     below = components(result, "min_availability_pct")
     assert {"rds-orders", "rds-erp", "pg-lake", "cache-sessions"} <= set(below)
     rds = next(v for v in result.violations if v.component == "rds-orders" and v.constraint == "min_availability_pct")
-    assert (rds.actual, rds.limit, rds.unit) == (99.5, 99.9, "pct")
+    assert (rds.actual, rds.limit) == (99.5, 99.9)
     assert rds.distance == pytest.approx(4.0)
 
 
@@ -59,17 +56,17 @@ def test_a_path_that_misses_with_no_single_weak_component_is_reported_for_the_st
 
 def test_security_gates_list_the_components_the_mock_expects(mock_infra, catalog, forecast):
     result = check(mock_infra, catalog, forecast)
-    assert components(result, "security_gates", "forbid_public_datastores") == [
+    assert components(result, "security.forbid_public_datastores") == [
         "pg-lake", "rds-analytics", "rds-erp", "rds-orders", "rds-orders-clone", "s3-legacy-reports", "s3-uploads",
     ]
-    assert components(result, "security_gates", "forbid_world_open_admin_ports") == [
+    assert components(result, "security.forbid_world_open_admin_ports") == [
         "vm-bastion", "vm-batch", "vm-dev-jump", "vmfleet-web",
     ]
-    unencrypted = components(result, "security_gates", "require_encryption_at_rest")
+    unencrypted = components(result, "security.require_encryption_at_rest")
     assert "rds-orders" in unencrypted and "ddb-orders" not in unencrypted
     rds = {"rds-orders", "rds-orders-clone", "rds-analytics", "rds-erp"}
-    assert rds <= set(components(result, "security_gates", "require_backups"))
-    audit = [v for v in result.violations if v.rule == "require_audit_logging"]
+    assert rds <= set(components(result, "security.require_backups"))
+    audit = [v for v in result.violations if v.constraint == "security.require_audit_logging"]
     assert len(audit) == 1 and audit[0].component is None
 
 
@@ -81,7 +78,7 @@ def test_gates_that_are_off_report_nothing(mock_infra, catalog, forecast):
 def test_deleting_a_component_removes_its_violations(mock_infra, catalog, forecast):
     result = check(mock_infra, catalog, forecast, Action("s3-legacy-reports", ActionKind.DELETE, "test"))
     assert components(result, "data_residency") == []
-    assert "s3-legacy-reports" not in components(result, "security_gates", "forbid_public_datastores")
+    assert "s3-legacy-reports" not in components(result, "security.forbid_public_datastores")
 
 
 def test_residency_only_applies_to_the_listed_classifications(mock_infra, catalog, forecast):
@@ -102,18 +99,19 @@ def test_figures_are_checked_against_their_ceilings(mock_infra, catalog, forecas
         run_eur_month_at_horizon_base=99000.0, migration_eur=150000.0, effort_hours=1500.0, cutover_hours=6.0,
     )
     result = check(mock_infra, catalog, forecast, figures=figures)
-    by_rule = {(v.constraint, v.rule): v for v in result.violations if v.unit in {"eur_month", "eur", "hours"}}
-    budget = by_rule[("budget", "max_monthly_run_cost_eur")]
-    assert (budget.actual, budget.limit, budget.unit, budget.component) == (99000.0, 90000.0, "eur_month", None)
+    by_constraint = {v.constraint: v for v in result.violations}
+    budget = by_constraint["budget"]
+    assert (budget.actual, budget.limit, budget.component) == (99000.0, 90000.0, None)
     assert budget.distance == pytest.approx(0.1)
-    assert by_rule[("budget", "max_one_off_migration_cost_eur")].distance == pytest.approx(0.25)
-    assert by_rule[("max_migration_effort_hours", None)].distance == pytest.approx(0.25)
-    assert by_rule[("max_cutover_downtime_hours", None)].distance == pytest.approx(0.5)
+    assert by_constraint["migration_budget"].distance == pytest.approx(0.25)
+    assert by_constraint["max_migration_effort_hours"].distance == pytest.approx(0.25)
+    assert by_constraint["max_cutover_downtime_hours"].distance == pytest.approx(0.5)
 
 
 def test_figures_inside_their_ceilings_pass(mock_infra, catalog, forecast):
     result = check(mock_infra, catalog, forecast, figures=CandidateFigures(90000.0, 120000.0, 1200.0, 4.0))
-    assert not [v for v in result.violations if v.unit in {"eur_month", "eur", "hours"}]
+    figure_constraints = {"budget", "migration_budget", "max_migration_effort_hours", "max_cutover_downtime_hours"}
+    assert not figure_constraints & {v.constraint for v in result.violations}
 
 
 def test_a_violation_without_numbers_counts_one(mock_infra, catalog, forecast):

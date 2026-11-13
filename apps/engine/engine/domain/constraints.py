@@ -88,34 +88,30 @@ def _availability(availability: Availability, constraints: HardConstraints) -> t
             violations.setdefault(component.component, Violation(
                 "min_availability_pct", component.component,
                 f"{component.availability_pct:g}% on the {path.stack} critical path ({component.basis})",
-                component.availability_pct, limit, "pct",
+                component.availability_pct, limit,
             ))
         if not weak:
             violations[f"stack:{path.stack}"] = Violation(
                 "min_availability_pct", None,
                 f"{path.stack} critical path reaches {path.availability_pct:.3f}% across {len(path.components)} components",
-                path.availability_pct, limit, "pct",
+                path.availability_pct, limit,
             )
     return tuple(violations.values())
 
 
 def _figures(figures: CandidateFigures, constraints: HardConstraints) -> tuple[Violation, ...]:
     checks = (
-        ("budget", "max_monthly_run_cost_eur", "eur_month",
-         figures.run_eur_month_at_horizon_base, constraints.max_monthly_run_cost_eur,
+        ("budget", figures.run_eur_month_at_horizon_base, constraints.max_monthly_run_cost_eur,
          "EUR {actual:,.0f} a month at the horizon on the base scenario, ceiling EUR {limit:,.0f}"),
-        ("budget", "max_one_off_migration_cost_eur", "eur",
-         figures.migration_eur, constraints.max_one_off_migration_cost_eur,
+        ("migration_budget", figures.migration_eur, constraints.max_one_off_migration_cost_eur,
          "one-off migration EUR {actual:,.0f}, ceiling EUR {limit:,.0f}"),
-        ("max_migration_effort_hours", None, "hours",
-         figures.effort_hours, constraints.max_migration_effort_hours,
+        ("max_migration_effort_hours", figures.effort_hours, constraints.max_migration_effort_hours,
          "{actual:,.0f} migration hours, limit {limit:,.0f}"),
-        ("max_cutover_downtime_hours", None, "hours",
-         figures.cutover_hours, constraints.max_cutover_downtime_hours,
+        ("max_cutover_downtime_hours", figures.cutover_hours, constraints.max_cutover_downtime_hours,
          "{actual:g} hours of cutover downtime, limit {limit:g}"),
     )
     return tuple(
-        Violation(constraint, None, text.format(actual=actual, limit=limit), actual, limit, unit, rule)
-        for constraint, rule, unit, actual, limit, text in checks
+        Violation(constraint, None, text.format(actual=actual, limit=limit), actual, limit)
+        for constraint, actual, limit, text in checks
         if limit is not None and actual > limit
     )

@@ -36,8 +36,9 @@ Domain modules:
 | `baseline.py` | the current estate priced and cross-checked |
 | `structure.py` | critical path per serving stack, stay-together groups (hints win, otherwise derived), environment leaks |
 | `availability.py` | availability of each critical path on an end state |
-| `violation.py` | `Violation` in the shape of `result.json`, with its `distance` from passing |
-| `security_gates.py` | one check per security gate |
+| `violation.py` | `Violation` with the constraint ids of `result.json` (`budget`, `migration_budget`, `security.<gate>`) and its `distance` from passing |
+| `security_gates.py` | one check per security gate; a gate that was remediated passes |
+| `remediation.py` | the `security_remediation` layer: one `remediate` action per open gate violation, and its effort |
 | `constraints.py` | every hard constraint on an end state; money and hours arrive in `CandidateFigures` |
 
 ## Pricing rule
@@ -55,3 +56,10 @@ Domain modules:
 - `data_residency` applies to stateful components whose classification is in `applies_to`.
 - Security gates read `security` and `controls` as extracted. A datastore is a stateful component. Admin ports are 22, 3389 and `-1` (all). Backups need 7 days of retention (`MIN_BACKUP_RETENTION_DAYS`). A fact the extractor did not report is not a violation.
 - `distance`: `(actual - limit) / limit`; for availability `(limit - actual) / (100 - limit)`, the excess downtime over the allowed downtime; 1 for a violation without numbers.
+
+## Security remediation
+
+- `remediation_actions` returns one `remediate` action per security-gate violation still present on an end state; the action's `signal` is the gate. Removed components need none. Audit logging is an account control, so its action targets `account` and lands in `EndState.remediated_controls`.
+- A remediated placement still counts as unchanged, so it keeps its reported cost. Only the effort is priced for now.
+- Effort per action, in hours (`EFFORT_HOURS_BY_GATE`): remove public access 4, encrypt at rest 8, close admin ports 1, enable backups 1, turn on audit logging 2. These are estimates, not catalog figures.
+- The actions rest on configuration facts, so their confidence is high.
