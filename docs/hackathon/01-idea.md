@@ -126,7 +126,7 @@ One person, offer to day 1, with 3 disruptions injected live: the manager isn't 
 
 ## Open questions
 
-- Who on the team is an admin in the Microsoft tenant, for Graph admin consent?
+- Microsoft tenant admin for Graph admin consent: Vlad.
 - Mentors: does an SME buyer hurt "user value" with UiPath judges? Do they want UiPath's stack (Maestro, Action Center) or is OpenRouter enough?
 
 ## Sources
