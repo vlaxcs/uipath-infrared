@@ -82,11 +82,11 @@ def apply_candidate(infra: Infra, catalog: Catalog, candidate: Candidate) -> End
         if action.component == ACCOUNT_SCOPE:
             controls.add(action.signal)
         else:
-            placements[action.component] = _apply(placements[action.component], action, catalog)
+            placements[action.component] = apply_action(placements[action.component], action, catalog)
     return EndState(candidate, placements, frozenset(controls))
 
 
-def _apply(placement: Placement, action: Action, catalog: Catalog) -> Placement:
+def apply_action(placement: Placement, action: Action, catalog: Catalog) -> Placement:
     match action.kind:
         case ActionKind.DELETE:
             return replace(placement, removed=True)

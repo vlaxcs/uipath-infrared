@@ -1,7 +1,9 @@
 import json
+import subprocess
+import sys
 
 from engine.cli import EXIT_INVALID_INPUT, main
-from tests.conftest import CATALOG, FORECAST, MOCK_INFRA
+from tests.conftest import CATALOG, CONTRACTS, FORECAST, MOCK_INFRA, REAL_INFRA
 
 
 def run(capsys, *argv):
@@ -30,3 +32,25 @@ def test_a_file_that_breaks_its_schema_stops_with_the_reason(capsys):
     assert code == EXIT_INVALID_INPUT
     assert out == ""
     assert "infra.schema.json" in err
+
+
+def test_evaluate_writes_a_result_that_passes_the_contract_checker(tmp_path):
+    out = tmp_path / "result.json"
+    assert main(["evaluate", str(MOCK_INFRA), str(FORECAST), str(CATALOG), "--out", str(out)]) == 0
+    checker = subprocess.run(
+        [sys.executable, str(CONTRACTS / "check_mock.py"), str(out)], capture_output=True, text=True,
+    )
+    assert checker.returncode == 0, checker.stdout
+
+
+def test_evaluate_is_byte_for_byte_deterministic(tmp_path):
+    first, second = tmp_path / "a.json", tmp_path / "b.json"
+    main(["evaluate", str(MOCK_INFRA), str(FORECAST), str(CATALOG), "--out", str(first)])
+    main(["evaluate", str(MOCK_INFRA), str(FORECAST), str(CATALOG), "--out", str(second)])
+    assert first.read_bytes() == second.read_bytes()
+
+
+def test_evaluate_runs_on_the_real_extraction(tmp_path):
+    out = tmp_path / "real.json"
+    assert main(["evaluate", str(REAL_INFRA), str(FORECAST), str(CATALOG), "--out", str(out)]) == 0
+    assert json.loads(out.read_text())["inputs"]["infra"]

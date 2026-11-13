@@ -9,7 +9,11 @@ python3 -m venv .venv && .venv/bin/pip install -r apps/engine/requirements.txt
 cd apps/engine
 ../../.venv/bin/python -m pytest -q
 ../../.venv/bin/python -m engine baseline ../../contracts/mock/demo-shop.infra.json ../../contracts/catalog.example.json
+../../.venv/bin/python -m engine evaluate ../../contracts/mock/demo-shop.infra.json ../../contracts/forecast.example.json ../../contracts/catalog.example.json --out result.json
+../../.venv/bin/python ../../contracts/check_mock.py result.json
 ```
+
+`evaluate` validates its own output against `contracts/result.schema.json` before writing it.
 
 Exit code 2 means an input broke its schema; the reason is on stderr.
 
@@ -43,6 +47,14 @@ Domain modules:
 | `signals.py` | facts to signals: orphan, idle, oversized, undersized, static scaling, single-zone stateful, design problem |
 | `strategies/cleanup_orphans.py`, `strategies/rightsize_in_place.py` | the first two cumulative layers, each built with `Candidate.extend` on the one before |
 | `constraints.py` | every hard constraint on an end state; money and hours arrive in `CandidateFigures` |
+| `growth.py`, `projection.py` | run cost per month and scenario with growth and events, discounted over the horizon |
+| `migration.py`, `ops.py`, `egress.py`, `outage.py` | one-off migration cost and hours, ops cost, egress on new boundaries, expected outage loss |
+| `proposals.py` | the cumulative strategy chain; adds the remediation layer to every strategy |
+| `action_savings.py` | each action's saving at today's demand, and what the component is before and after |
+| `evaluation.py` | every figure for one candidate |
+| `ranking.py` | step g: Pareto, score, payback, robustness, why each candidate lost, the nothing-feasible fallback |
+
+Strategies plug in through `engine/application/strategies.py`: a builder `(previous, infra, catalog, forecast) -> Candidate` that returns `previous.extend(name, new_actions)`. A strategy enabled in the forecast without a builder is reported as `strategy_not_built_<name>`, never invented.
 
 ## Pricing rule
 
@@ -79,3 +91,14 @@ Domain modules:
 - A stateful production component in fewer zones than `min_zones` is scaled to `min_zones`. A component whose zone count is unknown, or whose catalog option is already multi-zone, is left alone.
 - Throttling while consumed capacity stays under 20% of provisioned is a design problem: flagged, no capacity added.
 - Node groups of one cluster that report identical usage are cluster-level copies; their actions are capped at low confidence.
+
+## Evaluation rules
+
+- Months run from 1 to `horizon_months`; month *n* multiplies traffic costs by `traffic^n` and storage costs by `data^n`, times every event up to *n*. Fixed costs (gateways) and inactive components do not grow. A reported cost grows in the proportions of its catalog price, otherwise by kind.
+- Discounting is monthly, at `(1 + discount_rate_annual)^(1/12) - 1`. Ops and outage loss are discounted over the same months.
+- Migration: a move costs `(fixed + per_100gb * data_gb / 100) * same_provider_factor` hours (the factor only within the same provider), one month of the old cost side by side for stateful components, and data-transfer egress when it leaves its provider or region. An in-place change (resize, scale, autoscale) costs the current option's fixed hours times its `same_provider_factor`, and carries its risk the same way. Deleting or stopping costs nothing. Remediation hours are added to the effort.
+- Cutover downtime is the longest single step, since each step ships on its own.
+- Egress is only added for edges that a candidate moves across a provider or region boundary, at the target's `egress_per_gb_eur`; an edge without `gb_month` flags `egress_unpriced`.
+- Outage loss per stack uses its worst critical path and `downtime_cost_by_stack`.
+- Payback is migration cost over the monthly saving (run + ops) against `do_nothing`. When `do_nothing` is feasible, a candidate that pays back after the horizon is ranked below it and loses on `payback`.
+- A feasible loser loses on the criterion with the largest weighted gap to the winner; an exact tie names the tie-break rule.
