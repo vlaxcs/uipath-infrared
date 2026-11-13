@@ -48,6 +48,9 @@ Domain modules:
 | `relocation.py` | the allowed region a component breaking residency moves to |
 | `strategies/cleanup_orphans.py`, `strategies/rightsize_in_place.py` | the first two cumulative layers, each built with `Candidate.extend` on the one before |
 | `strategies/managed_services.py` | step e: moves to another provider's catalog option, with the feature, provider, residency and stay-together checks |
+| `onprem.py` | the full on-prem platform cost (capex, power and cooling, colocation, disks, staff) and the share of it a set of placements uses |
+| `placement_size.py` | the vCPU and memory of one unit of a placement, from its tier when it has one |
+| `strategies/move_to_onprem.py` | step f: moves to an `onprem-*` option when its platform share and ops cost less than staying |
 | `constraints.py` | every hard constraint on an end state; money and hours arrive in `CandidateFigures` |
 | `growth.py`, `projection.py` | run cost per month and scenario with growth and events, discounted over the horizon |
 | `migration.py`, `ops.py`, `egress.py`, `outage.py` | one-off migration cost and hours, ops cost, egress on new boundaries, expected outage loss |
@@ -105,6 +108,16 @@ Strategies plug in through `engine/application/strategies.py`: a builder `(previ
 - A component that does not move but had targets gets one `flag` action (signal `move_rejected`) listing every rejected target and why. A move lists the targets it rejected in its reason.
 - When `features_used` is unknown (real extractions), the move is allowed and a `flag` action with signal `verify_extensions` asks for a check before moving.
 - On `demo-shop`: `rds-erp` moves to `managed-pg-serverless` and stays in `eu-west-1` with `erp-core`; `pg-lake` moves to `managed-pg-branching`; `rds-orders` and `rds-analytics` stay, because `rds-analytics` has no managed target with its extensions and `orders-replication` moves as one unit.
+
+## On-prem rules
+
+- `move_to_onprem` builds on `managed_services` and looks at every running component, not already on-prem, whose kind has an `onprem` option on a catalog platform.
+- Platform cost per month: `capex / (amortization_years * 12) + power_cooling + colocation + disks.count * AFR * (replacement_eur + replacement_labor_hours * rate) / 12 + (base_hours + hours_per_100_vcpu * platform_vcpu / 100) * rate`. Staff hours scale with the platform's vCPU, not the share used, since the whole platform has to be run.
+- The share used is the largest of vCPU, memory and storage used over the platform's capacity; a dimension the platform does not list does not count. Above 1, `platforms_needed` rounds up and `capex_eur` is the hardware for all of them; the monthly cost is still allocated by the share.
+- An on-prem placement costs 0 on its own line. The platform share is added to the candidate's run cost once, as a fixed cost, and `result.json` shows it under `cost.onprem_platform`, each line already multiplied by the share.
+- A component moves when its own platform share plus the target's ops costs less than its current price plus ops. It is rejected, with the reason, when the target lacks an extension it uses, `onprem` is not an allowed provider, it uses GPUs and the platform has none, or it holds data under `data_residency` and the platform's region is not allowed.
+- A stay-together group moves as one unit: if any member cannot move, or the group would cost more together, none moves.
+- On `demo-shop`: `ng-data-spark` moves to `onprem-k8s-nodes`, using 320 of the platform's 768 vCPU (a 42% share, EUR 7,700 of EUR 18,479 a month); `ng-data-gpu` stays, since `onprem-dc1` has no GPUs; `rds-orders` and `rds-analytics` stay with their groups.
 
 ## Evaluation rules
 
