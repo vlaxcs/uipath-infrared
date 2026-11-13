@@ -9,7 +9,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 | 3. How do we get into their day? | done |
 | 4. Business plan | open: pricing model, waits for form answers |
 | 5. Design the product | workflow defined; legal parked; mentors to validate |
-| 6. Branding | in parallel, designer |
+| 6. Branding | in progress: name done |
 
 ## 1. Target
 
@@ -117,6 +117,10 @@ A **simulated clock** compresses weeks into minutes, so the demo moves time forw
 One person, offer to day 1, with 3 disruptions injected live: the manager isn't in the office, the team requires Windows, no clinic slot in time. Then the clock jumps to probation, a review and offboarding. Each disruption is a decision the agent takes from an intermediate result.
 
 - **Legal check:** parked. Ask a mentor, starting with performance reviews (EU AI Act, Annex III: AI that evaluates workers is high-risk).
+
+## 6. Branding
+
+- **Name:** Wellboarder.
 
 ## Open questions
 
