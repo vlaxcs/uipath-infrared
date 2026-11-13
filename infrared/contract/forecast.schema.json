@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infrared.local/contract/forecast.schema.json",
+  "title": "InfraRed forecast & decision settings",
+  "description": "What the roadmap, financial forecast and the CTO's preferences are turned into. Written by hand at first; an LLM may later fill it from roadmap text, but the engine only ever sees this JSON. Everything the scoring needs to be deterministic is explicit here: scenario weights, constraint thresholds and the cost/risk/effort weights.",
+  "type": "object",
+  "required": ["schema_version", "id", "horizon_months", "currency", "scenarios", "hard_constraints", "cto_settings", "business"],
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^1\\.\\d+$" },
+    "id": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "horizon_months": { "type": "integer", "minimum": 1, "maximum": 120, "description": "Planning horizon used for total cost and payback." },
+    "currency": { "const": "EUR" },
+    "scenarios": {
+      "type": "object",
+      "description": "Growth scenarios. Monthly multipliers compound: month n load = today x multiplier^n (1.00 = flat, 1.03 = +3%/month).",
+      "required": ["low", "base", "high"],
+      "additionalProperties": false,
+      "properties": {
+        "low": { "$ref": "#/$defs/scenario" },
+        "base": { "$ref": "#/$defs/scenario" },
+        "high": { "$ref": "#/$defs/scenario" }
+      }
+    },
+    "events": {
+      "type": "array",
+      "description": "Optional one-off roadmap steps (launch, new region, campaign) applied on top of every scenario.",
+      "items": {
+        "type": "object",
+        "required": ["month", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "month": { "type": "integer", "minimum": 1 },
+          "description": { "type": "string" },
+          "traffic_multiplier": { "type": "number", "exclusiveMinimum": 0 },
+          "data_multiplier": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      }
+    },
+    "hard_constraints": {
+      "type": "object",
+      "description": "A candidate violating any of these is dropped (and the reason recorded). Evaluated on the end state of each candidate, including 'do_nothing'; if the current estate already violates one, do_nothing is reported as infeasible but still shown as the baseline.",
+      "additionalProperties": false,
+      "properties": {
+        "data_residency": {
+          "type": "object",
+          "required": ["allowed_regions"],
+          "additionalProperties": false,
+          "properties": {
+            "allowed_regions": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "Region ids, or prefixes ending in '*' (eu-*)." },
+            "applies_to": { "type": "array", "items": { "enum": ["public", "internal", "confidential", "pii", "unknown"] }, "description": "Data classifications the rule covers. 'unknown' covers anything the extractor could not classify." }
+          }
+        },
+        "budget": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "max_monthly_run_cost_eur": { "type": "number", "minimum": 0, "description": "Applies to the base scenario at the end of the horizon." },
+            "max_one_off_migration_cost_eur": { "type": "number", "minimum": 0 }
+          }
+        },
+        "min_availability_pct": { "type": "number", "minimum": 90, "maximum": 100, "description": "Combined availability of the critical path." },
+        "allowed_providers": { "type": "array", "items": { "enum": ["aws", "gcp", "azure", "onprem", "managed_pg", "other"] } },
+        "forbidden_providers": { "type": "array", "items": { "enum": ["aws", "gcp", "azure", "onprem", "managed_pg", "other"] } },
+        "max_migration_effort_hours": { "type": "number", "minimum": 0 },
+        "max_cutover_downtime_hours": { "type": "number", "minimum": 0 },
+        "security_gates": {
+          "type": "object",
+          "description": "Booleans over the end state. true = enforce.",
+          "additionalProperties": false,
+          "properties": {
+            "forbid_public_datastores": { "type": "boolean", "description": "No postgres/nosql/cache/file_system/object_storage with public_exposure=internet." },
+            "require_encryption_at_rest": { "type": "boolean", "description": "For stateful components." },
+            "forbid_world_open_admin_ports": { "type": "boolean", "description": "No 22/3389 reachable from the internet." },
+            "require_audit_logging": { "type": "boolean", "description": "infra.controls.audit_logging_enabled must be true." },
+            "require_backups": { "type": "boolean", "description": "Stateful components with data need backup_retention_days > 0." }
+          }
+        }
+      }
+    },
+    "cto_settings": {
+      "type": "object",
+      "required": ["ha_level", "min_zones", "weights", "strategies_enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "ha_level": { "enum": ["none", "multi_az", "multi_region"], "description": "Target availability posture for production stacks." },
+        "min_zones": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "weights": {
+          "type": "object",
+          "description": "Used to rank candidates on the Pareto frontier: score = w_cost*norm(total_cost) + w_risk*norm(risk) + w_effort*norm(migration_effort); lower is better; normalisation is min-max across surviving candidates; weights are re-normalised to sum 1. Explicit numbers make the winner deterministic.",
+          "required": ["cost", "risk", "effort"],
+          "additionalProperties": false,
+          "properties": {
+            "cost": { "type": "number", "minimum": 0 },
+            "risk": { "type": "number", "minimum": 0 },
+            "effort": { "type": "number", "minimum": 0 }
+          }
+        },
+        "tie_break": { "enum": ["lower_cost", "lower_risk", "lower_effort", "do_nothing"], "default": "lower_risk" },
+        "strategies_enabled": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "description": "Which candidate generators the engine may use. do_nothing must always be present.",
+          "contains": { "const": "do_nothing" },
+          "items": { "enum": ["do_nothing", "cleanup_orphans", "rightsize_in_place", "managed_services", "consolidate", "move_to_onprem", "multi_region_ha"] }
+        }
+      }
+    },
+    "business": {
+      "type": "object",
+      "required": ["downtime_cost_per_hour_eur", "engineer_hourly_eur"],
+      "additionalProperties": false,
+      "properties": {
+        "downtime_cost_per_hour_eur": { "type": "number", "minimum": 0, "description": "Revenue/penalty lost per hour of full outage of the critical path. Expected outage loss = (1 - availability) x 8760 h x this." },
+        "downtime_cost_by_stack": { "type": "object", "additionalProperties": { "type": "number", "minimum": 0 }, "description": "Optional overrides keyed by stack id (e.g. dev = 0)." },
+        "engineer_hourly_eur": { "type": "number", "minimum": 0, "description": "Loaded cost used for migration effort and operations hours." },
+        "discount_rate_annual": { "type": "number", "minimum": 0, "maximum": 1, "default": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "scenario": {
+      "type": "object",
+      "required": ["probability", "monthly_multiplier"],
+      "additionalProperties": false,
+      "properties": {
+        "probability": { "type": "number", "minimum": 0, "maximum": 1, "description": "Scenario weights across low/base/high must sum to 1 (checked by check_mock.py, not expressible in JSON Schema)." },
+        "monthly_multiplier": {
+          "type": "object",
+          "required": ["traffic", "data"],
+          "additionalProperties": false,
+          "properties": {
+            "traffic": { "type": "number", "exclusiveMinimum": 0, "description": "Scales request/compute-driven load." },
+            "data": { "type": "number", "exclusiveMinimum": 0, "description": "Scales stored data." }
+          }
+        },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}

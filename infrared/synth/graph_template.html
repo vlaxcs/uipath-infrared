@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>InfraRed Estate Graph</title>
+<style>
+  :root {
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#1b2430; --muted:#5d6b7c; --line:#d5dbe3;
+    --shop:#2f6fdb; --data:#7a4fd6; --legacy:#d9742b; --dev:#2a9d8f; --shared:#6b7686;
+    --idle:#d99a00; --orphan:#d6336c; --exposed:#d6336c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0f141b; --panel:#171e28; --ink:#e6ebf2; --muted:#93a1b3; --line:#2b3644;
+      --shop:#6b9cff; --data:#a78bfa; --legacy:#ff9d5c; --dev:#4fd1c0; --shared:#8b97a8;
+      --idle:#f2c14e; --orphan:#ff6b9a; --exposed:#ff6b9a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0f141b; --panel:#171e28; --ink:#e6ebf2; --muted:#93a1b3; --line:#2b3644;
+    --shop:#6b9cff; --data:#a78bfa; --legacy:#ff9d5c; --dev:#4fd1c0; --shared:#8b97a8;
+    --idle:#f2c14e; --orphan:#ff6b9a; --exposed:#ff6b9a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+    font:13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  #app { display:grid; grid-template-columns: 250px 1fr 300px; height:100vh; }
+  aside { background:var(--panel); border-right:1px solid var(--line); padding:14px 16px; overflow:auto; }
+  #detail { border-right:0; border-left:1px solid var(--line); }
+  h1 { font-size:15px; margin:0 0 2px; }
+  h2 { font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:18px 0 6px; font-weight:600; }
+  .sub { color:var(--muted); font-size:12px; margin-bottom:10px; }
+  label.row, div.row { display:flex; align-items:center; gap:8px; padding:2px 0; cursor:pointer; }
+  .sw { width:11px; height:11px; border-radius:3px; flex:none; }
+  input[type=search] { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink); }
+  button { border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:6px; padding:4px 9px; cursor:pointer; font:inherit; }
+  button:hover { border-color:var(--muted); }
+  #stage { position:relative; min-width:0; }
+  svg { width:100%; height:100%; display:block; cursor:grab; touch-action:none; }
+  svg.panning { cursor:grabbing; }
+  .edge { fill:none; stroke:var(--muted); stroke-opacity:.45; }
+  .edge.hl { stroke-opacity:1; stroke-width:2.2; }
+  .edge.dim, .node.dim { opacity:.08; }
+  .node { cursor:pointer; }
+  .node text { fill:var(--ink); font-size:10.5px; paint-order:stroke; stroke:var(--bg); stroke-width:3px; pointer-events:none; }
+  .halo { fill:none; stroke-width:2.2; }
+  .kv { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; font-size:12px; }
+  .kv span:nth-child(odd) { color:var(--muted); }
+  .badge { display:inline-block; padding:1px 7px; border-radius:999px; font-size:11px; border:1px solid currentColor; }
+  .conn { padding:3px 0; border-bottom:1px solid var(--line); cursor:pointer; }
+  .conn:hover { color:var(--shop); }
+  #tip { position:absolute; pointer-events:none; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 8px; font-size:12px; display:none; z-index:5; }
+  .legend-shape { width:14px; height:14px; flex:none; }
+  @media (max-width: 900px) { #app { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; } aside { border:0; border-bottom:1px solid var(--line); max-height:34vh; } #detail { border-top:1px solid var(--line); max-height:30vh; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside>
+    <h1>InfraRed estate</h1>
+    <div class="sub" id="meta"></div>
+    <input type="search" id="q" placeholder="Search nodes…" aria-label="Search nodes">
+    <h2>Stacks</h2><div id="stacks"></div>
+    <h2>Connections</h2><div id="kinds"></div>
+    <h2>Status</h2>
+    <div id="statuses"></div>
+    <h2>View</h2>
+    <label class="row"><input type="checkbox" id="iso"> Hide nodes with no edges</label>
+    <label class="row"><input type="checkbox" id="lbl" checked> Show labels</label>
+    <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button id="reheat">Re-layout</button><button id="fit">Fit view</button><button id="theme">Theme</button></div>
+    <h2>Shapes</h2><div id="shapes"></div>
+  </aside>
+  <div id="stage"><svg id="svg" aria-label="Infrastructure graph"><defs></defs><g id="vp"><g id="edges"></g><g id="nodes"></g></g></svg><div id="tip"></div></div>
+  <aside id="detail"><div class="sub">Click a node to inspect it. Drag to move, scroll to zoom.</div></aside>
+</div>
+<script>
+const G = /*__GRAPH__*/null;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const STACKS = ["shop-prod","data-platform","legacy","dev","shared"];
+const stackVar = {"shop-prod":"--shop","data-platform":"--data","legacy":"--legacy","dev":"--dev","shared":"--shared"};
+const KINDS = {network:{d:"",w:1},data:{d:"",w:1.8},event:{d:"6 4",w:1.6},traffic:{d:"",w:2.4},dns:{d:"2 4",w:1.6},config:{d:"1 5",w:1.2},contains:{d:"",w:1}};
+const STATUS = {active:"Healthy / in use", idle:"Idle (observed low utilisation)", orphan:"Orphan (unattached)", exposed:"Publicly exposed"};
+const SHAPES = {compute:"circle", data:"square", network:"diamond", messaging:"hex", edge:"tri", iam:"pent", registry:"pent", storage:"square"};
+const svg = document.getElementById("svg"), vp = document.getElementById("vp");
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a={}, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+
+function shapePath(s, r) {
+  const pts = n => Array.from({length:n}, (_,i) => { const a = -Math.PI/2 + i*2*Math.PI/n; return [r*Math.cos(a), r*Math.sin(a)]; });
+  const poly = a => "M" + a.map(p => p.join(",")).join("L") + "Z";
+  if (s === "circle") return `M${-r},0a${r},${r} 0 1,0 ${2*r},0a${r},${r} 0 1,0 ${-2*r},0`;
+  if (s === "square") return `M${-r*.85},${-r*.85}h${r*1.7}v${r*1.7}h${-r*1.7}Z`;
+  if (s === "diamond") return poly([[0,-r*1.15],[r*1.15,0],[0,r*1.15],[-r*1.15,0]]);
+  if (s === "tri") return poly(pts(3));
+  if (s === "pent") return poly(pts(5));
+  return poly(pts(6));
+}
+const radius = n => 7 + Math.min(11, Math.sqrt(n.degree || 0) * 2.2 + (n.attrs.nodes||0 ? 2 : 0));
+
+const state = { stacks:new Set(STACKS), kinds:new Set(Object.keys(KINDS)), statuses:new Set(Object.keys(STATUS)), q:"", iso:false, lbl:true, sel:null };
+const nodes = G.nodes.map(n => ({...n, x:0, y:0, vx:0, vy:0, r:radius(n)}));
+const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
+const edges = G.edges.filter(e => byId[e.src] && byId[e.dst]).map(e => ({...e, s:byId[e.src], t:byId[e.dst]}));
+
+// ---- UI chrome ----
+document.getElementById("meta").textContent = `${nodes.length} nodes · ${edges.length} edges · built ${G.generated.replace("T"," ").replace("+00:00"," UTC")}`;
+const mk = (cont, items, setKey, swatch) => { const c = document.getElementById(cont);
+  items.forEach(([k, label, color, extra]) => { const l = document.createElement("label"); l.className = "row";
+    l.innerHTML = `<input type="checkbox" checked><span class="sw" style="background:${color}"></span><span>${label}${extra? ` <span style="color:var(--muted)">${extra}</span>`:""}</span>`;
+    l.querySelector("input").onchange = e => { e.target.checked ? state[setKey].add(k) : state[setKey].delete(k); render(); };
+    c.appendChild(l); }); };
+const cnt = (f) => nodes.filter(f).length;
+mk("stacks", STACKS.map(s => [s, s, `var(${stackVar[s]})`, cnt(n => n.stack===s)]), "stacks");
+mk("kinds", Object.keys(KINDS).map(k => [k, k, "var(--muted)", edges.filter(e => e.kind===k).length]), "kinds");
+mk("statuses", Object.entries(STATUS).map(([k,v]) => [k, v, k==="active" ? "var(--shared)" : k==="idle" ? "var(--idle)" : "var(--orphan)", cnt(n => n.status===k)]), "statuses");
+document.getElementById("shapes").innerHTML = Object.entries(SHAPES).filter(([k]) => cnt(n => n.category===k)).map(([k,s]) =>
+  `<div class="row"><svg class="legend-shape" viewBox="-10 -10 20 20"><path d="${shapePath(s,7)}" fill="var(--muted)"/></svg><span>${k}</span></div>`).join("");
+document.getElementById("q").oninput = e => { state.q = e.target.value.toLowerCase(); render(); };
+document.getElementById("iso").onchange = e => { state.iso = e.target.checked; render(); };
+document.getElementById("lbl").onchange = e => { state.lbl = e.target.checked; render(); };
+document.getElementById("reheat").onclick = () => { nodes.forEach(n => { n.x += (Math.random()-.5)*60; n.y += (Math.random()-.5)*60; }); alpha = 1; tick(); };
+document.getElementById("fit").onclick = () => fit();
+document.getElementById("theme").onclick = () => { const r = document.documentElement; const dark = (r.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark"; r.dataset.theme = dark ? "light" : "dark"; };
+
+// ---- scene ----
+const gE = document.getElementById("edges"), gN = document.getElementById("nodes");
+const defs = svg.querySelector("defs");
+Object.keys(KINDS).forEach(k => { const m = el("marker", {id:"a-"+k, viewBox:"0 0 10 10", refX:9, refY:5, markerWidth:6, markerHeight:6, orient:"auto-start-reverse"}, defs); el("path", {d:"M0,0L10,5L0,10Z", fill:"var(--muted)", "fill-opacity":".7"}, m); });
+edges.forEach(e => { e.el = el("path", {class:"edge", "stroke-width":KINDS[e.kind].w, "stroke-dasharray":KINDS[e.kind].d, "marker-end":e.kind==="contains"||e.kind==="network" ? "" : `url(#a-${e.kind})`}, gE);
+  e.el.innerHTML = `<title>${e.src} → ${e.dst} (${e.kind})${e.note? ": "+e.note : ""}</title>`; });
+nodes.forEach(n => { const g = el("g", {class:"node"}, gN); n.el = g;
+  const col = `var(${stackVar[n.stack]||"--shared"})`;
+  el("path", {d:shapePath(SHAPES[n.category]||"circle", n.r), fill:col, "fill-opacity":.85, stroke:"var(--bg)", "stroke-width":1.5}, g);
+  if (n.status !== "active") el("circle", {class:"halo", r:n.r+5, stroke:n.status==="idle" ? "var(--idle)" : "var(--orphan)", "stroke-dasharray":n.status==="exposed" ? "" : "4 3"}, g);
+  n.txt = el("text", {y:n.r+12, "text-anchor":"middle"}, g); n.txt.textContent = n.label.length>26 ? n.label.slice(0,25)+"…" : n.label;
+  g.addEventListener("mouseenter", ev => { hover(n); tip(ev, n); }); g.addEventListener("mousemove", ev => tip(ev, n));
+  g.addEventListener("mouseleave", () => { hover(null); document.getElementById("tip").style.display = "none"; });
+  g.addEventListener("pointerdown", ev => startDrag(ev, n)); g.addEventListener("click", ev => { if (!n.moved) select(n); });
+});
+
+// ---- layout ----
+let W = 1000, H = 700, alpha = 1;
+const anchor = {"shop-prod":[-.55,-.05], "data-platform":[.55,-.05], "legacy":[0,.6], "dev":[.5,.7], "shared":[0,-.55]};
+function size() { const r = svg.getBoundingClientRect(); W = r.width; H = r.height; }
+function visible(n) {
+  if (!state.stacks.has(n.stack) || !state.statuses.has(n.status)) return false;
+  if (state.iso && !edges.some(e => state.kinds.has(e.kind) && (e.s===n || e.t===n))) return false;
+  return true;
+}
+function init() { size(); nodes.forEach(n => { const a = anchor[n.stack]||[0,0]; n.x = a[0]*W*.55 + (Math.random()-.5)*160; n.y = a[1]*H*.55 + (Math.random()-.5)*160; }); }
+function step() {
+  const vis = nodes.filter(visible), k = alpha;
+  for (let i = 0; i < vis.length; i++) { const a = vis[i];
+    for (let j = i+1; j < vis.length; j++) { const b = vis[j]; let dx = a.x-b.x, dy = a.y-b.y, d2 = dx*dx+dy*dy+.01, d = Math.sqrt(d2);
+      const rep = 2600/d2, min = a.r+b.r+16; let f = rep; if (d < min) f += (min-d)*.05;
+      dx/=d; dy/=d; a.vx += dx*f*k; a.vy += dy*f*k; b.vx -= dx*f*k; b.vy -= dy*f*k; } }
+  edges.forEach(e => { if (!visible(e.s) || !visible(e.t) || !state.kinds.has(e.kind)) return;
+    let dx = e.t.x-e.s.x, dy = e.t.y-e.s.y, d = Math.sqrt(dx*dx+dy*dy)||1; const len = e.kind==="contains" ? 46 : e.kind==="network" ? 120 : 90;
+    const f = (d-len)*.012*k; dx/=d; dy/=d; e.s.vx += dx*f; e.s.vy += dy*f; e.t.vx -= dx*f; e.t.vy -= dy*f; });
+  vis.forEach(n => { const a = anchor[n.stack]||[0,0]; n.vx += (a[0]*W*.55 - n.x)*.0035*k; n.vy += (a[1]*H*.55 - n.y)*.0035*k;
+    if (n.fixed) { n.vx = n.vy = 0; return; } n.vx *= .82; n.vy *= .82; n.x += n.vx; n.y += n.vy; });
+  alpha *= .985;
+}
+function edgePath(e) { const dx = e.t.x-e.s.x, dy = e.t.y-e.s.y, d = Math.sqrt(dx*dx+dy*dy)||1, ux = dx/d, uy = dy/d;
+  const x1 = e.s.x+ux*e.s.r, y1 = e.s.y+uy*e.s.r, x2 = e.t.x-ux*(e.t.r+3), y2 = e.t.y-uy*(e.t.r+3);
+  const mx = (x1+x2)/2 - uy*d*.06, my = (y1+y2)/2 + ux*d*.06; return `M${x1},${y1}Q${mx},${my} ${x2},${y2}`; }
+function draw() {
+  const q = state.q;
+  nodes.forEach(n => { const v = visible(n); n.el.style.display = v ? "" : "none"; n.txt.style.display = state.lbl ? "" : "none";
+    n.el.setAttribute("transform", `translate(${n.x},${n.y})`); n.match = !q || (n.id+" "+JSON.stringify(n.attrs)).toLowerCase().includes(q); });
+  edges.forEach(e => { const v = visible(e.s) && visible(e.t) && state.kinds.has(e.kind); e.el.style.display = v ? "" : "none"; if (v) e.el.setAttribute("d", edgePath(e)); });
+  nodes.forEach(n => n.el.classList.toggle("dim", !n.match && !!q));
+  edges.forEach(e => e.el.classList.toggle("dim", !!q && !(e.s.match && e.t.match)));
+}
+let raf = 0;
+function tick() { cancelAnimationFrame(raf); const loop = () => { for (let i = 0; i < 2; i++) step(); draw(); if (alpha > .02) raf = requestAnimationFrame(loop); }; loop(); }
+function render() { alpha = Math.max(alpha, .35); tick(); }
+
+// ---- view transform ----
+let view = {x:0, y:0, k:1};
+const applyView = () => vp.setAttribute("transform", `translate(${view.x},${view.y}) scale(${view.k})`);
+function fit() { const vis = nodes.filter(visible); if (!vis.length) return; const xs = vis.map(n => n.x), ys = vis.map(n => n.y);
+  const x0 = Math.min(...xs)-50, x1 = Math.max(...xs)+50, y0 = Math.min(...ys)-50, y1 = Math.max(...ys)+60;
+  view.k = Math.min(W/(x1-x0), H/(y1-y0), 1.6); view.x = W/2 - view.k*(x0+x1)/2; view.y = H/2 - view.k*(y0+y1)/2; applyView(); }
+const toWorld = ev => { const r = svg.getBoundingClientRect(); return [(ev.clientX-r.left-view.x)/view.k, (ev.clientY-r.top-view.y)/view.k]; };
+svg.addEventListener("wheel", ev => { ev.preventDefault(); const r = svg.getBoundingClientRect(), mx = ev.clientX-r.left, my = ev.clientY-r.top;
+  const k2 = Math.max(.15, Math.min(4, view.k*Math.exp(-ev.deltaY*.0015))); view.x = mx-(mx-view.x)*k2/view.k; view.y = my-(my-view.y)*k2/view.k; view.k = k2; applyView(); }, {passive:false});
+let pan = null;
+svg.addEventListener("pointerdown", ev => { if (ev.target !== svg && ev.target.closest(".node")) return; pan = {x:ev.clientX-view.x, y:ev.clientY-view.y}; svg.classList.add("panning"); svg.setPointerCapture(ev.pointerId); });
+svg.addEventListener("pointermove", ev => { if (pan) { view.x = ev.clientX-pan.x; view.y = ev.clientY-pan.y; applyView(); } });
+svg.addEventListener("pointerup", () => { pan = null; svg.classList.remove("panning"); });
+let drag = null;
+function startDrag(ev, n) { ev.stopPropagation(); n.moved = false; drag = n; n.fixed = true; svg.setPointerCapture(ev.pointerId); }
+svg.addEventListener("pointermove", ev => { if (!drag) return; const [x, y] = toWorld(ev); drag.x = x; drag.y = y; drag.moved = true; alpha = Math.max(alpha, .15); tick(); });
+svg.addEventListener("pointerup", () => { if (drag) { const d = drag; drag = null; setTimeout(() => { d.fixed = false; d.moved = false; }, 0); } });
+
+// ---- interaction ----
+function neighbors(n) { const s = new Set([n.id]); edges.forEach(e => { if (e.s===n) s.add(e.t.id); if (e.t===n) s.add(e.s.id); }); return s; }
+function hover(n) { if (state.sel) return; applyFocus(n); }
+function applyFocus(n) { if (!n) { nodes.forEach(x => x.el.classList.remove("dim")); edges.forEach(e => e.el.classList.remove("dim","hl")); draw(); return; }
+  const nb = neighbors(n); nodes.forEach(x => x.el.classList.toggle("dim", !nb.has(x.id)));
+  edges.forEach(e => { const on = e.s===n || e.t===n; e.el.classList.toggle("hl", on); e.el.classList.toggle("dim", !on); }); }
+function tip(ev, n) { const t = document.getElementById("tip"), r = document.getElementById("stage").getBoundingClientRect(); t.style.display = "block";
+  t.style.left = (ev.clientX-r.left+14)+"px"; t.style.top = (ev.clientY-r.top+14)+"px"; t.innerHTML = `<b>${n.label}</b> · ${n.type}<br><span style="color:var(--muted)">${n.stack} · ${n.status}</span>`; }
+function select(n) { state.sel = n; applyFocus(n); const d = document.getElementById("detail");
+  const kc = {idle:"var(--idle)", orphan:"var(--orphan)", exposed:"var(--orphan)", active:"var(--muted)"}[n.status];
+  const outs = edges.filter(e => e.s===n), ins = edges.filter(e => e.t===n);
+  const conn = (e, o) => `<div class="conn" data-id="${o.id}">${e.kind} ${e===null?"":(e.s===n?"→":"←")} <b>${o.label}</b> <span style="color:var(--muted)">(${o.type})</span>${e.note? `<div style="color:var(--muted);font-size:11px">${e.note}</div>`:""}</div>`;
+  const attrs = Object.entries(n.attrs).filter(([,v]) => v !== null && v !== undefined && v !== "").map(([k,v]) => `<span>${k}</span><span>${typeof v==="object" ? "<code>"+JSON.stringify(v)+"</code>" : v}</span>`).join("");
+  d.innerHTML = `<h1>${n.label}</h1><div class="sub">${n.type} · ${n.stack} · <span class="badge" style="color:${kc}">${STATUS[n.status]}</span></div>
+    <h2>Attributes</h2><div class="kv">${attrs || "<span>–</span><span></span>"}</div>
+    <h2>Connections (${outs.length+ins.length})</h2>${outs.map(e => conn(e, e.t)).join("")}${ins.map(e => conn(e, e.s)).join("") || ""}
+    <div style="margin-top:12px"><button id="clr">Clear selection</button></div>`;
+  d.querySelectorAll(".conn").forEach(c => c.onclick = () => select(byId[c.dataset.id]));
+  document.getElementById("clr").onclick = () => { state.sel = null; applyFocus(null); d.innerHTML = '<div class="sub">Click a node to inspect it.</div>'; }; }
+svg.addEventListener("click", ev => { if (ev.target === svg && state.sel) { state.sel = null; applyFocus(null); document.getElementById("detail").innerHTML = '<div class="sub">Click a node to inspect it.</div>'; } });
+
+addEventListener("resize", () => { size(); });
+init(); for (let i = 0; i < 260; i++) step(); alpha = .3; fit(); tick(); setTimeout(fit, 900);
+</script>
+</body>
+</html>
