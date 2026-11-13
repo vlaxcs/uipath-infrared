@@ -99,10 +99,12 @@ Missing: a number on the cost of a bad onboarding in a start-up (time to product
 
 ### The lifecycle, split by type (input for step 5)
 
+Onboarding is internal. It starts the moment the person accepts the offer and signs the agreement. Recruiting, the offer and the signing stay outside the product.
+
 | Stage | Fixed rule (workflow) | Needs the agent | Human approves |
 | --- | --- | --- | --- |
-| offer accepted | create the account from the template | | HR: contract, permissions |
-| before day one | generate the contract, legal tasks with deadlines | check the manager and buddy are available on the start date; propose a replacement if not | manager: replacement |
+| trigger: offer accepted and agreement signed | create the account from the template | | HR: permissions |
+| before day one | legal tasks with deadlines | check the manager and buddy are available on the start date; propose a replacement if not | manager: replacement |
 | access | apply the position's template | find the access the first tasks actually need, missing from the template | owner of each access |
 | first weeks | checklist reminders | chase blocked items, re-plan the order | |
 | offboarding | final hours summary, retention per kind of data | find access left behind everywhere | HR and IT: every revocation |
