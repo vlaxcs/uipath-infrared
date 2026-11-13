@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infrared.local/contract/run.schema.json",
+  "title": "Infrared run: state and events",
+  "description": "One run of the workflow for one project: where it stands now, and the append-only log of what happened. The orchestrator writes it; the dashboard, the Slack bot, the Chrome extension and the flow test read it. The top-level fields are a summary of the events and never say anything the events don't: check_mock.py rejects a run whose summary disagrees with its log. Contract files are referenced by path and sha256, never inlined. Version 1.0 covers steps 1 to 6; the phase 2 steps arrive as a minor version. Extension fields must start with 'x_'.",
+  "type": "object",
+  "required": ["schema_version", "id", "project", "status", "step", "revision", "max_revisions", "started_at", "updated_at", "inputs", "events"],
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^1\\.\\d+$" },
+    "id": { "$ref": "#/$defs/id" },
+    "project": { "type": "string", "minLength": 1, "description": "Same label as `project` in the run's infra.json." },
+    "status": {
+      "enum": ["running", "awaiting_approval", "completed", "failed"],
+      "description": "running = a step is in progress or the next one is about to start. awaiting_approval = paused at a gate until a person decides. completed = the plan was approved. failed = stopped, with the reason on the last event."
+    },
+    "step": { "$ref": "#/$defs/step", "description": "The step of the last event." },
+    "revision": { "type": "integer", "minimum": 0, "description": "How many times the run went back to propose. Equals the number of 'revise' decisions in the log." },
+    "max_revisions": { "type": "integer", "minimum": 0, "description": "The cap on revisions for this run. A run that needs one more fails with a 'stop' decision." },
+    "started_at": { "$ref": "#/$defs/timestamp", "description": "Time of the first event." },
+    "updated_at": { "$ref": "#/$defs/timestamp", "description": "Time of the last event." },
+    "finished_at": { "$ref": "#/$defs/timestamp", "description": "Time of the last event, once the run is completed or failed." },
+    "awaiting": { "$ref": "#/$defs/gate", "description": "The open gate, while the run is awaiting approval." },
+    "inputs": {
+      "type": "object",
+      "description": "The contract files the run was started with. Together with the decisions in the log they are what a replay needs.",
+      "required": ["forecast", "catalog"],
+      "additionalProperties": false,
+      "properties": {
+        "forecast": { "$ref": "#/$defs/file" },
+        "catalog": { "$ref": "#/$defs/file" }
+      }
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Append-only, ordered by `seq`. A surface that has events up to seq N asks for the ones after N.",
+      "items": { "$ref": "#/$defs/event" }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "required": ["status"], "properties": { "status": { "const": "awaiting_approval" } } },
+      "then": { "required": ["awaiting"] },
+      "else": { "not": { "required": ["awaiting"] } }
+    },
+    {
+      "if": { "required": ["status"], "properties": { "status": { "enum": ["completed", "failed"] } } },
+      "then": { "required": ["finished_at"] },
+      "else": { "not": { "required": ["finished_at"] } }
+    }
+  ],
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Lowercase slug." },
+    "timestamp": { "type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$", "description": "RFC 3339, in UTC, ending in Z." },
+    "step": { "enum": ["extract", "investigate", "propose", "evaluate", "present", "rehearse"] },
+    "gate": {
+      "enum": ["layout", "plan"],
+      "description": "layout = opened by the present step; closed when a person picks the layout to rehearse. plan = opened by the rehearse step; closed when a person approves the plan."
+    },
+    "file": {
+      "type": "object",
+      "description": "A contract file by reference.",
+      "required": ["path", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string", "minLength": 1, "description": "Relative to the run's directory, forward slashes." },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "Of the file's bytes." }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "description": "Who made the event happen. A person is identified and carries the surface the decision came from.",
+      "required": ["kind"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["orchestrator", "human"] },
+        "id": { "type": "string", "minLength": 1 },
+        "surface": { "enum": ["dashboard", "slack"] }
+      },
+      "if": { "required": ["kind"], "properties": { "kind": { "const": "human" } } },
+      "then": { "required": ["id", "surface"] },
+      "else": { "not": { "anyOf": [{ "required": ["id"] }, { "required": ["surface"] }] } }
+    },
+    "decision": {
+      "type": "object",
+      "description": "A choice that changes where the run goes next, always with its reason.",
+      "required": ["kind", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": ["proceed", "revise", "stop", "keep_analyses", "pick_layout", "approve_plan"],
+          "description": "proceed = the result holds, go on. revise = back to propose, with the violation or the measured gap as the reason. stop = the run fails here. keep_analyses, pick_layout, approve_plan = a person's decisions at a gate."
+        },
+        "reason": { "type": "string", "minLength": 1 },
+        "analyses": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "With keep_analyses: the ids, from the run's latest result.json, that carry into the next plans."
+        },
+        "layout": { "type": "string", "minLength": 1, "description": "With pick_layout: the candidate id, from the run's latest result.json, to rehearse." }
+      },
+      "allOf": [
+        {
+          "if": { "required": ["kind"], "properties": { "kind": { "const": "keep_analyses" } } },
+          "then": { "required": ["analyses"] },
+          "else": { "not": { "required": ["analyses"] } }
+        },
+        {
+          "if": { "required": ["kind"], "properties": { "kind": { "const": "pick_layout" } } },
+          "then": { "required": ["layout"] },
+          "else": { "not": { "required": ["layout"] } }
+        }
+      ]
+    },
+    "event": {
+      "type": "object",
+      "required": ["seq", "at", "step", "status", "revision", "actor"],
+      "additionalProperties": false,
+      "patternProperties": { "^x_": {} },
+      "properties": {
+        "seq": { "type": "integer", "minimum": 1, "description": "1, 2, 3, ... with no gaps." },
+        "at": { "$ref": "#/$defs/timestamp" },
+        "step": { "$ref": "#/$defs/step" },
+        "status": {
+          "enum": ["started", "completed", "failed", "awaiting_approval", "approved"],
+          "description": "What happened to the step. awaiting_approval opens a gate; approved records a person's decision at an open gate."
+        },
+        "revision": { "type": "integer", "minimum": 0, "description": "The revision the event belongs to. Goes up by one on the event after a 'revise' decision." },
+        "actor": { "$ref": "#/$defs/actor" },
+        "gate": { "$ref": "#/$defs/gate" },
+        "decision": { "$ref": "#/$defs/decision" },
+        "output": {
+          "type": "object",
+          "description": "The contract file the step wrote.",
+          "required": ["contract", "file"],
+          "additionalProperties": false,
+          "properties": {
+            "contract": { "enum": ["infra", "result", "rehearsal"] },
+            "file": { "$ref": "#/$defs/file" }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "required": ["status"], "properties": { "status": { "const": "awaiting_approval" } } },
+          "then": { "required": ["gate"], "not": { "required": ["decision"] } },
+          "else": { "not": { "required": ["gate"] } }
+        },
+        {
+          "if": { "required": ["status"], "properties": { "status": { "const": "approved" } } },
+          "then": {
+            "required": ["decision"],
+            "properties": {
+              "decision": { "properties": { "kind": { "enum": ["keep_analyses", "pick_layout", "approve_plan"] } } },
+              "actor": { "properties": { "kind": { "const": "human" } } }
+            }
+          },
+          "else": {
+            "properties": {
+              "decision": { "properties": { "kind": { "enum": ["proceed", "revise", "stop"] } } },
+              "actor": { "properties": { "kind": { "const": "orchestrator" } } }
+            }
+          }
+        },
+        {
+          "if": { "required": ["status"], "properties": { "status": { "const": "failed" } } },
+          "then": { "required": ["decision"], "properties": { "decision": { "properties": { "kind": { "const": "stop" } } } } },
+          "else": { "properties": { "decision": { "properties": { "kind": { "not": { "const": "stop" } } } } } }
+        },
+        {
+          "if": { "required": ["status"], "properties": { "status": { "const": "started" } } },
+          "then": { "not": { "anyOf": [{ "required": ["decision"] }, { "required": ["output"] }] } }
+        }
+      ]
+    }
+  }
+}

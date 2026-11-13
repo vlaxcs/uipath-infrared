@@ -4,6 +4,7 @@
   python3 check_mock.py                       # all example files against their schemas + integrity checks
   python3 check_mock.py path/to/infra.json    # validate any extractor output (infra) instead of the mock
   python3 check_mock.py path/to/result.json   # validate any engine output (a file with `candidates`)
+  python3 check_mock.py path/to/candidates.json   # validate agent proposals (a file with `proposed_by`)
 
 Needs `jsonschema` (pip install jsonschema). Exit code 0 = everything passed.
 Checks beyond JSON Schema: unique ids, edge/parent/stack/stay_together references, node_group has a
@@ -13,6 +14,8 @@ catalog kinds/platform references are consistent, and every kind in the infra ha
 Result: unique candidate ids, do_nothing present, feasible exactly when there are no violations,
 violation_distance is the sum of the distances, exactly one of winner / closest_if_none_feasible,
 only feasible candidates are scored and ranked, every loser says why, and component ids exist in the infra.
+For the run example: the summary fields agree with the event log (see run_integrity.py).
+Candidates: ids, builds_on, components, catalog options, regions and tiers (see candidates_integrity.py).
 """
 import json
 import sys
@@ -23,6 +26,9 @@ try:
     from jsonschema import Draft202012Validator
 except ImportError:
     sys.exit("jsonschema missing: pip install jsonschema")
+
+from candidates_integrity import candidates_integrity_errors
+from run_integrity import run_integrity_errors
 
 HERE = Path(__file__).parent
 errors, warnings = [], []
@@ -224,6 +230,10 @@ def result_integrity(label, r, infra=None):
 
 def main():
     args = sys.argv[1:]
+    if args and "proposed_by" in load(args[0]):
+        print("candidates")
+        check_candidates(Path(args[0]).name, load(args[0]))
+        finish()
     if args and "candidates" in load(args[0]):
         print("result")
         r = load(args[0])
@@ -253,7 +263,27 @@ def main():
             schema_check(name, r, "result.schema.json")
             if len(errors) == before:
                 result_integrity(name, r, infra)
+        print("candidates")
+        check_candidates("candidates.example.json", load(HERE / "candidates.example.json"), infra, c)
+        print("run")
+        run = load(HERE / "run.example.json")
+        schema_errors_before = len(errors)
+        schema_check("run.example.json", run, "run.schema.json")
+        if len(errors) == schema_errors_before:
+            errors.extend(f"[integrity] run: {e}" for e in run_integrity_errors(run))
+            print(f"  {len(run['events'])} events, {run['revision']} revision(s), status {run['status']}")
     finish()
+
+
+def check_candidates(label, doc, infra=None, catalog=None):
+    before = len(errors)
+    schema_check(label, doc, "candidates.schema.json")
+    if len(errors) > before:
+        return
+    strategies = set(load(HERE / "forecast.schema.json")["properties"]["cto_settings"]["properties"]["strategies_enabled"]["items"]["enum"])
+    errors.extend(f"[integrity] {label}: {e}" for e in candidates_integrity_errors(doc, strategies, infra, catalog))
+    actions = sum(len(candidate["actions"]) for candidate in doc["candidates"])
+    print(f"  {len(doc['candidates'])} candidates, {actions} actions, revision {doc['revision']}")
 
 
 def finish():

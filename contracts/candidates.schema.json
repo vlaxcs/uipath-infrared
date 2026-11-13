@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infrared.local/contract/candidates.schema.json",
+  "title": "Infrared candidates (agent proposals)",
+  "description": "The plans the agent proposes in step 3, as input to `engine evaluate --candidates`. A candidate says what changes, never what it costs: no saving, price, score, availability or confidence appears here, and there are no 'x_' extensions to carry one. The engine prices every candidate and writes it into result.json with `source: agent`. Each candidate lists only its own actions; the engine adds the actions of the candidate it builds on.",
+  "type": "object",
+  "required": ["schema_version", "project", "revision", "proposed_by", "candidates"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^1\\.\\d+$" },
+    "project": { "type": "string", "minLength": 1, "description": "Same label as `project` in the infra.json the candidates are for." },
+    "revision": { "type": "integer", "minimum": 0, "description": "The run's revision these candidates belong to. 0 for the first proposal; one more after every 'revise' decision in run.json." },
+    "proposed_by": {
+      "type": "object",
+      "required": ["agent"],
+      "additionalProperties": false,
+      "properties": {
+        "agent": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 }
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": { "$ref": "#/$defs/candidate" }
+    }
+  },
+  "$defs": {
+    "candidate_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$" },
+    "candidate": {
+      "type": "object",
+      "required": ["id", "builds_on", "rationale", "actions"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/candidate_id", "description": "Unique in the file, and never the name of an engine strategy. Kept as-is in result.json." },
+        "builds_on": {
+          "anyOf": [{ "$ref": "#/$defs/candidate_id" }, { "type": "null" }],
+          "description": "An engine strategy (`cleanup_orphans`, `rightsize_in_place`, ...) or a candidate earlier in this file, whose actions this one extends. Null starts from today's estate. Where both change the same component, this candidate's action replaces the parent's."
+        },
+        "revises": {
+          "$ref": "#/$defs/candidate_id",
+          "description": "The candidate of the previous revision this one replaces. Only when `revision` is above 0."
+        },
+        "rationale": { "type": "string", "minLength": 1, "description": "Why the agent proposes it, in words. No figures the engine would compute." },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/action" }
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": ["component", "action", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "component": { "type": "string", "minLength": 1, "description": "An infra.json component id, or `account` for an account-wide `remediate`." },
+        "action": {
+          "enum": ["delete", "stop", "resize", "scale", "autoscale", "move", "remediate"],
+          "description": "Same meaning as in result.json. `keep` and `flag` change nothing, so they are not proposals."
+        },
+        "reason": { "type": "string", "minLength": 1, "description": "The evidence the agent read, e.g. 'gpu_pct p95 1.0 over 14 d'." },
+        "signal": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "to": { "$ref": "#/$defs/target" }
+      },
+      "allOf": [
+        {
+          "if": { "required": ["action"], "properties": { "action": { "enum": ["delete", "stop", "autoscale", "remediate"] } } },
+          "then": { "not": { "required": ["to"] } }
+        },
+        {
+          "if": { "required": ["action"], "properties": { "action": { "const": "resize" } } },
+          "then": {
+            "required": ["to"],
+            "properties": { "to": { "anyOf": [{ "required": ["tier"] }, { "required": ["vcpu"] }, { "required": ["memory_gb"] }], "not": { "anyOf": [{ "required": ["option"] }, { "required": ["region"] }, { "required": ["quantity"] }, { "required": ["zones"] }] } } }
+          }
+        },
+        {
+          "if": { "required": ["action"], "properties": { "action": { "const": "scale" } } },
+          "then": {
+            "required": ["to"],
+            "properties": { "to": { "anyOf": [{ "required": ["quantity"] }, { "required": ["zones"] }], "not": { "anyOf": [{ "required": ["option"] }, { "required": ["region"] }, { "required": ["tier"] }] } } }
+          }
+        },
+        {
+          "if": { "required": ["action"], "properties": { "action": { "const": "move" } } },
+          "then": { "required": ["to"], "properties": { "to": { "required": ["option"] } } }
+        }
+      ]
+    },
+    "target": {
+      "type": "object",
+      "description": "What the component becomes. Configuration only: sizes, counts, zones, where it runs.",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "option": { "type": "string", "minLength": 1, "description": "A catalog option id for the component's kind." },
+        "region": { "type": "string", "minLength": 1, "description": "One of the option's regions." },
+        "tier": { "type": "string", "minLength": 1, "description": "A tier id of the option the component runs on after the action." },
+        "quantity": { "type": "integer", "minimum": 1 },
+        "zones": { "type": "integer", "minimum": 1 },
+        "vcpu": { "type": "number", "exclusiveMinimum": 0 },
+        "memory_gb": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    }
+  }
+}

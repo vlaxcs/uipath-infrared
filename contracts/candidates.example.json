@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "project": "demo-shop",
+  "revision": 0,
+  "proposed_by": { "agent": "infrared-agent", "model": "claude-opus-5-5" },
+  "candidates": [
+    {
+      "id": "agent-orders-serverless",
+      "builds_on": "cleanup_orphans",
+      "rationale": "rds-orders runs one oversized instance in one zone; a serverless Postgres removes the idle capacity and the single-zone risk.",
+      "actions": [
+        {
+          "component": "rds-orders",
+          "action": "move",
+          "reason": "cpu_pct avg 8, p95 22 over 14 d on a single-AZ instance",
+          "signal": "oversized",
+          "to": { "option": "managed-pg-serverless", "region": "us-east-1", "tier": "c4" }
+        }
+      ]
+    },
+    {
+      "id": "agent-quiet-pools",
+      "builds_on": null,
+      "rationale": "The GPU pool does no work and staging runs production-sized; both can shrink without touching the shop.",
+      "actions": [
+        { "component": "ng-data-gpu", "action": "stop", "reason": "gpu_pct p95 1.0 over 14 d", "signal": "idle" },
+        { "component": "ng-shop-staging", "action": "scale", "reason": "cpu_pct p95 6, memory_pct p95 13 over 14 d on 12 nodes", "signal": "oversized", "to": { "quantity": 3 } },
+        { "component": "rds-orders-clone", "action": "delete", "reason": "status orphan, connections p95 1 over 14 d", "signal": "orphan" }
+      ]
+    },
+    {
+      "id": "agent-quiet-pools-ha",
+      "builds_on": "agent-quiet-pools",
+      "rationale": "Same as agent-quiet-pools, and rds-analytics gets a second zone to meet min_zones.",
+      "actions": [
+        { "component": "rds-analytics", "action": "scale", "reason": "zones 1, min_zones 2", "signal": "single_az", "to": { "zones": 2 } }
+      ]
+    }
+  ]
+}

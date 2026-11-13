@@ -136,13 +136,40 @@ The sandbox runs after the CTO picks a layout, not before: it rehearses only wha
 | `forecast.schema.json` | orchestrator (from the roadmap) | exists (#3), v1.0 |
 | `catalog.schema.json` | engine | exists (#3), v1.0, illustrative prices |
 | `result.schema.json` | engine | to write, from the sketch in #2 section 6 |
-| `run.schema.json`: run state and events (step, status, decision, reason, timestamps) | orchestrator | to write |
+| `run.schema.json`: run state and events (step, status, decision, reason, timestamps) | orchestrator | exists, v1.0, with `run.example.json` |
+| `candidates.schema.json`: the agent's proposals, input to `engine evaluate --candidates` | agent | exists, v1.0, with `candidates.example.json` |
 | `rehearsal.schema.json`: sandbox results (traffic profile, failures injected, availability, latency) | sandbox | to write |
 
 Extensions the PRD needs, as minor versions of `infra.schema.json`:
 - AI consumption: token spend per model and provider, GPU utilisation (GPU metrics already exist as usage).
 - Database schemas: tables, sizes, hot tables, from Postgres statistics, for the refactoring suggestions. Schemas and statistics only, never table rows.
 - GitHub runners: runner type, hours, workflow history.
+
+### The run contract
+
+One document per run: a summary of where the run stands, and the append-only event log it is derived from. Field rules are in `contracts/README.md`.
+
+- **One document, events inside.** The summary never says anything the log doesn't; `check_mock.py` rejects a run whose summary disagrees with its events.
+- **Run status:** `running`, `awaiting_approval`, `completed` (the plan was approved), `failed`. **Event status:** `started`, `completed`, `failed`, `awaiting_approval`, `approved`.
+- **Gates.** `layout` opens in the present step and closes when a person picks the layout to rehearse; keeping analyses happens at the same gate, before the pick, and does not close it. `plan` opens in the rehearse step and closes when a person approves the plan. A person's decision carries who they are and the surface it came from (`dashboard` or `slack`).
+- **Decisions.** Evaluate and rehearse always end in `proceed` or `revise`, a failure always carries `stop`, and every decision has a reason.
+- **Revisions.** The run counts its `revise` decisions against `max_revisions`. A run that needs one more fails with `stop`.
+- **Contract files** are referenced by path, relative to the run's directory, and sha256; never inlined. The input hashes, the output hashes and the decisions are what a replay needs.
+- **Live updates** are by polling: events carry a gapless `seq`, and a surface asks for the events after the last one it has.
+- **Version 1.0 covers steps 1 to 6.** Migrate, verify and the pull-request gate arrive as 1.1.
+- **The sample** is the demo path of section 9, finished: one revision for a zone the project does not allow, analyses kept and a layout picked from the dashboard, a rehearsal that holds, the plan approved from Slack.
+
+### The candidates contract
+
+What the agent proposes in step 3 and the engine evaluates in step 4. Field rules are in `contracts/README.md`.
+
+- **What changes, never what it costs.** No saving, price, score, availability or confidence, and no `x_` extensions to carry one. The engine prices every candidate and writes it into `result.json` with `source: agent`.
+- **Only its own actions.** `builds_on` names an engine strategy or an earlier candidate in the file; the engine adds the parent's actions, and where both change the same component, the candidate's action wins.
+- **Proposals only.** `keep` and `flag` are not actions here. A finding with no change belongs to the analyses, still undefined (below).
+- **Targets are catalog terms:** an option, a region it runs in, a tier it offers, a count, zones.
+- **Bounded:** at most 10 candidates per revision. `revision` matches the run's; `revises` names the candidate of the previous revision it replaces.
+
+Not in the run contract: the payload of the run list, which lands with the orchestrator API; what an analysis is: `result.json` lists candidates and their actions, but no analyses, so `decision.analyses` points to nothing yet; and the check that a picked layout is a feasible candidate in the run's `result.json`.
 
 ## 7. What we keep from #2 and #3
 
@@ -180,7 +207,7 @@ A recorded run of the same path is kept as a fallback.
 
 ## 10. Testing
 
-- Contracts: `check_mock.py` on every contract file, in CI.
+- Contracts: `check_mock.py` on every contract file, in CI. The run contract's rules each have a test in `contracts/test_run_contract.py`.
 - Engine: build steps a to h, each tested against `mock/demo-shop.expected-signals.md` (#2 section 7); never against `ground_truth/`.
 - Agent: `score.py` against `ground_truth/`, recall reported per run.
 - Determinism: the same inputs give the same `result.json`, byte for byte.
