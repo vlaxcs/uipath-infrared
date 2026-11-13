@@ -7,6 +7,8 @@ Everything the extractor side and the decision-engine side must agree on, plus a
 | `infra.schema.json` | **The contract.** Extractor output: facts about one project's infrastructure. |
 | `forecast.schema.json` / `forecast.example.json` | Roadmap + CTO settings turned into numbers (hand-written for now). |
 | `catalog.schema.json` / `catalog.example.json` | Priced options per `kind` and provider. **Illustrative prices.** |
+| `result.schema.json` | Engine output: every candidate priced, checked, scored and ranked, with the winner. |
+| `result.example.json` / `result.example.nothing-feasible.json` | Sample engine output on `demo-shop`: one with a winner, one where no candidate passes the hard constraints. **Sample values, not engine results.** |
 | `mock/demo-shop.infra.json` | The deliberately bad mock project (38 components, 30 edges, 4 stacks). |
 | `mock/demo-shop.expected-signals.md` | What a competent engine should notice in the mock. Engine-side, not input. |
 | `mock/build_demo_shop.py` | Authoring helper for the mock. All numbers typed by hand; reads nothing from `ground_truth/`. |
@@ -114,12 +116,24 @@ Known Floci gaps: no `CreateSnapshot`, ASG/ECS/EKS resources are real Docker con
 - **Score** (lower better): `w_cost*norm(total cost over horizon) + w_risk*norm(risk) + w_effort*norm(effort hours)` with min-max across surviving candidates; ties by `cto_settings.tie_break`. Payback = migration cost / monthly saving vs `do_nothing`.
 - Constraints are evaluated on each candidate's **end state, including `do_nothing`** (the mock's `s3-legacy-reports` in `us-east-1` makes `do_nothing` infeasible under the example EU-only rule; show it as a baseline, flagged).
 
+## Field rules (result.json)
+
+- **Every candidate is listed**, `do_nothing` included, feasible or not, ordered by `rank`, then `violation_distance`, then `id`. Candidates are cumulative: `builds_on` names the candidate whose actions this one extends, and each action's `layer` names the strategy that added it.
+- **`feasible`** is true exactly when `violations` is empty. Only feasible candidates have `score`, `rank` and `rank_by_scenario`; on the others these are `null` and `pareto` is false.
+- **Violation**: `{ constraint, component, detail, actual, limit, distance }`, all six always present. `constraint` is the forecast's hard-constraint key; `budget` is the monthly run-cost ceiling, `migration_budget` the one-off ceiling, `security.<gate>` one key of `security_gates`. `component` is `null` for estate-wide violations. `actual` and `limit` are numbers, strings (a region, a provider) or `null`. `distance` is the normalised shortfall; `violation_distance` on the candidate is their sum.
+- **`winner`** is the feasible candidate with `rank` 1. When nothing is feasible, `winner` is `null` and `closest_if_none_feasible` names the candidate with the smallest `violation_distance` and repeats what blocks it. Exactly one of the two is set.
+- **`lost_because`** is `null` for the winner only. Every other candidate carries `{ reason, detail }`, with `reason` one of `constraint`, `cost`, `risk`, `effort`, `payback`.
+- **Actions**: `saving_eur_month` is positive when the action saves money and negative when it costs more (growing an undersized database). `flag` is a finding with no priced change. Each action carries `confidence` (`high`/`medium`/`low` = weakest provenance observed/estimated/synthetic) and `confidence_reason`.
+- **Cost**: `expected_total_eur` = `horizon_run_eur` + `migration_eur` + ops and expected outage loss over the horizon; it is the cost term of the score. `security_remediation` and `onprem_platform` are breakdowns of amounts already inside the totals.
+- **`flags`** is an open list of caveats (`egress_unpriced`, `catalog_illustrative`, `usage_synthetic`); show the ones you know, keep the rest as text.
+
 ## Validate
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r contracts/requirements.txt
-.venv/bin/python contracts/check_mock.py                                       # mock + forecast + catalog examples
+.venv/bin/python contracts/check_mock.py                                       # mock + forecast + catalog + result examples
 .venv/bin/python contracts/check_mock.py contracts/real/floci-estate.infra.json  # extractor output
+.venv/bin/python contracts/check_mock.py path/to/result.json                     # engine output
 ```
 
 Last run on this tree: all three example files pass their schemas, 38 components / 30 edges, 0 integrity errors, 0 warnings. The checker also fails correctly on a broken copy (duplicate id, dangling edge, missing provenance, unknown field, bad enum, node_group with a wrong parent, top-level `findings`).
