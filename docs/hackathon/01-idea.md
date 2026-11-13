@@ -17,6 +17,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 
 - **Buyer company:** start-ups and small enterprises.
 - **Who signs:** CTOs and CFOs.
+- **Day-to-day user:** the CTO.
 
 ## 2. Problem
 
