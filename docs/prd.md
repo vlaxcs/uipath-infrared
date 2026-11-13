@@ -116,6 +116,18 @@ How the prices compare:
 - The run pack costs a fifth of the cheapest single consultant review, and each run also re-plans across providers, prices availability and on-prem, and lays out the implementation.
 - The subscription is priced at Vantage Business, which shows spend only, and below Infracost Starter.
 
+## Phases
+
+**Phase 1: analyse and decide.** Infrared runs as a sequence of steps: it reads the infrastructure, analyses it, decides against each project's criteria, and shows the new layout and the step-by-step change.
+
+**Phase 2: migrate through pull requests.** Each step of the change becomes a pull request with infrastructure code in the client's GitHub repository. Infrared keeps read-only access to the cloud and never applies a change itself:
+- a person on the client's team reviews and approves each pull request;
+- the client's own CI applies it, with the client's own credentials;
+- Infrared monitors the pull request (review, CI, merge), then reads the infrastructure again and compares the result with the forecast;
+- when the result diverges from the forecast, Infrared re-plans the remaining steps.
+
+The MVP targets phase 1 and attempts phase 2.
+
 ## MVP
 
 - Demo projects, each with a deliberately poor infrastructure, running locally in Floci or another AWS emulator.
