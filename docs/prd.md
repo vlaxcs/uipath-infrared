@@ -102,8 +102,8 @@ No product found turns a project's financial roadmap into a re-planned infrastru
 
 | Plan | Price |
 | --- | --- |
-| Run pack | 5 runs for 490 USD, about 98 USD a run |
-| Subscription | 199 USD a month, with runs scheduled in the cloud |
+| Run pack | 5 runs for 100 USD, 20 USD a run |
+| Subscription | 200 USD a month, with runs scheduled in the cloud |
 
 How the prices compare:
 
@@ -113,7 +113,7 @@ How the prices compare:
 | Vantage | cost visibility | Pro 30 USD a month up to 7,500 USD of tracked spend; Business 200 USD a month up to 20,000 USD |
 | Infracost | the cost of a planned change, in CI | Starter 250 USD a month; Cloud 1,000 USD a month |
 
-- The run pack costs less than the cheapest single consultant review, and each run also re-plans across providers, prices availability and on-prem, and lays out the implementation.
+- The run pack costs a fifth of the cheapest single consultant review, and each run also re-plans across providers, prices availability and on-prem, and lays out the implementation.
 - The subscription is priced at Vantage Business, which shows spend only, and below Infracost Starter.
 
 ## MVP
