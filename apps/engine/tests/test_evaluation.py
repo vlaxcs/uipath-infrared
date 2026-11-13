@@ -1,7 +1,7 @@
 import pytest
 
 from engine.domain.baseline import price_baseline
-from engine.domain.candidate import DO_NOTHING
+from engine.domain.candidate import DO_NOTHING, Action, ActionKind, Candidate
 from engine.domain.evaluation import evaluate_candidate
 from engine.domain.proposals import build_proposals
 
@@ -57,3 +57,13 @@ def test_strategies_without_a_builder_are_reported_not_invented(mock_infra, cata
 def test_confidence_is_never_better_than_the_estimated_baseline(do_nothing):
     assert do_nothing.confidence.level == "medium"
     assert do_nothing.confidence.reason == "cost.monthly_eur is estimated"
+
+
+def test_a_move_with_unknown_extensions_is_flagged_and_riskier(mock_infra, catalog, forecast, baseline):
+    move = Action("rds-erp", ActionKind.MOVE, "cheaper elsewhere", option="managed-pg-serverless")
+    check = Action("rds-erp", ActionKind.FLAG, "features_used unknown", signal="verify_extensions")
+    plain = evaluate_candidate(Candidate("managed_services", (move,)), ("managed_services",), mock_infra, catalog, forecast, baseline)
+    flagged = evaluate_candidate(Candidate("managed_services", (move, check)), ("managed_services",) * 2, mock_infra, catalog, forecast, baseline)
+    assert "verify_extensions" in flagged.flags
+    assert "verify_extensions" not in plain.flags
+    assert flagged.risk == pytest.approx(plain.risk + 0.15)

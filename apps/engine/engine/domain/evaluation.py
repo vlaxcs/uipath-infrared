@@ -21,6 +21,9 @@ from engine.domain.remediation import remediation_effort_hours
 
 MONTHS_PER_YEAR = 12
 COST_FLAGS = ("unpriced", "partially_priced", "change_unpriced")
+VERIFY_EXTENSIONS = "verify_extensions"
+VERIFY_EXTENSIONS_RISK = 0.15
+MAX_RISK = 1.0
 
 
 @dataclass(frozen=True)
@@ -55,7 +58,8 @@ class Evaluation:
 
     @property
     def risk(self) -> float:
-        return self.migration.risk
+        penalty = VERIFY_EXTENSIONS_RISK if VERIFY_EXTENSIONS in self.flags else 0.0
+        return min(MAX_RISK, self.migration.risk + penalty)
 
     @property
     def run_eur_month_now(self) -> float:
@@ -157,6 +161,8 @@ def _flags(
         flags.add("catalog_illustrative")
     if unpriced_edges:
         flags.add("egress_unpriced")
+    if any(a.signal == VERIFY_EXTENSIONS for a in candidate.actions):
+        flags.add(VERIFY_EXTENSIONS)
     mismatched = {m.component for m in baseline.mismatches()}
     if any(a.component in mismatched and a.kind != ActionKind.FLAG for a in candidate.actions):
         flags.add("catalog_mismatch")
