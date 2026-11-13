@@ -8,7 +8,7 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 | 2. What is their problem? | done, waits for form answers |
 | 3. How do we get into their day? | done |
 | 4. Business plan | open: pricing model, waits for form answers |
-| 5. Design the product | drafted, mentors to validate |
+| 5. Design the product | next |
 | 6. Branding | in parallel, designer |
 
 ## 1. Target
@@ -55,44 +55,11 @@ Decisions only. Rejected ideas and their reasons live in the decision log in `00
 - **Open:** subscription per employee per month, or a price per onboarding and offboarding. Decided from form answers 6-8.
 - **Anchors:** floor, an HR suite (Factorial from 8 USD per user per month); ceiling, the cost of one lost hire; our cost, LLM calls per run, measured on real runs.
 
-## 5. Product design
-
-**Next to what already exists.** We don't replace the HR tool, Entra ID or Slack. The agent sits next to them and runs the lifecycle across them. The market is proven: HR suites already sell onboarding and offboarding checklists (Factorial, Personio, Rippling), so companies already pay for this job. What they don't do is replan when something goes wrong.
-
-**The product, split by type:**
-
-| Stage | Fixed rule (workflow) | The agent decides | A person approves |
-| --- | --- | --- | --- |
-| trigger: offer accepted, agreement signed | create the Entra ID account | | |
-| before day one | legal tasks with deadlines | is the manager free on the start date? is the buddy confirmed? if not, propose a replacement | manager picks the replacement |
-| access | add to the position's groups | which access the first tasks need that the groups don't give | the owner of each access |
-| first weeks | checklist reminders | what is blocked, and in what order to unblock it | |
-| offboarding | final summary | where access was left behind (Entra ID, GitHub, GCP) | HR and IT, every revocation |
-
-MVP cut: open, see the questions below.
-
-**Legal check, and what we adjusted:**
-
-| Risk | Adjustment |
-| --- | --- |
-| EU AI Act, Annex III: AI that allocates work or makes decisions about workers is high-risk | the agent proposes, a person decides; replacements are proposed by calendar availability only, never by behaviour, performance or personal traits |
-| reading calendars is employee monitoring (in Romania, Law 190/2018 art. 5) | read free/busy for the start date only (Graph `getSchedule`), never event titles or contents |
-| GDPR: the new hire's personal data sent to an LLM through OpenRouter, possibly outside the EU | the LLM sees IDs and roles, not names, addresses or IBANs; the app maps them back |
-| GDPR: keeping a leaver's data | offboarding deletes or anonymises what is no longer needed, and logs it |
-| access revoked by mistake | no revocation without a person's approval; every action logged |
-
-None of this is legal advice. A mentor or a lawyer confirms the AI Act line.
-
 ## Open questions
 
 - How does the system learn the agreement was signed?
 - Who on the team is an admin in the Microsoft tenant, for Graph admin consent?
-- MVP cut: which stages go on the demo path? The whole lifecycle, or onboarding plus one offboarding?
-- Mentors, before any code:
-  - does an SME buyer hurt "user value" with UiPath judges?
-  - do they want UiPath's stack (Maestro, Action Center), or is OpenRouter enough?
-  - is "propose a replacement by availability, a person decides" outside the AI Act's high-risk category?
-  - is the full idea, as written in this page, a yes?
+- Mentors: does an SME buyer hurt "user value" with UiPath judges? Do they want UiPath's stack (Maestro, Action Center) or is OpenRouter enough?
 
 ## Sources
 
