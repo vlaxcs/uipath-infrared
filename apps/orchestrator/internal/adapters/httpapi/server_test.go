@@ -25,6 +25,8 @@ type fakeRuns struct {
 	fileErr     error
 	answers     *onboarding.Answers
 	started     bool
+	loggedStep  run.Step
+	loggedAfter int64
 }
 
 func (f *fakeRuns) Onboarding() (onboarding.Setup, error) {
@@ -61,6 +63,32 @@ func (f *fakeRuns) ListFiles(id string) ([]run.Artifact, error) {
 		return []run.Artifact{}, f.fileErr
 	}
 	return f.artifacts, f.fileErr
+}
+
+func (f *fakeRuns) ReadLog(id string, step run.Step, after int64) (workflow.LogChunk, error) {
+	f.loggedStep, f.loggedAfter = step, after
+	return workflow.LogChunk{Path: "logs/3-investigate.log", Text: "reading ec2\n", Next: after + 12, Running: true}, f.err
+}
+
+func TestALogChunkIsReadForAStepFromAnOffset(t *testing.T) {
+	runs := &fakeRuns{}
+	recorder := send(t, runs, "GET", "/runs/run-startup-0001/logs?step=investigate&after=30", "")
+	if recorder.Code != http.StatusOK || runs.loggedStep != run.Investigate || runs.loggedAfter != 30 {
+		t.Fatalf("%d, step %q after %d: %s", recorder.Code, runs.loggedStep, runs.loggedAfter, recorder.Body)
+	}
+	var chunk workflow.LogChunk
+	json.Unmarshal(recorder.Body.Bytes(), &chunk)
+	if chunk.Text != "reading ec2\n" || chunk.Next != 42 || !chunk.Running {
+		t.Fatalf("chunk %+v", chunk)
+	}
+}
+
+func TestALogRequestNeedsAStepWithALogAndAValidOffset(t *testing.T) {
+	for _, path := range []string{"/runs/x/logs", "/runs/x/logs?step=present", "/runs/x/logs?step=nope", "/runs/x/logs?step=extract&after=-1", "/runs/x/logs?step=extract&after=a"} {
+		if recorder := send(t, &fakeRuns{}, "GET", path, ""); recorder.Code != http.StatusBadRequest {
+			t.Errorf("%s answered %d", path, recorder.Code)
+		}
+	}
 }
 
 func (f *fakeRuns) ReadFile(id, name string) ([]byte, error) {

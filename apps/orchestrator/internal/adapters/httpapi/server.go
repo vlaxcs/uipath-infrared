@@ -26,6 +26,7 @@ type Runs interface {
 	Decide(id string, event run.Event) (run.Event, error)
 	ListFiles(id string) ([]run.Artifact, error)
 	ReadFile(id, name string) ([]byte, error)
+	ReadLog(id string, step run.Step, after int64) (workflow.LogChunk, error)
 }
 
 func Handler(runs Runs, allowedOrigins ...string) http.Handler {
@@ -39,6 +40,7 @@ func Handler(runs Runs, allowedOrigins ...string) http.Handler {
 	mux.HandleFunc("POST /runs/{id}/decisions", api.decide)
 	mux.HandleFunc("GET /runs/{id}/files", api.files)
 	mux.HandleFunc("GET /runs/{id}/files/{name}", api.file)
+	mux.HandleFunc("GET /runs/{id}/logs", api.logs)
 	return withCORS(mux, allowedOrigins)
 }
 
@@ -138,6 +140,27 @@ func (a *api) file(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(data)
+}
+
+var logSteps = map[run.Step]bool{run.Extract: true, run.Investigate: true, run.Propose: true, run.Evaluate: true, run.Rehearse: true}
+
+func (a *api) logs(w http.ResponseWriter, r *http.Request) {
+	step := run.Step(r.URL.Query().Get("step"))
+	if !logSteps[step] {
+		fail(w, http.StatusBadRequest, "step must be extract, investigate, propose, evaluate or rehearse")
+		return
+	}
+	after, err := boundedInt(r.URL.Query().Get("after"), 0, 0, int(^uint(0)>>1))
+	if err != nil {
+		fail(w, http.StatusBadRequest, "after must be a non-negative integer")
+		return
+	}
+	chunk, err := a.runs.ReadLog(r.PathValue("id"), step, int64(after))
+	if err != nil {
+		failWith(w, err)
+		return
+	}
+	reply(w, http.StatusOK, chunk)
 }
 
 func decode(w http.ResponseWriter, r *http.Request, into any) bool {

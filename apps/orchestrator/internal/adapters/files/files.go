@@ -78,6 +78,27 @@ func (Local) Read(dir, name string, limit int64) ([]byte, error) {
 	return os.ReadFile(path)
 }
 
+func (Local) ReadFrom(path string, offset, limit int64) ([]byte, int64, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil {
+		return nil, 0, err
+	}
+	if offset >= info.Size() {
+		return nil, info.Size(), nil
+	}
+	buffer := make([]byte, min(limit, info.Size()-offset))
+	read, err := file.ReadAt(buffer, offset)
+	if err != nil && !errors.Is(err, io.EOF) {
+		return nil, 0, err
+	}
+	return buffer[:read], info.Size(), nil
+}
+
 func (Local) CheckObject(path string) error {
 	var object map[string]json.RawMessage
 	if err := readJSON(path, &object); err != nil {
