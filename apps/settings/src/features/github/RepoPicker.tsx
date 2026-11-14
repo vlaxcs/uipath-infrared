@@ -70,7 +70,7 @@ export function RepoPicker({ repos, value, onChange }: { repos: string[]; value:
               </label>
             </li>
           ))}
-          {value.repos.length === 0 && <li className="type-small text-danger">Tick at least one repository.</li>}
+          {value.repos.length === 0 && <li className="type-small text-danger-ink">Tick at least one repository.</li>}
         </ul>
       )}
     </fieldset>

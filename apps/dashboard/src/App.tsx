@@ -3,7 +3,7 @@ import { onSignedOut, signOut } from "~/account/session";
 import { createHttpAccountSource, sampleAccountSource, type AccountSource } from "~/account/accountSource";
 import { useAccount } from "~/account/useAccount";
 import { HomePage } from "~/home/HomePage";
-import type { PageId } from "~/navigation/route";
+import { routePath, type PageId } from "~/navigation/route";
 import { useRoute } from "~/navigation/useRoute";
 import { AccountPage } from "~/pages/AccountPage";
 import { AnalyzePage } from "~/pages/AnalyzePage";
@@ -64,7 +64,14 @@ export function App({
     >
       <RefreshProvider value={refreshes}>
       {route.page === "home" ? (
-        <HomePage extensionUrl={extensionUrl} onAnalyze={() => route.go("analyze")} onPrevious={() => route.go("runs")} />
+        <HomePage
+          extensionUrl={extensionUrl}
+          onAnalyze={() => route.go("analyze")}
+          onPrevious={() => route.go("runs")}
+          source={source}
+          runHref={(runId) => import.meta.env.BASE_URL + routePath({ page: "runs", runId, focusGate: false })}
+          onOpenRun={route.openRun}
+        />
       ) : route.page === "analyze" ? (
         <AnalyzePage onFollowRun={route.openRun} />
       ) : route.page === "runs" ? (

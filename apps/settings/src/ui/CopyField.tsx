@@ -17,7 +17,7 @@ export function CopyField({ label, value, multiline = false }: { label: string; 
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between gap-2">
         <span className="type-label">{label}</span>
-        <button type="button" onClick={copy} className="type-small font-semibold text-accent hover:underline" aria-label={`Copy ${label}`}>
+        <button type="button" onClick={copy} className="type-small font-semibold text-accent-ink hover:underline" aria-label={`Copy ${label}`}>
           {copied ? "Copied" : "Copy"}
         </button>
       </div>

@@ -1,18 +1,11 @@
 import { AccountSettings, AccountSettingsPanel, type AccountSettingsSource } from "~/accountSettings/AccountSettings";
-import { Fact, PageSection } from "~/pages/PageSection";
 
 export function AccountPage({ accountSettings }: { accountSettings?: AccountSettingsSource }) {
   return (
-    <section aria-label="Account" className="flex flex-col gap-4">
-      <PageSection title="Runs">
-        <dl className="flex flex-col gap-1">
-          <Fact label="Left" value="Not tracked" />
-        </dl>
-      </PageSection>
+    <section aria-label="Account" className="mx-auto flex w-full max-w-4xl flex-col gap-3">
+      <h2 className="text-label font-semibold text-fg-muted">Subscription</h2>
       <AccountSettings source={accountSettings}>
-        <PageSection title="Subscription">
-          <AccountSettingsPanel panel="subscription" />
-        </PageSection>
+        <AccountSettingsPanel panel="subscription" />
       </AccountSettings>
     </section>
   );

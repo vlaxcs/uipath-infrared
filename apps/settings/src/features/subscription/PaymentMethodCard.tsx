@@ -132,13 +132,12 @@ export function PaymentMethodCard() {
   const stopEditing = useCallback(() => setEditing(false), []);
 
   return (
-    <Card
-      title="Payment method"
-      actions={<Button onClick={() => setEditing(true)}>{method ? "Update" : "Add card"}</Button>}
-    >
-      <p className="type-body">{method ? describeCard(method) : "No payment method on file."}</p>
-      <p className="type-small mt-1 text-fg-muted">
-        {sandbox ? "Stripe test mode, no real card is charged." : "Simulated billing, no real card is charged."}
+    <Card dense title="Payment method" actions={<Button size="sm" onClick={() => setEditing(true)}>{method ? "Update" : "Add card"}</Button>}>
+      <p className="flex flex-wrap items-baseline gap-x-2">
+        <span className="type-body">{method ? describeCard(method) : "No payment method on file."}</span>
+        <span className="type-small text-fg-muted">
+          {sandbox ? "Stripe test mode, no real card is charged." : "Simulated billing, no real card is charged."}
+        </span>
       </p>
       {editing && <PaymentMethodDialog onClose={stopEditing} />}
     </Card>

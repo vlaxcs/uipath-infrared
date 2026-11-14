@@ -47,7 +47,7 @@ export function ConfirmByTyping({ open, title, expected, confirmLabel, onConfirm
         <Field
           label={
             <>
-              Type <code className="type-code rounded bg-sunken px-1">{expected}</code> to confirm
+              Type <code className="type-code rounded-item bg-sunken px-1">{expected}</code> to confirm
             </>
           }
           value={typed}
