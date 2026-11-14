@@ -115,8 +115,8 @@ function layoutBlocks(
       const reason = shortReason(candidate);
       groups.set(reason, [...(groups.get(reason) ?? []), candidate.id]);
     }
-    const lines = [...groups].map(([reason, ids]) => `${ids.join(', ')}: ${clip(reason, 100)}`);
-    blocks.push(divider(), section(`*These can't run*: ${lines.join('; ')}`));
+    const lines = [...groups].map(([reason, ids]) => `• ${ids.map(id => `\`${id}\``).join(', ')}: ${clip(reason, 120)}`);
+    blocks.push(divider(), section(`*Ruled out*, they break a hard rule of this plan:\n${lines.join('\n')}`));
   }
   blocks.push(context(eventContext(event)));
   return blocks;
@@ -283,7 +283,7 @@ function value(runId: string, event: RunEvent): PlanActionValue {
 }
 
 function eventContext(event: RunEvent): string {
-  const parts = [`Event #${event.seq}`, humanDate(event.at)];
+  const parts = [`Updated ${humanDate(event.at)}`];
   if (event.revision > 0) parts.push(`revision ${event.revision}`);
   if (event.actor.kind === 'human') parts.push(`by ${actorName(event.actor)}`);
   if (event.output) parts.push(`wrote ${basename(event.output.file.path)}`);
@@ -302,9 +302,29 @@ function lostReason(candidate: LayoutCandidate): string {
 
 function shortReason(candidate: LayoutCandidate): string {
   const detail = candidate.lostBecause?.detail;
-  if (detail) return detail.split(':')[0];
-  return candidate.lostBecause?.reason ?? 'a hard constraint';
+  if (!detail) return 'a hard rule of the plan (open Details to see which)';
+  const head = detail.split(':')[0].trim();
+  if (head.includes(', ')) return head.split(', ').map(plainConstraint).join(' · ');
+  const [code, ...rest] = head.split(' ');
+  const where = rest.join(' ');
+  return `${plainConstraint(code)}${where ? ` (${where.replace(/^on /, '')})` : ''}`;
 }
+
+function plainConstraint(code: string): string {
+  return CONSTRAINT_TEXT[code] ?? code.replace(/[._]/g, ' ');
+}
+
+const CONSTRAINT_TEXT: Record<string, string> = {
+  min_availability_pct: 'availability below your minimum',
+  data_residency: 'data outside the allowed regions',
+  max_monthly_run_cost_eur: 'over the monthly budget',
+  max_one_off_migration_cost_eur: 'migration over budget',
+  budget: 'over budget',
+  allowed_providers: 'uses a provider you did not allow',
+  forbidden_providers: 'uses a provider you excluded',
+  'security.forbid_public_datastores': 'a database open to the internet',
+  'security.require_encryption_at_rest': 'data not encrypted at rest',
+};
 
 function dashboardButton(url: string) {
   return { type: 'button', text: { type: 'plain_text', text: 'Details' }, action_id: 'view_dashboard', url };

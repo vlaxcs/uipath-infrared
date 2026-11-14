@@ -92,9 +92,21 @@ describe('Layout gate card', () => {
     expect(shown).toContain('The work takes 794 hours.');
     expect(shown).toContain('It pays back in 1.38 months.');
     expect(shown).toContain('not picked: it carries more risk.');
-    expect(shown).toContain("These can't run");
-    expect(shown).toContain('rightsize_in_place, cleanup_orphans, do_nothing');
-    expect(shown).toContain('min_availability_pct on rds-orders');
+    expect(shown).toContain('Ruled out');
+    expect(shown).toContain('`rightsize_in_place`, `cleanup_orphans`, `do_nothing`: availability below your minimum (rds-orders)');
+    expect(shown).not.toContain('Event #');
+  });
+
+  it('says in words which hard rules a ruled-out candidate breaks', () => {
+    const event = sampleEvent(14);
+    const candidates = [
+      { id: 'consolidate', feasible: true, recommended: true, rank: 1 },
+      { id: 'do_nothing', feasible: false, recommended: false, lostBecause: { reason: 'constraint', detail: 'min_availability_pct, security.forbid_public_datastores' } },
+      { id: 'cleanup_orphans', feasible: false, recommended: false, lostBecause: { reason: 'constraint' } },
+    ];
+    const shown = text(formatLayoutGate(RUN, event, candidates, targetOf(event)));
+    expect(shown).toContain('`do_nothing`: availability below your minimum · a database open to the internet');
+    expect(shown).toContain('`cleanup_orphans`: a hard rule of the plan (open Details to see which)');
   });
 
   it('falls back to the dashboard notice when the gate carries no candidates', () => {

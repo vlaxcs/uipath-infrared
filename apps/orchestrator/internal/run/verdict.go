@@ -65,14 +65,18 @@ func (result Result) FeasibleCandidate(id string) bool {
 func (result Result) LayoutOptions() []LayoutOption {
 	options := make([]LayoutOption, 0, len(result.Candidates))
 	for _, candidate := range result.Candidates {
-		options = append(options, LayoutOption{
+		option := LayoutOption{
 			ID:              candidate.ID,
 			Feasible:        candidate.Feasible,
 			Rank:            candidate.Rank,
 			MonthlyEUR:      candidate.MonthlyEUR,
 			AvailabilityPct: candidate.AvailabilityPct,
 			Risk:            candidate.Risk,
-		})
+		}
+		if !candidate.Feasible && len(candidate.Constraints) > 0 {
+			option.LostBecause = &Lost{Reason: "constraint", Detail: strings.Join(distinct(candidate.Constraints), ", ")}
+		}
+		options = append(options, option)
 	}
 	return options
 }

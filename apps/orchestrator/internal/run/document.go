@@ -96,6 +96,13 @@ type LayoutOption struct {
 	MonthlyEUR      *float64 `json:"monthly_eur,omitempty"`
 	AvailabilityPct *float64 `json:"availability_pct,omitempty"`
 	Risk            *float64 `json:"risk,omitempty"`
+	LostBecause     *Lost    `json:"lost_because,omitempty"`
+}
+
+// Lost says why a candidate cannot run: the hard constraints it breaks, by id.
+type Lost struct {
+	Reason string `json:"reason"`
+	Detail string `json:"detail,omitempty"`
 }
 
 type Event struct {
