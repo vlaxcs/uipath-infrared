@@ -23,6 +23,7 @@ DRIVER_GROWTH = {
     "messages_million": Growth.TRAFFIC,
     "invocations_million": Growth.TRAFFIC,
     "gb_s_month": Growth.TRAFFIC,
+    "ingested_gb_month": Growth.DATA,
     "consumed_rcu_million": Growth.TRAFFIC,
     "consumed_wcu_million": Growth.TRAFFIC,
     "provisioned_rcu_month": Growth.TRAFFIC,

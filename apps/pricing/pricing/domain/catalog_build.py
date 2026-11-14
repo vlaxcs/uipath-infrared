@@ -54,7 +54,8 @@ def build_catalog(
     document["illustrative"] = bool(unsourced)
     document["disclaimer"] = _disclaimer(len(sources), len(unsourced))
     document["x_price_sources"] = dict(sorted(sources.items()))
-    document["x_unsourced"] = {name: skipped.get(name, SKELETON_VALUE) for name in unsourced}
+    reasons = dict(document.get("x_unsourced_reasons", {}))
+    document["x_unsourced"] = {name: skipped.get(name, reasons.get(name, SKELETON_VALUE)) for name in unsourced}
     document["x_snapshots"] = {
         s.source: {"url": s.url, "version": s.version, "fetched_on": s.fetched_on.isoformat()}
         for s in sorted(snapshots, key=lambda s: s.source)

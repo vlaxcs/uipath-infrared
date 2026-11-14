@@ -136,6 +136,11 @@
         "usageType": "EU-NatGateway-Bytes"
       }
     },
+    "AmazonECR": {
+      "storage": {
+        "usageType": "EU-TimedStorage-ByteHrs"
+      }
+    },
     "AmazonECS": {
       "fargate:gb-hour": {
         "usageType": "EU-Fargate-GB-Hours"
@@ -171,6 +176,13 @@
     "AmazonKinesis": {
       "shard-hour": {
         "usageType": "EU-Extended-ShardHour"
+      }
+    },
+    "AmazonKinesisFirehose": {
+      "delivery:bytes": {
+        "Group": "Batch Processing",
+        "StartingRange": "0",
+        "usageType": "EUW1-BilledBytes"
       }
     },
     "AmazonRDS": {
@@ -270,6 +282,12 @@
       "standard:first-50tb": {
         "StartingRange": "0",
         "usageType": "EU-TimedStorage-ByteHrs"
+      }
+    },
+    "AmazonSNS": {
+      "requests:paid-tier": {
+        "StartingRange": "1000000",
+        "usageType": "EU-Requests-Tier1"
       }
     },
     "AmazonVPC": {

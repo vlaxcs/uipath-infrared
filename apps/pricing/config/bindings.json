@@ -345,6 +345,14 @@
       "unit": "GB-Mo"
     },
     {
+      "multiplier": 1.0,
+      "option": "managed-pg-platform",
+      "per": "unit",
+      "price": "manual/supabase:egress-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
       "multiplier": 2.0,
       "option": "managed-pg-branching",
       "per": "hour",
@@ -387,6 +395,54 @@
     {
       "multiplier": 1.0,
       "option": "managed-pg-branching",
+      "per": "unit",
+      "price": "manual/neon:transfer-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 2.0,
+      "option": "managed-pg-serverless",
+      "per": "hour",
+      "price": "manual/neon-launch:cu-hour",
+      "target": "tier:c2",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 4.0,
+      "option": "managed-pg-serverless",
+      "per": "hour",
+      "price": "manual/neon-launch:cu-hour",
+      "target": "tier:c4",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 8.0,
+      "option": "managed-pg-serverless",
+      "per": "hour",
+      "price": "manual/neon-launch:cu-hour",
+      "target": "tier:c8",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 16.0,
+      "option": "managed-pg-serverless",
+      "per": "hour",
+      "price": "manual/neon-launch:cu-hour",
+      "target": "tier:c16",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "managed-pg-serverless",
+      "per": "unit",
+      "price": "manual/neon:storage-gb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "managed-pg-serverless",
       "per": "unit",
       "price": "manual/neon:transfer-gb",
       "target": "pricing:egress_per_gb_eur",
@@ -591,10 +647,38 @@
       "price": "aws-AWSDataTransfer/internet-out:first-10tb",
       "target": "pricing:egress_per_gb_eur",
       "unit": "GB"
+    },
+    {
+      "multiplier": 1000000.0,
+      "option": "aws-sns",
+      "per": "unit",
+      "price": "aws-AmazonSNS/requests:paid-tier",
+      "target": "per_unit:messages_million",
+      "unit": "Requests"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-ecr",
+      "per": "unit",
+      "price": "aws-AmazonECR/storage",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-firehose",
+      "per": "unit",
+      "price": "aws-AmazonKinesisFirehose/delivery:bytes",
+      "target": "per_unit:ingested_gb_month",
+      "unit": "GB"
     }
   ],
   "descriptions": {
+    "aws-ecr": "Priced from the AWS Price List for image storage in eu-west-1; the estate does not report repository sizes, so ECR components stay unpriced.",
+    "aws-firehose": "Priced from the AWS Price List per GB ingested (tier 1, batch); the estate does not report Firehose volume, so Firehose components stay unpriced.",
+    "aws-sns": "Priced from the AWS Price List for API requests after the first million; the free tier and delivery attempts to HTTP/SQS are not modelled.",
     "managed-pg-branching": "Priced from Neon's Scale plan: CU-hours, storage and public transfer; see x_price_sources. Tiers are priced running all month (730 h); scale to zero costs less. 1 CU = 4 GB RAM per Neon's plans page; 1 vCPU per CU is the skeleton's assumption. Features are the skeleton's and were not checked against Neon's extension list.",
-    "managed-pg-platform": "Priced from Supabase's dedicated compute sizes (Large to 8XL) and its disk price; see x_price_sources. The Pro plan's monthly base fee is not included. Features are the skeleton's and were not checked against Supabase's extension list."
+    "managed-pg-platform": "Priced from Supabase's dedicated compute sizes (Large to 8XL), its disk price and its Pro egress price; see x_price_sources. The Pro plan's monthly base fee is not included. Features are the skeleton's and were not checked against Supabase's extension list.",
+    "managed-pg-serverless": "Priced from Neon's Launch plan: CU-hours, storage and public transfer; see x_price_sources. Tiers are priced running all month (730 h); scale to zero costs less. 1 CU = 4 GB RAM per Neon's plans page; 1 vCPU per CU is the skeleton's assumption. Features are the skeleton's and were not checked against Neon's extension list."
   }
 }

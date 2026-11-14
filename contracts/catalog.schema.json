@@ -55,7 +55,7 @@
               "items": {
                 "type": "object", "required": ["driver", "eur_per_unit"], "additionalProperties": false,
                 "properties": {
-                  "driver": { "enum": ["storage_gb_month", "requests_million", "iops_month", "provisioned_rcu_month", "provisioned_wcu_month", "consumed_rcu_million", "consumed_wcu_million", "shard_month", "throughput_mibps_month", "gateway_month", "cluster_month", "load_balancer_month", "address_month", "zone_month", "messages_million", "invocations_million", "gb_s_month", "task_vcpu_month", "task_gb_month", "lcu_month", "other"] },
+                  "driver": { "enum": ["storage_gb_month", "requests_million", "iops_month", "provisioned_rcu_month", "provisioned_wcu_month", "consumed_rcu_million", "consumed_wcu_million", "shard_month", "throughput_mibps_month", "gateway_month", "cluster_month", "load_balancer_month", "address_month", "zone_month", "messages_million", "invocations_million", "gb_s_month", "ingested_gb_month", "task_vcpu_month", "task_gb_month", "lcu_month", "other"] },
                   "eur_per_unit": { "type": "number", "minimum": 0 },
                   "free_units": { "type": "number", "minimum": 0, "default": 0 }
                 }
