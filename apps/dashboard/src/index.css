@@ -17,6 +17,7 @@
   --color-fg-subtle: var(--color-fg-subtle);
   --color-accent: var(--color-accent);
   --color-credit: var(--color-credit);
+  --color-on-credit: var(--color-on-credit);
   --animate-panel-in: panel-in 220ms ease-out both;
   --color-on-accent: var(--color-on-accent);
   --color-focus: var(--color-focus);

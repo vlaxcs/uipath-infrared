@@ -15,7 +15,7 @@ export function HomePage({ extensionUrl, onAnalyze, onPrevious }: HomePageProps)
       <Mascot animation="hood" className="h-48 w-48" />
       <div className="fixed inset-x-0 bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 p-4">
         <nav aria-label="Analyses" className="flex flex-wrap items-center gap-3">
-          <button type="button" onClick={onAnalyze} className={`${PILL} bg-accent text-on-accent`}>
+          <button type="button" onClick={onAnalyze} className={`${PILL} bg-credit text-on-credit`}>
             <CreditMark className="h-5 w-5" />
             Analyze
           </button>
