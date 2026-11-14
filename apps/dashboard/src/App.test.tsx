@@ -43,12 +43,34 @@ describe("the dashboard shell", () => {
 
   it("switches to a future section and back", () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Candidates" }));
-    expect(screen.getByRole("heading", { level: 1, name: "Candidates" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Approvals" }));
+    expect(screen.getByRole("heading", { level: 1, name: "Approvals" })).toBeTruthy();
     expect(screen.getByText("Not built yet")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Runs" }));
     expect(screen.getByRole("heading", { level: 1, name: "Runs" })).toBeTruthy();
     expect(screen.getByRole("list", { name: "Runs" })).toBeTruthy();
+  });
+
+  it("renders the passed rehearsal and the derived fallback", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Rehearsal" }));
+
+    expect(screen.getByRole("heading", { level: 1, name: "Rehearsal" })).toBeTruthy();
+    expect(screen.queryByText("Not built yet")).toBeNull();
+
+    const verdict = screen.getByRole("region", { name: "Verdict" });
+    expect(verdict.textContent).toContain("Passed");
+    expect(verdict.textContent).toContain("99.94%");
+    expect(verdict.textContent).toContain("99.9%");
+    expect(verdict.textContent).toContain("Proceed");
+
+    expect(screen.getByRole("table", { name: "Component health" })).toBeTruthy();
+
+    const fallback = screen.getByRole("region", { name: "The fallback" });
+    expect(fallback.textContent).toContain("Held");
+    expect(fallback.textContent).toContain(
+      "The load balancer routed traffic around the failed instance.",
+    );
   });
 });

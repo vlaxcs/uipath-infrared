@@ -2,6 +2,8 @@ import { useState } from "react";
 import { GraphSection } from "~/graph/GraphSection";
 import { sampleGraphModel } from "~/graph/sampleGraph";
 import { sectionById, type SectionId } from "~/navigation/sections";
+import { RehearsalSection } from "~/rehearsal/RehearsalSection";
+import { sampleRehearsal } from "~/rehearsal/sampleRehearsal";
 import { sampleRuns } from "~/runs/sampleRun";
 import { RunsSection } from "~/runs/RunsSection";
 import { StatusBadge } from "~/ui/StatusBadge";
@@ -24,6 +26,8 @@ export function App() {
         <RunsSection runs={sampleRuns} selectedRunId={selectedRunId} onSelectRun={setSelectedRunId} />
       ) : section === "graph" ? (
         <GraphSection model={sampleGraphModel} />
+      ) : section === "rehearsal" ? (
+        <RehearsalSection rehearsal={sampleRehearsal} />
       ) : (
         <SectionPlaceholder section={activeSection} />
       )}

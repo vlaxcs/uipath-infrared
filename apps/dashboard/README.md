@@ -28,3 +28,9 @@ There is no orchestrator graph source yet; a future source can replace the sampl
 ## Sample data
 
 The runs list and summary read `contracts/run.example.json` through `src/runs/sampleRun.ts`, so the shell renders a real contract sample before the orchestrator API exists. The sample's output paths do not map to `contracts/result.example.json` or a rehearsal file; later views need an explicit fixture map or the real API.
+
+## Rehearsal
+
+The Rehearsal section renders `rehearsal.json` through `src/rehearsal/sampleRehearsal.ts`, the only rehearsal module that imports data files. The default is `contracts/rehearsal.example.json` (the passed demo path); `apps/sandbox/sample/rehearsal.json` is exported as `failedRehearsal` for the failed/revise state and tests.
+
+It shows the traffic profile, the injected failure, availability and latency before/during/after with each measurement's provenance and basis, per-component health, and the pass/fail verdict with the orchestrator's decision. `rehearsal.json` has no fallback field, so the fallback summary is derived from component results, phase measurements, the verdict and `x_measurement_notes`, and is labelled as derived. Missing measurements show "Not measured"; no value is zero-filled. Readers accept any 1.x schema and humanise unknown vocabulary.
