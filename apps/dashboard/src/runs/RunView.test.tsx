@@ -18,10 +18,16 @@ function sourceWith(overrides: Partial<RunSource>): RunSource {
   return { ...sampleRunSource, ...overrides };
 }
 
+function clickStep(title: string) {
+  const list = screen.getByRole("list", { name: "Steps" });
+  fireEvent.click(within(list).getByRole("button", { name: new RegExp(title) }));
+}
+
 describe("the run view", () => {
-  it("renders the sample run, its steps, the selected step's result and the timeline", async () => {
+  it("shows the current run's details before a step is selected, then the step's result", async () => {
     render(<RunView run={sampleRun} source={sampleRunSource} />);
 
+    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
     const summary = screen.getByRole("region", { name: "demo-shop" });
     expect(summary.textContent).toContain("Completed");
     expect(summary.textContent).toContain("rehearse");
@@ -32,13 +38,15 @@ describe("the run view", () => {
     for (const title of ["Extract", "Investigate", "Propose", "Evaluate", "Present", "Rehearse"]) {
       expect(within(steps).getByText(title)).toBeTruthy();
     }
-
     const executing = within(steps).getByRole("button", { name: /Rehearse/ });
     expect(executing.getAttribute("aria-current")).toBe("step");
-    expect(executing.getAttribute("aria-pressed")).toBe("true");
+    expect(executing.getAttribute("aria-pressed")).toBe("false");
+
+    clickStep("Rehearse");
 
     expect(screen.getByRole("heading", { level: 2, name: "Rehearse" })).toBeTruthy();
     expect(await screen.findByText("Passed")).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Run overview" })).toBeNull();
 
     const timeline = screen.getByRole("region", { name: "Timeline" });
     expect(timeline.textContent).toContain("keep_analyses");
@@ -51,13 +59,16 @@ describe("the run view", () => {
     expect(timeline.textContent).toContain("result.1.json");
     expect(timeline.textContent).toContain("rehearsal.json");
     expect(screen.queryByText("A layout is waiting to be picked")).toBeNull();
+
+    clickStep("Rehearse");
+    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
   });
 
   it("shows the results of the clicked step and previews the next one", async () => {
     render(<RunView run={sampleRun} source={sampleRunSource} />);
     const steps = screen.getByRole("list", { name: "Steps" });
 
-    fireEvent.click(within(steps).getByRole("button", { name: /Extract/ }));
+    clickStep("Extract");
 
     expect(screen.getByRole("heading", { level: 2, name: "Extract" })).toBeTruthy();
     expect(await screen.findByText("hand-written-mock")).toBeTruthy();
@@ -72,12 +83,15 @@ describe("the run view", () => {
     expect(within(steps).getByRole("button", { name: /Extract/ }).getAttribute("aria-pressed")).toBe("false");
   });
 
-  it("shows the layout gate and submits pick_layout", async () => {
+  it("reviews the layout gate from the overview and submits pick_layout", async () => {
     const submitDecision = vi.fn().mockResolvedValue(eventAt(16));
     render(<RunView run={cutSampleRun(14)} source={sourceWith({ submitDecision })} />);
 
     const banner = screen.getByRole("region", { name: "A layout is waiting to be picked" });
     expect(banner.textContent).toContain("Keep analyses, then pick the layout to rehearse.");
+    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Review the gate" }));
 
     const highest = await screen.findByRole("radio", { name: /consolidate/ });
     await waitFor(() => expect((highest as HTMLInputElement).checked).toBe(true));
@@ -102,13 +116,14 @@ describe("the run view", () => {
     expect(timeline.textContent).toContain("pick_layout");
   });
 
-  it("shows the plan gate and submits approve_plan", async () => {
+  it("reviews the plan gate and submits approve_plan", async () => {
     const submitDecision = vi.fn().mockResolvedValue(eventAt(21));
     render(<RunView run={cutSampleRun(20)} source={sourceWith({ submitDecision })} />);
 
     expect(screen.getByRole("heading", { name: "The plan is waiting for approval" })).toBeTruthy();
-    expect(await screen.findByText("The rehearsal held; approving the plan completes the run.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Review the gate" }));
 
+    expect(screen.getByRole("heading", { level: 2, name: "Rehearse" })).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Reason"), { target: { value: "rehearsal held" } });
     fireEvent.click(screen.getByRole("button", { name: "Approve plan" }));
 
@@ -121,29 +136,31 @@ describe("the run view", () => {
     });
   });
 
-  it("follows the executing step and can stop following", async () => {
+  it("keeps the overview live and returns to it from a pinned step", async () => {
     vi.useFakeTimers();
     const source = sourceWith({ mode: "live", eventsAfter: async () => [eventAt(18)] });
     render(<RunView run={cutSampleRun(17)} source={source} />);
 
     expect(screen.getByRole("button", { name: "Following live" }).getAttribute("aria-pressed")).toBe("true");
-    expect(screen.getByRole("heading", { level: 2, name: "Present" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2000);
     });
 
-    expect(screen.getByRole("heading", { level: 2, name: "Rehearse" })).toBeTruthy();
     const steps = screen.getByRole("list", { name: "Steps" });
     expect(within(steps).getByRole("button", { name: /Rehearse/ }).getAttribute("aria-current")).toBe("step");
+    expect(screen.getByRole("region", { name: "demo-shop" }).textContent).toContain("rehearse");
+    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
 
-    fireEvent.click(within(steps).getByRole("button", { name: /Extract/ }));
+    clickStep("Extract");
     expect(screen.getByRole("heading", { level: 2, name: "Extract" })).toBeTruthy();
     const follow = screen.getByRole("button", { name: "Follow live" });
     expect(follow.getAttribute("aria-pressed")).toBe("false");
 
     fireEvent.click(follow);
-    expect(screen.getByRole("heading", { level: 2, name: "Rehearse" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Following live" })).toBeTruthy();
   });
 
   it("renders a failed run", () => {

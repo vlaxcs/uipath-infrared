@@ -13,12 +13,12 @@ describe("the dashboard shell", () => {
       expect(nav.textContent).toContain(label);
     }
     expect(screen.getByText("Sample data")).toBeTruthy();
-    expect(await screen.findByRole("list", { name: "Runs" })).toBeTruthy();
+    expect(await screen.findByRole("table", { name: "Runs" })).toBeTruthy();
   });
 
   it("lists the sample run and shows its timeline when selected", async () => {
     render(<App />);
-    expect((await screen.findByRole("list", { name: "Runs" })).textContent).toContain("demo-shop");
+    expect((await screen.findByRole("table", { name: "Runs" })).textContent).toContain("demo-shop");
 
     fireEvent.click(screen.getByRole("button", { name: /run-demo-shop-0001/ }));
 
@@ -45,7 +45,7 @@ describe("the dashboard shell", () => {
 
   it("switches to a future section and back", async () => {
     render(<App />);
-    await screen.findByRole("list", { name: "Runs" });
+    await screen.findByRole("table", { name: "Runs" });
 
     fireEvent.click(screen.getByRole("button", { name: "Graph" }));
     expect(screen.getByRole("heading", { level: 1, name: "Graph" })).toBeTruthy();
@@ -53,6 +53,6 @@ describe("the dashboard shell", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Runs" }));
     expect(screen.getByRole("heading", { level: 1, name: "Runs" })).toBeTruthy();
-    expect(await screen.findByRole("list", { name: "Runs" })).toBeTruthy();
+    expect(await screen.findByRole("table", { name: "Runs" })).toBeTruthy();
   });
 });

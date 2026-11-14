@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cutSampleRun } from "~/runs/fixtures";
 import { sampleRunSource } from "~/runs/sampleRunSource";
@@ -17,16 +17,24 @@ describe("the runs section", () => {
     expect(await screen.findByText("No runs yet")).toBeTruthy();
   });
 
-  it("lists the sample run and opens it on selection", async () => {
+  it("lists runs in a table with before and after prices, and opens one on selection", async () => {
     render(<RunsSection source={sampleRunSource} />);
 
-    expect(await screen.findByRole("list", { name: "Runs" })).toBeTruthy();
+    const table = await screen.findByRole("table", { name: "Runs" });
+    expect(table.textContent).toContain("Before €/mo");
+    expect(table.textContent).toContain("After €/mo");
+    expect(await screen.findByText("€133,308")).toBeTruthy();
+    expect(screen.getByText("€74,365")).toBeTruthy();
+    expect(screen.getByText("consolidate")).toBeTruthy();
     expect(screen.getByText("Select a run")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: /run-demo-shop-0001/ }));
+    fireEvent.click(within(table).getByRole("button", { name: /run-demo-shop-0001/ }));
 
     const summary = await screen.findByRole("region", { name: "demo-shop" });
     expect(summary.textContent).toContain("Completed");
+    expect(within(table).getByRole("button", { name: /run-demo-shop-0001/ }).getAttribute("aria-expanded")).toBe(
+      "true",
+    );
   });
 
   it("selects the newest active run automatically", async () => {
@@ -44,7 +52,7 @@ describe("the runs section", () => {
     expect(screen.getByRole("heading", { name: "A layout is waiting to be picked" })).toBeTruthy();
   });
 
-  it("starts a live run and follows it", async () => {
+  it("starts a live run and opens its overview", async () => {
     const started = cutSampleRun(14);
     const startRun = vi.fn().mockResolvedValue(started);
     render(

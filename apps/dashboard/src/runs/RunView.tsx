@@ -13,7 +13,7 @@ import { AwaitingBanner } from "~/runs/AwaitingBanner";
 import { RunControls } from "~/runs/RunControls";
 import { RunSummary } from "~/runs/RunSummary";
 import { RunTimeline } from "~/runs/RunTimeline";
-import { StepRail } from "~/runs/StepRail";
+import { StepGraph } from "~/runs/StepGraph";
 import { StepResultPane } from "~/runs/StepResultPane";
 import { NextStepPreview } from "~/runs/NextStepPreview";
 
@@ -29,33 +29,42 @@ export function RunView({ run: initialRun, source, onReload, onStartAgain, onRun
   const { run, error, mergeEvent } = useRunFeed(initialRun, source);
   const steps = deriveStepStates(run.events, run);
   const [following, setFollowing] = useState(true);
-  const [selectedStep, setSelectedStep] = useState<RunStep>(run.step);
+  const [selectedStep, setSelectedStep] = useState<RunStep | null>(null);
   const [revision, setRevision] = useState<number | null>(null);
 
   useEffect(() => {
     onRunUpdated?.();
   }, [onRunUpdated, run.status, run.step, run.updated_at]);
 
-  useEffect(() => {
-    if (!following) return;
-    setSelectedStep(run.step);
-    setRevision(null);
-  }, [following, run.step]);
-
-  const selectStep = (step: RunStep) => {
+  const pinStep = (step: RunStep) => {
     setFollowing(false);
     setSelectedStep(step);
     setRevision(null);
   };
 
-  const preview = nextPreview(run, selectedStep, steps);
-  const selectNext = () => {
-    if (preview.step) selectStep(preview.step);
+  const toggleStep = (step: RunStep) => {
+    if (selectedStep === step) {
+      setSelectedStep(null);
+      setRevision(null);
+      setFollowing(true);
+      return;
+    }
+    pinStep(step);
   };
 
-  const revisions = revisionsForStep(run, selectedStep);
-  const effectiveRevision = revision ?? latestRevision(run, selectedStep);
-  const artifactPath = primaryArtifactPath(run, selectedStep, effectiveRevision);
+  const toggleFollowing = () => {
+    if (following) {
+      setFollowing(false);
+      return;
+    }
+    setFollowing(true);
+    setSelectedStep(null);
+    setRevision(null);
+  };
+
+  const revisions = selectedStep ? revisionsForStep(run, selectedStep) : [];
+  const effectiveRevision = selectedStep ? revision ?? latestRevision(run, selectedStep) : null;
+  const artifactPath = selectedStep ? primaryArtifactPath(run, selectedStep, effectiveRevision) : null;
   const artifact = useRunArtifact(source, run.id, artifactPath);
 
   const eventOptions = useMemo(() => layoutOptions(run.events), [run.events]);
@@ -78,9 +87,11 @@ export function RunView({ run: initialRun, source, onReload, onStartAgain, onRun
     return appended;
   };
 
+  const preview = selectedStep ? nextPreview(run, selectedStep, steps) : null;
+
   const reviewGate = () => {
-    if (run.awaiting === "layout") selectStep("present");
-    else if (run.awaiting === "plan") selectStep("rehearse");
+    if (run.awaiting === "layout") pinStep("present");
+    else if (run.awaiting === "plan") pinStep("rehearse");
   };
 
   return (
@@ -97,15 +108,13 @@ export function RunView({ run: initialRun, source, onReload, onStartAgain, onRun
         run={run}
         mode={source.mode}
         following={following}
-        onToggleFollowing={() => setFollowing((current) => !current)}
+        onToggleFollowing={toggleFollowing}
         onStartAgain={source.mode === "live" ? onStartAgain : undefined}
       />
       <AwaitingBanner run={run} onReview={reviewGate} />
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <div className="lg:w-64 lg:shrink-0">
-          <StepRail run={run} states={steps} selectedStep={selectedStep} onSelectStep={selectStep} />
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col gap-4">
+      <StepGraph run={run} states={steps} selectedStep={selectedStep} onSelectStep={toggleStep} />
+      {selectedStep && preview ? (
+        <div className="flex flex-col gap-4">
           <StepResultPane
             run={run}
             step={selectedStep}
@@ -121,10 +130,24 @@ export function RunView({ run: initialRun, source, onReload, onStartAgain, onRun
             decisionError={decision.error}
             onRefresh={onReload}
           />
-          <NextStepPreview preview={preview} onSelect={selectNext} />
+          <NextStepPreview
+            preview={preview}
+            onSelect={() => {
+              if (preview.step) pinStep(preview.step);
+            }}
+          />
         </div>
-      </div>
-      <RunSummary run={run} />
+      ) : (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-title font-semibold">Run overview</h2>
+            <p className="text-caption text-fg-subtle">
+              Select a step in the pipeline to inspect its result.
+            </p>
+          </div>
+          <RunSummary run={run} />
+        </div>
+      )}
       <RunTimeline run={run} />
     </div>
   );
