@@ -28,6 +28,8 @@ Without `--out` it overwrites `contracts/real/floci-estate.infra.json`, which CI
 
 `tests/test_extraction.py` re-runs the extractor against Floci and compares it with `tests/fixtures/baseline.normalized.json`, restricted to the stacks in the baseline (shop, data, legacy, dev), so the start-up and sandbox estates can come and go without breaking it. It is skipped when Floci is unreachable. Every other test uses plain data.
 
+`--project` scopes the extraction when Floci holds several estates. `startup`, `clinic-booking` and `fleet-telemetry` keep only the components whose name carries their prefix (`startup-`, `clinic-`, `fleet-`, also inside aggregate names such as `1 NAT gateway(s) in clinic-prod-vpc`) and the edges between them; orphan volumes are filtered by their Name tag before they are grouped. `demo-shop` keeps what no other project claims. Any other name (the default `floci-estate`) keeps the whole account, as before. Names shaped `<prefix>-<prod|staging|dev>-...` give the stack `<prefix>-<environment>` with that environment; a scoped extraction drops the prefix, so clinic-booking reads back with stacks `prod`, `staging`, `dev`. The registry is `extractor/domain/projects.py`.
+
 EC2 instances in state `terminated` or `shutting-down` are not components (Floci keeps them listed forever); they are named in one `x_extraction_warnings` entry.
 
 ## Mock vs real

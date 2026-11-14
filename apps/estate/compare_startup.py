@@ -16,10 +16,10 @@ def is_orphan_volume(component):
     return component["kind"] == "block_storage" and component.get("status") == "orphan"
 
 
-def in_scope(component, mock_volume_signatures):
+def in_scope(component, mock_volume_signatures, prefix=PREFIX):
     if is_orphan_volume(component):
         return orphan_volume_signature(component) in mock_volume_signatures
-    return PREFIX in component.get("name", "")
+    return prefix in component.get("name", "")
 
 
 def similar_name(ext_name, mock_id):
@@ -28,13 +28,13 @@ def similar_name(ext_name, mock_id):
     return any(len(part) >= 3 and part in ext_lower for part in parts)
 
 
-def find_match(mock, candidates):
+def find_match(mock, candidates, prefix=PREFIX):
     if is_orphan_volume(mock):
         return next((c for c in candidates if is_orphan_volume(c)
                      and orphan_volume_signature(c) == orphan_volume_signature(mock)), None)
     same_kind = [c for c in candidates if c["kind"] == mock["kind"]]
-    exact = f"{PREFIX}-{mock['id']}"
-    return (next((c for c in same_kind if c.get("name") == exact), None)
+    exact = f"{prefix}-{mock['id']}"
+    return (next((c for c in same_kind if c.get("name", "").replace("/", "-") == exact), None)
             or next((c for c in same_kind if similar_name(c.get("name", ""), mock["id"])), None))
 
 
@@ -51,12 +51,12 @@ def compare_component(mock, extractor):
     return {"ok": not diffs, "diffs": diffs}
 
 
-def compare_docs(extractor, mock):
+def compare_docs(extractor, mock, prefix=PREFIX):
     volume_signatures = {orphan_volume_signature(c) for c in mock["components"] if is_orphan_volume(c)}
-    unmatched = [c for c in extractor["components"] if in_scope(c, volume_signatures)]
+    unmatched = [c for c in extractor["components"] if in_scope(c, volume_signatures, prefix)]
     results = {"matched": [], "missing_in_extractor": [], "extra_in_extractor": [], "mismatches": []}
     for mc in mock["components"]:
-        ec = find_match(mc, unmatched)
+        ec = find_match(mc, unmatched, prefix)
         if ec is None:
             results["missing_in_extractor"].append(mc["id"])
             continue
@@ -74,8 +74,8 @@ def passed(results):
     return not (results["missing_in_extractor"] or results["extra_in_extractor"] or results["mismatches"])
 
 
-def print_results(results):
-    print("=== Startup Estate Comparison ===\n")
+def print_results(results, prefix=PREFIX):
+    print(f"=== {prefix} estate comparison ===\n")
     print(f"Matched components: {len(results['matched'])}")
     for m in results["matched"]:
         print(f"  ok {m['id']} -> {m['extractor_id']}")
@@ -99,11 +99,12 @@ def print_results(results):
 
 
 def main(argv):
-    if len(argv) != 3:
-        print("Usage: compare_startup.py <extractor_output.json> <mock.json>")
+    if len(argv) not in (3, 4):
+        print("Usage: compare_startup.py <extractor_output.json> <mock.json> [name prefix, default startup]")
         return 2
-    extractor, mock = (json.loads(Path(p).read_text()) for p in argv[1:])
-    return print_results(compare_docs(extractor, mock))
+    extractor, mock = (json.loads(Path(p).read_text()) for p in argv[1:3])
+    prefix = argv[3] if len(argv) == 4 else PREFIX
+    return print_results(compare_docs(extractor, mock, prefix), prefix)
 
 
 if __name__ == "__main__":

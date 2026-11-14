@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "id": "clinic-booking-2027-plan",
+  "description": "Clinic booking forecast: Hungary launch in month 9, patient data stays in the EU, reliability before cost.",
+  "horizon_months": 24,
+  "currency": "EUR",
+  "scenarios": {
+    "low":  { "probability": 0.25, "monthly_multiplier": { "traffic": 1.01, "data": 1.015 }, "note": "Existing clinics only, slow sign-ups." },
+    "base": { "probability": 0.55, "monthly_multiplier": { "traffic": 1.03, "data": 1.035 }, "note": "Two new clinic chains a quarter." },
+    "high": { "probability": 0.20, "monthly_multiplier": { "traffic": 1.05, "data": 1.06 }, "note": "National insurer partnership signs." }
+  },
+  "events": [
+    { "month": 9, "description": "Launch in Hungary", "traffic_multiplier": 1.35, "data_multiplier": 1.3 }
+  ],
+  "hard_constraints": {
+    "data_residency": { "allowed_regions": ["eu-*"], "applies_to": ["pii", "confidential", "unknown"] },
+    "budget": { "max_monthly_run_cost_eur": 16000, "max_one_off_migration_cost_eur": 30000 },
+    "min_availability_pct": 99.5,
+    "allowed_providers": ["aws", "managed_pg"],
+    "max_migration_effort_hours": 400,
+    "max_cutover_downtime_hours": 1,
+    "security_gates": {
+      "forbid_public_datastores": true,
+      "require_encryption_at_rest": true,
+      "forbid_world_open_admin_ports": true,
+      "require_audit_logging": true,
+      "require_backups": true
+    }
+  },
+  "cto_settings": {
+    "ha_level": "multi_az",
+    "min_zones": 2,
+    "weights": { "cost": 0.35, "risk": 0.45, "effort": 0.20 },
+    "tie_break": "lower_risk",
+    "strategies_enabled": ["do_nothing", "cleanup_orphans", "rightsize_in_place", "managed_services", "consolidate"]
+  },
+  "business": {
+    "downtime_cost_per_hour_eur": 4500,
+    "downtime_cost_by_stack": { "staging": 0, "dev": 0 },
+    "engineer_hourly_eur": 65,
+    "discount_rate_annual": 0.05
+  }
+}

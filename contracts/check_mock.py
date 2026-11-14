@@ -15,6 +15,7 @@ Result: unique candidate ids, do_nothing present, feasible exactly when there ar
 violation_distance is the sum of the distances, exactly one of winner / closest_if_none_feasible,
 only feasible candidates are scored and ranked, every loser says why, and component ids exist in the infra.
 For the run example: the summary fields agree with the event log (see run_integrity.py).
+Projects: every mock/<project>.project.json against its infra and forecast (see project_integrity.py).
 Candidates: ids, builds_on, components, catalog options, regions and tiers (see candidates_integrity.py).
 """
 import json
@@ -28,6 +29,7 @@ except ImportError:
     sys.exit("jsonschema missing: pip install jsonschema")
 
 from candidates_integrity import candidates_integrity_errors
+from project_integrity import project_integrity_errors
 from run_integrity import run_integrity_errors
 
 HERE = Path(__file__).parent
@@ -288,7 +290,47 @@ def main():
         forecast_integrity(f_startup)
         print("catalog check")
         catalog_integrity(c, infra_startup)
+
+        for project in ("clinic-booking", "fleet-telemetry"):
+            print(f"\n=== {project} ===")
+            check_project_inputs(project, c)
+
+        print("\n=== projects ===")
+        if load(HERE / "mock/demo-shop.forecast.json") != f:
+            errors.append("[integrity] mock/demo-shop.forecast.json differs from forecast.example.json")
+        for path in sorted((HERE / "mock").glob("*.project.json")):
+            check_project(path)
     finish()
+
+
+def check_project_inputs(project, catalog):
+    print("infra")
+    infra = load(HERE / f"mock/{project}.infra.json")
+    before = len(errors)
+    schema_check(f"{project}.infra.json", infra, "infra.schema.json")
+    if len(errors) == before:
+        infra_integrity(infra)
+    print("forecast")
+    forecast = load(HERE / f"mock/{project}.forecast.json")
+    schema_check(f"{project}.forecast.json", forecast, "forecast.schema.json")
+    forecast_integrity(forecast)
+    print("catalog check")
+    catalog_integrity(catalog, infra)
+
+
+def check_project(path):
+    profile = load(path)
+    before = len(errors)
+    schema_check(path.name, profile, "project.schema.json")
+    if len(errors) > before:
+        return
+    project = profile["project"]
+    infra, forecast = (load(HERE / f"mock/{project}.{kind}.json") for kind in ("infra", "forecast"))
+    errors.extend(f"[integrity] {path.name}: {e}" for e in project_integrity_errors(profile, infra, forecast))
+    last = profile["users"]["expected"][-1]
+    envs = "/".join(env["name"] for env in profile["environments"])
+    print(f"  {project}: {envs}; {profile['users']['current']['value']:,} users now, "
+          f"{last['base']:,} expected at month {last['month']} (low {last['low']:,}, high {last['high']:,})")
 
 
 def check_candidates(label, doc, infra=None, catalog=None):

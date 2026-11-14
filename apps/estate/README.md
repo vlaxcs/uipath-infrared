@@ -67,6 +67,30 @@ Floci keeps terminated instances listed forever, and the extractor does not skip
 earlier build therefore show up as extra `startup-web-*` / `startup-old-bastion` components until the extractor
 filters `terminated` instances or Floci is reset.
 
+## Clinic-booking and fleet-telemetry estates (`projects/`)
+Two more estates that mirror `contracts/mock/clinic-booking.infra.json` (prefix `clinic-`, one VPC per environment:
+prod, staging, dev) and `contracts/mock/fleet-telemetry.infra.json` (prefix `fleet-`, prod and dev). Resource names
+follow `<prefix>-<environment>-<component>`, which is how the extractor derives the stacks and their environments.
+
+    cd apps/estate
+    set -a; . ../../.env; set +a; export AWS_DEFAULT_REGION=us-east-1
+    ../../.venv/bin/python -m projects build clinic-booking      # creates what is missing, reuses the rest
+    ../../.venv/bin/python -m projects metrics clinic-booking    # 14 days of hourly CloudWatch points
+    ../../.venv/bin/python -m projects teardown clinic-booking   # deletes every clinic- resource (ask before running it)
+
+Same for `fleet-telemetry`. Each ECS task, RDS instance, cache node and EC2 instance is a Docker container in Floci:
+clinic-booking adds 12 tasks, 3 databases, 1 cache, 1 instance; fleet-telemetry 6 tasks, 2 databases, 1 cache, 1
+instance. `metrics` sends 10 points per call: Floci cannot read the gzip bodies boto3 sends above 10 KB.
+
+Compare with the mock (the extractor scopes to the project's prefix when given its name):
+
+    cd ../extractor && ../../.venv/bin/python extract_floci.py --project clinic-booking --out /tmp/clinic-extraction.json
+    cd ../estate && ../../.venv/bin/python compare_startup.py /tmp/clinic-extraction.json ../../contracts/mock/clinic-booking.infra.json clinic
+
+The third argument of `compare_startup.py` is the name prefix (default `startup`). ECS services are named
+`<cluster>/<service>` (`clinic-prod/api`); the comparison reads `/` as `-`. Verified 2026-11-14: clinic-booking 14/14,
+fleet-telemetry 13/13, startup still 10/10.
+
 ## Extractor (`apps/extractor/`)
 Reads the live estate through API calls only and writes `contracts/real/floci-estate.infra.json` in the `contracts/infra.schema.json`
 format. See `apps/extractor/README.md` for how it differs from the mock. It never reads `ground_truth/`.
