@@ -1,14 +1,14 @@
 import type { FormEvent, ReactNode } from "react";
-import { canStart, onpremChoice, targetChoices, withProject, withTarget } from "~/onboarding/answers";
+import { canStart, onpremChoice, projectById, searchAreas, targetChoices, withTarget } from "~/onboarding/answers";
 import { CriteriaFields } from "~/onboarding/CriteriaFields";
-import { EstateApps } from "~/onboarding/EstateApps";
+import type { MapEngine } from "~/onboarding/mapEngine";
+import { OnpremAreas } from "~/onboarding/OnpremAreas";
+import { ProjectCards } from "~/onboarding/ProjectCards";
 import { ProjectHeld } from "~/onboarding/ProjectHeld";
-import { NEW_SITE, SiteFields } from "~/onboarding/SiteFields";
 import { SaveProfileDialog, type SaveChoice } from "~/onboarding/SaveProfileDialog";
-import { projectFacts, projectLabel } from "~/onboarding/projectFacts";
 import { StatusBadge } from "~/ui/StatusBadge";
 import type { RunSummary } from "~/runs/types";
-import type { Answers, Choice, FocusMode, OnboardingSetup, Profile } from "~/onboarding/types";
+import type { Answers, Choice, OnboardingSetup, ProfileSite } from "~/onboarding/types";
 
 type OnboardingFormProps = {
   setup: OnboardingSetup;
@@ -20,9 +20,10 @@ type OnboardingFormProps = {
   holder?: RunSummary | null;
   onOpenRun?: (id: string) => void;
   saveChoice?: SaveChoice | null;
-  profile?: Profile;
+  loadMap?: () => Promise<MapEngine>;
 };
 
+const NO_AREAS: ProfileSite = { kind: "search", areas: [] };
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -99,9 +100,9 @@ function ConnectionState({ reachable, endpoint }: { reachable?: boolean; endpoin
   );
 }
 
-export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, error, holder = null, onOpenRun, saveChoice = null, profile }: OnboardingFormProps) {
-  const estate = setup.projects.find((project) => project.id === answers.project);
-  const applications = estate?.applications ?? [];
+export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, error, holder = null, onOpenRun, saveChoice = null, loadMap }: OnboardingFormProps) {
+  const company = projectById(setup, answers.project);
+  const applications = company?.applications ?? [];
   let step = 0;
   const next = (title: string) => `${(step += 1)}. ${title}`;
   const onprem = onpremChoice(setup, answers);
@@ -128,51 +129,22 @@ export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, e
         ))}
       </Section>
 
-      <Section title={next("Pick the estate")}>
-        {setup.projects.length === 0 ? (
-          <p className="text-label text-fg-muted">No projects yet. Add a forecast to the projects directory of the orchestrator.</p>
+      <Section title={next("Projects")}>
+        {applications.length === 0 ? (
+          <p className="text-label text-fg-muted">No projects yet. Finance lists the company's projects in its forecast in the orchestrator's projects directory.</p>
         ) : (
-          setup.projects.map((project) => (
-            <Option
-              key={project.id}
-              type="radio"
-              name="project"
-              id={project.id}
-              label={projectLabel(project)}
-              hint={projectFacts(project)}
-              checked={answers.project === project.id}
-              onChange={() => onAnswers(withProject(setup, answers, project.id, profile))}
-            />
-          ))
+          <>
+            <p className="text-caption text-fg-muted">
+              The company's projects, from finance. Each scales on its own users and uses the default focus unless you pick its own.
+            </p>
+            <ProjectCards applications={applications} answers={answers} markets={setup.markets} onAnswers={onAnswers} />
+          </>
         )}
       </Section>
 
-      {applications.length > 0 ? (
-        <Section title={next("Projects in this estate")}>
-          <p className="text-caption text-fg-muted">Each project scales on its own users. They start from the estate's plan; change them for this run.</p>
-          <EstateApps applications={applications} answers={answers} onAnswers={onAnswers} />
-        </Section>
-      ) : null}
-
-      <Section title={next("Focus")}>
-        {applications.length > 0 ? (
-          <div role="radiogroup" aria-label="Focus for" className="flex flex-wrap gap-4">
-            {([["plan", "One focus for the whole plan"], ["project", "Each project's own focus"]] as const).map(([mode, label]) => (
-              <label key={mode} className="flex items-center gap-2 text-label text-fg">
-                <input type="radio" name="focus-mode" value={mode} checked={answers.focusMode === mode} onChange={() => onAnswers({ ...answers, focusMode: mode as FocusMode })} className="accent-accent" />
-                {label}
-              </label>
-            ))}
-          </div>
-        ) : null}
-        {answers.focusMode === "project" && applications.length > 0 ? (
-          <p className="text-caption text-fg-muted">Each project uses the focus set in Projects in this estate, starting from Configuration.</p>
-        ) : (
-          <>
-            <p className="text-caption text-fg-muted">One focus for this run. The default comes from Configuration.</p>
-            <CriteriaFields criteria={answers.criteria} markets={setup.markets} onChange={(criteria) => onAnswers({ ...answers, criteria })} />
-          </>
-        )}
+      <Section title={next("Default focus")}>
+        <p className="text-caption text-fg-muted">Every project on the default focus uses this one. It starts from Configuration.</p>
+        <CriteriaFields criteria={answers.criteria} markets={setup.markets} onChange={(criteria) => onAnswers({ ...answers, criteria })} />
       </Section>
 
       <Section title={next("Where it may move")}>
@@ -190,9 +162,9 @@ export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, e
 
       {onprem ? (
         <Section title={next("On-prem")}>
-          <Checkbox name="onprem" choice={onprem} onChange={(checked) => onAnswers({ ...answers, onprem: checked, site: checked ? answers.site ?? NEW_SITE : answers.site })} />
-          <p className="text-caption text-fg-muted">Infrared prices the hardware, the space and the people to run it. The site comes from your profile; change it here for this run.</p>
-          {answers.onprem && answers.site ? <SiteFields id="analysis-site" site={answers.site} onChange={(site) => onAnswers({ ...answers, site })} /> : null}
+          <Checkbox name="onprem" choice={onprem} onChange={(checked) => onAnswers({ ...answers, onprem: checked, site: checked ? answers.site ?? NO_AREAS : answers.site })} />
+          <p className="text-caption text-fg-muted">Infrared prices the hardware, the space and the people to run it. The areas come from your profile; change them here for this run.</p>
+          {answers.onprem ? <OnpremAreas areas={searchAreas(answers.site)} onChange={(areas) => onAnswers({ ...answers, site: { kind: "search", areas } })} loadMap={loadMap} /> : null}
         </Section>
       ) : null}
 

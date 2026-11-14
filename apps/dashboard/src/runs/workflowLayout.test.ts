@@ -32,13 +32,28 @@ const plans = [
 ];
 
 describe("the workflow layout", () => {
-  it("puts each node of the spine on its own row, moving right", () => {
+  it("stacks the spine in one column, each node on its own row", () => {
     const { nodes } = workflowLayout(flow(), "startup", titles, states, [], 0);
     const spine = nodes.filter((node) => node.kind !== "side");
     for (let index = 1; index < spine.length; index += 1) {
       expect(spine[index].y).toBeGreaterThan(spine[index - 1].y + spine[index - 1].height);
-      expect(spine[index].x).toBeGreaterThan(spine[index - 1].x);
+      expect(spine[index].x).toBe(spine[0].x);
     }
+  });
+
+  it("gives every return edge its own lane right of the spine, nested so none cross", () => {
+    const { nodes, edges } = workflowLayout(flow(), "startup", titles, states, [], 0);
+    const right = Math.max(...nodes.map((node) => node.x + node.width));
+    const lane = (id: string) => {
+      const match = edges.find((edge) => edge.id === id)!.path.match(/H ([\d.]+) V ([\d.]+)/)!;
+      return { x: Number(match[1]), arrive: Number(match[2]) };
+    };
+    const [inner, middle, outer] = ["revise-evaluate", "revise-rehearse", "diverge"].map(lane);
+    expect(inner.x).toBeGreaterThan(right);
+    expect(middle.x).toBeGreaterThan(inner.x);
+    expect(outer.x).toBeGreaterThan(middle.x);
+    expect(outer.arrive).toBeLessThan(middle.arrive);
+    expect(middle.arrive).toBeLessThan(inner.arrive);
   });
 
   it("keeps every node and side branch inside its fixed width, whatever the screen", () => {

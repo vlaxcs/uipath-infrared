@@ -154,7 +154,7 @@
   --color-danger-soft: color-mix(in srgb, var(--color-status-failed) 14%, var(--color-surface));
   --color-info: var(--color-status-running);
   --color-info-soft: color-mix(in srgb, var(--color-status-running) 14%, var(--color-surface));
-  --color-scrim: color-mix(in srgb, var(--color-fg) 45%, transparent);
+  --color-scrim: rgb(0 0 0 / 0.7);
 
   --radius-item: 0;
   --radius-well: 0;

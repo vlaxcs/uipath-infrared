@@ -27,6 +27,11 @@ var (
 
 var projectName = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*$`)
 
+// ValidProject says whether name can name a project: a forecast file and a run id are built from it.
+func ValidProject(name string) bool {
+	return projectName.MatchString(name)
+}
+
 const (
 	forecastSuffix = ".forecast.json"
 	forecastName   = "forecast.json"
@@ -113,6 +118,7 @@ func (w *Workflow) Onboarding() (onboarding.Setup, error) {
 	sort.Slice(projects, func(i, j int) bool { return projects[i].ID < projects[j].ID })
 	return onboarding.Setup{
 		Connections: w.connections(),
+		Company:     w.company(),
 		Providers:   offer.Providers,
 		Onprem:      offer.Onprem,
 		Projects:    projects,
@@ -139,7 +145,18 @@ func (w *Workflow) connections() []onboarding.Connection {
 	return connections
 }
 
+func (w *Workflow) company() string {
+	if w.config.Company == "" {
+		return DefaultCompany
+	}
+	return w.config.Company
+}
+
+// Start begins a run for project, or for the company when project is empty.
 func (w *Workflow) Start(project string, answers *onboarding.Answers) (run.Run, error) {
+	if project == "" {
+		project = w.company()
+	}
 	if !projectName.MatchString(project) {
 		return run.Run{}, fmt.Errorf("%w: %q", ErrUnknownProject, project)
 	}

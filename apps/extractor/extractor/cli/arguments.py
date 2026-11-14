@@ -12,4 +12,5 @@ def parse_arguments(aws_settings, argv=None):
     parser.add_argument("--window-days", type=int, default=14)
     parser.add_argument("--out", default=str(DEFAULT_OUTPUT))
     parser.add_argument("--extensions", action="store_true")
+    parser.add_argument("--forecast", default=None, help="company roadmap (forecast.json); attributes components to its projects")
     return parser.parse_args(argv)

@@ -241,6 +241,21 @@ class EstateTodayTest(unittest.TestCase):
         self.assertIsNone(dataset["source"]["result"])
         self.assertTrue(dataset["subtitle"].startswith("Estate today"))
 
+    def test_an_estate_without_stacks_lists_the_stack_its_components_fall_back_to(self):
+        import tempfile
+        infra = json.loads(Path(build_states.INFRA_PATH).read_text(encoding="utf-8"))
+        infra["stacks"] = []
+        for component in infra["components"]:
+            component.pop("stack", None)
+        with tempfile.TemporaryDirectory() as scratch:
+            path = Path(scratch) / "infra.json"
+            path.write_text(json.dumps(infra), encoding="utf-8")
+            state = build_states.build_document(path, None)["dataset"]["states"][0]
+        listed = {stack["id"] for stack in state["infra"]["stacks"]}
+        self.assertEqual(listed, {"shared"})
+        for component in state["infra"]["components"]:
+            self.assertIn(component["stack"], listed, component["id"])
+
     def test_estate_mode_refuses_a_result(self):
         with self.assertRaises(SystemExit):
             build_states.main(["--estate", "--infra", str(build_states.INFRA_PATH), "--result", str(build_states.RESULT_PATH)])

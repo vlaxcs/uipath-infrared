@@ -5,9 +5,11 @@ import type { SearchArea } from "~/onboarding/types";
 
 const ROMANIA = { lat: 45.94, lng: 24.97 };
 
-type Props = { areas: SearchArea[]; onChange: (areas: SearchArea[]) => void; load: () => Promise<MapEngine> };
+const FALLBACK = "The map did not load. Set the areas with the fields below.";
 
-export function AreaMap({ areas, onChange, load }: Props) {
+type Props = { areas: SearchArea[]; onChange: (areas: SearchArea[]) => void; load: () => Promise<MapEngine>; fallback?: string };
+
+export function AreaMap({ areas, onChange, load, fallback = FALLBACK }: Props) {
   const element = useRef<HTMLDivElement>(null);
   const view = useRef<AreaMapView | null>(null);
   const latest = useRef({ areas, onChange });
@@ -57,7 +59,7 @@ export function AreaMap({ areas, onChange, load }: Props) {
   if (failed) {
     return (
       <p role="alert" className="text-caption text-status-failed">
-        The map did not load. Set the areas with the fields below.
+        {fallback}
       </p>
     );
   }

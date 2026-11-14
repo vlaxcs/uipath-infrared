@@ -28,7 +28,7 @@ export function StepLog({ step, log }: { step: RunStep; log: StepLogState }) {
         <pre
           ref={output}
           aria-label={`${STEP_META[step].title} log`}
-          className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-control border border-border bg-surface-muted p-3 font-mono text-caption text-fg"
+          className="max-h-[60vh] overflow-auto whitespace-pre-wrap break-words rounded-control border border-border bg-surface-muted p-3 font-mono text-caption text-fg"
         >
           {log.text}
         </pre>

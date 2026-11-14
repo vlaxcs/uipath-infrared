@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"infrared/orchestrator/internal/onboarding"
 	"infrared/orchestrator/internal/profile"
@@ -39,7 +40,9 @@ func Handler(runs Runs, allowedOrigins ...string) http.Handler {
 
 func routes(runs Runs) http.Handler {
 	api := &api{runs: runs}
+	seen := &presence{now: time.Now}
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /integrations", seen.integrations)
 	mux.HandleFunc("GET /onboarding", api.onboarding)
 	mux.HandleFunc("GET /runs", api.list)
 	mux.HandleFunc("POST /runs", api.start)
@@ -52,7 +55,7 @@ func routes(runs Runs) http.Handler {
 	mux.HandleFunc("POST /runs/{id}/rehearsals", api.rehearse)
 	mux.HandleFunc("GET /profile", api.profile)
 	mux.HandleFunc("PUT /profile", api.saveProfile)
-	return mux
+	return seen.observe(mux)
 }
 
 type api struct {

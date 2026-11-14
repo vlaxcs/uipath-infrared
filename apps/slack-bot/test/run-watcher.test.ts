@@ -45,6 +45,18 @@ describe('the run watcher', () => {
     expect(track).toHaveBeenCalledWith('run-3');
   });
 
+  it('picks a run up again when its tracking lost the orchestrator, but not after other failures', async () => {
+    const listRuns = listing([{ id: 'run-4', status: 'awaiting_approval' }, { id: 'run-5', status: 'running' }]);
+    const track = vi.fn(async (id: string) => {
+      throw new Error(id === 'run-4' ? 'fetch failed' : 'invalid_blocks');
+    });
+    const watcher = new RunWatcher(listRuns, track, async () => undefined);
+    await watcher.poll();
+    await vi.waitFor(() => expect(track).toHaveBeenCalledTimes(2));
+    await watcher.poll();
+    expect(track.mock.calls.map(([id]) => id)).toEqual(['run-4', 'run-5', 'run-4']);
+  });
+
   it('polls until it is stopped', async () => {
     const listRuns = listing([]);
     let waits = 0;

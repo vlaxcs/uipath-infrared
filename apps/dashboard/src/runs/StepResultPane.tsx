@@ -6,13 +6,13 @@ import type {
   RehearsalArtifact,
   ResultArtifact,
 } from "~/runs/artifactTypes";
-import { stepEvents, revisionLabel } from "~/runs/artifactRefs";
+import { revisionLabel } from "~/runs/artifactRefs";
 import type { AnalysisOption } from "~/runs/findings";
-import type { HumanDecision, LayoutOption, RunDetail, RunEvent, RunStep, StepState } from "~/runs/types";
+import type { ReactNode } from "react";
+import type { Gate, HumanDecision, LayoutOption, RunDetail, RunEvent, RunStep, StepState } from "~/runs/types";
 import { stepStateMeta } from "~/runs/status";
 import { STEP_META } from "~/runs/stepMeta";
 import { GateApproval } from "~/runs/GateApproval";
-import { StepEvents } from "~/runs/StepEvents";
 import { StatusBadge } from "~/ui/StatusBadge";
 import { ArtifactFrame } from "~/runs/results/ArtifactFrame";
 import { Empty } from "~/runs/results/ResultParts";
@@ -41,6 +41,8 @@ type StepResultPaneProps = {
   decisionBusy: boolean;
   decisionError: string | null;
   onRefresh?: () => void;
+  gate?: Gate | null;
+  children?: ReactNode;
 };
 
 export function StepResultPane({
@@ -61,27 +63,18 @@ export function StepResultPane({
   decisionBusy,
   decisionError,
   onRefresh,
+  gate = run.awaiting && STEP_META[step].gate === run.awaiting ? run.awaiting : null,
+  children,
 }: StepResultPaneProps) {
   const meta = STEP_META[step];
   const stateMeta = stepStateMeta[state];
-  const events = stepEvents(run, step, revision);
   const selectedRevision = revision ?? (revisions.length > 0 ? revisions[revisions.length - 1] : null);
 
   return (
-    <section aria-labelledby="step-result-title" className="flex flex-col gap-4 rounded-card border border-border bg-surface p-6">
+    <section aria-label="What happened" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <h2 id="step-result-title" className="text-title font-semibold">
-            {meta.title}
-          </h2>
-          <p className="text-label text-fg-muted">{meta.hint}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge label={stateMeta.label} tone={stateMeta.tone} />
-          <span className="text-caption text-fg-subtle">
-            {meta.control === "approval" ? "Needs approval" : "Automatic"}
-          </span>
-        </div>
+        <p className="text-label text-fg-muted">{meta.hint}</p>
+        <StatusBadge label={stateMeta.label} tone={stateMeta.tone} />
       </div>
 
       {revisions.length > 1 ? (
@@ -120,9 +113,11 @@ export function StepResultPane({
         <Empty>No result file for this step yet.</Empty>
       )}
 
-      {run.awaiting && meta.gate === run.awaiting ? (
+      {children}
+
+      {gate ? (
         <GateApproval
-          gate={run.awaiting}
+          gate={gate}
           options={options}
           analyses={analyses}
           analysesStatus={analysesStatus}
@@ -134,8 +129,6 @@ export function StepResultPane({
           onRefresh={onRefresh}
         />
       ) : null}
-
-      <StepEvents events={events} />
     </section>
   );
 }

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
+	"unicode/utf8"
 )
 
 const (
@@ -34,7 +36,11 @@ type AppAnswer struct {
 	UsersExpected int       `json:"users_expected"`
 	AtMonth       int       `json:"at_month"`
 	Criteria      *Criteria `json:"criteria,omitempty"`
+	Intent        string    `json:"intent,omitempty"`
 }
+
+// MaxIntent caps what the owner writes about a project's next step, matching forecast.schema.json.
+const MaxIntent = 2000
 
 type Application struct {
 	ID      string       `json:"id"`
@@ -95,6 +101,7 @@ type Setup struct {
 	Connections []Connection `json:"connections"`
 	Providers   []string     `json:"providers"`
 	Onprem      bool         `json:"onprem"`
+	Company     string       `json:"company"`
 	Projects    []Project    `json:"projects"`
 	Markets     []string     `json:"markets"`
 }
@@ -150,7 +157,8 @@ func Resolve(answers Answers, catalog Catalog, projectForbidden []string) (Const
 		return Constraints{}, invalid("focus_mode must be plan or project")
 	}
 	seen := make(map[string]bool, len(answers.Apps))
-	for _, app := range answers.Apps {
+	apps := slices.Clone(answers.Apps)
+	for index, app := range apps {
 		if seen[app.ID] {
 			return Constraints{}, invalid("application %s is listed twice", app.ID)
 		}
@@ -163,8 +171,12 @@ func Resolve(answers Answers, catalog Catalog, projectForbidden []string) (Const
 				return Constraints{}, err
 			}
 		}
+		apps[index].Intent = strings.TrimSpace(app.Intent)
+		if utf8.RuneCountInString(apps[index].Intent) > MaxIntent {
+			return Constraints{}, invalid("%s: the intent is longer than %d characters", app.ID, MaxIntent)
+		}
 	}
-	return Constraints{Allowed: sortedUnique(allowed), Forbidden: sortedUnique(forbidden), Criteria: answers.Criteria, FocusMode: answers.FocusMode, Apps: answers.Apps}, nil
+	return Constraints{Allowed: sortedUnique(allowed), Forbidden: sortedUnique(forbidden), Criteria: answers.Criteria, FocusMode: answers.FocusMode, Apps: apps}, nil
 }
 
 func Apply(forecast map[string]any, constraints Constraints) error {
@@ -213,10 +225,16 @@ func applyApps(forecast map[string]any, constraints Constraints) error {
 			"base":  app.UsersExpected,
 			"high":  max(1, round(float64(app.UsersExpected)*high)),
 		}}
-		if constraints.FocusMode == FocusPerProject && app.Criteria != nil {
+		// A project with its own criteria gets its own focus whatever focus_mode says; one without keeps the plan's.
+		if app.Criteria != nil {
 			project["focus"] = ProjectRules(*app.Criteria)
 		} else {
 			delete(project, "focus")
+		}
+		if app.Intent != "" {
+			project["intent"] = app.Intent
+		} else {
+			delete(project, "intent")
 		}
 	}
 	return nil

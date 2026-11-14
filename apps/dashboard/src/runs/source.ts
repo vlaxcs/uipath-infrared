@@ -25,8 +25,11 @@ export type TrialStarted = {
 
 export type RunSourceMode = "live" | "sample";
 
+export type SlackStatus = { connected: boolean; channel?: string };
+
 export type RunSource = {
   mode: RunSourceMode;
+  slackStatus?(signal?: AbortSignal): Promise<SlackStatus>;
   listRuns(signal?: AbortSignal): Promise<RunSummary[]>;
   getRun(id: string, signal?: AbortSignal): Promise<RunDetail>;
   startRun(project: string, signal?: AbortSignal): Promise<RunDetail>;

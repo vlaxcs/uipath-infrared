@@ -23,18 +23,19 @@ export type LayoutNode = {
 };
 
 export type LayoutEdge = { id: string; path: string; tone: EdgeTone; label: string | null; labelX: number; labelY: number; returns: boolean };
-export type Frame = { label: string; x: number; y: number; width: number; height: number; used: boolean };
+export type Frame = { label: string; sub: string; x: number; y: number; width: number; height: number; used: boolean };
 
 export type WorkflowLayout = { width: number; height: number; nodes: LayoutNode[]; edges: LayoutEdge[]; loop: Frame; phaseTwo: Frame };
 
 export const LAYOUT_WIDTH = 704;
-const ROW = 44;
-const SHIFT = 20;
-const TOP = 40;
-const LEFT = 60;
-const WIDTH = 200;
-const SIDE_WIDTH = 150;
-const SIDE_GAP = 20;
+const ROW = 58;
+const TOP = 24;
+const SIDE_WIDTH = 170;
+const SIDE_GAP = 24;
+const LEFT = 16 + SIDE_WIDTH + SIDE_GAP;
+const WIDTH = 230;
+const LANE = 74;
+const FRAME_PAD = 9;
 const HEIGHTS: Record<NodeKind, number> = { terminal: 34, step: 40, check: 34, gate: 36, side: 34, later: 34 };
 
 const STEP_TONE: Record<StepState, NodeTone> = { pending: "pending", current: "current", awaiting: "awaiting", done: "done", failed: "failed" };
@@ -92,7 +93,7 @@ export function workflowLayout(
     detail: item.detail ?? null,
     tone: item.tone,
     step: item.step,
-    x: LEFT + index * SHIFT,
+    x: LEFT,
     y: TOP + index * ROW,
     width: WIDTH,
     height: HEIGHTS[item.kind],
@@ -106,10 +107,10 @@ export function workflowLayout(
     const to = nodes[index];
     const later = to.kind === "later";
     const tone: EdgeTone = later ? "later" : to.tone === "done" || to.tone === "failed" ? "taken" : to.tone === "current" || to.tone === "awaiting" ? "active" : "idle";
-    const x = from.x + 14;
+    const x = from.x + from.width / 2;
     edges.push({
       id: `${from.id}-${to.id}`,
-      path: `M ${x} ${from.y + from.height} V ${middle(to)} H ${to.x}`,
+      path: `M ${x} ${from.y + from.height} V ${to.y}`,
       tone,
       label: spine[index].edgeLabel ?? null,
       labelX: x + 6,
@@ -118,15 +119,13 @@ export function workflowLayout(
     });
   }
 
-  const reach = (fromId: string, toId: string) => {
-    const first = nodes.findIndex((node) => node.id === toId);
-    const last = nodes.findIndex((node) => node.id === fromId);
-    return Math.max(...nodes.slice(first, last + 1).map((node) => node.x + node.width));
-  };
+  /* Return edges run up their own lane right of the spine. An outer lane
+     enters Propose higher than the lanes inside it, so no two cross. */
+  const right = LEFT + WIDTH;
   const propose = at("propose");
   const returnEdge = (id: string, fromId: string, lane: number, arrive: number, count: number, label: string, tone: EdgeTone): LayoutEdge => {
     const from = at(fromId);
-    const x = reach(fromId, "propose") + lane;
+    const x = right + lane * LANE - 40;
     return {
       id,
       path: `M ${from.x + from.width} ${middle(from)} H ${x} V ${middle(propose) + arrive} H ${propose.x + propose.width}`,
@@ -137,9 +136,9 @@ export function workflowLayout(
       returns: true,
     };
   };
-  edges.push(returnEdge("revise-evaluate", "feasible", 16, -8, flow.evaluateRevisions, "revise", "returned"));
-  edges.push(returnEdge("revise-rehearse", "forecast", 44, 0, flow.rehearseRevisions, "revise", "returned"));
-  edges.push(returnEdge("diverge", "verify", 72, 8, 0, "diverges", "later"));
+  edges.push(returnEdge("revise-evaluate", "feasible", 1, 10, flow.evaluateRevisions, "revise", "returned"));
+  edges.push(returnEdge("revise-rehearse", "forecast", 2, 0, flow.rehearseRevisions, "revise", "returned"));
+  edges.push(returnEdge("diverge", "verify", 3, -10, 0, "diverges", "later"));
 
   const sideOf = (parentId: string, id: string, label: string, sub: string, tone: NodeTone, beside: RunStep, candidate?: string): void => {
     const parent = at(parentId);
@@ -163,29 +162,31 @@ export function workflowLayout(
   }
   if (trials > 0) sideOf("rehearse", "trials", `Trials: ${trials}`, "Gates untouched", "done", "rehearse");
 
-  const loopTop = propose.y - 26;
-  const loopBottom = at("forecast").y + at("forecast").height + 10;
+  const loopTop = propose.y - FRAME_PAD;
+  const loopBottom = at("forecast").y + at("forecast").height + FRAME_PAD;
   const end = at("verify");
   const firstLater = at("pr");
   return {
     width: LAYOUT_WIDTH,
-    height: end.y + end.height + 24,
+    height: end.y + end.height + 16,
     nodes,
     edges,
     loop: {
-      label: `Revision loop · revision ${flow.revision} of ${flow.maxRevisions}`,
+      label: "Revision loop",
+      sub: `revision ${flow.revision} of ${flow.maxRevisions}`,
       x: 4,
       y: loopTop,
-      width: reach("forecast", "propose") + 56,
+      width: right + 2 * LANE - 40 + 56,
       height: loopBottom - loopTop,
       used: flow.revisions > 0,
     },
     phaseTwo: {
-      label: "Phase 2 · not built yet",
-      x: firstLater.x - 12,
-      y: firstLater.y - 22,
-      width: end.x + end.width - firstLater.x + 24,
-      height: end.y + end.height - firstLater.y + 32,
+      label: "Phase 2",
+      sub: "not built yet",
+      x: 4,
+      y: firstLater.y - FRAME_PAD,
+      width: right + FRAME_PAD,
+      height: end.y + end.height - firstLater.y + 2 * FRAME_PAD,
       used: false,
     },
   };

@@ -17,6 +17,7 @@ func setAll(t *testing.T) {
 		t.Setenv(name, "value for "+name)
 	}
 	t.Setenv("ORCHESTRATOR_MAX_REVISIONS", "")
+	t.Setenv("ORCHESTRATOR_COMPANY", "")
 	t.Setenv("ORCHESTRATOR_ADDR", "127.0.0.1:8080")
 	t.Setenv("ORCHESTRATOR_AUTH", "off")
 }
@@ -141,5 +142,22 @@ func TestAllowedOriginsAreOptionalAndCommaSeparated(t *testing.T) {
 	loaded, err = settings.Load()
 	if err != nil || strings.Join(loaded.AllowedOrigins, "|") != "http://127.0.0.1:5173|http://localhost:5173" {
 		t.Fatalf("set: %v %q", err, loaded.AllowedOrigins)
+	}
+}
+
+func TestTheCompanyDefaultsToCompanyAndMustBeAProjectID(t *testing.T) {
+	setAll(t)
+	loaded, err := settings.Load()
+	if err != nil || loaded.Workflow.Company != "company" {
+		t.Fatalf("unset: %v %q", err, loaded.Workflow.Company)
+	}
+	t.Setenv("ORCHESTRATOR_COMPANY", " northwind ")
+	loaded, err = settings.Load()
+	if err != nil || loaded.Workflow.Company != "northwind" {
+		t.Fatalf("set: %v %q", err, loaded.Workflow.Company)
+	}
+	t.Setenv("ORCHESTRATOR_COMPANY", "../etc")
+	if _, err := settings.Load(); err == nil || !strings.Contains(err.Error(), "ORCHESTRATOR_COMPANY") {
+		t.Fatalf("a path as the company: %v", err)
 	}
 }

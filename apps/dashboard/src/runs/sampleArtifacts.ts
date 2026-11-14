@@ -1,4 +1,5 @@
 import candidates from "../../../../contracts/candidates.example.json";
+import demoShopForecast from "../../../../contracts/mock/demo-shop.forecast.json";
 import demoShop from "../../../../contracts/mock/demo-shop.infra.json";
 import rehearsal from "../../../../contracts/rehearsal.example.json";
 import result from "../../../../contracts/result.example.json";
@@ -45,6 +46,7 @@ const findings = {
 };
 
 const artifacts: Readonly<Record<string, unknown>> = {
+  "forecast.json": demoShopForecast,
   "infra.json": demoShop,
   "findings.json": findings,
   "candidates.0.json": candidates,

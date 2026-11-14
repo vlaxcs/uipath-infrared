@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { isLegacyHash, pathWithin, readRoute, routePath, type PageId, type Route } from "~/navigation/route";
+import { isLegacyHash, parentOf, pathWithin, readRoute, routePath, type PageId, type Route } from "~/navigation/route";
 
 export type AppRoute = Route & {
   go: (page: PageId) => void;
@@ -22,7 +22,6 @@ function currentRoute(): Route {
 
 export function useRoute(): AppRoute {
   const [route, setRoute] = useState<Route>(currentRoute);
-  const [depth, setDepth] = useState(0);
 
   useEffect(() => {
     const sync = () => setRoute(currentRoute());
@@ -32,21 +31,12 @@ export function useRoute(): AppRoute {
 
   const navigate = useCallback((next: Route) => {
     const url = BASE + routePath(next);
-    if (window.location.pathname !== url) {
-      window.history.pushState(null, "", url);
-      setDepth((current) => current + 1);
-    }
+    if (window.location.pathname !== url) window.history.pushState(null, "", url);
     setRoute(next);
   }, []);
 
-  const back = useCallback(() => {
-    if (depth > 0) {
-      setDepth((current) => current - 1);
-      window.history.back();
-      return;
-    }
-    navigate(route.page === "runs" && route.runId ? { page: "runs", runId: null, focusGate: false } : { page: "home", runId: null, focusGate: false });
-  }, [depth, navigate, route.page, route.runId]);
+  /* Back is a breadcrumb: it goes up to the parent page, never through the browser history. */
+  const back = useCallback(() => navigate(parentOf(route)), [navigate, route]);
 
   return {
     ...route,

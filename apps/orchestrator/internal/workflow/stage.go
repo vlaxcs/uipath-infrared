@@ -35,7 +35,7 @@ func stageFailure(step run.Step, outcome Outcome) string {
 }
 
 func (w *Workflow) extractCommand(entry *tracked, project string) []string {
-	return w.command(w.config.Commands.Extract, "--project", project, "--out", w.path(entry, "infra.json"))
+	return w.command(w.config.Commands.Extract, "--project", project, "--forecast", w.path(entry, forecastName), "--out", w.path(entry, "infra.json"))
 }
 
 func (w *Workflow) agentCommand(entry *tracked, arguments ...string) []string {

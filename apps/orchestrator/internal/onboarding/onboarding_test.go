@@ -193,3 +193,80 @@ func TestTheScenarioSpreadSurvivesAForecastDecodedWithNumbers(t *testing.T) {
 		t.Fatalf("the spread was lost: %v", row)
 	}
 }
+
+func twoProjects() map[string]any {
+	users := func() map[string]any {
+		return map[string]any{"metric": "users", "current": 10.0, "expected": []any{map[string]any{"month": 12.0, "base": 20.0}}}
+	}
+	return map[string]any{
+		"hard_constraints": map[string]any{},
+		"projects": []any{
+			map[string]any{"id": "booking", "users": users(), "intent": "stale", "focus": map[string]any{"focus": "cost"}},
+			map[string]any{"id": "billing", "users": users()},
+		},
+	}
+}
+
+func TestAProjectWithCriteriaGetsItsOwnFocusWhateverTheFocusMode(t *testing.T) {
+	for _, mode := range []string{"", onboarding.FocusPerPlan, onboarding.FocusPerProject} {
+		asked := answers("aws")
+		asked.FocusMode = mode
+		asked.Apps = []onboarding.AppAnswer{
+			{ID: "booking", UsersNow: 1, UsersExpected: 2, AtMonth: 12},
+			{ID: "billing", UsersNow: 1, UsersExpected: 2, AtMonth: 12, Criteria: &onboarding.Criteria{Focus: onboarding.FocusZone, Market: "fr"}},
+		}
+		constraints, err := onboarding.Resolve(asked, catalog, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		forecast := twoProjects()
+		if err := onboarding.Apply(forecast, constraints); err != nil {
+			t.Fatal(err)
+		}
+		projects := forecast["projects"].([]any)
+		if _, has := projects[0].(map[string]any)["focus"]; has {
+			t.Errorf("mode %q: a project without criteria kept a focus: %v", mode, projects[0])
+		}
+		if focus, _ := projects[1].(map[string]any)["focus"].(map[string]any); focus["focus"] != "zone" || focus["market"] != "fr" {
+			t.Errorf("mode %q: the project with criteria got focus %v", mode, projects[1])
+		}
+	}
+}
+
+func TestTheIntentIsTrimmedAndWrittenOrDropped(t *testing.T) {
+	asked := answers("aws")
+	asked.Apps = []onboarding.AppAnswer{
+		{ID: "booking", UsersNow: 1, UsersExpected: 2, AtMonth: 12, Intent: "   "},
+		{ID: "billing", UsersNow: 1, UsersExpected: 2, AtMonth: 12, Intent: "  Move billing to the EU before the audit.\n"},
+	}
+	constraints, err := onboarding.Resolve(asked, catalog, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if asked.Apps[1].Intent != "  Move billing to the EU before the audit.\n" {
+		t.Fatal("Resolve changed the caller's answers")
+	}
+	forecast := twoProjects()
+	if err := onboarding.Apply(forecast, constraints); err != nil {
+		t.Fatal(err)
+	}
+	projects := forecast["projects"].([]any)
+	if _, has := projects[0].(map[string]any)["intent"]; has {
+		t.Errorf("a blank intent left %v", projects[0])
+	}
+	if intent := projects[1].(map[string]any)["intent"]; intent != "Move billing to the EU before the audit." {
+		t.Errorf("intent %q", intent)
+	}
+}
+
+func TestAnIntentLongerThanTheCapIsRefusedNamingTheApplication(t *testing.T) {
+	asked := answers("aws")
+	asked.Apps = []onboarding.AppAnswer{{ID: "booking", UsersNow: 1, UsersExpected: 2, AtMonth: 12, Intent: strings.Repeat("é", onboarding.MaxIntent+1)}}
+	if _, err := onboarding.Resolve(asked, catalog, nil); !errors.Is(err, onboarding.ErrInvalid) || !strings.Contains(err.Error(), "booking") {
+		t.Fatalf("got %v", err)
+	}
+	asked.Apps[0].Intent = "  " + strings.Repeat("é", onboarding.MaxIntent) + "  "
+	if _, err := onboarding.Resolve(asked, catalog, nil); err != nil {
+		t.Fatalf("an intent at the cap once trimmed was refused: %v", err)
+	}
+}

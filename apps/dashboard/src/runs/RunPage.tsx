@@ -34,14 +34,6 @@ export function RunPage({ source, runId, focusGate, onOpenRun }: RunPageProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-end gap-3">
-        {run ? (
-          <p className="text-label text-fg-muted">
-            {run.project} · <span className="font-mono text-caption">{run.id}</span>
-          </p>
-        ) : null}
-      </div>
-
       {starting ? (
         <p role="status" className="text-body text-fg-muted">
           Starting a new run…

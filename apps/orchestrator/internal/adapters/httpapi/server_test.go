@@ -383,3 +383,11 @@ func TestTheOnboardingSetupIsServedAsJSON(t *testing.T) {
 		t.Fatalf("setup %s", recorder.Body)
 	}
 }
+
+func TestStartWithNoProjectLeavesTheCompanyToTheWorkflowAndCarriesIntents(t *testing.T) {
+	runs := &fakeRuns{}
+	recorder := send(t, runs, "POST", "/runs", `{"onboarding": {"connection": "floci", "targets": ["aws"], "applications": [{"id": "billing", "users_now": 1, "users_expected": 2, "at_month": 12, "intent": "Move to the EU"}]}}`)
+	if recorder.Code != http.StatusCreated || !runs.started || runs.answers == nil || runs.answers.Apps[0].Intent != "Move to the EU" {
+		t.Fatalf("%d: %s, answers %+v", recorder.Code, recorder.Body, runs.answers)
+	}
+}

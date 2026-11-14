@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"infrared/orchestrator/internal/onboarding"
+	"infrared/orchestrator/internal/workflow"
 )
 
 func decodeWithNumbers(t testing.TB, data []byte) map[string]any {
@@ -67,7 +68,22 @@ func TestOnboardingAnswersLandInTheRunsForecastOnly(t *testing.T) {
 	want := decodeWithNumbers(t, before)
 	hard := want["hard_constraints"].(map[string]any)
 	hard["allowed_providers"] = []any{"aws"}
-	hard["forbidden_providers"] = []any{"managed_pg", "onprem"}
+	setup, err := h.flow.Onboarding()
+	if err != nil {
+		t.Fatal(err)
+	}
+	unticked := []string{}
+	for _, provider := range append(slices.Clone(setup.Providers), onboarding.OnpremProvider) {
+		if provider != "aws" {
+			unticked = append(unticked, provider)
+		}
+	}
+	slices.Sort(unticked)
+	forbidden := []any{}
+	for _, provider := range unticked {
+		forbidden = append(forbidden, provider)
+	}
+	hard["forbidden_providers"] = forbidden
 	if got := decodeWithNumbers(t, runForecast); !reflect.DeepEqual(got, want) {
 		t.Fatalf("the run's forecast differs beyond the two provider lists:\n%s", runForecast)
 	}
@@ -84,8 +100,8 @@ func TestWithoutAnswersTheRunsForecastIsTheProjectsByteForByte(t *testing.T) {
 
 func TestRefusedAnswersStartNoRun(t *testing.T) {
 	h := newHarness(t, options{maxRevisions: 2})
-	_, err := h.flow.Start("startup", &onboarding.Answers{Connection: onboarding.Floci, Targets: []string{"azure"}})
-	if !errors.Is(err, onboarding.ErrInvalid) || !strings.Contains(err.Error(), "azure") {
+	_, err := h.flow.Start("startup", &onboarding.Answers{Connection: onboarding.Floci, Targets: []string{"oracle"}})
+	if !errors.Is(err, onboarding.ErrInvalid) || !strings.Contains(err.Error(), "oracle") {
 		t.Fatalf("got %v", err)
 	}
 	if dirs := runDirs(t, h.runsDir); len(dirs) != 0 {
@@ -202,5 +218,72 @@ func BenchmarkTheSetupWithAThousandProjects(b *testing.B) {
 		if setup, err := h.flow.Onboarding(); err != nil || len(setup.Projects) != 1000 {
 			b.Fatal(err, len(setup.Projects))
 		}
+	}
+}
+
+func TestARunWithNoProjectIsForTheCompany(t *testing.T) {
+	h := newHarness(t, options{maxRevisions: 2, projectsDir: projectsNamed(t, "company", "startup")})
+	started, err := h.flow.Start("", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if started.Project != "company" || !strings.HasPrefix(started.ID, "run-company-") {
+		t.Fatalf("started %s for %s", started.ID, started.Project)
+	}
+	named, err := h.flow.Start("startup", nil)
+	if err != nil || named.Project != "startup" {
+		t.Fatalf("an explicit project still starts its own run: %v %+v", err, named)
+	}
+}
+
+func TestTheCompanySettingNamesWhichProjectARunDefaultsTo(t *testing.T) {
+	h := newHarness(t, options{maxRevisions: 2, projectsDir: projectsNamed(t, "northwind"), company: "northwind"})
+	setup, err := h.flow.Onboarding()
+	if err != nil || setup.Company != "northwind" {
+		t.Fatalf("setup company %q (%v)", setup.Company, err)
+	}
+	started, err := h.flow.Start("", nil)
+	if err != nil || started.Project != "northwind" {
+		t.Fatalf("started %+v (%v)", started, err)
+	}
+}
+
+func TestWithoutTheCompanyForecastARunWithNoProjectIsRefused(t *testing.T) {
+	h := newHarness(t, options{maxRevisions: 2, projectsDir: projectsNamed(t, "startup")})
+	if _, err := h.flow.Start("", nil); !errors.Is(err, workflow.ErrUnknownProject) || !strings.Contains(err.Error(), "company.forecast.json") {
+		t.Fatalf("got %v", err)
+	}
+}
+
+func TestTheSetupNamesTheDefaultCompany(t *testing.T) {
+	setup, err := newHarness(t, options{maxRevisions: 2}).flow.Onboarding()
+	if err != nil || setup.Company != workflow.DefaultCompany {
+		t.Fatalf("company %q (%v)", setup.Company, err)
+	}
+	encoded, _ := json.Marshal(setup)
+	if !bytes.Contains(encoded, []byte(`"company":"company"`)) || !bytes.Contains(encoded, []byte(`"projects":[`)) {
+		t.Fatalf("setup JSON %s", encoded)
+	}
+}
+
+func TestExtractReadsTheRunsForecastBesideItsInfra(t *testing.T) {
+	seen := make(chan []string, 1)
+	forecastThere := make(chan bool, 1)
+	extract := func(ctx context.Context, invocation workflow.Invocation) (workflow.Outcome, error) {
+		seen <- invocation.Command
+		_, err := os.Stat(argument(invocation.Command, "--forecast"))
+		forecastThere <- err == nil
+		return defaultStage("extract")(ctx, invocation)
+	}
+	h := newHarness(t, options{maxRevisions: 2, overrides: map[string]stage{"extract": extract}})
+	started := h.start()
+	command := <-seen
+	dir := filepath.Join(h.runsDir, started.ID)
+	want := []string{"extract", "--project", "startup", "--forecast", filepath.Join(dir, "forecast.json"), "--out", filepath.Join(dir, "infra.json")}
+	if !slices.Equal(command, want) {
+		t.Fatalf("extract ran as %q, want %q", command, want)
+	}
+	if !<-forecastThere {
+		t.Fatal("the run's forecast.json was not in the run dir when extract ran")
 	}
 }

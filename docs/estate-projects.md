@@ -57,6 +57,13 @@ One mock estate with 8 to 10 projects of different kinds and sizes, each with it
    - ranking stays one for the whole plan: it is one plan.
    The estate's own targets stay at 99.5% availability and EUR 320,000 a month at the horizon.
 
+## One company per run (2026-11-14)
+
+- A run analyses **one company's cloud** and the projects listed in that company's financial roadmap (`forecast.json` `projects`), not one of several mock estates. The Floci company is `contracts/mock/company.forecast.json` (7 projects).
+- Each project is found in the cloud by its **tags first** (`Project`, `App`, `Application`, any case, equal to one of `match.tags`), **then by resource names** (`match.names` prefixes). Without `match`: tags `[id]`, names `[id-]`.
+- The extractor does it: `extract_floci.py --project company --forecast <run>/forecast.json --out <run>/infra.json` writes `x_projects` (components per project, how many by tag and by name) and `x_unassigned`.
+- Each project may carry `intent`: what the owner wants done with it next, in their own words, written by the orchestrator from onboarding and read by the agent; the engine ignores it.
+
 ## Out of scope
 
 - Moves that split a project across providers on purpose; a project's stacks are planned with the rest of the estate.

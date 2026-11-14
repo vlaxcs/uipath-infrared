@@ -20,6 +20,7 @@ Everything the extractor side and the decision-engine side must agree on, plus a
 | `mock/build_startup.py` | Authoring helper for the start-up mock. All numbers typed by hand. |
 | `mock/clinic-booking.*` | A third mock: a clinic booking SaaS, 14 components, EUR 4,305/month, with dev, staging and prod (`build_clinic.py`, `.infra.json`, `.forecast.json`, `.expected-signals.md`). |
 | `mock/fleet-telemetry.*` | A fourth mock: GPS telemetry for courier vans, 13 components, EUR 6,913/month, prod and dev only (`build_fleet.py`, `.infra.json`, `.forecast.json`, `.expected-signals.md`). |
+| `mock/company.forecast.json` | The company that actually runs in Floci: one roadmap, seven projects (startup, clinic-booking, fleet-telemetry, storefront, data-platform, ml-experiments, back-office), each with an explicit `match`. Its stacks are the ones `extract_floci.py --project company --forecast` emits. |
 | `mock/demo-shop.forecast.json` | A copy of `forecast.example.json` under the name the orchestrator looks for; `check_mock.py` fails if the two differ. |
 | `project.schema.json` | **Project profile.** What the product is, which environments it runs (dev/staging/prod), users today and expected users by month. |
 | `mock/<project>.project.json` / `mock/build_profiles.py` | One profile per mock project. The builder writes all four and derives the expected users from each forecast. |
@@ -70,6 +71,7 @@ Do **not** build the mock from `ground_truth/planted_issues.json`; that is the a
 - **Edges**: `from` depends on `to`. `kind` ∈ network/data/event/traffic/dns/config. `evidence` ∈ declared/observed/inferred. `gb_month` optional: **Floci produces no traffic data**, so there it is estimated or synthetic. Omit rather than invent. Kind and `stay_together` decide what moves together; `gb_month` only prices egress.
 - **`stay_together`**: optional owner/extractor hints. The engine should also derive groups from `data`/`traffic` edges with `latency_sensitive` or large volume; hints win.
 - **Extensions**: new fields must start with `x_`.
+- **`x_projects` / `x_unassigned`** (top level, only with `extract_floci.py --forecast <forecast.json>`): the roadmap attribution. `x_projects` = `{"<project id>": {"components": ["<component id>", ...], "by_tag": <int>, "by_name": <int>}}`, one entry per `projects[]` item of the forecast, in its order; `x_unassigned` = component ids no project claims. Matching follows `forecast.schema.json` `projects[].match` (tags first, then name prefixes). A claimed component is moved to a stack of its own project when it had none or sat in a stack another project holds more of, so every project's `stacks` are disjoint.
 
 ## Field rules (project.json)
 

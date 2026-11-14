@@ -11,8 +11,9 @@ from extractor.application.series_reader import SeriesReader
 from extractor.application.warnings import Warnings
 from extractor.domain.document import infra_document
 from extractor.domain.inventory import Inventory
-from extractor.domain.ownership import resolve_ownership, tags_by_name
+from extractor.domain.ownership import component_tags, resolve_ownership, tags_by_name
 from extractor.domain.projects import belongs, is_scoped, scope_to_project, tag_name
+from extractor.domain.roadmap import attribute_to_roadmap
 from extractor.domain.provenance import metric_provenance
 from extractor.domain.status import apply_status
 
@@ -24,6 +25,7 @@ class ExtractionRequest:
     project: str
     window_days: int
     projects: tuple[str, ...] = ()
+    roadmap: tuple = ()
 
 
 def run_extraction(request, aws, extension_sources=None):
@@ -44,7 +46,12 @@ def run_extraction(request, aws, extension_sources=None):
     apply_status(context.inventory.components, context.inventory.edges)
     scope_to_project(context.inventory, request.project)
     mappings = warnings.guard("resource tags", aws.tagging.resources, []) if aws.tagging else []
-    context.inventory.components = resolve_ownership(context.inventory.components, context.inventory.edges, tags_by_name(mappings), request.projects)
+    tags = tags_by_name(mappings)
+    context.inventory.components = resolve_ownership(context.inventory.components, context.inventory.edges, tags, request.projects)
+    context.inventory.components, x_projects, x_unassigned = attribute_to_roadmap(
+        context.inventory.components, lambda component: component_tags(component, tags), request.roadmap)
     controls = collect_controls(context)
     extended = run_extensions(context, extension_sources, now) if extension_sources else None
-    return infra_document(request.project, request.endpoint, request.region, now, controls, context.inventory, warnings.messages, extended)
+    attribution = {"x_projects": x_projects, "x_unassigned": x_unassigned} if x_projects is not None else None
+    return infra_document(request.project, request.endpoint, request.region, now, controls, context.inventory, warnings.messages, extended,
+                          attribution)

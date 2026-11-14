@@ -24,6 +24,10 @@ export function removeArea(areas: SearchArea[], index: number): SearchArea[] {
   return areas.length <= 1 ? areas : areas.filter((_, at) => at !== index);
 }
 
+export function withoutArea(areas: SearchArea[], index: number): SearchArea[] {
+  return areas.filter((_, at) => at !== index);
+}
+
 export function moveArea(areas: SearchArea[], index: number, point: Point): SearchArea[] {
   return areas.map((area, at) => (at === index ? { ...area, lat: rounded(point.lat), lng: rounded(point.lng) } : area));
 }

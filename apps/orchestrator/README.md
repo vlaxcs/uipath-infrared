@@ -44,14 +44,14 @@ Migrations run at startup. `ORCHESTRATOR_AUTH=off` keeps the API open as before,
 | --- | --- |
 | `GET /onboarding` | connections, the catalog's providers, on-prem, and every project with its forbidden providers |
 | `GET /runs?project=&limit=` | run summaries, newest first, no events; `limit` 1 to 200, default 50 |
-| `POST /runs` `{"project", "onboarding"?}` | `201` the new run, with the onboarding answers in its `forecast.json`; `400` answers that break `docs/onboarding.md` section 5; `404` no `<project>.forecast.json`; `409` the project already has an active run |
+| `POST /runs` `{"project"?, "onboarding"?}` | `201` the new run (no `project`: the company, `ORCHESTRATOR_COMPANY`, default `company`), with the onboarding answers in its `forecast.json`; `400` answers that break `docs/onboarding.md` section 5; `404` no `<project>.forecast.json`; `409` the project already has an active run |
 | `GET /runs/{id}` | the run document |
 | `GET /runs/{id}/events?after=` | the events after `seq`, `[]` when none |
 | `POST /runs/{id}/decisions` | `201` the appended event; `400` bad body; `409` gate not open; `422` layout not a feasible candidate |
-| `GET /runs/{id}/files` | `200` the run's artifact files: `path` and `size` for `infra.json`, `findings.json`, `candidates.<n>.json`, `feedback.<n>.json`, `result.<n>.json`, `rehearsal.<n>.json` |
+| `GET /runs/{id}/files` | `200` the run's artifact files: `path` and `size` for `forecast.json` (the run's own copy, with the onboarding answers), `infra.json`, `findings.json`, `candidates.<n>.json`, `feedback.<n>.json`, `result.<n>.json`, `rehearsal.<n>.json` |
 | `GET /runs/{id}/files/{path}` | `200` the file, raw JSON; `404` when it is not an allowlisted artifact or is missing; `413` over 16 MiB |
 
-Errors are `{"error": "<reason>"}`. The file routes read the run directory on disk; they serve only the allowlisted artifacts above, never `run.json`, the copied inputs or the logs. A path is a single file name: traversal, directories and symlinks are refused.
+Errors are `{"error": "<reason>"}`. The file routes read the run directory on disk; they serve only the allowlisted artifacts above, never `run.json`, the catalog or the logs. A path is a single file name: traversal, directories and symlinks are refused.
 
 ## Test
 

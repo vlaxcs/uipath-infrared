@@ -14,14 +14,16 @@ describe('HTTP orchestrator', () => {
   it('polls for the events after the last seq it holds', async () => {
     const fetch = stubFetch(200, [{ seq: 21 }]);
     const events = await new HttpOrchestrator('http://orch').eventsAfter('run-1', 20);
-    expect(fetch).toHaveBeenCalledWith('http://orch/runs/run-1/events?after=20', undefined);
+    expect(fetch).toHaveBeenCalledWith('http://orch/runs/run-1/events?after=20', expect.anything());
     expect(events).toEqual([{ seq: 21 }]);
   });
 
   it('lists the runs to watch, newest first', async () => {
     const fetch = stubFetch(200, [{ id: 'run-2', status: 'running' }]);
     const runs = await new HttpOrchestrator('http://orch').listRuns();
-    expect(fetch).toHaveBeenCalledWith('http://orch/runs?limit=50', undefined);
+    expect(fetch).toHaveBeenCalledWith('http://orch/runs?limit=50', expect.anything());
+    const init = vi.mocked(fetch).mock.calls[0][1] as RequestInit;
+    expect(new Headers(init.headers).get('X-Infrared-Client')).toBe('slack-bot');
     expect(runs).toEqual([{ id: 'run-2', status: 'running' }]);
   });
 
@@ -59,7 +61,7 @@ describe('HTTP orchestrator', () => {
   it('reads a run file from the artifact route', async () => {
     const fetch = stubFetch(200, { schema_version: '1.1' });
     expect(await new HttpOrchestrator('http://orch').getFile('run-1', 'result.1.json')).toBe('{"schema_version":"1.1"}');
-    expect(fetch).toHaveBeenCalledWith('http://orch/runs/run-1/files/result.1.json');
+    expect(fetch).toHaveBeenCalledWith('http://orch/runs/run-1/files/result.1.json', expect.anything());
   });
 
   it('fails with the status when a run file is missing', async () => {

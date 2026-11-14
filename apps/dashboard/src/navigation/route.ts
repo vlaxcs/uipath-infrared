@@ -22,6 +22,11 @@ export function routePath(route: Route): string {
   return `${route.page}${run}${gate}`;
 }
 
+export function parentOf(route: Route): Route {
+  if (route.page === "runs" && route.runId) return { page: "runs", runId: null, focusGate: false };
+  return { page: "home", runId: null, focusGate: false };
+}
+
 export function isLegacyHash(hash: string): boolean {
   return hash.startsWith("#/");
 }

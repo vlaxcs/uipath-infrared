@@ -47,6 +47,7 @@ Provider labels are the dashboard's: `aws` "AWS", `gcp` "Google Cloud", `azure` 
   "connections": [{ "id": "floci", "label": "AWS (demo estate)" }],
   "providers": ["aws", "managed_pg"],
   "onprem": true,
+  "company": "company",
   "projects": [
     { "id": "startup", "description": "...", "forbidden_providers": [] }
   ]
@@ -55,9 +56,10 @@ Provider labels are the dashboard's: `aws` "AWS", `gcp` "Google Cloud", `azure` 
 
 - `providers`: the distinct `options[].provider` of the orchestrator's catalog, without `onprem`, sorted.
 - `onprem`: the catalog has an `onprem` option or an `onprem_platforms` entry.
-- `projects`: every `<id>.forecast.json` in the projects directory, sorted by id, with only these two fields.
+- `company`: the one company Infrared analyses (`ORCHESTRATOR_COMPANY`, default `company`); its `<company>.forecast.json` `projects` are the roadmap projects the page lists.
+- `projects`: every `<id>.forecast.json` in the projects directory, sorted by id, kept for compatibility.
 
-**`POST /runs`** takes, beside `project`, an optional `onboarding`:
+**`POST /runs`** takes an optional `project` (absent or empty: the company) and an optional `onboarding`:
 
 ```json
 {
@@ -75,6 +77,10 @@ The orchestrator writes the answers into the run's copy of `forecast.json`; the 
 - `forbidden_providers` = the project's own, plus every catalog provider left unticked, plus `onprem` when not wanted.
 
 `400` with the reason, and no run starts, when: `connection` is not `floci`; no target is given; a target is listed twice; a target the catalog does not price; a target or `onprem` the project forbids; `onprem` wanted while the catalog has no on-prem option; an unknown field anywhere in the body.
+
+Per roadmap project, `onboarding.applications[]` items take `id`, `users_now`, `users_expected`, `at_month`, an optional `criteria` and an optional `intent`:
+- `criteria` set: the project gets its own `focus` in the run's forecast; absent: it uses the default (the plan's) focus. This holds whatever `focus_mode` says; `focus_mode` is still accepted for compatibility.
+- `intent`: what the owner wants done with the project next, trimmed, at most 2000 characters (`400` naming the application when longer). Non-empty, it is written as the project's `intent`; empty, any `intent` is removed. The agent's proposal prompt lists each project's intent and asks every candidate to honour it where the hard constraints allow.
 
 Without `onboarding`, the run starts from the project's `forecast.json` as today, so the flow test and the Slack bot keep working.
 

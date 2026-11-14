@@ -509,7 +509,7 @@ def apply_action(components: list[dict], action: dict, change: dict, catalog: di
         removal = {
             "id": component.get("id"),
             "kind": component.get("kind"),
-            "stack": component.get("stack", "shared"),
+            "stack": component.get("stack") or "shared",
             "typeLabel": KIND_LABEL.get(component.get("kind"), component.get("kind")),
             "tier": KIND_TIER.get(component.get("kind"), "identity"),
             "monthlyEur": int(round(component_cost(component))),
@@ -653,7 +653,7 @@ def public_component(component: dict) -> dict:
         "id": component.get("id"),
         "kind": component.get("kind"),
         "tier": KIND_TIER.get(component.get("kind"), "identity"),
-        "stack": component.get("stack", "shared"),
+        "stack": component.get("stack") or "shared",
         "status": component.get("status")
         if component.get("status") in ("idle", "orphan", "stopped")
         else "active",
@@ -784,6 +784,12 @@ def build_dataset(
         }
         for stack in infra.get("stacks") or []
     ]
+    listed = {stack["id"] for stack in stacks}
+    for component in baseline_components:
+        stack_id = component.get("stack") or "shared"
+        if stack_id not in listed:
+            listed.add(stack_id)
+            stacks.append({"id": stack_id, "name": stack_id, "environment": None})
 
     working = copy.deepcopy(baseline_components)
     alias: dict[str, str] = {}
