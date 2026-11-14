@@ -1,7 +1,5 @@
 export type Language = "ro" | "en";
 
-export type ResourceState = "danger" | "warn" | "fixed";
-export type Resource = { name: string; state: ResourceState; status: string };
 export type Criterion = "cost" | "availability" | "database";
 export type Finding = { name: string; detail: string; criterion: Criterion };
 export type Plan = { name: string; price: string; unit: string; detail: string };
@@ -12,28 +10,35 @@ export type Content = {
   tagline: string;
   nav: { cta: string; progress: string; sections: string[] };
   hero: {
-    eyebrow: string;
     title: string;
     lead: string;
     primary: string;
     secondary: string;
     scene: { label: string };
   };
-  run: { eyebrow: string; title: string; label: string; steps: { stage: string; result: string }[]; status: string };
-  finds: { eyebrow: string; title: string; criteria: Record<Criterion, string>; items: Finding[] };
-  how: {
-    eyebrow: string;
+  run: { title: string; body: string; label: string; copy: string; copied: string };
+  finds: {
     title: string;
-    steps: { title: string; body: string }[];
-    resources: Resource[];
-    criteria: string[];
-    rehearsal: string[];
-    change: { current: string; next: string };
-    promise: string;
+    criteria: Record<Criterion, string>;
+    items: Finding[];
+    waste: { value: string; label: string; source: string };
   };
-  pricing: { eyebrow: string; title: string; plans: Plan[]; compare: string };
-  faq: { eyebrow: string; title: string; items: { q: string; a: string }[] };
-  footer: { title: string; back: string; tokensLink: string; productLink: string };
+  cluster: { title: string; lead: string; plan: string; reset: string; infrared: string };
+  how: { title: string; steps: { title: string; body: string }[]; promise: string };
+  pricing: { title: string; plans: Plan[]; consultant: string };
+  faq: { title: string; items: { q: string; a: string }[] };
+  footer: {
+    title: string;
+    back: string;
+    tokensLink: string;
+    productLink: string;
+    product: string;
+    resources: string;
+    prompt: string;
+    promptNote: string;
+    copy: string;
+    copied: string;
+  };
   tokens: {
     title: string;
     lead: string;
@@ -51,88 +56,81 @@ const ro: Content = {
   skipLink: "Sari la conținut",
   languageLabel: "Limba",
   tagline: "infrastructură per proiect",
-  nav: { cta: "Cum funcționează", progress: "Secțiunile paginii", sections: ["Acasă", "Un run", "Ce găsește", "Cum funcționează", "Prețuri", "Întrebări", "Final"] },
+  nav: { cta: "Rulează o analiză", progress: "Secțiunile paginii", sections: ["Acasă", "Ce găsește", "Un run", "Plan", "Cum funcționează", "Prețuri", "Întrebări", "Final"] },
   hero: {
-    eyebrow: "Pentru CTO",
-    title: "Infrastructura, construită pe proiectele tale.",
-    lead: "Citește cloud-ul. Decide per proiect. Testează în sandbox. Îți dă pașii.",
-    primary: "Cum funcționează",
-    secondary: "Ce găsește",
-    scene: { label: "Două site-uri de infrastructură care își schimbă componentele." },
+    title: "Infrastructura, replanificată pentru fiecare proiect.",
+    lead: "Citește cloud-ul. Propune mutarea. O testează în sandbox. Îți dă pașii.",
+    primary: "Rulează o analiză",
+    secondary: "Vezi un run",
+    scene: {
+      label: "Două insule de infrastructură: rafturi, legături și mici containere care călătoresc între ele.",
+    },
   },
   run: {
-    eyebrow: "Un run",
-    title: "Șase etape. Un plan.",
-    label: "Un run Infrared",
-    steps: [
-      { stage: "extract", result: "resurse și dependențe" },
-      { stage: "investigate", result: "CPU, RAM, GPU, tokeni" },
-      { stage: "propose", result: "layout-uri candidate" },
-      { stage: "evaluate", result: "preț, constrângeri, rang" },
-      { stage: "rehearse", result: "trafic și căderi" },
-      { stage: "present", result: "planul, pas cu pas" },
-    ],
-    status: "gata de aprobare",
+    title: "Planul, ca diff.",
+    body: "Read-only. Fiecare schimbare are un pas de aplicare.",
+    label: "sample run, demo project",
+    copy: "copiază",
+    copied: "copiat",
   },
   finds: {
-    eyebrow: "Ce găsește",
-    title: "Din consum măsurat. Nu din estimări.",
+    title: "Ce găsește.",
     criteria: { cost: "Cost", availability: "Disponibilitate", database: "Baze de date" },
+    waste: { value: "29%", label: "din cheltuiala IaaS/PaaS e risipă", source: "Flexera 2026" },
     items: [
-      { name: "Resurse idle și orfane", detail: "Instanțe, volume, IP-uri nefolosite.", criterion: "cost" },
-      { name: "Rightsizing", detail: "Din CPU și RAM măsurate.", criterion: "cost" },
-      { name: "GPU și tokeni", detail: "Capacitate nefolosită, consum LLM scump.", criterion: "cost" },
-      { name: "Runner-e GitHub", detail: "Optimizate sau mutate on-prem.", criterion: "cost" },
-      { name: "Fără fallback", detail: "Ce cade cu o zonă sau un nod.", criterion: "availability" },
-      { name: "Dependențe rupte", detail: "Egress și latență, prețuite.", criterion: "availability" },
+      { name: "Resurse idle și orfane", detail: "Instanțe, volume, IP-uri fără trafic.", criterion: "cost" },
+      { name: "Rightsizing", detail: "CPU și RAM măsurate.", criterion: "cost" },
+      { name: "GPU și tokeni", detail: "Capacitate nefolosită; consum LLM.", criterion: "cost" },
+      { name: "Fără fallback", detail: "O zonă sau un nod pică tot.", criterion: "availability" },
       { name: "Tabele calde", detail: "Din pg_stat_statements.", criterion: "database" },
-      { name: "Domenii amestecate", detail: "Split-uri, replici, partiționare.", criterion: "database" },
+      { name: "Domenii amestecate", detail: "Split, replici, partiții.", criterion: "database" },
     ],
   },
+  cluster: {
+    title: "Planul, pe clustere.",
+    lead: "Fiecare proiect e un cluster. Nodurile sunt resurse; mărimea e costul lunar, culoarea e providerul. Conturul punctat e schimbarea propusă.",
+    plan: "Planifică",
+    reset: "Resetează",
+    infrared: "Vedere infrared",
+  },
   how: {
-    eyebrow: "În 4 pași",
-    title: "Cum funcționează",
+    title: "Cum funcționează.",
     steps: [
-      { title: "Citește", body: "Read-only: resurse, metrici, scheme." },
-      { title: "Decide", body: "Per proiect, după criteriile lui." },
+      { title: "Citește", body: "Resurse, metrici, scheme. Doar citire." },
+      { title: "Decide", body: "Per proiect: cost, disponibilitate, zone." },
       { title: "Testează", body: "Trafic și căderi, în sandbox." },
-      { title: "Arată", body: "Pașii, cu costul de după." },
+      { title: "Aplică", body: "Pull request. Tu aprobi, CI-ul aplică." },
     ],
-    resources: [
-      { name: "rds-orders", state: "danger", status: "o zonă" },
-      { name: "ec2-api", state: "warn", status: "prea mare" },
-      { name: "s3-assets", state: "fixed", status: "ok" },
-    ],
-    criteria: ["Disponibilitate", "Cost", "Zone"],
-    rehearsal: ["trafic simulat", "nod oprit", "fallback ok"],
-    change: { current: "Pasul 1: mută baza", next: "Pasul 2" },
     promise: "Read-only. Nu aplică nimic singur.",
   },
   pricing: {
-    eyebrow: "Prețuri",
-    title: "Per companie.",
+    title: "Prețuri.",
     plans: [
-      { name: "Pachet", price: "100 USD", unit: "5 run-uri", detail: "20 USD per run." },
-      { name: "Abonament", price: "200 USD", unit: "pe lună", detail: "Run-uri programate." },
+      { name: "Pachet", price: "490 USD", unit: "5 run-uri", detail: "98 USD per run." },
+      { name: "Abonament", price: "199 USD", unit: "pe lună", detail: "Run-uri programate." },
     ],
-    compare: "Un review de consultant pornește de la 495 USD.",
+    consultant: "Un review de consultant pornește de la 495 USD.",
   },
   faq: {
-    eyebrow: "Întrebări",
-    title: "Ce întreabă un CTO",
+    title: "Întrebări.",
     items: [
       { q: "Ce acces cere?", a: "Read-only: AWS describe și list, CloudWatch, Postgres, GitHub." },
-      { q: "Cum ajunge schimbarea în producție?", a: "Ca pull request. Îl aprobi tu, îl aplică CI-ul tău." },
-      { q: "Unde se poate muta?", a: "AWS, GCP, Azure, Supabase, Neon, Hetzner, Fly.io, R2, B2, Upstash, RunPod, on-prem." },
+      { q: "Cum ajunge schimbarea în producție?", a: "Ca pull request. Tu aprobi, CI-ul aplică." },
+      { q: "Unde se poate muta?", a: "AWS, GCP, Azure, Supabase, Neon, Hetzner, Fly.io, on-prem." },
       { q: "De ce nu Vantage sau Infracost?", a: "Ele raportează costul. Infrared propune schimbarea." },
-      { q: "De unde vin cifrele?", a: "Dintr-un motor determinist: prețuri, SLA, consum măsurat." },
     ],
   },
   footer: {
-    title: "Infrastructura care urmează proiectele.",
+    title: "Infrastructura urmează proiectele.",
     back: "Sus",
     tokensLink: "Tokenuri de design",
     productLink: "Înapoi la produs",
+    product: "Produs",
+    resources: "Resurse",
+    prompt: "infrared run",
+    promptNote: "Read-only. Un proiect demo e suficient.",
+    copy: "copiază comanda",
+    copied: "copiat",
   },
   tokens: {
     title: "Tokenuri de design",
@@ -151,88 +149,81 @@ const en: Content = {
   skipLink: "Skip to content",
   languageLabel: "Language",
   tagline: "infrastructure per project",
-  nav: { cta: "How it works", progress: "Page sections", sections: ["Home", "A run", "What it finds", "How it works", "Pricing", "Questions", "End"] },
+  nav: { cta: "Run an analysis", progress: "Page sections", sections: ["Home", "What it finds", "A run", "Plan", "How it works", "Pricing", "Questions", "End"] },
   hero: {
-    eyebrow: "For CTOs",
-    title: "Infrastructure, built around your projects.",
-    lead: "Reads your cloud. Decides per project. Rehearses in a sandbox. Hands you the steps.",
-    primary: "How it works",
-    secondary: "What it finds",
-    scene: { label: "Two infrastructure sites exchanging components." },
+    title: "Infrastructure, replanned around every project.",
+    lead: "Reads your cloud. Proposes the move. Rehearses it in a sandbox. Hands you the steps.",
+    primary: "Run an analysis",
+    secondary: "See a sample run",
+    scene: {
+      label: "Two infrastructure islands: racks, links, and small containers travelling between them.",
+    },
   },
   run: {
-    eyebrow: "A run",
-    title: "Six stages. One plan.",
-    label: "An Infrared run",
-    steps: [
-      { stage: "extract", result: "resources and dependencies" },
-      { stage: "investigate", result: "CPU, RAM, GPU, tokens" },
-      { stage: "propose", result: "candidate layouts" },
-      { stage: "evaluate", result: "price, constraints, rank" },
-      { stage: "rehearse", result: "traffic and failures" },
-      { stage: "present", result: "the plan, step by step" },
-    ],
-    status: "ready for approval",
+    title: "The plan, as a diff.",
+    body: "Read-only. Every change has an implementation step.",
+    label: "sample run, demo project",
+    copy: "copy",
+    copied: "copied",
   },
   finds: {
-    eyebrow: "What it finds",
-    title: "Measured usage. Not estimates.",
+    title: "What it finds.",
     criteria: { cost: "Cost", availability: "Availability", database: "Databases" },
+    waste: { value: "29%", label: "of IaaS/PaaS spend is wasted", source: "Flexera 2026" },
     items: [
-      { name: "Idle and orphan resources", detail: "Unused instances, volumes, IPs.", criterion: "cost" },
+      { name: "Idle and orphan resources", detail: "Instances, volumes, IPs with no traffic.", criterion: "cost" },
       { name: "Rightsizing", detail: "From measured CPU and RAM.", criterion: "cost" },
-      { name: "GPU and tokens", detail: "Idle capacity, costly LLM spend.", criterion: "cost" },
-      { name: "GitHub runners", detail: "Optimised or moved on-prem.", criterion: "cost" },
-      { name: "No fallback", detail: "What fails with one zone or node.", criterion: "availability" },
-      { name: "Split dependencies", detail: "Egress and latency, priced.", criterion: "availability" },
+      { name: "GPU and tokens", detail: "Idle capacity; costly LLM spend.", criterion: "cost" },
+      { name: "No fallback", detail: "One zone or node takes it down.", criterion: "availability" },
       { name: "Hot tables", detail: "From pg_stat_statements.", criterion: "database" },
-      { name: "Mixed domains", detail: "Splits, replicas, partitioning.", criterion: "database" },
+      { name: "Mixed domains", detail: "Splits, replicas, partitions.", criterion: "database" },
     ],
   },
+  cluster: {
+    title: "The plan, as a cluster map.",
+    lead: "Each project is a cluster. Nodes are resources; size is monthly cost, colour is provider. The dashed outline is the proposed change.",
+    plan: "Plan",
+    reset: "Reset",
+    infrared: "Infrared view",
+  },
   how: {
-    eyebrow: "In 4 steps",
-    title: "How it works",
+    title: "How it works.",
     steps: [
-      { title: "Reads", body: "Read-only: resources, metrics, schemas." },
-      { title: "Decides", body: "Per project, on its criteria." },
+      { title: "Reads", body: "Resources, metrics, schemas. Read-only." },
+      { title: "Decides", body: "Per project: cost, availability, zones." },
       { title: "Rehearses", body: "Traffic and failures, in a sandbox." },
-      { title: "Shows", body: "The steps, with the cost after." },
+      { title: "Applies", body: "Pull request. You approve, your CI applies." },
     ],
-    resources: [
-      { name: "rds-orders", state: "danger", status: "one zone" },
-      { name: "ec2-api", state: "warn", status: "oversized" },
-      { name: "s3-assets", state: "fixed", status: "ok" },
-    ],
-    criteria: ["Availability", "Cost", "Zones"],
-    rehearsal: ["traffic simulated", "node stopped", "fallback ok"],
-    change: { current: "Step 1: move the database", next: "Step 2" },
     promise: "Read-only. Never applies a change itself.",
   },
   pricing: {
-    eyebrow: "Pricing",
-    title: "Per company.",
+    title: "Pricing.",
     plans: [
-      { name: "Pack", price: "100 USD", unit: "5 runs", detail: "20 USD a run." },
-      { name: "Subscription", price: "200 USD", unit: "a month", detail: "Scheduled runs." },
+      { name: "Pack", price: "490 USD", unit: "5 runs", detail: "98 USD a run." },
+      { name: "Subscription", price: "199 USD", unit: "a month", detail: "Scheduled runs." },
     ],
-    compare: "A consultant review starts at 495 USD.",
+    consultant: "A consultant review starts at 495 USD.",
   },
   faq: {
-    eyebrow: "Questions",
-    title: "What CTOs ask",
+    title: "Questions.",
     items: [
       { q: "What access does it need?", a: "Read-only: AWS describe and list, CloudWatch, Postgres, GitHub." },
       { q: "How does a change reach production?", a: "As a pull request. You approve it, your CI applies it." },
-      { q: "Where can it move?", a: "AWS, GCP, Azure, Supabase, Neon, Hetzner, Fly.io, R2, B2, Upstash, RunPod, on-prem." },
+      { q: "Where can it move?", a: "AWS, GCP, Azure, Supabase, Neon, Hetzner, Fly.io, on-prem." },
       { q: "Why not Vantage or Infracost?", a: "They report the cost. Infrared proposes the change." },
-      { q: "Where do the numbers come from?", a: "A deterministic engine: prices, SLAs, measured usage." },
     ],
   },
   footer: {
-    title: "Infrastructure that follows your projects.",
+    title: "Infrastructure follows the projects.",
     back: "Top",
     tokensLink: "Design tokens",
     productLink: "Back to the product",
+    product: "Product",
+    resources: "Resources",
+    prompt: "infrared run",
+    promptNote: "Read-only. A demo project is enough.",
+    copy: "copy command",
+    copied: "copied",
   },
   tokens: {
     title: "Design tokens",

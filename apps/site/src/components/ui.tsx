@@ -21,17 +21,9 @@ export function Section({
   );
 }
 
-export function Eyebrow({ children, center = false }: { children: string; center?: boolean }) {
+export function Heading({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <p data-reveal className={`type-eyebrow mb-4 flex items-center gap-3 text-accent data-shown:animate-appear ${center ? "justify-center" : ""}`}>
-      {children}
-    </p>
-  );
-}
-
-export function Heading({ id, center = false, children }: { id: string; center?: boolean; children: string }) {
-  return (
-    <h2 id={id} data-reveal className={`type-h2 max-w-[22ch] text-fg data-shown:animate-unveil ${center ? "mx-auto text-center" : ""}`}>
+    <h2 id={id} className="type-h2 max-w-[24ch] text-fg">
       {children}
     </h2>
   );

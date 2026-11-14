@@ -4,7 +4,6 @@
 @layer base {
   :root {
     interpolate-size: allow-keywords;
-    /* Four step cards share the screen between the side paddings; never narrower than 15rem. */
     --step-column: clamp(15rem, calc((100vw - 2 * clamp(3rem, 7vw, 8rem) - 5.5rem) / 4), 17.5rem);
   }
 
@@ -13,9 +12,9 @@
     overflow: hidden;
     opacity: 0;
     transition:
-      block-size 320ms ease,
-      opacity 240ms ease,
-      content-visibility 320ms allow-discrete;
+      block-size 280ms ease,
+      opacity 200ms ease,
+      content-visibility 280ms allow-discrete;
   }
 
   details[open]::details-content {
@@ -29,9 +28,6 @@
     scroll-padding-top: 0;
   }
 
-  /* Vertical page on a touch screen: the browser snaps between sections, and a section taller than
-     the screen can still be scrolled through. With a mouse, lib/verticalSnap.ts does it instead,
-     because the browser rounds a single wheel notch back to the same section. */
   @media (pointer: coarse) and (max-width: 63.99rem), (pointer: coarse) and (prefers-reduced-motion: reduce) {
     html {
       scroll-snap-type: y mandatory;
@@ -49,21 +45,32 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* A very low-opacity sensor film over the night field. No gradient, no blob. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    mix-blend-mode: soft-light;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
   button:not(:disabled),
   summary {
     cursor: pointer;
   }
 
   :focus-visible {
-    outline: 3px solid var(--focus-ring, var(--color-focus));
-    outline-offset: 3px;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .js [data-intro],
-    .js [data-reveal]:not([data-shown]) {
-      opacity: 0;
-    }
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -79,6 +86,15 @@
 @layer components {
   .infra-travel {
     animation: infra-travel 9s ease-in-out infinite;
+  }
+
+  .terminal-caret {
+    display: inline-block;
+    width: 0.46em;
+    height: 0.92em;
+    background: var(--color-fg);
+    animation: caret-blink 1.15s steps(1) infinite;
+    vertical-align: -0.1em;
   }
 }
 
@@ -100,5 +116,11 @@
   94%,
   100% {
     translate: 0 0;
+  }
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
   }
 }

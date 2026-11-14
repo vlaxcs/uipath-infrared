@@ -5,8 +5,8 @@ import { Hero } from "./components/Hero.tsx";
 import { HorizontalTrack } from "./components/HorizontalTrack.tsx";
 import { Nav } from "./components/Nav.tsx";
 import { SectionDots } from "./components/SectionDots.tsx";
-import { Faq, Finds, HowItWorks, Pricing, Run } from "./components/Sections.tsx";
-import { startReveal } from "./lib/motion.ts";
+import { PlanLinkProvider } from "./components/PlanLink.tsx";
+import { Cluster, Faq, Finds, HowItWorks, Pricing, Run } from "./components/Sections.tsx";
 import { startVerticalSnap } from "./lib/verticalSnap.ts";
 import TokensPage from "./TokensPage.tsx";
 
@@ -34,19 +34,18 @@ export default function App() {
   }, [language, onTokensPage, text]);
 
   useEffect(startVerticalSnap, []);
-  useEffect(startReveal, [onTokensPage, language]);
 
   return (
     <>
       <a
         href="#continut"
-        className="type-button absolute -top-20 left-4 z-100 rounded-2xl bg-status-warn px-4 py-2.5 text-on-accent no-underline focus:top-3"
+        className="type-button absolute -top-20 left-4 z-100 bg-fg px-4 py-2.5 text-canvas no-underline focus:top-3"
       >
         {text.skipLink}
       </a>
       <Nav text={text} language={language} onLanguage={setLanguage} showCta={!onTokensPage} />
       {onTokensPage ? (
-        <main id="continut" tabIndex={-1} className="outline-none">
+        <main id="continut" tabIndex={-1} className="relative z-10 outline-none">
           <TokensPage text={text} />
           <p className="mx-auto max-w-6xl px-4 py-12 sm:px-8">
             <a href="#acasa" className="text-accent underline underline-offset-4">
@@ -55,17 +54,20 @@ export default function App() {
           </p>
         </main>
       ) : (
-        <HorizontalTrack>
-          <main id="continut" tabIndex={-1} className="outline-none horizontal:flex horizontal:h-full">
-            <Hero text={text} />
-            <Run text={text} />
-            <Finds text={text} />
-            <HowItWorks text={text} />
-            <Pricing text={text} />
-            <Faq text={text} />
-          </main>
-          <Footer text={text} tokensHref={TOKENS_HASH} />
-        </HorizontalTrack>
+        <PlanLinkProvider>
+          <HorizontalTrack>
+            <main id="continut" tabIndex={-1} className="relative z-10 outline-none horizontal:flex horizontal:h-full">
+              <Hero text={text} />
+              <Finds text={text} />
+              <Run text={text} />
+              <Cluster text={text} />
+              <HowItWorks text={text} />
+              <Pricing text={text} />
+              <Faq text={text} />
+            </main>
+            <Footer text={text} tokensHref={TOKENS_HASH} />
+          </HorizontalTrack>
+        </PlanLinkProvider>
       )}
       {!onTokensPage && <SectionDots label={text.nav.progress} names={text.nav.sections} />}
     </>

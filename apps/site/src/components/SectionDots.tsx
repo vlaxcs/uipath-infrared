@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { HORIZONTAL_QUERY } from "../lib/motion";
 
-const PANEL_IDS = ["acasa", "run", "ce-gaseste", "cum-merge", "preturi", "intrebari", "final"];
+const PANEL_IDS = ["acasa", "ce-gaseste", "run", "plan", "cum-merge", "preturi", "intrebari", "final"];
 
-// Only on the sideways page: where you are, a way to jump, and a thin progress line.
+// The page is a run: sources, analysis, plan, steps. The rail numbers that sequence.
 export function SectionDots({ label, names }: { label: string; names: string[] }) {
   const [active, setActive] = useState(0);
 
@@ -39,8 +39,8 @@ export function SectionDots({ label, names }: { label: string; names: string[] }
 
   return (
     <>
-      <nav aria-label={label} className="fixed top-1/2 right-2 z-40 hidden -translate-y-1/2 horizontal:block">
-        <ul className="flex flex-col">
+      <nav aria-label={label} className="fixed left-2.5 top-1/2 z-40 hidden -translate-y-1/2 horizontal:block">
+        <ol className="flex flex-col gap-1">
           {PANEL_IDS.map((id, index) => (
             <li key={id}>
               <a
@@ -48,23 +48,32 @@ export function SectionDots({ label, names }: { label: string; names: string[] }
                 aria-label={names[index]}
                 aria-current={index === active ? "true" : undefined}
                 title={names[index]}
-                className="group grid size-8 place-items-center rounded-full"
+                className="group relative flex h-5 items-center gap-1.5 no-underline"
               >
                 <span
-                  className={`block rounded-full border-2 transition-all duration-200 ${
-                    index === active
-                      ? "h-6 w-3 border-accent bg-accent"
-                      : "size-3 border-fg-muted bg-canvas group-hover:bg-fg-muted"
+                  className={`font-mono text-[10px] leading-none tabular-nums transition-colors ${
+                    index === active ? "text-fg" : "text-fg-muted/40 group-hover:text-fg-muted"
+                  }`}
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className={`h-px transition-all ${
+                    index === active ? "w-3 bg-fg" : "w-1 bg-fg-muted/25 group-hover:bg-fg-muted/60"
                   }`}
                 />
+                <span className="pointer-events-none absolute left-full ml-2 whitespace-nowrap border border-line bg-canvas px-2 py-1 font-mono text-[10px] text-fg opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                  {names[index]}
+                </span>
               </a>
             </li>
           ))}
-        </ul>
+        </ol>
       </nav>
       <div
         aria-hidden="true"
-        className="fixed inset-x-0 bottom-0 z-40 hidden h-1 origin-left bg-accent horizontal:block"
+        className="fixed inset-x-0 bottom-0 z-40 hidden h-px origin-left bg-fg horizontal:block"
         style={{ transform: "scaleX(var(--track-progress, 0))" }}
       />
     </>

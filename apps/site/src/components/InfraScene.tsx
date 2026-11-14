@@ -19,7 +19,7 @@ function points(corners: Point[]): string {
 }
 
 const FACES: Record<Tone, { top: string; left: string; right: string }> = {
-  steel: { top: "fill-line", left: "fill-surface", right: "fill-canvas-tint" },
+  steel: { top: "fill-line-strong", left: "fill-surface-raised", right: "fill-surface" },
   accent: { top: "fill-accent-lip", left: "fill-accent", right: "fill-accent/70" },
 };
 

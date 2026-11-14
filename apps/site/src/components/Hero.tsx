@@ -56,39 +56,32 @@ export function Hero({ text }: { text: Content }) {
   }, []);
 
   return (
-    <section ref={root} id="acasa" aria-labelledby="hero-titlu" className={`${PANEL} overflow-hidden pt-28 horizontal:w-screen`}>
+    <section ref={root} id="acasa" aria-labelledby="hero-titlu" className={`${PANEL} overflow-hidden bg-canvas pt-28 horizontal:w-screen`}>
       <div className="mx-auto grid w-full max-w-content items-center gap-14 lg:grid-cols-2 lg:gap-20 horizontal:gap-[clamp(4rem,8vw,9rem)]">
-        <Scene text={text} />
+        <div className="w-full max-w-xl justify-self-center perspective-distant lg:justify-self-end">
+          <div data-intro className="transform-3d">
+            <div data-tilt className="transform-3d">
+              <div data-float>
+                <InfraScene label={text.hero.scene.label} />
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="max-lg:order-first">
-          <p className="type-eyebrow mb-6 text-accent">{text.hero.eyebrow}</p>
           <h1 id="hero-titlu" className="type-h1 max-w-[16ch] text-fg">
             {text.hero.title}
           </h1>
           <p className="type-lead mt-6 max-w-[36ch] text-fg-muted">{text.hero.lead}</p>
           <div className="mt-10 flex flex-wrap gap-3">
-            <a href="#cum-merge" className={buttonClass("accent")}>
+            <a href="#preturi" className={buttonClass("accent")}>
               {text.hero.primary}
             </a>
-            <a href="#ce-gaseste" className={buttonClass("secondary")}>
+            <a href="#run" className={buttonClass("secondary")}>
               {text.hero.secondary}
             </a>
           </div>
         </div>
       </div>
     </section>
-  );
-}
-
-function Scene({ text }: { text: Content }) {
-  return (
-    <div className="w-full max-w-xl justify-self-center perspective-distant lg:justify-self-end">
-      <div data-intro className="transform-3d">
-        <div data-tilt className="transform-3d">
-          <div data-float>
-            <InfraScene label={text.hero.scene.label} />
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }

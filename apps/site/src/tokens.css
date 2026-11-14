@@ -5,95 +5,120 @@
   --font-*: initial;
   --text-*: initial;
 
-  --color-canvas: #000000;
-  --color-canvas-tint: #0e0e0e;
-  --color-surface: #141414;
-  --color-line: #2a2a2a;
-  --color-fg: #ffffff;
-  --color-fg-muted: #a6a6a6;
+  /* Night: the page and its panels. */
+  --color-canvas: #121214;
+  --color-canvas-tint: #1b1b1e;
+  --color-surface: #1b1b1e;
+  --color-surface-raised: #262629;
+  --color-line-soft: #202023;
+  --color-line: #2a2a2e;
+  --color-line-strong: #3a3a3f;
+  --color-fg: #ece8dc;
+  --color-fg-muted: #9a978f;
+  --color-grid: #2b2b2f;
+  --color-paper: #f5f0e4;
 
+  /* Thermal: heat means waste or cost. */
   --color-accent: #ef3b24;
-  --color-accent-lip: #ff5a43;
+  --color-accent-lip: #f5922b;
+  --color-accent-soft: #34181a;
   --color-on-accent: #000000;
+  --color-thermal-1: #2b1b5a;
+  --color-thermal-2: #7a1f7a;
+  --color-thermal-3: #c2255c;
+  --color-thermal-4: #ef3b24;
+  --color-thermal-5: #f5922b;
+  --color-thermal-6: #ffd36b;
+  --color-thermal-7: #fff4d6;
 
-  --color-night: #0a0a0a;
-  --color-night-line: #2a2a2a;
+  /* Clusters: six pastels, one hue per project. */
+  --color-cluster-ice: #a9d4ee;
+  --color-cluster-rose: #e8918f;
+  --color-cluster-apricot: #f0a878;
+  --color-cluster-lilac: #a99be0;
+  --color-cluster-sage: #b5d98e;
+  --color-cluster-teal: #96d8ce;
 
-  --color-screen: #0a0a0a;
+  --color-night: #121214;
+  --color-night-line: #2a2a2e;
+  --color-screen: #121214;
 
-  --color-status-fixed: #5cc96b;
-  --color-status-warn: #f0a030;
-  --color-status-danger: #ff6b6b;
+  --color-status-fixed: #b5d98e;
+  --color-status-warn: #f5922b;
+  --color-status-danger: #ef3b24;
 
-  --color-focus: #7cacf8;
-  --color-shadow: rgb(0 0 0 / 0.6);
+  --color-focus: #f5922b;
+  --color-shadow: rgb(0 0 0 / 0.5);
 
-  --font-display: "Inter Variable", system-ui, sans-serif;
-  --font-sans: "Inter Variable", system-ui, sans-serif;
-  --font-mono: Consolas, ui-monospace, monospace;
+  --font-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Martian Mono", ui-monospace, "Cascadia Mono", monospace;
 
-  --text-h1: clamp(2.375rem, 4.4vw, 3.5rem);
-  --text-h2: clamp(2rem, 3.4vw, 2.75rem);
-  --text-h3: 1.5rem;
-  --text-h4: 1.25rem;
-  --text-figure: clamp(2.75rem, 4.4vw, 3.75rem);
-  --text-numeral: 1.5rem;
-  --text-lead: clamp(1.25rem, 1.9vw, 1.4375rem);
-  --text-body: 1.1875rem;
-  --text-label: 1.125rem;
-  --text-button: 1.125rem;
-  --text-tag: 1rem;
+  --text-h1: clamp(2.75rem, 5vw, 4.75rem);
+  --text-h2: clamp(2rem, 3.2vw, 2.75rem);
+  --text-h3: 1.375rem;
+  --text-h4: 1.0625rem;
+  --text-figure: clamp(2.25rem, 3.4vw, 3rem);
+  --text-numeral: 1.25rem;
+  --text-lead: clamp(1.125rem, 1.5vw, 1.3125rem);
+  --text-body: 1.0625rem;
+  --text-label: 0.9375rem;
+  --text-button: 0.9375rem;
+  --text-tag: 0.8125rem;
 
-  /* Nested corners: outer radius = inner radius + the padding between them.
-     item (0.75) + well padding (0.5) = well (1.25); well + card padding (0.75) = card (2). */
-  --container-content: 76rem;
+  --container-content: 78rem;
 
-  --radius-item: 0.75rem;
-  --radius-well: 1.25rem;
-  --radius-card: 2rem;
-  --shadow-lip: 0 4px 0 var(--color-line);
-  --shadow-lip-sm: 0 3px 0 var(--color-line);
-  --shadow-float: 0 40px 50px -20px var(--color-shadow);
-  --shadow-side-panel: -24px 0 40px -32px var(--color-shadow);
+  --radius-item: 0px;
+  --radius-well: 0px;
+  --radius-card: 8px;
+  --shadow-lip: none;
+  --shadow-lip-sm: none;
+  --shadow-float: none;
+  --shadow-side-panel: none;
 
-  --ease-settle: cubic-bezier(0.2, 0.9, 0.3, 1.15);
+  --ease-settle: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 @utility type-h1 {
   font-family: var(--font-display);
   font-size: var(--text-h1);
-  line-height: 1.12;
-  font-weight: 800;
+  line-height: 0.98;
+  font-weight: 600;
+  letter-spacing: -0.04em;
   text-wrap: balance;
 }
 
 @utility type-h2 {
   font-family: var(--font-display);
   font-size: var(--text-h2);
-  line-height: 1.15;
-  font-weight: 800;
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
 @utility type-h3 {
   font-family: var(--font-display);
   font-size: var(--text-h3);
-  line-height: 1.3;
-  font-weight: 700;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
 @utility type-h4 {
   font-family: var(--font-display);
   font-size: var(--text-h4);
-  line-height: 1.3;
-  font-weight: 700;
+  line-height: 1.35;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 @utility type-figure {
   font-family: var(--font-display);
   font-size: var(--text-figure);
   line-height: 1;
-  font-weight: 800;
+  font-weight: 500;
+  letter-spacing: -0.035em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -101,13 +126,14 @@
   font-family: var(--font-display);
   font-size: var(--text-numeral);
   line-height: 1;
-  font-weight: 800;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
 @utility type-lead {
   font-family: var(--font-sans);
   font-size: var(--text-lead);
-  line-height: 1.55;
+  line-height: 1.5;
   font-weight: 400;
 }
 
@@ -121,61 +147,58 @@
 @utility type-label {
   font-family: var(--font-sans);
   font-size: var(--text-label);
-  line-height: 1.45;
-  font-weight: 700;
+  line-height: 1.4;
+  font-weight: 500;
 }
 
 @utility type-button {
   font-family: var(--font-sans);
   font-size: var(--text-button);
   line-height: 1.2;
-  font-weight: 700;
-}
-
-@utility type-eyebrow {
-  font-family: var(--font-mono);
-  font-size: var(--text-tag);
-  line-height: 1.4;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 @utility type-tag {
   font-family: var(--font-sans);
   font-size: var(--text-tag);
   line-height: 1.45;
-  font-weight: 600;
+  font-weight: 400;
 }
 
-@utility animate-pop {
-  animation: pop 550ms var(--ease-settle) both;
+/* Mono is reserved for anything a machine prints or a CTO would copy. */
+@utility type-data {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
-@utility animate-appear {
-  animation: appear 500ms ease-out both;
+@utility type-terminal {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.65;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
-@utility animate-unveil {
-  animation: unveil 700ms var(--ease-settle) both;
+@utility panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
 }
 
-@keyframes pop {
-  from {
-    opacity: 0;
-    scale: 0.6;
-    translate: 0 1rem;
-  }
+@utility raised {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-strong);
+  box-shadow: inset 0 1px 0 rgb(236 232 220 / 0.06);
 }
 
-@keyframes appear {
-  from {
-    opacity: 0;
-    translate: 0 0.75rem;
-  }
-}
-
-@keyframes unveil {
-  from {
-    opacity: 0;
-    translate: 0 0.75rem;
-  }
+@utility grid-field {
+  background-image:
+    linear-gradient(var(--color-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
