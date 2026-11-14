@@ -237,3 +237,13 @@ describe("starting again from a finished run", () => {
     expect(onStartAgain).toHaveBeenCalled();
   });
 });
+
+describe("resuming a failed run", () => {
+  it("offers to resume from the step it failed at", () => {
+    const onResume = vi.fn();
+    render(<RunView run={failedRun} source={sourceWith({ mode: "live" })} onStartAgain={vi.fn()} onResume={onResume} />);
+    expect(screen.queryByRole("button", { name: "Run again" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: `Resume from ${failedRun.step.charAt(0).toUpperCase()}${failedRun.step.slice(1)}` }));
+    expect(onResume).toHaveBeenCalled();
+  });
+});

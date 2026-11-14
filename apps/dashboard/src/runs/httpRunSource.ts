@@ -52,6 +52,7 @@ export function createHttpRunSource(baseUrl: string): RunSource {
       text(`/runs/${encodeURIComponent(id)}/files/${encodeURIComponent(path)}`, signal),
     readLog: (id, step, after, signal) =>
       request<RunLogChunk>(`/runs/${encodeURIComponent(id)}/logs?step=${step}&after=${after}`, { signal }),
+    retryRun: (id, signal) => request<RunDetail>(`/runs/${encodeURIComponent(id)}/retry`, { method: "POST", body: "{}", signal }),
     buildPlan: async (id, candidate, signal) =>
       (
         await request<{ path: string }>(`/runs/${encodeURIComponent(id)}/plans`, {

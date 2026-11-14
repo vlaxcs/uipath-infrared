@@ -50,6 +50,7 @@ type RunViewProps = {
   onStartAgain?: () => void;
   activeRunId?: string | null;
   onOpenRun?: (id: string) => void;
+  onResume?: () => void;
 };
 
 export function RunView({
@@ -60,6 +61,7 @@ export function RunView({
   onStartAgain,
   activeRunId = null,
   onOpenRun,
+  onResume,
 }: RunViewProps) {
   const { run, error, mergeEvent } = useRunFeed(initialRun, source);
   const steps = deriveStepStates(run.events, run);
@@ -233,6 +235,14 @@ export function RunView({
                 className="rounded-control border border-border px-3 py-2 text-label hover:bg-surface-muted"
               >
                 Open the active run
+              </button>
+            ) : run.status === "failed" && onResume ? (
+              <button
+                type="button"
+                onClick={onResume}
+                className="rounded-control bg-accent px-4 py-2 text-label font-medium text-on-accent"
+              >
+                Resume from {STEP_META[run.step].title}
               </button>
             ) : onStartAgain ? (
               <button

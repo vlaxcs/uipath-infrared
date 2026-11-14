@@ -33,6 +33,7 @@ type Runs interface {
 	SaveProfile(profile.Profile) error
 	Rehearse(id string, trial workflow.TrialProfile) (workflow.TrialStarted, error)
 	BuildPlan(id, candidate string) (string, error)
+	Retry(id string) (run.Run, error)
 }
 
 func Handler(runs Runs, allowedOrigins ...string) http.Handler {
@@ -55,6 +56,7 @@ func routes(runs Runs) http.Handler {
 	mux.HandleFunc("GET /runs/{id}/logs", api.logs)
 	mux.HandleFunc("POST /runs/{id}/rehearsals", api.rehearse)
 	mux.HandleFunc("POST /runs/{id}/plans", api.plan)
+	mux.HandleFunc("POST /runs/{id}/retry", api.retry)
 	mux.HandleFunc("GET /profile", api.profile)
 	mux.HandleFunc("PUT /profile", api.saveProfile)
 	return seen.observe(mux)
@@ -237,7 +239,7 @@ func failWith(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, workflow.ErrNotFound), errors.Is(err, workflow.ErrUnknownProject):
 		status = http.StatusNotFound
-	case errors.Is(err, workflow.ErrProjectBusy), errors.Is(err, run.ErrGateNotOpen), errors.Is(err, workflow.ErrNoLayout), errors.Is(err, workflow.ErrTrialRunning):
+	case errors.Is(err, workflow.ErrProjectBusy), errors.Is(err, workflow.ErrNotRetryable), errors.Is(err, run.ErrGateNotOpen), errors.Is(err, workflow.ErrNoLayout), errors.Is(err, workflow.ErrTrialRunning):
 		status = http.StatusConflict
 	case errors.Is(err, run.ErrInvalidDecision), errors.Is(err, onboarding.ErrInvalid), errors.Is(err, profile.ErrInvalid), errors.Is(err, workflow.ErrInvalidTrial):
 		status = http.StatusBadRequest
@@ -287,4 +289,14 @@ func (a *api) plan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	reply(w, http.StatusOK, map[string]string{"path": path})
+}
+
+// retry resumes a failed run from the step it failed at.
+func (a *api) retry(w http.ResponseWriter, r *http.Request) {
+	resumed, err := a.runs.Retry(r.PathValue("id"))
+	if err != nil {
+		failWith(w, err)
+		return
+	}
+	reply(w, http.StatusOK, resumed)
 }

@@ -94,6 +94,15 @@ func TestALogRequestNeedsAStepWithALogAndAValidOffset(t *testing.T) {
 	}
 }
 
+func (f *fakeRuns) Retry(id string) (run.Run, error) {
+	if id == "run-busy" {
+		return run.Run{}, workflow.ErrProjectBusy
+	}
+	resumed := run.Run{}
+	resumed.ID = id
+	return resumed, nil
+}
+
 func (f *fakeRuns) BuildPlan(id, candidate string) (string, error) {
 	if candidate == "nope" {
 		return "", workflow.ErrUnknownCandidate

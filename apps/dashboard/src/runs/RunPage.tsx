@@ -19,6 +19,7 @@ export function RunPage({ source, runId, focusGate, onOpenRun }: RunPageProps) {
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  const [resumed, setResumed] = useState(0);
   const project = run?.project ?? null;
   const terminal = run?.status === "completed" || run?.status === "failed";
 
@@ -51,6 +52,18 @@ export function RunPage({ source, runId, focusGate, onOpenRun }: RunPageProps) {
       setStarting(false);
     }
   }, [source, onOpenRun, project]);
+
+  const resume = useCallback(async () => {
+    if (!run || !source.retryRun) return;
+    setStartError(null);
+    try {
+      await source.retryRun(run.id);
+      setResumed((count) => count + 1);
+      reload();
+    } catch (cause) {
+      setStartError(messageOf(cause));
+    }
+  }, [source, run, reload]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -85,13 +98,14 @@ export function RunPage({ source, runId, focusGate, onOpenRun }: RunPageProps) {
         </div>
       ) : run ? (
         <RunView
-          key={`${run.id}${focusGate ? ":gate" : ""}`}
+          key={`${run.id}${focusGate ? ":gate" : ""}:${resumed}`}
           run={run}
           source={source}
           initialStep={focusGate ? gateStep(run.awaiting) : null}
           onReload={reload}
           onStartAgain={() => void startAgain()}
           activeRunId={activeRunId}
+          onResume={source.retryRun ? () => void resume() : undefined}
           onOpenRun={onOpenRun}
         />
       ) : (
