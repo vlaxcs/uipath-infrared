@@ -56,7 +56,7 @@ const INPUTS = { runId: RUN, result: 'result.1.json', infra: 'infra.json' };
 const ref = (layout: string): DiagramRef => ({ fileId: `F-${layout}`, title: `${layout} target`, caption: `${layout} caption`, alt: `${layout} alt` });
 
 describe('Diagram slots in the messages', () => {
-  it('puts each candidate image under its fields and above its button', () => {
+  it('puts each candidate image under its line and above its button', () => {
     const gate = sampleEvent(14);
     const candidates = candidatesOf(gate);
     const diagrams = new Map(candidates.map(candidate => [candidate.id, ref(candidate.id)]));
@@ -64,7 +64,7 @@ describe('Diagram slots in the messages', () => {
 
     expect(fileIds(blocks)).toEqual(['F-consolidate', 'F-managed_services', 'F-move_to_onprem']);
     const firstImage = blocks.findIndex(block => block.type === 'image');
-    expect(blocks[firstImage - 1].fields).toBeDefined();
+    expect(blocks[firstImage - 1].text.text).toContain('consolidate');
     expect(blocks[firstImage + 1]).toMatchObject({ type: 'context', elements: [{ text: 'consolidate caption' }] });
     expect(blocks[firstImage + 2].elements[0].action_id).toBe('pick_layout_consolidate');
     expect(blocks[firstImage]).toEqual({
@@ -90,13 +90,13 @@ describe('Diagram slots in the messages', () => {
 
   it('stays within the 50-block limit by dropping captions, then the slots', () => {
     const gate = sampleEvent(14);
-    const many = Array.from({ length: 8 }, (_, i) => ({ id: `layout_${i}`, feasible: true, rank: i + 1, monthly_eur: 1000 + i }));
+    const many = Array.from({ length: 11 }, (_, i) => ({ id: `layout_${i}`, feasible: true, rank: i + 1, monthly_eur: 1000 + i }));
     const event = { ...gate, x_candidates: many } as RunEvent;
     const candidates = candidatesOf(event);
     const diagrams = new Map(candidates.map(candidate => [candidate.id, ref(candidate.id)]));
     const { blocks } = formatLayoutGate(RUN, event, candidates, undefined, {}, diagrams);
     expect(blocks.length).toBeLessThanOrEqual(50);
-    expect(fileIds(blocks)).toHaveLength(8);
+    expect(fileIds(blocks)).toHaveLength(11);
     expect(JSON.stringify(blocks)).not.toContain('caption');
   });
 

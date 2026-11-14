@@ -83,15 +83,14 @@ describe('Layout gate card', () => {
     expect(shown).toContain('Which architecture should we run');
     expect(shown).toContain('The estate for demo-shop is extracted');
     expect(shown).toContain('3 options pass the hard constraints');
-    expect(shown).toContain('*consolidate* — recommended');
-    expect(shown).toContain('*Cost today*');
+    expect(shown).toContain('We recommend *consolidate*.');
+    expect(shown).toContain('*consolidate* — our pick');
     expect(shown).toContain('€74,365 a month');
-    expect(shown).toContain('€3.81M over 36 months');
-    expect(shown).toContain('99.95%, you asked for 99.9%');
-    expect(shown).toContain('*Effort*');
-    expect(shown).toContain('794 hours of work');
-    expect(shown).toContain('pays back in 1.38 months');
-    expect(shown).toContain('Not picked: it carries more risk.');
+    expect(shown).toContain('Over 36 months it costs €3.81M.');
+    expect(shown).toContain('99.95% availability, above your 99.9% target.');
+    expect(shown).toContain('The work takes 794 hours.');
+    expect(shown).toContain('It pays back in 1.38 months.');
+    expect(shown).toContain('not picked: it carries more risk.');
     expect(shown).toContain("These can't run");
     expect(shown).toContain('rightsize_in_place, cleanup_orphans, do_nothing');
     expect(shown).toContain('min_availability_pct on rds-orders');
@@ -121,11 +120,10 @@ describe('Plan gate card', () => {
     const shown = text(message);
     expect(shown).toContain('The rehearsal held — approve the plan?');
     expect(shown).toContain('99.92%');
-    expect(shown).toContain(', you asked for 99.9%');
-    expect(shown).toContain('*Result*');
-    expect(shown).toContain('Held');
+    expect(shown).toContain('against your 99.9% target');
+    expect(shown).toContain('The rehearsal held:');
     expect(shown).toContain('stopped the primary database; the fallback took over');
-    expect(shown).toContain('Latency p95');
+    expect(shown).toContain('p95 latency');
     expect(shown).toContain('42 → 51 → 44 ms');
     expect(shown).toContain('The estate moves from €133,308 a month to €82,665 a month');
     expect(shown).toContain('514 hours of work');
@@ -177,30 +175,28 @@ describe('Approval modal', () => {
     expect(JSON.parse(view.private_metadata)).toEqual({ run_id: RUN, seq: 20, channel_id: 'C1' });
     expect(view.submit.text).toBe('Approve');
     expect(text(view)).toContain('99.92%');
-    expect(text(view)).toContain('Result: Held');
+    expect(text(view)).toContain('The rehearsal held:');
     expect(text(view)).toContain('The estate moves from €133,308 a month to €82,665 a month');
     expect(view.blocks.some((block: any) => block.type === 'input' && block.block_id === 'note')).toBe(true);
   });
 });
 
 describe('Placeholders', () => {
-  it('writes a placeholder when a rich candidate is missing a value', () => {
+  it('omits the metrics the extension did not provide', () => {
     const event = sampleEvent(14);
     const candidates = candidatesOf(event).map(candidate =>
       candidate.id === 'consolidate' ? { ...candidate, horizonEur: undefined, risk: undefined, actions: undefined } : candidate
     );
     const shown = text(formatLayoutGate(RUN, event, candidates, targetOf(event)));
-    expect(shown).toContain('*Over the horizon*\\nnot estimated');
-    expect(shown).toContain('*Risk score*\\nnot estimated');
-    expect(shown).toContain('*Changes*\\nnot estimated');
-    expect(shown).toContain('*Cost today*');
+    expect(shown).toContain('We recommend *consolidate*.');
+    expect(shown).not.toContain('Over 36 months');
+    expect(shown).not.toContain('not estimated');
   });
 
-  it('writes a placeholder when the rehearsal summary is partial', () => {
+  it('keeps the rehearsal sentence short when the summary is partial', () => {
     const event = { ...afterLayoutEvent(20), x_rehearsal: { passed: true } } as RunEvent;
     const shown = text(formatPlanGate(RUN, event, rehearsalOf(event), planOf(event)));
-    expect(shown).toContain('*Availability*\\nnot measured');
-    expect(shown).toContain('*Latency p95*\\nnot measured');
-    expect(shown).toContain('*Result*\\nHeld');
+    expect(shown).toContain('The rehearsal held.');
+    expect(shown).not.toContain('not measured');
   });
 });

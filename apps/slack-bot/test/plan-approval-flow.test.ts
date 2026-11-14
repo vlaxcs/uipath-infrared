@@ -91,7 +91,7 @@ describe('Slack gates', () => {
     const buttons = gate.message.blocks.filter(block => block.type === 'actions').flatMap(block => block.elements);
     expect(buttons.map(element => JSON.parse(element.value).layout)).toEqual(['consolidate', 'managed_services', 'move_to_onprem']);
     expect(buttons[0].text.text).toBe('Rehearse consolidate');
-    expect(JSON.stringify(gate.message)).toContain('*consolidate* — recommended');
+    expect(JSON.stringify(gate.message)).toContain('*consolidate* — our pick');
   });
 
   it('updates the layout card in place through the pick and the rehearsal, then posts the plan card', async () => {
