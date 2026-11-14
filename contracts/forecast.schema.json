@@ -107,6 +107,57 @@
         }
       }
     },
+    "projects": {
+      "type": "array",
+      "description": "Applications inside the estate. Each scales on its own users instead of the estate's scenarios: monthly growth = (expected at its last month / current) ^ (1 / month), per scenario column (low, base, high; other scenarios read base). Applies to traffic and data of every component in its stacks.",
+      "items": {
+        "type": "object",
+        "required": ["id", "stacks", "users"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+          "name": { "type": "string" },
+          "stacks": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+          "focus": {
+            "type": "object",
+            "description": "This project's own focus, when the analysis uses a focus per project. The orchestrator writes its rules; the engine applies them to the project's stacks only.",
+            "required": ["focus"],
+            "additionalProperties": false,
+            "properties": {
+              "focus": { "enum": ["availability", "zone", "performance", "cost"] },
+              "market": { "type": "string" },
+              "min_availability_pct": { "type": "number", "minimum": 90, "exclusiveMaximum": 100, "description": "Availability target for this project's critical paths, on top of the estate's." },
+              "allowed_regions": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "Where this project's personal and confidential data may live, instead of the estate's residency rule." }
+            }
+          },
+          "users": {
+            "type": "object",
+            "required": ["metric", "current", "expected"],
+            "additionalProperties": false,
+            "properties": {
+              "metric": { "type": "string" },
+              "current": { "type": "number", "exclusiveMinimum": 0 },
+              "expected": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["month", "base"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "month": { "type": "integer", "minimum": 1 },
+                    "low": { "type": "number", "exclusiveMinimum": 0 },
+                    "base": { "type": "number", "exclusiveMinimum": 0 },
+                    "high": { "type": "number", "exclusiveMinimum": 0 },
+                    "note": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "business": {
       "type": "object",
       "required": ["downtime_cost_per_hour_eur", "engineer_hourly_eur"],

@@ -4,6 +4,7 @@ import type { RunSource } from "~/runs/source";
 import { START_PROJECT } from "~/runs/runSource";
 import { useSelectedRun } from "~/runs/useSelectedRun";
 import { RunView } from "~/runs/RunView";
+import { useOnRefresh } from "~/ui/refreshSignal";
 
 type RunPageProps = {
   source: RunSource;
@@ -14,6 +15,7 @@ type RunPageProps = {
 
 export function RunPage({ source, runId, focusGate, onOpenRun }: RunPageProps) {
   const { run, loading, error, reload } = useSelectedRun(source, runId);
+  useOnRefresh(reload);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
 

@@ -1,4 +1,4 @@
-from startup.build import security_group, world_open
+from startup.build import owned, security_group, world_open
 from startup.metrics import GB, WINDOW_HOURS, flat, shaped
 
 from projects import floci
@@ -48,9 +48,12 @@ def dev():
 
 def build():
     print("Building the clinic-booking estate (clinic- prefix)...")
-    prod()
-    staging()
-    dev()
+    with owned("clinic-booking", "prod"):
+        prod()
+    with owned("clinic-booking", "staging"):
+        staging()
+    with owned("clinic-booking", "dev"):
+        dev()
     print("Clinic-booking estate built.")
 
 

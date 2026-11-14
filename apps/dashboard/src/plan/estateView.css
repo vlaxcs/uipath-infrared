@@ -19,6 +19,21 @@
   --spend: var(--color-estate-spend);
   --removed: var(--color-estate-removed);
   --moved: var(--color-estate-moved);
+  --handoff: var(--color-estate-handoff);
+  --egress: var(--color-estate-egress);
+  --prov-aws: var(--color-estate-prov-aws);
+  --prov-gcp: var(--color-estate-prov-gcp);
+  --prov-azure: var(--color-estate-prov-azure);
+  --prov-managed_pg: var(--color-estate-prov-managed_pg);
+  --prov-onprem: var(--color-estate-prov-onprem);
+  --prov-other: var(--color-estate-prov-other);
+  --prov-neon: var(--color-estate-prov-neon);
+  --prov-supabase: var(--color-estate-prov-supabase);
+  --prov-hetzner: var(--color-estate-prov-hetzner);
+  --prov-fly: var(--color-estate-prov-fly);
+  --prov-cloudflare: var(--color-estate-prov-cloudflare);
+  --prov-backblaze: var(--color-estate-prov-backblaze);
+  --prov-runpod: var(--color-estate-prov-runpod);
   --adjusted: var(--color-estate-adjusted);
   --flagged: var(--color-estate-flagged);
   --idle: var(--color-estate-idle);
@@ -418,6 +433,9 @@
   line-height: 1.5;
   color: var(--muted);
 }
+.estate-view .change-card .change-zone { display: flex; flex-wrap: wrap; align-items: center; gap: 0.375rem; margin: 0.375rem 0 0; font-size: 0.6875rem; }
+.estate-view .history { margin: 0; padding: 0; list-style: none; font-size: 0.6875rem; color: var(--ink-2); display: grid; gap: 0.375rem; }
+.estate-view .dep-link.is-cross .dep-kind { color: var(--egress); }
 .estate-view .change-card .change-move {
   font-family: var(--font-mono);
   font-size: 0.5938rem;
@@ -550,6 +568,43 @@
 .estate-view .topo-readout .tr-pos { color: var(--ink); font-weight: 600; }
 .estate-view .topo-readout .tr-cut { color: var(--removed); }
 .estate-view .topo-readout .tr-now { color: var(--removed); }
+.estate-view .topo-readout .tr-move { color: var(--moved); font-weight: 600; }
+.estate-view .topo-readout .tr-handoff { color: var(--handoff); font-weight: 600; }
+.estate-view .topo-readout .tr-stop { color: var(--muted); }
+.estate-view .topo-readout .tr-cross { color: var(--egress); }
+
+/* Provider colour, set wherever data-provider is: zones, nodes, chips. */
+.estate-view .zone-chip, .estate-view .tzone, .estate-view .tnode { --prov: var(--prov-other); }
+.estate-view [data-provider="aws"] { --prov: var(--prov-aws); }
+.estate-view [data-provider="gcp"] { --prov: var(--prov-gcp); }
+.estate-view [data-provider="azure"] { --prov: var(--prov-azure); }
+.estate-view [data-provider="managed_pg"] { --prov: var(--prov-managed_pg); }
+.estate-view [data-provider="onprem"] { --prov: var(--prov-onprem); }
+.estate-view [data-provider="neon"] { --prov: var(--prov-neon); }
+.estate-view [data-provider="supabase"] { --prov: var(--prov-supabase); }
+.estate-view [data-provider="hetzner"] { --prov: var(--prov-hetzner); }
+.estate-view [data-provider="fly"] { --prov: var(--prov-fly); }
+.estate-view [data-provider="cloudflare"] { --prov: var(--prov-cloudflare); }
+.estate-view [data-provider="backblaze"] { --prov: var(--prov-backblaze); }
+.estate-view [data-provider="runpod"] { --prov: var(--prov-runpod); }
+
+/* Provider chip: logo (or a colour dot) plus the zone name. */
+.estate-view .zone-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.0625rem 0.4375rem 0.0625rem 0.125rem;
+  border: 0.0625rem solid var(--prov);
+  border-radius: 62.4375rem;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.estate-view .zone-chip > i { width: 0.5rem; height: 0.5rem; margin-left: 0.1875rem; border-radius: 50%; background: var(--prov); }
+.estate-view .zone-chip-icon { display: inline-flex; }
+.estate-view .zone-chip-icon svg { display: block; }
 
 
 .estate-view .tband rect {
@@ -680,6 +735,123 @@
 .estate-view .lg-host { stroke: var(--line-strong); stroke-width: 2.4; }
 .estate-view .lg-broken { stroke: var(--line-strong); stroke-width: 1.2; }
 .estate-view .lg-ghost { fill: none; stroke: var(--line-strong); stroke-dasharray: 2 1.5; }
+.estate-view .lg-cross { stroke: var(--egress); stroke-width: 2.2; }
+.estate-view .lg-move { stroke: var(--moved); stroke-width: 2; }
+.estate-view .lg-move-head { fill: var(--moved); }
+.estate-view .lg-handoff { stroke: var(--handoff); stroke-width: 2; stroke-dasharray: 4 2; }
+.estate-view .lg-handoff-head { fill: var(--handoff); }
+.estate-view .lg-paused { stroke: var(--line-strong); stroke-width: 1.6; stroke-dasharray: 2 2; }
+
+/* Zones: one strip per provider and region. The home zone is quiet; any other
+   provider is tinted with its colour so a move into it cannot be missed. */
+.estate-view .tzone-frame {
+  fill: var(--ink); fill-opacity: 0.025;
+  stroke: var(--line-strong);
+  stroke-width: 1;
+  transition: stroke 400ms ease, fill 400ms ease;
+}
+.estate-view .tzone:not([data-home]) .tzone-frame {
+  fill: var(--prov); fill-opacity: 0.08;
+  stroke: var(--prov); stroke-opacity: 0.75;
+  stroke-width: 1.5;
+}
+.estate-view .tzone[data-empty="true"] .tzone-frame { stroke-dasharray: 6 4; fill: transparent; }
+.estate-view .tzone[data-empty="true"] .tzone-name { fill: var(--muted); }
+.estate-view .tzone[data-flow="in"] .tzone-frame { stroke: var(--moved); stroke-width: 2.4; animation: tzone-pulse 1400ms ease-out; }
+.estate-view .tzone[data-flow="out"] .tzone-frame { stroke: var(--moved); stroke-dasharray: 6 4; }
+@keyframes tzone-pulse {
+  0%, 30% { fill: var(--moved); fill-opacity: 0.2; }
+}
+.estate-view .tzone-mark { fill: var(--prov); }
+.estate-view .tzone-mark-text {
+  font-family: var(--font-mono);
+  font-size: 0.5312rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  fill: var(--surface);
+}
+.estate-view .tzone-name {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  fill: var(--ink);
+}
+.estate-view .tzone-note {
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  fill: var(--muted);
+}
+.estate-view .tzone[data-flow="in"] .tzone-note, .estate-view .tzone[data-flow="out"] .tzone-note { fill: var(--moved); font-weight: 600; }
+
+/* Cross-zone dependencies pay egress and latency. */
+.estate-view .tlink[data-cross="true"] .tlink-half { stroke: var(--egress); }
+.estate-view .tlink[data-status="paused"] .tlink-half { stroke: var(--line-strong); stroke-width: 1.4; opacity: 0.55; }
+.estate-view .tlink[data-status="rerouting"] .tlink-half { stroke: var(--moved); stroke-width: 1.4; opacity: 0.25; }
+.estate-view .tlink[data-status="rerouted"] .tlink-half { opacity: 0; }
+.estate-view .tlink[data-status="rerouted"] .tlink-snap, .estate-view .tlink[data-status="rerouting"] .tlink-snap { opacity: 0; }
+
+/* Where a resource went, or that it waits. */
+.estate-view .tnode-tag {
+  font-family: var(--font-mono);
+  font-size: 0.5312rem;
+  font-weight: 600;
+  fill: var(--moved);
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 0.1875rem;
+  stroke-linejoin: round;
+}
+.estate-view .tnode[data-status="stopped"] .tnode-tag, .estate-view .tnode[data-status="pending"] .tnode-tag { fill: var(--muted); }
+.estate-view .tnode[data-status="removing"] .tnode-tag, .estate-view .tnode[data-status="removed"] .tnode-tag { fill: var(--handoff); }
+
+.estate-view .tnode[data-foreign="true"] .tnode-shape { fill: var(--prov); fill-opacity: 0.24; stroke: var(--prov); }
+.estate-view .tnode-pill { pointer-events: none; }
+
+.estate-view .tnode[data-status="arriving"] .tnode-shape {
+  stroke: var(--moved);
+  stroke-width: 2.6;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tnode-arrive 700ms cubic-bezier(.3, 1.4, .5, 1) 500ms both;
+}
+.estate-view .tnode[data-status="arriving"] .tnode-label { fill: var(--moved); font-weight: 700; }
+@keyframes tnode-arrive {
+  0% { transform: scale(0.2); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.estate-view .tnode[data-status="leaving"] .tnode-shape, .estate-view .tnode[data-status="moved-out"] .tnode-shape, .estate-view .tnode[data-status="pending"] .tnode-shape {
+  fill: transparent;
+  stroke: var(--moved);
+  stroke-dasharray: 2.5 2;
+}
+.estate-view .tnode[data-status="leaving"] .tnode-core, .estate-view .tnode[data-status="leaving"] .tnode-core-line, .estate-view .tnode[data-status="moved-out"] .tnode-core, .estate-view .tnode[data-status="moved-out"] .tnode-core-line, .estate-view .tnode[data-status="pending"] .tnode-core, .estate-view .tnode[data-status="pending"] .tnode-core-line { opacity: 0; }
+.estate-view .tnode[data-status="leaving"] .tnode-label { fill: var(--moved); }
+.estate-view .tnode[data-status="moved-out"] { opacity: 0.5; }
+.estate-view .tnode[data-status="moved-out"] .tnode-label { fill: var(--muted); font-style: italic; }
+.estate-view .tnode[data-status="pending"] { opacity: 0.28; }
+.estate-view .tnode[data-status="pending"] .tnode-shape { stroke: var(--line-strong); }
+.estate-view .tnode[data-status="stopped"] .tnode-shape { fill: transparent; stroke: var(--line-strong); stroke-dasharray: 1.5 1.5; }
+.estate-view .tnode[data-status="stopped"] .tnode-label { fill: var(--muted); }
+
+/* Trails: the step's move or handoff draws itself, then a dot travels it. */
+.estate-view .ttrail { pointer-events: none; transition: opacity 400ms ease; }
+.estate-view .ttrail[data-status="hidden"] { opacity: 0; }
+.estate-view .ttrail-halo { fill: none; stroke: var(--surface); stroke-width: 5; stroke-linecap: round; opacity: 0.7; }
+.estate-view .ttrail-path { fill: none; stroke: var(--moved); stroke-width: 2.6; stroke-linecap: round; }
+.estate-view .ttrail[data-kind="handoff"] .ttrail-path { stroke: var(--handoff); stroke-dasharray: 0.03 0.015; }
+.estate-view .ttrail[data-status="active"][data-kind="move"] .ttrail-path { stroke-dasharray: 1 1; animation: ttrail-draw 900ms cubic-bezier(.5, 0, .2, 1) both; }
+.estate-view .ttrail[data-status="trace"] .ttrail-path { stroke-width: 1.5; opacity: 0.7; }
+.estate-view .ttrail[data-status="trace"] .ttrail-halo { stroke-width: 4; opacity: 0.6; }
+@keyframes ttrail-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+.estate-view .ttrail-dot { fill: var(--moved); stroke: var(--surface); stroke-width: 1.5; opacity: 0; }
+.estate-view .ttrail[data-kind="handoff"] .ttrail-dot { fill: var(--handoff); }
+.estate-view .ttrail[data-status="active"][data-run] .ttrail-dot { opacity: 1; }
+.estate-view .tarrow[data-kind="move"] path { fill: var(--moved); }
+.estate-view .tarrow[data-kind="handoff"] path { fill: var(--handoff); }
 
 /* ------------------------------ responsive ----------------------------- */
 @media (max-width: 68.75rem) {
@@ -713,5 +885,6 @@
 @media (prefers-reduced-motion: reduce) {
   .estate-view .detail { animation: none; }
   .estate-view .tlink[data-status="breaking"] .tlink-snap { animation: none; }
+  .estate-view .tnode[data-status="arriving"] .tnode-shape, .estate-view .ttrail-path, .estate-view .tzone-frame { animation: none !important; }
   .estate-view * { transition-duration: 0.001ms !important; }
 }

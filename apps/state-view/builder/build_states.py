@@ -13,6 +13,14 @@ Standard library only.  Usage (from anywhere):
 
     python3 apps/state-view/builder/build_states.py
     python3 apps/state-view/builder/build_states.py --out /tmp/states.json
+    python3 apps/state-view/builder/build_states.py --candidate managed_services --out /tmp/managed.json
+    python3 apps/state-view/builder/build_states.py --infra infra.json --result result.json --candidate ID
+    python3 apps/state-view/builder/build_states.py --estate --infra infra.json
+
+By default the result's winner is built; ``--candidate <id>`` (alias
+``--layout``) builds any other candidate, feasible or not.  A candidate with no
+actions yields a single state, so its target is the current estate.
+``--estate`` builds only the estate today, from the infra alone.
 """
 
 from __future__ import annotations
@@ -21,6 +29,7 @@ import argparse
 import copy
 import json
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -29,8 +38,17 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = APP_ROOT / "data" / "states.json"
 
 INFRA_PATH = REPO_ROOT / "contracts" / "mock" / "demo-shop.infra.json"
+CATALOG_PATH = REPO_ROOT / "contracts" / "catalog.example.json"
 RESULT_PATH = APP_ROOT / "data" / "result.demo-shop.json"
-CANDIDATE_ID = "consolidate"
+
+LAYOUT_LABELS = {
+    "move_to_onprem": "Move to on-prem",
+    "cleanup_orphans": "Clean up orphans",
+}
+
+
+class LayoutError(ValueError):
+    """The requested layout is not a candidate in the result."""
 
 STAGE_ORDER = [
     "security_remediation",
@@ -70,7 +88,7 @@ ACTION_VERBS = {
 CHANGE_KINDS = {
     "remediate": "remediated",
     "delete": "removed",
-    "stop": "removed",
+    "stop": "stopped",
     "move": "moved",
     "resize": "resized",
     "scale": "scaled",
@@ -132,6 +150,28 @@ TIER_LABELS = {
 
 CLOUD_PROVIDERS = {"aws", "gcp", "azure", "onprem", "on-prem"}
 
+PROVIDER_LABELS = {
+    "aws": "AWS",
+    "gcp": "Google Cloud",
+    "azure": "Azure",
+    "onprem": "On-prem",
+    "supabase": "Supabase",
+    "neon": "Neon",
+    "hetzner": "Hetzner",
+    "fly": "Fly.io",
+    "cloudflare": "Cloudflare",
+    "backblaze": "Backblaze",
+    "runpod": "RunPod",
+    "managed_pg": "Managed Postgres",
+    "other": "Other",
+}
+
+# Phrases in an action's reason that name the resource taking over the work.
+ABSORB_PATTERN = re.compile(
+    r"(?:fits? on|folded into|merged into|moved onto|absorbed by)\s+(?:the\s+)?`?([a-z0-9][a-z0-9-]*)",
+    re.IGNORECASE,
+)
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -141,6 +181,41 @@ CLOUD_PROVIDERS = {"aws", "gcp", "azure", "onprem", "on-prem"}
 def load_json(path: Path) -> dict:
     with path.open(encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def load_catalog(path: Path | str | None = None) -> dict:
+    """Catalog options by id; empty when the catalog is missing."""
+    path = Path(path) if path else CATALOG_PATH
+    try:
+        catalog = load_json(path)
+    except (OSError, ValueError):
+        return {}
+    return {option["id"]: option for option in catalog.get("options") or [] if option.get("id")}
+
+
+def zone_id(component: dict) -> str:
+    return f"{component.get('provider') or 'other'}:{component.get('region') or 'global'}"
+
+
+def zone_meta(zone: str) -> dict:
+    provider, _, region = zone.partition(":")
+    provider_label = PROVIDER_LABELS.get(provider, provider)
+    place = region[len("onprem-"):] if provider == "onprem" and region.startswith("onprem-") else region
+    return {
+        "id": zone,
+        "provider": provider,
+        "region": region,
+        "label": f"{provider_label} · {place}",
+        "providerLabel": provider_label,
+    }
+
+
+def absorber_of(action: dict, live_ids: set[str]) -> str | None:
+    for match in ABSORB_PATTERN.finditer(action.get("reason") or ""):
+        candidate = match.group(1)
+        if candidate in live_ids and candidate != action.get("component"):
+            return candidate
+    return None
 
 
 def relative(path: Path) -> str:
@@ -174,12 +249,31 @@ def fmt_eur(value: float) -> str:
     return f"€{int(round(value)):,}"
 
 
-def find_winner(result: dict) -> dict:
-    winner_id = result.get("winner")
+def candidate_ids(result: dict) -> list[str]:
+    return [c.get("id") for c in result.get("candidates") or [] if c.get("id")]
+
+
+def find_candidate(result: dict, layout: str | None = None) -> dict:
+    """The candidate named ``layout``, or the winner when ``layout`` is None."""
+    wanted = layout if layout is not None else result.get("winner")
     for candidate in result.get("candidates") or []:
-        if candidate.get("id") == winner_id:
+        if candidate.get("id") == wanted:
             return candidate
-    raise SystemExit(f"winner candidate {winner_id!r} not found in result")
+    available = ", ".join(candidate_ids(result)) or "none"
+    if layout is None:
+        raise LayoutError(f"winner candidate {wanted!r} not found in result (candidates: {available})")
+    raise LayoutError(f"unknown layout {wanted!r}; candidates in this result: {available}")
+
+
+def find_winner(result: dict) -> dict:
+    return find_candidate(result, None)
+
+
+def layout_label(layout_id: str) -> str:
+    if layout_id in LAYOUT_LABELS:
+        return LAYOUT_LABELS[layout_id]
+    words = str(layout_id).replace("-", " ").replace("_", " ").strip()
+    return words[:1].upper() + words[1:] if words else "Layout"
 
 
 # ---------------------------------------------------------------------------
@@ -302,7 +396,7 @@ def apply_scale(component: dict, raw) -> None:
 
 
 def looks_like_region(token: str) -> bool:
-    return bool(re.match(r"^[a-z]{2}(?:-[a-z]+)+-\d+$", token))
+    return bool(re.match(r"^(?:[a-z]{2}(?:-[a-z]+)+-\d+|onprem-[a-z0-9]+)$", token))
 
 
 def parse_move_target(raw) -> dict:
@@ -331,10 +425,16 @@ def parse_move_target(raw) -> dict:
     return parsed
 
 
-def apply_move(component: dict, raw) -> None:
+def apply_move(component: dict, raw, catalog: dict | None = None) -> None:
     parsed = parse_move_target(raw)
     target = parsed.get("target")
-    if target:
+    option = (catalog or {}).get(target) if target else None
+    if option:
+        component["provider"] = option.get("provider") or component.get("provider")
+        component["service"] = option.get("service") or component.get("service")
+        if option.get("platform"):
+            component["region"] = option["platform"]
+    elif target:
         if "-" in target:
             prefix, rest = target.split("-", 1)
             if prefix in CLOUD_PROVIDERS and rest:
@@ -396,7 +496,7 @@ def apply_autoscale(component: dict) -> None:
     scaling["autoscaling_enabled"] = True
 
 
-def apply_action(components: list[dict], action: dict, change: dict) -> dict | None:
+def apply_action(components: list[dict], action: dict, change: dict, catalog: dict | None = None) -> dict | None:
     """Mutate ``components`` in place; return a removal record when applicable."""
     component_id = change["component"]
     verb = change["action"] or ""
@@ -405,7 +505,7 @@ def apply_action(components: list[dict], action: dict, change: dict) -> dict | N
         return None
 
     component = components[index]
-    if verb in ("delete", "stop"):
+    if verb == "delete":
         removal = {
             "id": component.get("id"),
             "kind": component.get("kind"),
@@ -417,16 +517,19 @@ def apply_action(components: list[dict], action: dict, change: dict) -> dict | N
             "reason": action.get("reason"),
             "atState": None,
             "atIndex": None,
+            "into": change.get("into"),
         }
         del components[index]
         return removal
 
-    if verb == "resize":
+    if verb == "stop":
+        component["status"] = "stopped"
+    elif verb == "resize":
         apply_resize(component, action.get("to"))
     elif verb == "scale":
         apply_scale(component, action.get("to"))
     elif verb == "move":
-        apply_move(component, action.get("to"))
+        apply_move(component, action.get("to"), catalog)
     elif verb == "remediate":
         apply_remediate(component, action)
     elif verb == "autoscale":
@@ -552,7 +655,7 @@ def public_component(component: dict) -> dict:
         "tier": KIND_TIER.get(component.get("kind"), "identity"),
         "stack": component.get("stack", "shared"),
         "status": component.get("status")
-        if component.get("status") in ("idle", "orphan")
+        if component.get("status") in ("idle", "orphan", "stopped")
         else "active",
         "quantity": component.get("quantity") or 1,
         "zones": component.get("zones"),
@@ -562,23 +665,37 @@ def public_component(component: dict) -> dict:
         "facts": facts_of(component),
         "provider": component.get("provider"),
         "region": component.get("region"),
+        "zone": zone_id(component),
         "service": component.get("service"),
         "sku": component.get("sku"),
     }
 
 
-def public_edges(edges: list[dict], ids: set[str]) -> list[dict]:
+def public_edges(edges: list[dict], ids: set[str], alias: dict[str, str] | None = None) -> list[dict]:
+    """Edges between live components; edges of absorbed resources follow their absorber."""
+    alias = alias or {}
+
+    def resolve(component_id):
+        seen = set()
+        while component_id in alias and component_id not in seen:
+            seen.add(component_id)
+            component_id = alias[component_id]
+        return component_id
+
     out = []
-    for edge in edges:
-        if edge.get("from") in ids and edge.get("to") in ids:
-            out.append(
-                {
-                    "from": edge.get("from"),
-                    "to": edge.get("to"),
-                    "kind": edge.get("kind"),
-                    "note": edge.get("note"),
-                }
-            )
+    keys = set()
+    # Real edges first, so an absorbed edge never shadows one that already exists.
+    for edge in sorted(edges, key=lambda e: e.get("from") in alias or e.get("to") in alias):
+        source, target = resolve(edge.get("from")), resolve(edge.get("to"))
+        if source not in ids or target not in ids or source == target or (source, target) in keys:
+            continue
+        keys.add((source, target))
+        item = {"from": source, "to": target, "kind": edge.get("kind"), "note": edge.get("note")}
+        if source != edge.get("from"):
+            item["rehomedFrom"] = edge.get("from")
+        elif target != edge.get("to"):
+            item["rehomedFrom"] = edge.get("to")
+        out.append(item)
     return out
 
 
@@ -624,32 +741,25 @@ def change_of(action: dict) -> dict:
     }
 
 
-def find_candidate(result: dict, candidate_id: str) -> dict:
-    for candidate in result.get("candidates") or []:
-        if candidate.get("id") == candidate_id:
-            return candidate
-    raise SystemExit(f"candidate {candidate_id!r} not found in result")
-
-
 def build_dataset(
-    infra_path: Path = INFRA_PATH,
-    result_path: Path | None = RESULT_PATH,
+    infra_path: Path | str | None = INFRA_PATH,
+    result_path: Path | str | None = RESULT_PATH,
     candidate_id: str | None = None,
+    catalog_path: Path | str | None = None,
 ) -> dict:
-    infra = load_json(infra_path)
+    """States for one candidate: the winner when ``candidate_id`` is None.
+
+    ``result_path=None`` builds only the estate today, as one state.
+    """
+    infra_path = Path(infra_path) if infra_path else INFRA_PATH
     estate = result_path is None
+    result_path = None if estate else Path(result_path)
+    sample = not estate and infra_path == INFRA_PATH and result_path == RESULT_PATH
+    infra = load_json(infra_path)
     result = {} if estate else load_json(result_path)
-    sample = candidate_id is None and not estate
-    if estate:
-        winner = {"id": None, "actions": []}
-    elif sample:
-        winner = find_winner(result)
-        if winner.get("id") != CANDIDATE_ID:
-            raise SystemExit(
-                f"configured candidate {CANDIDATE_ID!r} but result winner is {winner.get('id')!r}"
-            )
-    else:
-        winner = find_candidate(result, candidate_id)
+    catalog = load_catalog(catalog_path)
+    # "winner" below is the chosen candidate, not necessarily the engine's winner.
+    winner = {"id": None, "actions": []} if estate else find_candidate(result, candidate_id)
 
     ordered = order_actions(winner.get("actions") or [])
     actions = [action for _, action in ordered]
@@ -676,6 +786,11 @@ def build_dataset(
     ]
 
     working = copy.deepcopy(baseline_components)
+    alias: dict[str, str] = {}
+    zone_counts: dict[str, int] = {}
+    for component in working:
+        zone_counts[zone_id(component)] = zone_counts.get(zone_id(component), 0) + 1
+    zone_order = sorted(zone_counts, key=lambda zone: -zone_counts[zone])
     removed: list[dict] = []
     states: list[dict] = []
     previous_monthly = base
@@ -696,7 +811,7 @@ def build_dataset(
                 "project": infra.get("project", "demo-shop"),
                 "stacks": copy.deepcopy(stacks),
                 "components": components,
-                "edges": public_edges(copy.deepcopy(baseline_edges), ids),
+                "edges": public_edges(baseline_edges, ids, alias),
             },
             **fields,
         }
@@ -751,7 +866,21 @@ def build_dataset(
         stage["lastStateIndex"] = index + 1
         stage["stepCount"] += 1
 
-        removal = apply_action(working, action, change)
+        live_ids = {component.get("id") for component in working}
+        if change["action"] in ("delete", "move"):
+            into = absorber_of(action, live_ids)
+            if into:
+                change["into"] = into
+        subject = next((c for c in working if c.get("id") == change["component"]), None)
+        before_zone = zone_id(subject) if subject else None
+        removal = apply_action(working, action, change, catalog)
+        if removal is None and subject is not None and zone_id(subject) != before_zone:
+            change["fromZone"] = before_zone
+            change["toZone"] = zone_id(subject)
+            if change["toZone"] not in zone_order:
+                zone_order.append(change["toZone"])
+        if removal is not None and change.get("into"):
+            alias[change["component"]] = change["into"]
         saving = deltas[index]
         if removal is None:
             target = next((c for c in working if c.get("id") == change["component"]), None)
@@ -826,7 +955,7 @@ def build_dataset(
         "project": infra.get("project", "demo-shop"),
         "title": "Demo shop" if sample else infra.get("project", "Estate"),
         "subtitle": (
-            "Sample plan · 4 stacks · 38 resources" if sample
+            f"Sample plan · {len(stacks)} stacks · {len(baseline_components)} resources" if sample
             else f"Estate today · {len(stacks)} stacks · {len(baseline_components)} resources" if estate
             else f"Plan {winner.get('id')} · {len(stacks)} stacks · {len(baseline_components)} resources"
         ),
@@ -836,8 +965,16 @@ def build_dataset(
             "candidate": winner.get("id"),
             "sample": sample,
         },
+        "layout": {
+            "id": winner.get("id"),
+            "label": "Estate today" if estate else layout_label(winner.get("id")),
+            "feasible": winner.get("feasible"),
+            "winner": winner.get("id") == result.get("winner"),
+            "rank": winner.get("rank"),
+        },
         "stages": stages,
         "tiers": [{"id": tier, "label": label} for tier, label in TIER_LABELS.items()],
+        "zones": [zone_meta(zone) for zone in zone_order],
         "stepCount": len(actions),
         "baseline": baseline_block,
         "target": target_block,
@@ -845,26 +982,37 @@ def build_dataset(
     }
 
 
-def build_document(infra_path: Path = INFRA_PATH, result_path: Path | None = RESULT_PATH, candidate_id: str | None = None) -> dict:
-    return {"dataset": build_dataset(infra_path, result_path, candidate_id)}
+def build_document(
+    infra_path: Path | str | None = INFRA_PATH,
+    result_path: Path | str | None = RESULT_PATH,
+    candidate_id: str | None = None,
+    catalog_path: Path | str | None = None,
+) -> dict:
+    return {"dataset": build_dataset(infra_path, result_path, candidate_id, catalog_path)}
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Generate the estate-state snapshots.")
     parser.add_argument("--out", default=str(DEFAULT_OUT), help=f"output path (default: {relative(DEFAULT_OUT)})")
-    parser.add_argument("--infra", type=Path, help="a run's infra.json (default: the demo estate)")
-    parser.add_argument("--result", type=Path, help="a run's result.json (default: the demo result)")
-    parser.add_argument("--candidate", help="the candidate to lay out (default: the demo's winner)")
+    parser.add_argument("--candidate", "--layout", dest="candidate", default=None,
+                        help="candidate id to build (default: the result's winner)")
+    parser.add_argument("--result", default=None, help=f"engine result (default: {relative(RESULT_PATH)})")
+    parser.add_argument("--infra", default=None, help=f"baseline infra (default: {relative(INFRA_PATH)})")
+    parser.add_argument("--catalog", default=None, help=f"catalog options (default: {relative(CATALOG_PATH)})")
     parser.add_argument("--estate", action="store_true", help="only the estate today, from --infra alone")
     args = parser.parse_args(argv)
-    if args.estate:
-        if args.infra is None or args.result is not None or args.candidate is not None:
-            parser.error("--estate takes --infra and no --result or --candidate")
-        document = build_document(args.infra, None)
-    else:
-        if (args.infra is None) != (args.result is None) or (args.candidate is not None and args.infra is None):
-            parser.error("--infra, --result and --candidate go together; without them the demo dataset is built")
-        document = build_document(args.infra or INFRA_PATH, args.result or RESULT_PATH, args.candidate)
+    if args.estate and (args.infra is None or args.result is not None or args.candidate is not None):
+        parser.error("--estate takes --infra and no --result or --candidate")
+
+    try:
+        document = build_document(
+            args.infra or INFRA_PATH,
+            None if args.estate else (args.result or RESULT_PATH),
+            args.candidate,
+            args.catalog,
+        )
+    except LayoutError as error:
+        raise SystemExit(f"error: {error}")
     out_path = Path(args.out)
     if not out_path.is_absolute():
         out_path = (Path.cwd() / out_path).resolve()

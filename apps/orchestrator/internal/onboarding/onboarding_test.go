@@ -117,3 +117,79 @@ func TestForbiddenInReadsTheProjectsList(t *testing.T) {
 		t.Fatalf("got %v from a forecast with no list", got)
 	}
 }
+
+func TestEachApplicationScalesOnTheUsersAndFocusTheAnalysisGave(t *testing.T) {
+	asked := answers("aws")
+	asked.FocusMode = onboarding.FocusPerProject
+	asked.Apps = []onboarding.AppAnswer{{ID: "booking", UsersNow: 50000, UsersExpected: 150000, AtMonth: 36, Criteria: &onboarding.Criteria{Focus: onboarding.FocusAvailability}}}
+	constraints, err := onboarding.Resolve(asked, catalog, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	forecast := map[string]any{
+		"hard_constraints": map[string]any{},
+		"projects": []any{map[string]any{"id": "booking", "users": map[string]any{"metric": "monthly_active_users", "current": 41000.0,
+			"expected": []any{map[string]any{"month": 24.0, "low": 70300.0, "base": 112500.0, "high": 178500.0}}}}},
+	}
+	if err := onboarding.Apply(forecast, constraints); err != nil {
+		t.Fatal(err)
+	}
+	project := forecast["projects"].([]any)[0].(map[string]any)
+	users := project["users"].(map[string]any)
+	row := users["expected"].([]any)[0].(map[string]any)
+	if users["current"] != 50000 || row["month"] != 36 || row["base"] != 150000 || row["low"] != 93733 || row["high"] != 238000 {
+		t.Fatalf("users %v", users)
+	}
+	if focus := project["focus"].(map[string]any); focus["focus"] != "availability" {
+		t.Fatalf("focus %v", project["focus"])
+	}
+}
+
+func TestAnApplicationTheEstateDoesNotHaveIsRefused(t *testing.T) {
+	asked := answers("aws")
+	asked.Apps = []onboarding.AppAnswer{{ID: "ghost", UsersNow: 1, UsersExpected: 2, AtMonth: 12}}
+	constraints, err := onboarding.Resolve(asked, catalog, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := onboarding.Apply(map[string]any{"hard_constraints": map[string]any{}, "projects": []any{}}, constraints); !errors.Is(err, onboarding.ErrInvalid) {
+		t.Fatalf("got %v", err)
+	}
+}
+
+func TestApplicationAnswersAreCheckedBeforeTheRunStarts(t *testing.T) {
+	for name, app := range map[string]onboarding.AppAnswer{
+		"no users now": {ID: "a", UsersNow: 0, UsersExpected: 10, AtMonth: 12},
+		"no month":     {ID: "a", UsersNow: 1, UsersExpected: 10, AtMonth: 0},
+		"a bad focus":  {ID: "a", UsersNow: 1, UsersExpected: 10, AtMonth: 12, Criteria: &onboarding.Criteria{Focus: "speed"}},
+	} {
+		asked := answers("aws")
+		asked.Apps = []onboarding.AppAnswer{app}
+		if _, err := onboarding.Resolve(asked, catalog, nil); !errors.Is(err, onboarding.ErrInvalid) {
+			t.Errorf("%s: %v", name, err)
+		}
+	}
+}
+
+func TestTheScenarioSpreadSurvivesAForecastDecodedWithNumbers(t *testing.T) {
+	asked := answers("aws")
+	asked.Apps = []onboarding.AppAnswer{{ID: "booking", UsersNow: 50000, UsersExpected: 150000, AtMonth: 36}}
+	constraints, err := onboarding.Resolve(asked, catalog, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var forecast map[string]any
+	decoder := json.NewDecoder(strings.NewReader(`{"hard_constraints": {}, "projects": [{"id": "booking", "users": {"metric": "m", "current": 41000,
+		"expected": [{"month": 24, "low": 70300, "base": 112500, "high": 178500}]}}]}`))
+	decoder.UseNumber()
+	if err := decoder.Decode(&forecast); err != nil {
+		t.Fatal(err)
+	}
+	if err := onboarding.Apply(forecast, constraints); err != nil {
+		t.Fatal(err)
+	}
+	row := forecast["projects"].([]any)[0].(map[string]any)["users"].(map[string]any)["expected"].([]any)[0].(map[string]any)
+	if row["low"] != 93733 || row["high"] != 238000 {
+		t.Fatalf("the spread was lost: %v", row)
+	}
+}

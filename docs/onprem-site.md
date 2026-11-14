@@ -10,7 +10,7 @@ Status: draft. Every decision below is a recommendation Claude picked when the g
 
 1. **The owner does not want on-prem.** In onboarding the checkbox stays unticked. The project's `forecast.json` gets `onprem` in `forbidden_providers`, the site step is skipped, and `move_to_onprem` rejects every move with the reason it already gives for a provider that is not allowed.
 2. **The owner wants on-prem and has a headquarters with free space.** The owner ticks the checkbox, picks "at our headquarters", finds the address on the map, and types the free floor area in m². No rent is searched. The engine checks the area against the proposal and prices the fit-out.
-3. **The owner wants on-prem and has no space.** The owner ticks the checkbox, picks "find a space near", sets the pin and a search radius. The site step searches two kinds of options near the pin: colocation offers (racks rented in a data centre) and commercial or industrial spaces to rent and fit out. The engine picks the cheapest option that fits each on-prem candidate.
+3. **The owner wants on-prem and has no space.** The owner ticks the checkbox, picks "find a space near", and sets from one to three search areas, each a point and a radius, on the map or in the fields. The areas are alternatives for one site, not three sites. The site step searches two kinds of options near the pin: colocation offers (racks rented in a data centre) and commercial or industrial spaces to rent and fit out. The engine picks the cheapest option that fits each on-prem candidate.
 4. **The owner reads the result.** The `move_to_onprem` candidate shows the chosen site: kind, address, area, monthly rent, one-off fit-out, the source URL of every number, and the next cheapest options that also fit.
 
 ## 3. Where it sits
@@ -19,7 +19,7 @@ Status: draft. Every decision below is a recommendation Claude picked when the g
 - a choice: "At our headquarters" or "Find a space near";
 - an address field with autocomplete, and the map beside it. The address field is the primary control: it works with the keyboard and a screen reader. The map shows the pin and lets the pin be dragged, but nothing requires the map;
 - for headquarters: the free floor area in m², required;
-- for a search: the radius in km, 25 by default, from 5 to 100;
+- for a search: from one to three areas. Each area has an optional name, a point and a radius in km, 25 by default, from 5 to 100. On the map, a click adds an area, a circle drags to move it, and its edge drags to resize it, in whole km. "Add an area" puts the next one beside the last, two radii east, so the keyboard alone reaches three. The last area cannot be removed. The map is Leaflet on OpenStreetMap tiles, with no key; a centre handle moves an area and an edge handle resizes it. When the map fails to load, the fields alone complete the step;
 - a consent line: the location is sent to Google Maps and to the listing search.
 
 Without the dashboard, the same answers are written by hand into `forecast.json`, and the flow works the same.
@@ -105,13 +105,13 @@ All minor versions, all new fields optional, so existing files stay valid.
     "place_id": "Google place id",
     "label": "the formatted address the owner picked",
     "lat": 44.43, "lng": 26.10,
-    "radius_km": 25,
-    "free_area_m2": 120
+    "free_area_m2": 120,
+    "areas": [{ "label": "optional", "lat": 44.43, "lng": 26.10, "radius_km": 25 }]
   }
 }
 ```
 
-`free_area_m2` is required for `headquarters` and forbidden for `search`; `radius_km` is the reverse. `wanted: false` and a missing block mean the same: no on-prem, and onboarding writes `onprem` into `forbidden_providers`.
+`headquarters` needs `label`, `lat`, `lng` and `free_area_m2`, and no `areas`. `search` needs one to three `areas`, each a point on Earth with `radius_km` from 5 to 100, and none of `label`, `lat`, `lng`, `free_area_m2`. A profile saved as one search pin with `radius_km` is read as one area. `wanted: false` and a missing block mean the same: no on-prem, and onboarding writes `onprem` into `forbidden_providers`.
 **`sites.schema.json`**, new, owned by the agent:
 
 ```json
@@ -173,6 +173,9 @@ All minor versions, all new fields optional, so existing files stay valid.
 | Every target unticked in step 3 | the dashboard keeps at least one ticked; `POST /runs` answers `400` when none is |
 | `POST /runs` with a bad `onprem` block | `400` with the field that is wrong; no run starts |
 | Headquarters too small | `move_to_onprem` is infeasible with a new violation `onprem_site`: "needs 140 m², headquarters has 120 m²". No search is made instead: the owner chose headquarters |
+| Areas that overlap | allowed; an option inside two areas is one option, kept once by `source_url` |
+| A fourth area | the map ignores the click and "Add an area" is disabled; `PUT /profile` answers `400` |
+| A circle dragged past 100 km or under 5 km | it snaps back to the limit; nothing outside 5 to 100 is saved |
 | Search finds nothing in the radius | the step widens once to double the radius, capped at 100 km. Still nothing: `sites.json` with no options, and every on-prem candidate gets `onprem_site`: "no space found within N km" |
 | Options found, none fits | `onprem_site`: "the largest option is X m², the plan needs Y m²" |
 | Pin outside every `data_residency` region | onboarding warns before saving; the engine already rejects the move for residency |
@@ -191,7 +194,7 @@ All minor versions, all new fields optional, so existing files stay valid.
 - Per run: one Places call to resolve the pin, one store query per kind, and at most two listing searches per kind (the second only when widening). Never one call per candidate or per option.
 - The store is keyed by area, not by company: a thousand companies in the same city share the same listings and cost one search per kind a week between them.
 - At a thousand times today: a city has thousands of listings, a country hundreds of thousands. The GiST index keeps the radius query on the rows near the pin, not the table. Measured on 1,000,000 rows spread over Romania (about 4 a km², far denser than real listings): the nearby query takes 100 ms at 25 km and 306 ms at 100 km, both kinds in one round trip, through a bitmap of `site_options_location` and `site_options_kind_read_at`. A GiST on `(kind, location)` was not picked by the planner; dropping the B-tree made 100 km 615 ms.
-- The Maps JavaScript key ships to the browser (`VITE_GOOGLE_MAPS_KEY`), restricted by HTTP referrer and to the Maps and Places APIs. The server key (`GOOGLE_MAPS_API_KEY`) is separate and never ships.
+- The dashboard's map uses OpenStreetMap's public tiles, with no key: one tile request per tile in view, light use only. The server key (`GOOGLE_MAPS_API_KEY`) is for the site step and never ships.
 - `sites.json` is at most 60 options, so the engine's fit check is a scan of 60 rows per candidate.
 
 ## 8. Privacy
@@ -213,7 +216,6 @@ The repo has no database today. This feature adds the first stateful service.
 | --- | --- | --- |
 | `SITES_DATABASE_URL` | agent (site step) | the site role's connection string; local: the compose service |
 | `GOOGLE_MAPS_API_KEY` | agent (site step) | server key, Places API only |
-| `VITE_GOOGLE_MAPS_KEY` | dashboard | browser key, restricted by referrer, Maps JavaScript and Places only |
 
 ## 9. Tests
 
@@ -222,7 +224,7 @@ The repo has no database today. This feature adds the first stateful service.
 - Site step: a recorded search response gives the expected `sites.json`; a listing without a price or a size is dropped; the widen-once rule; a missing key stops at startup. No live calls in CI.
 - Store, against the Postgres service in CI: a listing outside the radius is not returned; a listing older than 7 days is not returned; enough fresh options skip the search; a listing seen twice stays one row with the newer price; the site role cannot read or write any other table; Postgres down stops the step.
 - Flow test: a stub `site` stage copies `sites.example.json`, and the demo path stays green.
-- Onboarding's on-prem step: the address field alone completes it with the keyboard; unticked, it writes `onprem` into `forbidden_providers`. The other onboarding tests are in `docs/onboarding.md`.
+- Onboarding's on-prem step: the fields alone complete it with the keyboard, up to three areas; the map, against a fake Google library, adds an area on click and none past three, moves and resizes a circle, snaps a radius past 100 km back, follows the fields, and says when it cannot load; unticked, it writes `onprem` into `forbidden_providers`. The other onboarding tests are in `docs/onboarding.md`.
 
 ## 10. Out of scope
 
@@ -252,3 +254,11 @@ The repo has no database today. This feature adds the first stateful service.
 13. The site step runs in parallel with Extract to Propose; `verify_site` re-reads the chosen option and two runners-up after Evaluate.
 14. The result map uses one marker per option, coloured by cost for the plan, not a heatmap. Vlad confirmed the markers; the colouring by cost for the plan is Claude's.
 15. Onboarding has its own spec, `docs/onboarding.md`; this one covers only its on-prem step.
+16. Up to three search areas, asked by Vlad, picked on a Leaflet map over OpenStreetMap tiles instead of Google Maps, so the demo needs no key or billing. OpenStreetMap's public tiles are for light use: production needs a tile provider or Google back; the answers below are Claude's, accepted by Vlad as MVP defaults without a grill:
+    - the areas are alternatives for one site: the engine still picks one option, the cheapest that fits across all areas, ties to the nearest area's point;
+    - a headquarters is one point and is not mixed with search areas;
+    - areas may overlap; options are kept once by `source_url`;
+    - widening, the 5 fresh options rule and the Storia city pick apply per area; the store query runs once for all areas, `st_dwithin` on each joined with `or`, not once per area;
+    - areas have no priority; cost decides;
+    - the result map draws every area's circle under the markers.
+17. Not built yet: the site step and the result map still take one point. The dashboard and `PUT /profile` take three areas today; the run receives only `onprem.wanted`.

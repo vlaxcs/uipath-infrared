@@ -1,24 +1,25 @@
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { OrchestratorError, orchestratorOnboarding, type OnboardingSource } from "~/onboarding/api";
 import { CriteriaFields } from "~/onboarding/CriteriaFields";
-import type { Profile, ProfileSite } from "~/onboarding/types";
+import { ProjectFocusList } from "~/onboarding/ProjectFocusList";
+import { NEW_SITE, SiteFields } from "~/onboarding/SiteFields";
+import type { Application, Profile } from "~/onboarding/types";
 import { AccountSettings, AccountSettingsPanel, type AccountSettingsSource } from "~/accountSettings/AccountSettings";
-import { PageHeader, PageSection } from "~/pages/PageSection";
+import { PageSection } from "~/pages/PageSection";
 
 type State = { status: "loading" } | { status: "failed"; reason: string } | { status: "ready"; profile: Profile };
 
-const INPUT = "rounded-control border border-border bg-surface px-3 py-2 text-label text-fg";
 
 function reasonOf(error: unknown): string {
   return error instanceof OrchestratorError ? error.message : "Something went wrong. Try again.";
 }
 
-const NEW_SITE: ProfileSite = { kind: "search", label: "", lat: 44.4268, lng: 26.1025, radius_km: 25 };
 
 type ConfigurationPageProps = { source?: OnboardingSource; accountSettings?: AccountSettingsSource };
 
 export function ConfigurationPage({ source = orchestratorOnboarding, accountSettings }: ConfigurationPageProps) {
   const [state, setState] = useState<State>({ status: "loading" });
+  const [applications, setApplications] = useState<Application[]>([]);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
   const id = useId();
@@ -28,6 +29,12 @@ export function ConfigurationPage({ source = orchestratorOnboarding, accountSett
     source.loadProfile().then(
       (profile) => current && setState({ status: "ready", profile }),
       (error: unknown) => current && setState({ status: "failed", reason: reasonOf(error) }),
+    );
+    Promise.resolve()
+      .then(() => source.load())
+      .then(
+      (setup) => current && setApplications(setup.projects.flatMap((project) => project.applications ?? [])),
+      () => undefined,
     );
     return () => {
       current = false;
@@ -56,8 +63,7 @@ export function ConfigurationPage({ source = orchestratorOnboarding, accountSett
   };
 
   return (
-    <section aria-labelledby="configuration-title" className="flex flex-col gap-4">
-      <PageHeader id="configuration-title" title="Configuration" lead="Connections and the defaults every new analysis starts from." />
+    <section aria-label="Configuration" className="flex flex-col gap-4">
       <AccountSettings source={accountSettings}>
         <PageSection title="GitHub organisation">
           <AccountSettingsPanel panel="github" />
@@ -74,7 +80,11 @@ export function ConfigurationPage({ source = orchestratorOnboarding, accountSett
       ) : (
         <form aria-label="Defaults" onSubmit={save} className="flex flex-col gap-4">
           <PageSection title="Default focus">
+            <p className="text-caption text-fg-muted">Every project uses it unless it has its own focus below.</p>
             <CriteriaFields criteria={state.profile.criteria} onChange={(criteria) => update({ ...state.profile, criteria })} />
+          </PageSection>
+          <PageSection title="Each project's focus">
+            <ProjectFocusList applications={applications} focus={state.profile.projects ?? {}} onChange={(projects) => update({ ...state.profile, projects })} />
           </PageSection>
           <PageSection title="On-prem">
             <label className="flex items-center gap-2 text-label text-fg">
@@ -108,53 +118,5 @@ export function ConfigurationPage({ source = orchestratorOnboarding, accountSett
         </form>
       )}
     </section>
-  );
-}
-
-function SiteFields({ id, site, onChange }: { id: string; site: ProfileSite; onChange: (site: ProfileSite) => void }) {
-  const number = (value: string) => (value === "" ? NaN : Number(value));
-  return (
-    <div className="grid gap-3 md:grid-cols-2">
-      <fieldset className="flex flex-col gap-1 md:col-span-2">
-        <legend className="text-label font-medium text-fg">Site</legend>
-        {(["search", "headquarters"] as const).map((kind) => (
-          <label key={kind} className="flex items-center gap-2 text-label text-fg">
-            <input
-              type="radio"
-              name={`${id}-kind`}
-              checked={site.kind === kind}
-              onChange={() =>
-                onChange(kind === "search" ? { ...site, kind, radius_km: site.radius_km ?? 25, free_area_m2: undefined } : { ...site, kind, free_area_m2: site.free_area_m2 ?? 100, radius_km: undefined })
-              }
-              className="accent-accent"
-            />
-            {kind === "search" ? "Find a space near" : "At our headquarters"}
-          </label>
-        ))}
-      </fieldset>
-      <label className="flex flex-col gap-1 text-label text-fg md:col-span-2">
-        Address
-        <input value={site.label} onChange={(event) => onChange({ ...site, label: event.target.value })} className={INPUT} />
-      </label>
-      <label className="flex flex-col gap-1 text-label text-fg">
-        Latitude
-        <input type="number" step="any" value={site.lat} onChange={(event) => onChange({ ...site, lat: number(event.target.value) })} className={INPUT} />
-      </label>
-      <label className="flex flex-col gap-1 text-label text-fg">
-        Longitude
-        <input type="number" step="any" value={site.lng} onChange={(event) => onChange({ ...site, lng: number(event.target.value) })} className={INPUT} />
-      </label>
-      {site.kind === "search" ? (
-        <label className="flex flex-col gap-1 text-label text-fg">
-          Radius, km (5 to 100)
-          <input type="number" min={5} max={100} value={site.radius_km ?? ""} onChange={(event) => onChange({ ...site, radius_km: number(event.target.value) })} className={INPUT} />
-        </label>
-      ) : (
-        <label className="flex flex-col gap-1 text-label text-fg">
-          Free floor area, m²
-          <input type="number" min={1} value={site.free_area_m2 ?? ""} onChange={(event) => onChange({ ...site, free_area_m2: number(event.target.value) })} className={INPUT} />
-        </label>
-      )}
-    </div>
   );
 }

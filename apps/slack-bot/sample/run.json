@@ -193,49 +193,103 @@
         {
           "id": "consolidate",
           "feasible": true,
+          "recommended": true,
           "rank": 1,
           "monthly_eur": 74365,
+          "horizon_eur": 3807488,
           "availability_pct": 99.95,
-          "risk": 0.31
+          "risk": 0.31,
+          "effort_hours": 794,
+          "payback_months": 1.38,
+          "actions": 21
         },
         {
           "id": "managed_services",
           "feasible": true,
+          "recommended": false,
           "rank": 2,
           "monthly_eur": 82665,
+          "horizon_eur": 4232448,
           "availability_pct": 99.95,
-          "risk": 0.18
+          "risk": 0.18,
+          "effort_hours": 514,
+          "payback_months": 1.04,
+          "actions": 19,
+          "lost_because": {
+            "reason": "cost",
+            "detail": "expected total EUR 4,482,148 over 36 months against EUR 4,078,788 for consolidate"
+          }
         },
         {
           "id": "move_to_onprem",
           "feasible": true,
+          "recommended": false,
           "rank": 3,
           "monthly_eur": 66405,
+          "horizon_eur": 3399936,
           "availability_pct": 99.9,
-          "risk": 0.52
+          "risk": 0.52,
+          "effort_hours": 914,
+          "payback_months": 1.52,
+          "actions": 19,
+          "lost_because": {
+            "reason": "risk",
+            "detail": "risk 0.52 against 0.31 for consolidate"
+          }
         },
         {
           "id": "rightsize_in_place",
           "feasible": false,
+          "recommended": false,
           "monthly_eur": 81405,
+          "horizon_eur": 4167936,
           "availability_pct": 99.2,
-          "risk": 0
+          "risk": 0,
+          "effort_hours": 94,
+          "payback_months": 0.15,
+          "actions": 15,
+          "lost_because": {
+            "reason": "constraint",
+            "detail": "min_availability_pct on rds-orders: single-AZ database on the critical path (+1 more)"
+          }
         },
         {
           "id": "cleanup_orphans",
           "feasible": false,
+          "recommended": false,
           "monthly_eur": 124564,
+          "horizon_eur": 6377677,
           "availability_pct": 99.2,
-          "risk": 0
+          "risk": 0,
+          "effort_hours": 46,
+          "payback_months": 0.45,
+          "actions": 10,
+          "lost_because": {
+            "reason": "constraint",
+            "detail": "min_availability_pct on rds-orders: single-AZ database on the critical path (+2 more)"
+          }
         },
         {
           "id": "do_nothing",
           "feasible": false,
+          "recommended": false,
           "monthly_eur": 133308,
+          "horizon_eur": 6825370,
           "availability_pct": 99.2,
-          "risk": 0
+          "risk": 0,
+          "effort_hours": 0,
+          "actions": 0,
+          "lost_because": {
+            "reason": "constraint",
+            "detail": "min_availability_pct on rds-orders: single-AZ database on the critical path (+8 more)"
+          }
         }
-      ]
+      ],
+      "x_target": {
+        "min_availability_pct": 99.9,
+        "max_monthly_run_eur": 90000,
+        "horizon_months": 36
+      }
     }
   ]
 }

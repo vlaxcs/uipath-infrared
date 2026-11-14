@@ -55,4 +55,15 @@ describe('HTTP orchestrator', () => {
     stubFetch(409, { error: 'gate plan is not open' });
     await expect(new HttpOrchestrator('http://orch').submitDecision('run-1', planApprovalFromSlack('a'))).rejects.toThrow('409');
   });
+
+  it('reads a run file from the artifact route', async () => {
+    const fetch = stubFetch(200, { schema_version: '1.1' });
+    expect(await new HttpOrchestrator('http://orch').getFile('run-1', 'result.1.json')).toBe('{"schema_version":"1.1"}');
+    expect(fetch).toHaveBeenCalledWith('http://orch/runs/run-1/files/result.1.json');
+  });
+
+  it('fails with the status when a run file is missing', async () => {
+    stubFetch(404, { error: 'not found' });
+    await expect(new HttpOrchestrator('http://orch').getFile('run-1', 'result.9.json')).rejects.toThrow('404');
+  });
 });

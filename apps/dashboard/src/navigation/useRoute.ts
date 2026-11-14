@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { readRoute, routeHash, type PageId, type Route } from "~/navigation/route";
+import { isLegacyHash, pathWithin, readRoute, routePath, type PageId, type Route } from "~/navigation/route";
 
-export type HashRoute = Route & {
+export type AppRoute = Route & {
   go: (page: PageId) => void;
   openRun: (runId: string) => void;
   openGate: (runId: string) => void;
@@ -9,20 +9,31 @@ export type HashRoute = Route & {
   back: () => void;
 };
 
-export function useHashRoute(): HashRoute {
-  const [route, setRoute] = useState<Route>(() => readRoute(window.location.hash));
+const BASE = import.meta.env.BASE_URL;
+
+function currentRoute(): Route {
+  if (isLegacyHash(window.location.hash)) {
+    const route = readRoute(window.location.hash);
+    window.history.replaceState(null, "", BASE + routePath(route));
+    return route;
+  }
+  return readRoute(pathWithin(window.location.pathname, BASE));
+}
+
+export function useRoute(): AppRoute {
+  const [route, setRoute] = useState<Route>(currentRoute);
   const [depth, setDepth] = useState(0);
 
   useEffect(() => {
-    const sync = () => setRoute(readRoute(window.location.hash));
-    window.addEventListener("hashchange", sync);
-    return () => window.removeEventListener("hashchange", sync);
+    const sync = () => setRoute(currentRoute());
+    window.addEventListener("popstate", sync);
+    return () => window.removeEventListener("popstate", sync);
   }, []);
 
   const navigate = useCallback((next: Route) => {
-    const hash = routeHash(next);
-    if (window.location.hash !== hash) {
-      window.location.hash = hash;
+    const url = BASE + routePath(next);
+    if (window.location.pathname !== url) {
+      window.history.pushState(null, "", url);
       setDepth((current) => current + 1);
     }
     setRoute(next);

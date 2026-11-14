@@ -32,23 +32,30 @@ describe("the configuration page", () => {
     const saveProfile = vi.fn(async (saved: Profile) => saved);
     render(<ConfigurationPage source={source(DEFAULT_PROFILE, saveProfile)} />);
     fireEvent.click(await screen.findByRole("checkbox", { name: "Also price a setup of our own" }));
-    fireEvent.change(screen.getByLabelText("Address"), { target: { value: "Bucharest, Romania" } });
+    fireEvent.change(screen.getByLabelText("Name, optional"), { target: { value: "Bucharest, Romania" } });
     fireEvent.change(screen.getByLabelText("Radius, km (5 to 100)"), { target: { value: "40" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add an area" }));
     fireEvent.click(screen.getByRole("button", { name: "Save defaults" }));
     await waitFor(() => expect(saveProfile).toHaveBeenCalled());
     expect(saveProfile.mock.calls[0][0].onprem).toEqual({
       wanted: true,
-      site: { kind: "search", label: "Bucharest, Romania", lat: 44.4268, lng: 26.1025, radius_km: 40 },
+      site: {
+        kind: "search",
+        areas: [
+          { label: "Bucharest, Romania", lat: 44.4268, lng: 26.1025, radius_km: 40 },
+          { lat: 44.4268, lng: 27.10881, radius_km: 25 },
+        ],
+      },
     });
   });
 
   it("shows the orchestrator's reason when it refuses the defaults", async () => {
     const saveProfile = vi.fn(async () => {
-      throw new OrchestratorError("invalid profile: a search needs radius_km from 5 to 100 and no free_area_m2");
+      throw new OrchestratorError("invalid profile: area 2 needs a point on Earth and radius_km from 5 to 100");
     });
     render(<ConfigurationPage source={source(DEFAULT_PROFILE, saveProfile)} />);
     fireEvent.click(await screen.findByRole("button", { name: "Save defaults" }));
-    expect((await screen.findByRole("alert")).textContent).toContain("radius_km from 5 to 100");
+    expect((await screen.findByRole("alert")).textContent).toContain("area 2 needs a point on Earth");
   });
 
   it("says when the defaults cannot be loaded", async () => {

@@ -38,6 +38,7 @@ func (w *Workflow) buildStates(entry *tracked, revision int, candidate string) {
 		"--infra", w.path(entry, "infra.json"),
 		"--result", w.path(entry, fmt.Sprintf("result.%d.json", revision)),
 		"--candidate", candidate,
+		"--catalog", w.path(entry, "catalog.json"),
 		"--out", w.path(entry, name))
 	w.stages.Run(w.ctx, Invocation{
 		Command: command,

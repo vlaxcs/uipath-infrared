@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { reportSignedOut } from "~/account/session";
 import { App } from "~/App";
 import { cutSampleRun } from "~/runs/fixtures";
+import { sampleRun } from "~/runs/sampleRun";
 import { sampleRunSource } from "~/runs/sampleRunSource";
 import type { RunSource } from "~/runs/source";
 import type { RunDetail } from "~/runs/types";
@@ -20,7 +21,7 @@ vi.mock("~/onboarding/api", async (original) => ({
 
 afterEach(() => {
   cleanup();
-  window.location.hash = "";
+  window.history.replaceState(null, "", "/");
 });
 
 describe("the platform frame", () => {
@@ -47,8 +48,9 @@ describe("the platform frame", () => {
   it("opens a new analysis with a fade, and Back returns home", async () => {
     render(<App />);
     fireEvent.click(screen.getByRole("button", { name: "Analyze, costs 1 run" }));
-    expect(window.location.hash).toBe("#/analyze");
-    expect(screen.getByRole("heading", { level: 1, name: "New analysis" }).closest("section")?.className).toContain("animate-panel-in");
+    expect(window.location.pathname).toBe("/analyze");
+    expect(screen.getByRole("heading", { level: 1, name: "Run analysis" })).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Run analysis" }).className).toContain("animate-panel-in");
 
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
     await waitFor(() => expect(screen.getByRole("navigation", { name: "Analyses" })).toBeTruthy());
@@ -58,7 +60,7 @@ describe("the platform frame", () => {
     render(<App />);
     fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Configuration" }));
-    expect(window.location.hash).toBe("#/configuration");
+    expect(window.location.pathname).toBe("/configuration");
     expect(screen.getByRole("heading", { level: 1, name: "Configuration" })).toBeTruthy();
     for (const section of ["GitHub organisation", "Cloud access"]) {
       expect(screen.getByRole("heading", { level: 2, name: section })).toBeTruthy();
@@ -67,7 +69,7 @@ describe("the platform frame", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Account" }));
-    expect(window.location.hash).toBe("#/account");
+    expect(window.location.pathname).toBe("/account");
     expect(screen.getByRole("heading", { level: 2, name: "Subscription" })).toBeTruthy();
   });
 
@@ -75,7 +77,7 @@ describe("the platform frame", () => {
     render(<App orchestratorUrl="http://127.0.0.1:8090" />);
     fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Disconnect" }));
-    expect(window.location.hash).toBe("#/login");
+    expect(window.location.pathname).toBe("/login");
     expect(screen.getByRole("button", { name: "Sign in with GitHub" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Account menu" })).toBeNull();
   });
@@ -87,7 +89,7 @@ describe("the platform frame", () => {
     fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Disconnect" }));
     await waitFor(() => expect(fetcher).toHaveBeenCalledWith("http://127.0.0.1:8090/auth/logout", { method: "POST", credentials: "include" }));
-    expect(window.location.hash).toBe("#/login");
+    expect(window.location.pathname).toBe("/login");
     vi.unstubAllGlobals();
   });
 
@@ -95,7 +97,7 @@ describe("the platform frame", () => {
     render(<App orchestratorUrl="http://127.0.0.1:8090" accountSource={{ load: async () => null }} />);
     expect(screen.getByRole("button", { name: "Account menu" })).toBeTruthy();
     act(() => reportSignedOut());
-    expect(window.location.hash).toBe("#/login");
+    expect(window.location.pathname).toBe("/login");
     expect(await screen.findByRole("button", { name: "Sign in with GitHub" })).toBeTruthy();
   });
 
@@ -123,10 +125,10 @@ describe("the platform frame", () => {
   });
 
   it("continues with sample data when there is no orchestrator", () => {
-    window.location.hash = "#/login";
+    window.history.replaceState(null, "", "/login");
     render(<App orchestratorUrl={null} />);
     fireEvent.click(screen.getByRole("button", { name: "Continue with sample data" }));
-    expect(window.location.hash).toBe("#/");
+    expect(window.location.pathname).toBe("/");
   });
 });
 
@@ -140,7 +142,7 @@ describe("previous analyses", () => {
     fireEvent.click(within(table).getByRole("button", { name: /run-demo-shop-0001/ }));
     const summary = await screen.findByRole("region", { name: "demo-shop" });
     expect(summary.textContent).toContain("Completed");
-    expect(window.location.hash).toBe("#/runs/run-demo-shop-0001");
+    expect(window.location.pathname).toBe("/runs/run-demo-shop-0001");
 
     const timeline = screen.getByRole("region", { name: "Timeline" });
     expect(timeline.textContent).toContain("pick_layout");
@@ -151,13 +153,13 @@ describe("previous analyses", () => {
   });
 
   it("opens a run directly from the URL, and Back goes to the list", async () => {
-    window.location.hash = "#/runs/run-demo-shop-0001";
+    window.history.replaceState(null, "", "/runs/run-demo-shop-0001");
     render(<App />);
     expect(await screen.findByRole("region", { name: "demo-shop" })).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
     expect(await screen.findByRole("table", { name: "Runs" })).toBeTruthy();
-    expect(window.location.hash).toBe("#/runs");
+    expect(window.location.pathname).toBe("/runs");
   });
 
   it("opens a run at its gate", async () => {
@@ -171,9 +173,19 @@ describe("previous analyses", () => {
         throw new Error(`run ${id} not found`);
       },
     };
-    window.location.hash = "#/runs/run-approvals-0001/gate";
+    window.history.replaceState(null, "", "/runs/run-approvals-0001/gate");
     render(<App source={source} />);
     expect(await screen.findByRole("heading", { level: 2, name: "Present" })).toBeTruthy();
     expect(screen.getByText("Keep analyses")).toBeTruthy();
+  });
+
+  it("reloads the page's data from the square Refresh button beside the avatar", async () => {
+    const listRuns = vi.fn(async () => [sampleRun]);
+    window.history.replaceState(null, "", "/runs");
+    render(<App source={{ ...sampleRunSource, listRuns }} />);
+    await screen.findByRole("table", { name: "Runs" });
+    const before = listRuns.mock.calls.length;
+    fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
+    await waitFor(() => expect(listRuns.mock.calls.length).toBeGreaterThan(before));
   });
 });

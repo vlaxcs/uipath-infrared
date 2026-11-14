@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useOnRefresh } from "~/ui/refreshSignal";
 import { createFakeSettingsApi } from "../../../settings/src/adapters/fake-settings-api";
 import { SettingsProvider, useLoadState, useReload } from "../../../settings/src/app/settings-context";
 import { CloudAccessPanel } from "../../../settings/src/features/cloud/CloudAccessPanel";
@@ -27,9 +28,15 @@ export type AccountPanel = keyof typeof PANELS;
 export function AccountSettings({ source = simulatedAccountSettings, children }: { source?: AccountSettingsSource; children: ReactNode }) {
   return (
     <SettingsProvider api={source.api} sandbox={source.sandbox}>
+      <ReloadOnRefresh />
       {children}
     </SettingsProvider>
   );
+}
+
+function ReloadOnRefresh() {
+  useOnRefresh(useReload());
+  return null;
 }
 
 export function AccountSettingsPanel({ panel }: { panel: AccountPanel }) {

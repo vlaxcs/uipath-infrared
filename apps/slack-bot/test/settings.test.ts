@@ -25,6 +25,23 @@ describe('Settings', () => {
     expect(exit).not.toHaveBeenCalled();
     expect(settings.slackBotToken).toBe('xoxb-secret-value');
     expect(settings.slackChannel).toBe('runs');
+    expect(settings.dashboardUrl).toBeUndefined();
+  });
+
+  it('uses the optional dashboard URL when it is set', () => {
+    const exit = vi.spyOn(process, 'exit').mockImplementation(() => { throw new Error('exit'); });
+    const settings = loadSettings({ ...complete, DASHBOARD_URL: 'https://infrared.local/runs/42' });
+
+    expect(exit).not.toHaveBeenCalled();
+    expect(settings.dashboardUrl).toBe('https://infrared.local/runs/42');
+  });
+});
+
+describe('Diagram setting', () => {
+  it('turns diagrams on by default and off with DIAGRAMS=off', () => {
+    vi.spyOn(process, 'exit').mockImplementation(() => { throw new Error('exit'); });
+    expect(loadSettings(complete).diagrams).toBe(true);
+    expect(loadSettings({ ...complete, DIAGRAMS: 'off' }).diagrams).toBe(false);
   });
 
   it('reads the orchestrator service token when it is set, and has none otherwise', () => {
