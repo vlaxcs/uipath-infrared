@@ -109,14 +109,18 @@ describe("the dashboard shell", () => {
     expect(screen.queryByText("Not built yet")).toBeNull();
   });
 
-  it("switches to a future section and back", async () => {
+  it("shows the candidates and the winner's change, and returns to Runs", async () => {
     render(<App />);
     await screen.findByRole("table", { name: "Runs" });
 
     fireEvent.click(screen.getByRole("button", { name: "Candidates" }));
     expect(screen.getByRole("heading", { level: 1, name: "Candidates" })).toBeTruthy();
-    expect(screen.getByText("Not built yet")).toBeTruthy();
     expect(window.location.hash).toBe("#/candidates");
+    expect(screen.queryByText("Not built yet")).toBeNull();
+    const detail = screen.getByRole("region", { name: "consolidate" });
+    expect(detail.textContent).toContain("Winner");
+    expect(detail.textContent).toContain("The change, step by step");
+    expect(detail.textContent).toContain("Security remediation");
 
     fireEvent.click(screen.getByRole("button", { name: "Runs" }));
     expect(screen.getByRole("heading", { level: 1, name: "Runs" })).toBeTruthy();
@@ -145,4 +149,5 @@ describe("the dashboard shell", () => {
       "The load balancer routed traffic around the failed instance.",
     );
   });
+
 });

@@ -1,3 +1,5 @@
+import { CandidatesSection } from "~/candidates/CandidatesSection";
+import { sampleResult } from "~/candidates/sampleResult";
 import { GraphSection } from "~/graph/GraphSection";
 import { sampleGraphModel } from "~/graph/sampleGraph";
 import { sectionById } from "~/navigation/sections";
@@ -46,6 +48,8 @@ export function App({ source = runSource }: AppProps = {}) {
         <GraphSection model={sampleGraphModel} />
       ) : route.section === "rehearsal" ? (
         <RehearsalSection rehearsal={sampleRehearsal} />
+      ) : route.section === "candidates" ? (
+        <CandidatesSection result={sampleResult} />
       ) : (
         <SectionPlaceholder section={activeSection} />
       )}

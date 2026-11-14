@@ -58,3 +58,9 @@ There is no orchestrator graph source yet; a future source can replace the sampl
 The Rehearsal section renders `rehearsal.json` through `src/rehearsal/sampleRehearsal.ts`, the only rehearsal module that imports data files. The default is `contracts/rehearsal.example.json` (the passed demo path); `apps/sandbox/sample/rehearsal.json` is exported as `failedRehearsal` for the failed/revise state and tests.
 
 It shows the traffic profile, the injected failure, availability and latency before/during/after with each measurement's provenance and basis, per-component health, and the pass/fail verdict with the orchestrator's decision. `rehearsal.json` has no fallback field, so the fallback summary is derived from component results, phase measurements, the verdict and `x_measurement_notes`, and is labelled as derived. Missing measurements show "Not measured"; no value is zero-filled. Readers accept any 1.x schema and humanise unknown vocabulary.
+
+## Candidates
+
+The Candidates section reads `contracts/result.example.json` through `src/candidates/sampleResult.ts`. It shows the result context and baseline, every candidate ranked with cost, availability, risk, effort and why it lost, and the winner's change step by step grouped by layer. `contracts/result.example.nothing-feasible.json` is available as `nothingFeasibleResult` for the nothing-feasible state and tests. Engine results are not committed: the orchestrator's tests generate them with the real engine, and the live source will read `result.<n>.json` from the run.
+
+The data module is the single swap point for the future orchestrator API. Readers accept any 1.x schema; unknown actions, layers, flags and confidences are shown as text.
