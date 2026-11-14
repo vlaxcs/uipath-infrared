@@ -8,6 +8,7 @@ describe("the extension manifest", () => {
     expect(manifest.manifest_version).toBe(3);
     expect(manifest.permissions).toEqual(["storage"]);
     expect(manifest.host_permissions).toEqual(["http://127.0.0.1/*", "http://localhost/*"]);
+    expect(manifest.optional_host_permissions).toEqual(["https://*/*"]);
     expect(manifest.host_permissions).not.toContain("<all_urls>");
     expect(manifest).not.toHaveProperty("externally_connectable");
   });

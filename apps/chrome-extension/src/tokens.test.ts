@@ -23,6 +23,7 @@ const PAIRS = [
   ["--color-fg-subtle", "--ir-fg-subtle"],
   ["--color-accent", "--ir-accent"],
   ["--color-on-accent", "--ir-on-accent"],
+  ["--color-focus", "--ir-focus"],
   ["--color-status-running", "--ir-status-running"],
   ["--color-status-awaiting", "--ir-status-awaiting"],
   ["--color-status-completed", "--ir-status-completed"],

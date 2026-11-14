@@ -10,8 +10,9 @@
   --ir-fg: #14171c;
   --ir-fg-muted: #5a6270;
   --ir-fg-subtle: #7a8290;
-  --ir-accent: #3557d6;
-  --ir-on-accent: #ffffff;
+  --ir-accent: #ef3b24;
+  --ir-on-accent: #14171c;
+  --ir-focus: #3557d6;
   --ir-status-running: #2f6fdb;
   --ir-status-awaiting: #966200;
   --ir-status-completed: #1c7a4d;
@@ -41,8 +42,9 @@
     --ir-fg: #e7ebf1;
     --ir-fg-muted: #9aa4b2;
     --ir-fg-subtle: #7b8594;
-    --ir-accent: #8aa2ff;
+    --ir-accent: #ef3b24;
     --ir-on-accent: #0d1015;
+    --ir-focus: #8aa2ff;
     --ir-status-running: #6b9cff;
     --ir-status-awaiting: #e0a83c;
     --ir-status-completed: #56c98a;
@@ -68,7 +70,7 @@ button {
 
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid var(--ir-accent);
+  outline: 2px solid var(--ir-focus);
   outline-offset: 2px;
 }
 

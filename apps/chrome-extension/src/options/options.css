@@ -6,8 +6,9 @@
   --o-border: #dde1e7;
   --o-fg: #14171c;
   --o-fg-muted: #5a6270;
-  --o-accent: #3557d6;
-  --o-on-accent: #ffffff;
+  --o-accent: #ef3b24;
+  --o-on-accent: #14171c;
+  --o-focus: #3557d6;
   --o-error: #b3261e;
   --o-radius-card: 12px;
   --o-radius-control: 8px;
@@ -24,8 +25,9 @@
     --o-border: #29323d;
     --o-fg: #e7ebf1;
     --o-fg-muted: #9aa4b2;
-    --o-accent: #8aa2ff;
+    --o-accent: #ef3b24;
     --o-on-accent: #0d1015;
+    --o-focus: #8aa2ff;
     --o-error: #ff7b72;
   }
 }
@@ -80,7 +82,23 @@ label {
   font-weight: 600;
 }
 
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field label {
+  font-weight: 600;
+}
+
+.field-hint {
+  color: var(--o-fg-muted);
+  font-size: 11px;
+}
+
 input {
+  width: 100%;
   padding: 8px 10px;
   color: var(--o-fg);
   font: inherit;
@@ -108,7 +126,7 @@ button:hover {
 
 button:focus-visible,
 input:focus-visible {
-  outline: 2px solid var(--o-accent);
+  outline: 2px solid var(--o-focus);
   outline-offset: 2px;
 }
 

@@ -1,7 +1,7 @@
 import { loadLatest } from "~/domain/api";
 import { sampleLatestRun } from "~/domain/sample";
 import type { LatestResponse } from "~/domain/types";
-import { getSettings } from "~/storage";
+import { getSettings, hasOrchestratorPermission } from "~/storage";
 
 const CACHE_MS = 5000;
 
@@ -37,6 +37,14 @@ async function latest(force: boolean): Promise<LatestResponse> {
     return fallback(cause);
   }
 
+  if (!(await hasOrchestratorPermission(orchestratorUrl))) {
+    return fallback(
+      new Error(
+        `No access to ${hostOf(orchestratorUrl)}. Open Settings and connect Infrared.`,
+      ),
+    );
+  }
+
   if (
     !force &&
     cache &&
@@ -66,6 +74,14 @@ function fallback(cause: unknown): LatestResponse {
       note: `Orchestrator unavailable (${detail}); showing sample data.`,
     },
   };
+}
+
+function hostOf(value: string): string {
+  try {
+    return new URL(value).host;
+  } catch {
+    return "the orchestrator";
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

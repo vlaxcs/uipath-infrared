@@ -31,6 +31,40 @@ export function isLocalOrchestratorUrl(value: string): boolean {
   }
 }
 
+export function isRemoteOrchestratorUrl(value: string): boolean {
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+export function isSupportedOrchestratorUrl(value: string): boolean {
+  return isLocalOrchestratorUrl(value) || isRemoteOrchestratorUrl(value);
+}
+
+export function orchestratorOriginPattern(value: string): string | null {
+  try {
+    const url = new URL(value);
+    return `${url.protocol}//${url.hostname}/*`;
+  } catch {
+    return null;
+  }
+}
+
+export async function hasOrchestratorPermission(value: string): Promise<boolean> {
+  if (isLocalOrchestratorUrl(value)) return true;
+  if (!isRemoteOrchestratorUrl(value)) return false;
+
+  const pattern = orchestratorOriginPattern(value);
+  if (!pattern || typeof chrome === "undefined" || !chrome.permissions) return false;
+  try {
+    return await chrome.permissions.contains({ origins: [pattern] });
+  } catch {
+    return false;
+  }
+}
+
 export function isHttpUrl(value: string): boolean {
   try {
     const url = new URL(value);
@@ -50,8 +84,10 @@ export async function saveSettings(settings: Settings): Promise<Settings> {
     orchestratorUrl: normalizeBaseUrl(settings.orchestratorUrl),
     dashboardUrl: normalizeBaseUrl(settings.dashboardUrl),
   };
-  if (!isLocalOrchestratorUrl(normalized.orchestratorUrl)) {
-    throw new Error("The orchestrator URL must be http://localhost or http://127.0.0.1.");
+  if (!isSupportedOrchestratorUrl(normalized.orchestratorUrl)) {
+    throw new Error(
+      "Use http://localhost or http://127.0.0.1 for a local demo, or an https:// URL for a hosted instance.",
+    );
   }
   if (!isHttpUrl(normalized.dashboardUrl)) {
     throw new Error("The dashboard URL must be an http(s) URL.");
@@ -65,7 +101,7 @@ export function normalizeSettings(value: {
   dashboardUrl?: unknown;
 }): Settings {
   const orchestratorUrl =
-    typeof value.orchestratorUrl === "string" && isLocalOrchestratorUrl(value.orchestratorUrl)
+    typeof value.orchestratorUrl === "string" && isSupportedOrchestratorUrl(value.orchestratorUrl)
       ? normalizeBaseUrl(value.orchestratorUrl)
       : DEFAULT_SETTINGS.orchestratorUrl;
   const dashboardUrl =

@@ -25,9 +25,16 @@ The card shows the newest run from the orchestrator (`GET /runs?limit=1`), its l
 - The extension is read-only: the orchestrator only accepts human decisions from the `dashboard` and `slack` surfaces. Approvals happen in the dashboard; the card links there.
 - The runner suggestions are heuristics from job durations, not engine-priced changes: self-hosted use at ≤ 20 h/month suggests moving to GitHub-hosted, hosted use at ≥ 160 h/month suggests evaluating self-hosted/on-prem, metered macOS/Windows at ≥ 80 h/month suggests checking whether the runner type is required.
 
-## Settings
+## Connect
 
-The options page (toolbar action or **Settings** in the card) sets the orchestrator URL (default `http://127.0.0.1:8080`) and dashboard URL (default `http://localhost:5173`). The orchestrator URL must be local: the manifest only has host permissions for `http://localhost/*` and `http://127.0.0.1/*`. `VITE_ORCHESTRATOR_URL` at build time can change the default when it is a valid localhost URL.
+The options page (toolbar action or **Settings** in the card) connects the extension to an orchestrator:
+
+- **Local demo**: `http://127.0.0.1:8080`, the default; no extra permission.
+- **Hosted instance**: an `https://` URL (for example `https://infrared.example.com`). Chrome asks for access to that host through the manifest's optional host permissions; accept it once. The hosted orchestrator must be reachable over HTTPS and handle its own authentication — the extension never holds a GitHub token, and the GitHub integration stays on the server.
+
+This version does not implement an in-extension sign-in or token forwarding. A hosted instance must accept the extension's requests at the network layer (trusted network or reverse proxy); a future version would add workspace sign-in.
+
+The dashboard URL (default `http://localhost:5173`) is only used by the card's **Open dashboard** link. **Use local demo** resets both URLs. `VITE_ORCHESTRATOR_URL` at build time can change the local default when it is a valid localhost URL.
 
 ## Checks
 
