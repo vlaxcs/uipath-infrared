@@ -1,4 +1,4 @@
-import type { DiagramRenderer, Orchestrator, SlackClient, Wait } from './ports.js';
+import type { DiagramInputs, DiagramRenderer, Orchestrator, SlackClient, Wait } from './ports.js';
 import { DiagramPublisher } from './diagram-publisher.js';
 import type { Gate, Run, RunEvent, RunSummary } from '../domain/run.js';
 import type { RunContext } from '../domain/messages.js';
@@ -18,6 +18,7 @@ export class RunTracker {
   private events: RunEvent[] = [];
   private gates = new Map<Gate, string>();
   private project = '';
+  private runId = '';
   private layoutCardTs = '';
   private layoutPick?: RunEvent;
   private progressFrame = 0;
@@ -53,6 +54,7 @@ export class RunTracker {
 
   async replay(run: Run): Promise<RunSummary> {
     this.project = run.project;
+    this.runId = run.id;
     this.events.push(...run.events.filter(event => event.seq > this.lastSeq()));
     const summary = summarize(this.events);
     const gate = summary.awaiting;
@@ -106,18 +108,18 @@ export class RunTracker {
   private async layoutCard(runId: string, gateEvent: RunEvent) {
     const candidates = candidatesOf(gateEvent);
     const offered = candidates.filter(candidate => candidate.feasible).map(candidate => candidate.id);
-    const diagrams = await this.diagrams.publishAll(offered);
+    const diagrams = await this.diagrams.publishAll(offered, this.inputs());
     return formatLayoutGate(runId, gateEvent, candidates, targetOf(gateEvent), this.context(), diagrams);
   }
 
   private async planCard(runId: string, gateEvent: RunEvent) {
-    const diagram = await this.diagrams.publish(this.planLayout(gateEvent));
+    const diagram = await this.diagrams.publish(this.planLayout(gateEvent), this.inputs());
     return formatPlanGate(runId, gateEvent, this.rehearsalFor(gateEvent), planOf(gateEvent), this.context(), diagram);
   }
 
   private async closedMessage(gate: Gate, event: RunEvent) {
-    if (gate === 'layout') return formatGateClosed(event, undefined, await this.diagrams.publish(event.decision?.layout), this.context());
-    const diagram = await this.diagrams.publish(this.planLayout(this.lastPlanGate(event.seq)));
+    if (gate === 'layout') return formatGateClosed(event, undefined, await this.diagrams.publish(event.decision?.layout, this.inputs()), this.context());
+    const diagram = await this.diagrams.publish(this.planLayout(this.lastPlanGate(event.seq)), this.inputs());
     return formatGateClosed(event, this.rehearsalFor(event), diagram, this.context());
   }
 
@@ -167,7 +169,17 @@ export class RunTracker {
   }
 
   private pickDiagram() {
-    return this.diagrams.publish(this.layoutPick?.decision?.layout);
+    return this.diagrams.publish(this.layoutPick?.decision?.layout, this.inputs());
+  }
+
+  private inputs(): DiagramInputs | undefined {
+    const result = this.latestOutput('result');
+    const infra = this.latestOutput('infra');
+    return result && infra && this.runId ? { runId: this.runId, result, infra } : undefined;
+  }
+
+  private latestOutput(contract: 'infra' | 'result'): string | undefined {
+    return [...this.events].reverse().find(item => item.output?.contract === contract)?.output?.file.path;
   }
 
   private planLayout(planGate: RunEvent | undefined): string | undefined {

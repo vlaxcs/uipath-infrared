@@ -1,3 +1,4 @@
+import { readFile } from 'fs/promises';
 import type { Orchestrator, Wait } from '../application/ports.js';
 import type { HumanDecision, Run, RunEvent } from '../domain/run.js';
 import { candidatesOf } from '../domain/layout-choice.js';
@@ -14,7 +15,8 @@ export class SampleOrchestrator implements Orchestrator {
     tail: RunEvent[],
     private wait: Wait,
     private paceMs: number,
-    private clock: () => Date
+    private clock: () => Date,
+    private files: Record<string, string> = {}
   ) {
     this.events = [...run.events];
     this.tail = [...tail];
@@ -46,6 +48,13 @@ export class SampleOrchestrator implements Orchestrator {
     this.released = this.events.length;
     if (gate === 'layout') this.appendTail(decision.decision.layout ?? '');
     return event;
+  }
+
+  async getFile(runId: string, path: string): Promise<string> {
+    this.requireRun(runId);
+    const source = this.files[path];
+    if (!source) throw new Error(`run ${runId} has no file ${path}`);
+    return readFile(source, 'utf8');
   }
 
   document(): Run {

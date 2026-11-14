@@ -20,6 +20,13 @@ export class HttpOrchestrator implements Orchestrator {
     });
   }
 
+  async getFile(runId: string, path: string): Promise<string> {
+    const route = `/runs/${encodeURIComponent(runId)}/files/${encodeURIComponent(path)}`;
+    const response = await fetch(`${this.baseUrl}${route}`);
+    if (!response.ok) throw new Error(`GET ${route} answered ${response.status} ${(await response.text()).slice(0, 200)}`);
+    return response.text();
+  }
+
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
     const response = await fetch(`${this.baseUrl}${path}`, init);
     if (!response.ok) {

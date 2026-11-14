@@ -11,13 +11,21 @@ export interface Orchestrator {
   getRun(runId: string): Promise<Run>;
   eventsAfter(runId: string, seq: number): Promise<RunEvent[]>;
   submitDecision(runId: string, decision: HumanDecision): Promise<RunEvent>;
+  getFile(runId: string, path: string): Promise<string>;
 }
 
 export type DiagramState = 'current' | 'target';
 
+export interface DiagramInputs {
+  runId: string;
+  result: string;
+  infra: string;
+}
+
 export interface DiagramRequest {
   layout: string;
   state: DiagramState;
+  inputs: DiagramInputs;
 }
 
 export interface Diagram {

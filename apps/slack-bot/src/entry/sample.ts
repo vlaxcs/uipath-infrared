@@ -11,17 +11,23 @@ import { wait } from './wait.js';
 const SAMPLE = resolve('./sample/run.json');
 const AFTER_LAYOUT = resolve('./sample/after-layout.json');
 const FINISHED = resolve('./out/sample-run.json');
+const SAMPLE_FILES = {
+  'infra.json': resolve('../../contracts/mock/demo-shop.infra.json'),
+  'result.0.json': resolve('../../contracts/result.example.json'),
+  'result.1.json': resolve('../../contracts/result.example.json'),
+};
 const PACE_MS = 1000;
 const dryRun = process.argv.includes('--dry-run') || process.argv.includes('--print');
 
 (async () => {
   const run = await readRun(SAMPLE);
   const tail = await readEvents(AFTER_LAYOUT);
-  const orchestrator = new SampleOrchestrator(run, tail, wait, PACE_MS, () => new Date());
+  const orchestrator = new SampleOrchestrator(run, tail, wait, PACE_MS, () => new Date(), SAMPLE_FILES);
+  const fetchFile = (runId: string, path: string) => orchestrator.getFile(runId, path);
 
   if (dryRun) {
     const slack = new FakeSlackClient();
-    await new RunTracker(slack, orchestrator, 'infrared-runs', wait, 0, undefined, createDiagramRenderer(diagramsEnabled())).replay(run);
+    await new RunTracker(slack, orchestrator, 'infrared-runs', wait, 0, undefined, createDiagramRenderer(diagramsEnabled(), fetchFile)).replay(run);
     console.log(JSON.stringify(slack.finalMessages(), null, 2));
     return;
   }
@@ -30,7 +36,7 @@ const dryRun = process.argv.includes('--dry-run') || process.argv.includes('--pr
   const { app, slack } = createBot(settings, orchestrator);
   await app.start();
   console.log(`Posting sample run ${run.id} to #${settings.slackChannel}; pick the architecture, then approve the plan`);
-  const summary = await new RunTracker(slack, orchestrator, settings.slackChannel, wait, PACE_MS, settings.dashboardUrl, createDiagramRenderer(settings.diagrams)).track(run.id);
+  const summary = await new RunTracker(slack, orchestrator, settings.slackChannel, wait, PACE_MS, settings.dashboardUrl, createDiagramRenderer(settings.diagrams, fetchFile)).track(run.id);
   await writeRun(FINISHED, orchestrator.document());
   console.log(`Sample run ${summary.status}; the run document is in ${FINISHED}`);
   await app.stop();

@@ -51,6 +51,10 @@ class SnapshotError(Exception):
 # ---------------------------------------------------------------------------
 
 
+def plural(count, noun):
+    return f"{count} {noun}" + ("" if count == 1 else "s")
+
+
 def resolve_state(dataset: dict, spec: str) -> int:
     states = dataset["states"]
     value = str(spec).strip().lower()
@@ -116,7 +120,7 @@ def card_facts(dataset: dict, index: int, state_name: str) -> dict:
         caption = f"{fmt_eur(base)}/mo · {'nothing changes' if nothing else 'no changes yet'}"
         alt = (
             f"Diagram of the {project} estate {'unchanged under the ' + label + ' plan' if nothing else 'as it runs today'}: "
-            f"{resources} resources in {stacks} stacks costing {fmt_eur(base)} a month."
+            f"{plural(resources, 'resource')} in {plural(stacks, 'stack')} costing {fmt_eur(base)} a month."
         )
     else:
         title = f"{label} after {index} change{'' if index == 1 else 's'}"
@@ -126,7 +130,7 @@ def card_facts(dataset: dict, index: int, state_name: str) -> dict:
         )
         alt = (
             f"Diagram of the {project} estate after {index} steps of the {label} plan: "
-            f"{resources} resources in {stacks} stacks, {counts['changed']} changed, "
+            f"{plural(resources, 'resource')} in {plural(stacks, 'stack')}, {counts['changed']} changed, "
             f"{counts['added']} added and {counts['removed']} removed compared with today, "
             f"monthly cost going from {fmt_eur(base)} to {fmt_eur(cost)}."
         )

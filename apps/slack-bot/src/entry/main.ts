@@ -10,7 +10,7 @@ const POLL_MS = 2000;
 const settings = loadSettings();
 const orchestrator = new HttpOrchestrator(settings.orchestratorUrl);
 const { app, slack } = createBot(settings, orchestrator);
-const diagrams = createDiagramRenderer(settings.diagrams);
+const diagrams = createDiagramRenderer(settings.diagrams, (runId, path) => orchestrator.getFile(runId, path));
 
 app.command('/infrared', async ({ command, ack, client }) => {
   await ack();

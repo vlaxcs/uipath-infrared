@@ -208,6 +208,11 @@ def find_winner(result: dict) -> dict:
     return find_candidate(result, None)
 
 
+def project_title(project) -> str:
+    words = str(project or "").replace("-", " ").replace("_", " ").strip()
+    return words[:1].upper() + words[1:] if words else "Estate"
+
+
 def layout_label(layout_id: str) -> str:
     if layout_id in LAYOUT_LABELS:
         return LAYOUT_LABELS[layout_id]
@@ -712,7 +717,7 @@ def build_dataset(
             "id": state_id,
             "index": index,
             "infra": {
-                "project": infra.get("project", "demo-shop"),
+                "project": infra.get("project", ""),
                 "stacks": copy.deepcopy(stacks),
                 "components": components,
                 "edges": public_edges(copy.deepcopy(baseline_edges), ids),
@@ -842,9 +847,9 @@ def build_dataset(
     return {
         "schema_version": "1.0",
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "project": infra.get("project", "demo-shop"),
-        "title": "Demo shop",
-        "subtitle": "Sample plan · 4 stacks · 38 resources",
+        "project": infra.get("project", ""),
+        "title": project_title(infra.get("project")),
+        "subtitle": f"Sample plan · {len(stacks)} stacks · {len(baseline_components)} resources",
         "source": {
             "infra": relative(infra_path),
             "result": relative(result_path),

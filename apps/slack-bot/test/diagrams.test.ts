@@ -51,6 +51,8 @@ function startRun(renderer: DiagramRenderer, dashboardUrl?: string) {
   return { orchestrator, slack, tracking, card, pick, updatesOf };
 }
 
+const INPUTS = { runId: RUN, result: 'result.1.json', infra: 'infra.json' };
+
 const ref = (layout: string): DiagramRef => ({ fileId: `F-${layout}`, title: `${layout} target`, caption: `${layout} caption`, alt: `${layout} alt` });
 
 describe('Diagram slots in the messages', () => {
@@ -124,9 +126,9 @@ describe('Diagrams through a run', () => {
     await until(() => Boolean(flow.card(LAYOUT_CARD)));
 
     expect(renderer.requests).toEqual([
-      { layout: 'consolidate', state: 'target' },
-      { layout: 'managed_services', state: 'target' },
-      { layout: 'move_to_onprem', state: 'target' },
+      { layout: 'consolidate', state: 'target', inputs: INPUTS },
+      { layout: 'managed_services', state: 'target', inputs: INPUTS },
+      { layout: 'move_to_onprem', state: 'target', inputs: INPUTS },
     ]);
     expect(flow.slack.uploads.map(upload => upload.path)).toEqual([
       '/diagrams/consolidate-target.png', '/diagrams/managed_services-target.png', '/diagrams/move_to_onprem-target.png',
@@ -180,8 +182,31 @@ describe('Diagrams through a run', () => {
     const slack = new FakeSlackClient();
     await new RunTracker(slack, new SampleOrchestrator(run, [], tick, 0, () => new Date()), 'c', tick, 0, undefined, renderer).replay(run);
 
-    expect(renderer.requests).toEqual([{ layout: 'managed_services', state: 'target' }]);
+    expect(renderer.requests).toEqual([{ layout: 'managed_services', state: 'target', inputs: INPUTS }]);
     expect(slack.messages[0].message.text).toBe(PLAN_CARD);
     expect(fileIds(slack.messages[0].message.blocks)).toEqual(['F0001']);
+  });
+
+  it('renders nothing, and keeps the placeholder, when the run has no result or infra file yet', async () => {
+    const base = sampleRun();
+    const events = base.events.map(event => event.output?.contract === 'infra' ? { ...event, output: undefined } : event);
+    const run: Run = { ...base, events };
+    const renderer = new FakeRenderer();
+    const slack = new FakeSlackClient();
+    await new RunTracker(slack, new SampleOrchestrator(run, [], tick, 0, () => new Date()), 'c', tick, 0, undefined, renderer).replay(run);
+
+    expect(renderer.requests).toEqual([]);
+    expect(fileIds(slack.messages[0].message.blocks)).toEqual([]);
+    expect(placeholders(slack.messages[0].message.blocks)).toHaveLength(3);
+  });
+
+  it('renders from the latest result, so a revised run gets new diagrams', async () => {
+    const base = sampleRun();
+    const run: Run = { ...base, events: base.events.filter(event => event.output?.file.path !== 'result.1.json') };
+    const renderer = new FakeRenderer();
+    await new RunTracker(new FakeSlackClient(), new SampleOrchestrator(run, [], tick, 0, () => new Date()), 'c', tick, 0, undefined, renderer).replay(run);
+
+    expect(renderer.requests.map(request => request.inputs)).toContainEqual({ runId: RUN, result: 'result.0.json', infra: 'infra.json' });
+    expect(renderer.requests.every(request => request.inputs.result === 'result.0.json')).toBe(true);
   });
 });
