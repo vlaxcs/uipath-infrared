@@ -13,6 +13,16 @@ export type RunLogChunk = {
   running: boolean;
 };
 
+export type TrialRequest = {
+  requests_per_second: number;
+  phase_seconds: number;
+};
+
+export type TrialStarted = {
+  file: string;
+  candidate: string;
+};
+
 export type RunSourceMode = "live" | "sample";
 
 export type RunSource = {
@@ -25,6 +35,7 @@ export type RunSource = {
   listFiles(id: string, signal?: AbortSignal): Promise<RunArtifactInfo[]>;
   readArtifact(id: string, path: string, signal?: AbortSignal): Promise<string>;
   readLog(id: string, step: RunStep, after: number, signal?: AbortSignal): Promise<RunLogChunk>;
+  rehearse(id: string, trial: TrialRequest, signal?: AbortSignal): Promise<TrialStarted>;
 };
 
 export class RunSourceError extends Error {

@@ -9,6 +9,8 @@ import type { RunSource } from "~/runs/source";
 import { deriveStepStates } from "~/runs/stepProgress";
 import type { HumanDecision, RunDetail, RunStep } from "~/runs/types";
 import { PlanView } from "~/plan/PlanView";
+import { latestPickedLayout } from "~/sandbox/pickedLayout";
+import { SandboxPanel } from "~/sandbox/SandboxPanel";
 import { latestOutputPath, latestRevision, primaryArtifactPath, revisionsForStep } from "~/runs/artifactRefs";
 import { analysisOptions } from "~/runs/findings";
 import { layoutOptions, layoutOptionsFromResult } from "~/runs/xCandidates";
@@ -124,6 +126,7 @@ export function RunView({ run: initialRun, source, initialStep = null, onReload,
   const loggedStep = logStep === "present" ? null : logStep;
   const log = useStepLog(source, run.id, loggedStep);
   const candidate = candidates?.candidates.find((item) => item.id === selectedCandidate) ?? null;
+  const pickedLayout = useMemo(() => latestPickedLayout(run), [run]);
 
   const reviewGate = () => {
     if (run.awaiting === "layout") pinStep("present");
@@ -178,6 +181,7 @@ export function RunView({ run: initialRun, source, initialStep = null, onReload,
                 rehearsalPath={latestOutputPath(run, "rehearsal")}
               />
             ) : null}
+            {pickedLayout ? <SandboxPanel source={source} runId={run.id} layout={pickedLayout} /> : null}
           </div>
         ) : selectedStep && preview ? (
           <div className="flex flex-col gap-4">

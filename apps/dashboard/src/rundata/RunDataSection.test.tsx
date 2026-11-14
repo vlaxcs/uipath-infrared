@@ -37,6 +37,7 @@ function fakeSource(runs: RunSummary[], details: Record<string, RunDetail>, file
     submitDecision: vi.fn(),
     listFiles: vi.fn(async () => []),
     readLog: vi.fn(async () => ({ text: "", next: 0, running: false })),
+    rehearse: vi.fn(),
     readArtifact: vi.fn(async (id: string, path: string) => {
       const text = files[`${id}/${path}`];
       if (text === undefined) throw new RunSourceError("not found", 404);
