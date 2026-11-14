@@ -22,7 +22,7 @@ import {
   type ProjectId,
   type Resource,
 } from "../data/estate";
-import { PlanRail } from "./PlanLines";
+import { ProjectDeltaStrip } from "./PlanLines";
 import { usePlanLink } from "./plan-link-context";
 
 const WORLD = { width: 1000, height: 600 };
@@ -254,7 +254,7 @@ export function ClusterGraph({ copy }: { copy: ClusterCopy }) {
     context.fillStyle = "#1b1b1e";
     context.fillRect(0, 0, width, height);
 
-    // Viewport grid and ruler: the map is an instrument, not a poster.
+    // The field itself: a grid and a vignette, no decorative chrome.
     context.strokeStyle = "rgba(255,255,255,0.055)";
     context.lineWidth = 1;
     for (let x = 32; x < width; x += 32) {
@@ -288,29 +288,6 @@ export function ClusterGraph({ copy }: { copy: ClusterCopy }) {
       x: pad + (position.x / WORLD.width) * (width - pad * 2),
       y: pad + (position.y / WORLD.height) * (height - pad * 2),
     });
-
-    // Ruler: major ticks every 250 world units, minor ticks between.
-    context.strokeStyle = "rgba(236,232,220,0.16)";
-    context.fillStyle = "rgba(154,151,143,0.8)";
-    context.lineWidth = 1;
-    context.font = '400 8px "Martian Mono", monospace';
-    context.textBaseline = "alphabetic";
-    for (let value = 0; value <= WORLD.width; value += 25) {
-      const x = Math.round(pad + (value / WORLD.width) * (width - pad * 2)) + 0.5;
-      const major = value % 250 === 0;
-      context.beginPath();
-      context.moveTo(x, 8);
-      context.lineTo(x, 8 + (major ? 7 : 3));
-      context.stroke();
-      if (major && width > 460) context.fillText(String(value), x + 3, 26);
-    }
-    for (let value = 0; value <= WORLD.height; value += 50) {
-      const y = Math.round(pad + (value / WORLD.height) * (height - pad * 2)) + 0.5;
-      context.beginPath();
-      context.moveTo(8, y);
-      context.lineTo(8 + (value % 200 === 0 ? 6 : 3), y);
-      context.stroke();
-    }
 
     const point = (id: string): Point => {
       const from = data.current.positions.get(id) ?? data.planned.positions.get(id) ?? { x: 0, y: 0 };
@@ -621,7 +598,7 @@ export function ClusterGraph({ copy }: { copy: ClusterCopy }) {
           <h2 id="plan-titlu" className="type-h2 max-w-[24ch] text-fg">
             {copy.title}
           </h2>
-          <p className="type-lead mt-3 max-w-[56ch] text-fg-muted">{copy.lead}</p>
+          <p className="type-lead mt-3 max-w-[64ch] text-fg-muted">{copy.lead}</p>
         </div>
         <div className="flex flex-col items-start gap-3 sm:items-end">
           <p className="font-mono text-[10px] text-fg-muted">run 7f3a2c / read-only / {CURRENT_RESOURCES.length} resources</p>
@@ -655,7 +632,7 @@ export function ClusterGraph({ copy }: { copy: ClusterCopy }) {
         </div>
       </header>
 
-      <div ref={container} className="relative min-h-[24rem] flex-1 overflow-hidden border-t border-line">
+      <div ref={container} className="relative min-h-[22rem] flex-1 overflow-hidden border-t border-line">
         <canvas
           ref={canvas}
           role="img"
@@ -665,31 +642,11 @@ export function ClusterGraph({ copy }: { copy: ClusterCopy }) {
           onPointerLeave={onLeave}
           className="absolute inset-0 block size-full"
         />
-        <span aria-hidden="true" className="pointer-events-none absolute top-3 left-3 size-4 border-t border-l border-fg/35" />
-        <span aria-hidden="true" className="pointer-events-none absolute top-3 right-3 size-4 border-t border-r border-fg/35" />
-        <span aria-hidden="true" className="pointer-events-none absolute bottom-3 left-3 size-4 border-b border-l border-fg/35" />
-        <span aria-hidden="true" className="pointer-events-none absolute right-3 bottom-3 size-4 border-r border-b border-fg/35" />
-
-        <div className="pointer-events-none absolute top-11 left-5 border border-line bg-canvas/90 px-2.5 py-1.5 font-mono text-[10px] tabular-nums text-fg-muted">
-          <span className="text-fg">nearest</span>{" "}
-          {readout ? (
-            <>
-              <span className="text-fg">{readout.id}</span> / {readout.cost.toFixed(2)}k USD/mo / {readout.zone}
-            </>
-          ) : (
-            "--"
-          )}
-        </div>
       </div>
 
-      <div className="px-5 pb-5 sm:px-8 horizontal:pointer-events-none horizontal:absolute horizontal:bottom-[clamp(2rem,6svh,4rem)] horizontal:left-[clamp(2.5rem,5vw,5.5rem)] horizontal:px-0 horizontal:pb-0">
-        <div className="w-full horizontal:pointer-events-auto horizontal:w-[22rem]">
-          <PlanRail />
-        </div>
-      </div>
-
-      <div className="px-5 pb-6 sm:px-8 horizontal:pointer-events-none horizontal:absolute horizontal:right-[clamp(2.5rem,5vw,5.5rem)] horizontal:bottom-[clamp(2rem,6svh,4rem)] horizontal:px-0 horizontal:pb-0">
-        <div className="w-full border border-line bg-canvas/90 px-3 py-2.5 horizontal:w-[28rem]">
+      <div className="border-t border-line">
+        <ProjectDeltaStrip nearest={readout} />
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line px-4 py-3">
           {!infrared && (
             <ul className="flex flex-wrap gap-x-4 gap-y-1.5">
               {Object.values(PROVIDERS).map((provider) => (
@@ -700,15 +657,26 @@ export function ClusterGraph({ copy }: { copy: ClusterCopy }) {
               ))}
             </ul>
           )}
-          <div className={infrared ? "flex items-center gap-2" : "mt-2.5 flex items-center gap-2 border-t border-line pt-2.5"}>
-            <span className="font-mono text-[10px] text-fg-muted">{infrared ? "nodes = waste" : "waste"}</span>
+          <div className="flex min-w-[16rem] flex-1 items-center gap-2">
+            <span className="whitespace-nowrap font-mono text-[10px] text-fg-muted">
+              {infrared ? "nodes = waste" : "waste"}
+            </span>
             <span className="font-mono text-[10px] tabular-nums text-fg">{Math.round(minWaste * 100)}%</span>
             <span
               aria-hidden="true"
-              className="h-1.5 flex-1 border border-line bg-[linear-gradient(90deg,#2b1b5a,#7a1f7a,#c2255c,#ef3b24,#f5922b,#ffd36b,#fff4d6)]"
+              className="h-1.5 min-w-16 flex-1 border border-line bg-[linear-gradient(90deg,#2b1b5a,#7a1f7a,#c2255c,#ef3b24,#f5922b,#ffd36b,#fff4d6)]"
             />
             <span className="font-mono text-[10px] tabular-nums text-fg">{Math.round(maxWaste * 100)}%</span>
             <span className="font-mono text-[10px] text-fg-muted">high</span>
+          </div>
+          <div className="flex items-center gap-2 font-mono text-[10px] tabular-nums text-fg-muted">
+            <span className="whitespace-nowrap text-fg-muted">node size</span>
+            <span aria-hidden="true" className="size-[4px] rounded-full bg-fg/60" />
+            <span>0.05k</span>
+            <span aria-hidden="true" className="size-[8px] rounded-full bg-fg/60" />
+            <span>0.3k</span>
+            <span aria-hidden="true" className="size-[13px] rounded-full bg-fg/60" />
+            <span>2.5k</span>
           </div>
         </div>
       </div>

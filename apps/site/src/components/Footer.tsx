@@ -33,17 +33,19 @@ export function Footer({ text, tokensHref }: { text: Content; tokensHref: string
               <Logo className="size-8" />
               <p className="font-mono text-[11px] font-medium tracking-[0.02em] text-fg">Infrared</p>
             </div>
-            <h2 className="type-h1 mt-8 max-w-[15ch] text-fg">{text.footer.title}</h2>
-            <div className="mt-9">
-              <a
-                href="#preturi"
-                className="group inline-flex flex-wrap items-baseline gap-x-3 font-mono text-[clamp(2.3rem,6vw,5rem)] leading-none tracking-[-0.06em] text-fg no-underline transition-colors hover:text-accent-lip"
-              >
-                <span aria-hidden="true" className="text-fg-muted group-hover:text-accent-lip">$</span>
-                {text.footer.prompt}
-              </a>
-              <p className="type-tag mt-4 max-w-[36ch] text-fg-muted">{text.footer.promptNote}</p>
-              <div className="mt-6 flex flex-wrap items-center gap-3">
+            <h2 className="type-h2 mt-8 max-w-[20ch] text-fg">{text.footer.title}</h2>
+            <div className="raised mt-8 max-w-[44rem]">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line px-4 py-2">
+                <p className="font-mono text-[10px] text-fg">end of run</p>
+                <p className="font-mono text-[10px] text-fg-muted">read-only / run 7f3a2c</p>
+              </div>
+              <div className="px-4 py-6">
+                <p className="font-mono text-[clamp(1.8rem,3.6vw,3rem)] leading-none tracking-[-0.05em] text-fg">
+                  <span className="text-fg-muted">$</span> {text.footer.prompt}
+                </p>
+                <p className="type-tag mt-4 max-w-[40ch] text-fg-muted">{text.footer.promptNote}</p>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3">
                 <button
                   type="button"
                   onClick={copyCommand}
@@ -51,8 +53,11 @@ export function Footer({ text, tokensHref }: { text: Content; tokensHref: string
                 >
                   <span aria-live="polite">{copied ? text.footer.copied : text.footer.copy}</span>
                 </button>
-                <a href="#run" className="font-mono text-[10px] text-fg-muted no-underline hover:text-fg">
-                  {text.hero.secondary}
+                <a
+                  href="#preturi"
+                  className="border border-accent bg-accent px-3 py-1.5 font-mono text-[11px] font-medium text-on-accent no-underline transition-colors hover:bg-accent-lip"
+                >
+                  {text.nav.cta}
                 </a>
               </div>
             </div>

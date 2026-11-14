@@ -69,7 +69,7 @@ export default function App() {
           </HorizontalTrack>
         </PlanLinkProvider>
       )}
-      {!onTokensPage && <SectionDots label={text.nav.progress} names={text.nav.sections} />}
+      {!onTokensPage && <SectionDots />}
     </>
   );
 }

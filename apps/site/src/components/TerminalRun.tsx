@@ -25,6 +25,7 @@ export function TerminalRun({
   const [copied, setCopied] = useState(false);
   const [revealed, setRevealed] = useState(() => (staticState ? TERMINAL_LINES.length : 1));
   const [typed, setTyped] = useState(() => (staticState ? PROMPT.length : 0));
+  const [overflowing, setOverflowing] = useState(false);
   const started = useRef(false);
   const timers = useRef<number[]>([]);
   const scrollArea = useRef<HTMLDivElement>(null);
@@ -73,8 +74,9 @@ export function TerminalRun({
   }, [staticState]);
 
   useEffect(() => {
-    if (!scrollArea.current) return;
-    scrollArea.current.scrollTop = scrollArea.current.scrollHeight;
+    const area = scrollArea.current;
+    if (!area) return;
+    setOverflowing(area.scrollHeight > area.clientHeight + 1);
   }, [revealed, typed]);
 
   async function copy() {
@@ -136,7 +138,9 @@ export function TerminalRun({
         <p className="font-mono text-[10px] text-fg-muted">
           {complete ? "plan ready for approval" : "streaming"}
         </p>
-        <p className="font-mono text-[10px] text-fg-muted">4 steps / pull request</p>
+        <p className="font-mono text-[10px] text-fg-muted">
+          {overflowing ? "scroll for full plan" : "4 steps / pull request"}
+        </p>
       </div>
     </figure>
   );

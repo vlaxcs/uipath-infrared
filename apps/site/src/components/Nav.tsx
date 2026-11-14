@@ -73,7 +73,7 @@ export function Nav({
         <div className="mx-auto flex h-16 max-w-content items-center justify-between gap-4">
           <Brand />
           {showCta && (
-            <nav aria-label={text.nav.progress} className="hidden min-w-0 items-center gap-6 xl:flex">
+            <nav aria-label={text.nav.progress} className="hidden min-w-0 items-center gap-3 lg:flex xl:gap-6">
               {LINKS.map((link) => (
                 <a key={link.id} href={`#${link.id}`} className="type-tag whitespace-nowrap text-fg-muted no-underline hover:text-fg">
                   {text.nav.sections[link.label]}

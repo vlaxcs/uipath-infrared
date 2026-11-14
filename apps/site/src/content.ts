@@ -25,7 +25,7 @@ export type Content = {
   };
   cluster: { title: string; lead: string; plan: string; reset: string; infrared: string };
   how: { title: string; steps: { title: string; body: string }[]; promise: string };
-  pricing: { title: string; plans: Plan[]; consultant: string };
+  pricing: { title: string; plans: Plan[]; consultant: string; billingNote: string };
   faq: { title: string; items: { q: string; a: string }[] };
   footer: {
     title: string;
@@ -110,6 +110,7 @@ const ro: Content = {
       { name: "Abonament", price: "199 USD", unit: "pe lună", detail: "Run-uri programate." },
     ],
     consultant: "Un review de consultant pornește de la 495 USD.",
+    billingNote: "Facturat per companie.",
   },
   faq: {
     title: "Întrebări.",
@@ -203,6 +204,7 @@ const en: Content = {
       { name: "Subscription", price: "199 USD", unit: "a month", detail: "Scheduled runs." },
     ],
     consultant: "A consultant review starts at 495 USD.",
+    billingNote: "Billed per company.",
   },
   faq: {
     title: "Questions.",

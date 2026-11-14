@@ -4,7 +4,6 @@
 @layer base {
   :root {
     interpolate-size: allow-keywords;
-    --step-column: clamp(15rem, calc((100vw - 2 * clamp(3rem, 7vw, 8rem) - 5.5rem) / 4), 17.5rem);
   }
 
   details::details-content {

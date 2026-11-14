@@ -52,8 +52,9 @@ describe("product page", () => {
 
   it("ends on a command, not an illustration", () => {
     render(<App />);
-    expect(screen.getByRole("link", { name: content.ro.footer.prompt })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: content.ro.footer.copy })).toBeInTheDocument();
+    const footer = screen.getByRole("contentinfo");
+    expect(within(footer).getByText(new RegExp(content.ro.footer.prompt))).toBeInTheDocument();
+    expect(within(footer).getByRole("button", { name: content.ro.footer.copy })).toBeInTheDocument();
   });
 
   it("links project plan rows to the cluster", () => {

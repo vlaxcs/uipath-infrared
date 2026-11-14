@@ -1,4 +1,11 @@
-import { PROJECT_DELTA_LINES, type Segment, type TerminalLine, type Tone } from "../data/run";
+import {
+  PROJECT_DELTA_LINES,
+  PROJECT_DELTAS,
+  formatK,
+  type Segment,
+  type TerminalLine,
+  type Tone,
+} from "../data/run";
 import { usePlanLink } from "./plan-link-context";
 
 const TONE: Record<Tone, string> = {
@@ -80,19 +87,69 @@ export function PlanLineRow({
   );
 }
 
-export function PlanRail() {
+export function ProjectDeltaStrip({
+  nearest,
+}: {
+  nearest?: { id: string; cost: number; zone: string } | null;
+}) {
+  const { selection, selectLine, clearLine } = usePlanLink();
+
   return (
-    <section aria-labelledby="plan-rail-title" className="raised w-full max-w-full overflow-hidden">
-      <header className="flex items-center justify-between gap-3 border-b border-line px-3 py-2.5">
-        <h3 id="plan-rail-title" className="font-mono text-[11px] font-medium text-fg">
+    <section aria-labelledby="project-delta-title" className="min-w-0">
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-line px-4 py-2">
+        <h3 id="project-delta-title" className="shrink-0 font-mono text-[10px] font-medium text-fg">
           project delta
         </h3>
-        <p className="font-mono text-[10px] text-fg-muted">hover / focus</p>
+        <div className="flex min-w-0 flex-1 items-baseline gap-2 font-mono text-[10px] tabular-nums text-fg-muted">
+          <span className="shrink-0">nearest</span>
+          {nearest ? (
+            <span className="min-w-0 truncate">
+              <span className="text-fg">{nearest.id}</span> / {nearest.cost.toFixed(2)}k USD/mo / {nearest.zone}
+            </span>
+          ) : (
+            <span>--</span>
+          )}
+        </div>
+        <p className="shrink-0 font-mono text-[10px] text-fg-muted">hover / focus</p>
       </header>
-      <ol className="py-1">
-        {PROJECT_DELTA_LINES.map((line) => (
-          <PlanLineRow key={line.id} line={line} compact />
-        ))}
+      <ol className="grid grid-cols-2 sm:grid-cols-3 horizontal:grid-cols-6">
+        {PROJECT_DELTAS.map((delta) => {
+          const line = PROJECT_DELTA_LINES.find((entry) => entry.id === delta.lineId)!;
+          const active = selection.lineIds.includes(delta.lineId);
+          return (
+            <li
+              key={delta.project}
+              tabIndex={0}
+              aria-current={active ? "true" : undefined}
+              onPointerEnter={() => selectLine(line)}
+              onPointerLeave={() => clearLine(line.id)}
+              onFocus={() => selectLine(line)}
+              onBlur={() => clearLine(line.id)}
+              className={`min-w-0 cursor-crosshair border-r border-b border-line px-3 py-2 transition-colors hover:bg-fg/[0.04] ${
+                active ? "bg-fg/[0.08] shadow-[inset_0_-2px_0_#ece8dc]" : ""
+              }`}
+            >
+              <div className="flex items-baseline justify-between gap-2 font-mono text-[10px]">
+                <span className="truncate text-fg">
+                  <span className="text-cluster-ice">~</span> {delta.label}
+                </span>
+                <span className="shrink-0 tabular-nums text-fg-muted">
+                  zones {delta.zonesNow}-&gt;{delta.zonesNext}
+                </span>
+              </div>
+              <div className="mt-1 flex items-baseline justify-between gap-2 whitespace-nowrap font-mono text-[10px] tabular-nums">
+                <span>
+                  <span className="text-fg-muted">{formatK(delta.current)}</span>
+                  <span className="text-fg-muted"> -&gt; </span>
+                  <span className="text-fg">{formatK(delta.planned)}</span>
+                </span>
+                <span className={delta.difference <= 0 ? "text-cluster-sage" : "text-accent-lip"}>
+                  {delta.difference <= 0 ? `-${Math.abs(delta.difference).toFixed(1)}k` : `+${delta.difference.toFixed(1)}k`}
+                </span>
+              </div>
+            </li>
+          );
+        })}
       </ol>
     </section>
   );

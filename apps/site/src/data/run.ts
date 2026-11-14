@@ -31,7 +31,7 @@ export type TerminalLine = {
 
 export const PROMPT = "$ infrared run demo-shop --read-only";
 
-const formatK = (value: number) => `${value.toFixed(1)}k`;
+export const formatK = (value: number) => `${value.toFixed(1)}k`;
 const savingsK = (value: number) => `-${Math.abs(value).toFixed(1)}k`;
 
 function makeLine(
@@ -56,43 +56,57 @@ const zoneGains = PROJECTS.flatMap((project) => {
   return gained > 0 ? [`${project.label} +${gained}`] : [];
 });
 
-const projectLineIds = Object.fromEntries(PROJECTS.map((project) => [project.id, `project-${project.id}`])) as Record<
-  ProjectId,
-  string
->;
+export type ProjectDelta = {
+  project: ProjectId;
+  label: string;
+  current: number;
+  planned: number;
+  difference: number;
+  zonesNow: number;
+  zonesNext: number;
+  lineId: string;
+  resourceIds: string[];
+};
 
-export const PROJECT_DELTA_LINES: TerminalLine[] = PROJECTS.map((project) => {
-  const current = currentProjectTotal(project.id);
-  const planned = plannedProjectTotal(project.id);
-  const difference = planned - current;
-  const zonesNow = currentZones(project.id).length;
-  const zonesNext = plannedZones(project.id).length;
-  return makeLine(
-    projectLineIds[project.id],
+export const PROJECT_DELTAS: ProjectDelta[] = PROJECTS.map((project) => ({
+  project: project.id,
+  label: project.label,
+  current: currentProjectTotal(project.id),
+  planned: plannedProjectTotal(project.id),
+  difference: plannedProjectTotal(project.id) - currentProjectTotal(project.id),
+  zonesNow: currentZones(project.id).length,
+  zonesNext: plannedZones(project.id).length,
+  lineId: `project-${project.id}`,
+  resourceIds: RESOURCES.filter(
+    (resource) => (resource.added ? resource.plannedProject : resource.project) === project.id,
+  ).map((resource) => resource.id),
+}));
+
+export const PROJECT_DELTA_LINES: TerminalLine[] = PROJECT_DELTAS.map((delta) =>
+  makeLine(
+    delta.lineId,
     [
       { text: "~ ", tone: "ice" },
-      { text: project.label.padEnd(9), tone: "strong" },
-      { text: formatK(current), tone: "muted" },
+      { text: delta.label.padEnd(9), tone: "strong" },
+      { text: formatK(delta.current), tone: "muted" },
       { text: " -> ", tone: "muted" },
-      { text: formatK(planned), tone: "strong" },
+      { text: formatK(delta.planned), tone: "strong" },
       { text: "  zones ", tone: "muted" },
-      { text: `${zonesNow}->${zonesNext}`, tone: zonesNext > zonesNow ? "ice" : "muted" },
+      { text: `${delta.zonesNow}->${delta.zonesNext}`, tone: delta.zonesNext > delta.zonesNow ? "ice" : "muted" },
       {
-        text: `  ${difference <= 0 ? savingsK(difference) : `+${difference.toFixed(1)}k`}`,
-        tone: difference <= 0 ? "cool" : "warm",
+        text: `  ${delta.difference <= 0 ? savingsK(delta.difference) : `+${delta.difference.toFixed(1)}k`}`,
+        tone: delta.difference <= 0 ? "cool" : "warm",
       },
     ],
     {
       kind: "project",
       diff: "~",
-      resourceIds: RESOURCES.filter(
-        (resource) => (resource.added ? resource.plannedProject : resource.project) === project.id,
-      ).map((resource) => resource.id),
-      projectIds: [project.id],
+      resourceIds: delta.resourceIds,
+      projectIds: [delta.project],
       focusable: true,
     },
-  );
-});
+  ),
+);
 
 const movedProjects = [...new Set(MOVED_RESOURCES.map((resource) => resource.project))];
 const rightsizedProjects = [...new Set(RIGHTSIZED_RESOURCES.map((resource) => resource.project))];

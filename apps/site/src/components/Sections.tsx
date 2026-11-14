@@ -68,12 +68,12 @@ export function Finds({ text }: { text: Content }) {
           </div>
 
           <div className="relative min-w-0 self-end lg:overflow-hidden">
-            <p className="font-mono text-[clamp(7rem,24vw,22rem)] leading-[0.72] tracking-[-0.1em] text-fg">
+            <p className="font-mono text-[10px] text-fg-muted">{finds.waste.source}</p>
+            <p className="mt-2 font-mono text-[clamp(6.5rem,20vw,18rem)] leading-[0.72] tracking-[-0.1em] text-fg">
               {finds.waste.value}
             </p>
             <div className="mt-4 border-t border-fg/25 pt-3 lg:max-w-[22rem]">
               <p className="type-tag text-fg">{finds.waste.label}</p>
-              <p className="mt-1 font-mono text-[10px] text-fg-muted">{finds.waste.source}</p>
             </div>
           </div>
         </div>
@@ -96,10 +96,12 @@ export function Cluster({ text }: { text: Content }) {
 
 export function HowItWorks({ text }: { text: Content }) {
   return (
-    <Section id="cum-merge" titleId="cum-titlu" width="horizontal:w-max horizontal:min-w-screen" inner="horizontal:w-fit horizontal:max-w-none">
-      <div className="relative">
-        <Heading id="cum-titlu">{text.how.title}</Heading>
-        <ol className="mt-10 grid gap-8 md:grid-cols-2 lg:grid-cols-4 horizontal:mt-8 horizontal:grid-cols-[repeat(4,var(--step-column))]">
+    <Section id="cum-merge" titleId="cum-titlu">
+      <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
+        <div className="lg:col-span-3">
+          <Heading id="cum-titlu">{text.how.title}</Heading>
+        </div>
+        <ol className="grid gap-8 sm:grid-cols-2 lg:col-span-9 lg:grid-cols-4 lg:gap-6">
           {text.how.steps.map((step, index) => (
             <li key={step.title} className="border-t border-line-strong pt-3">
               <span aria-hidden="true" className="font-mono text-[11px] tabular-nums text-fg-muted">
@@ -155,6 +157,7 @@ export function Pricing({ text }: { text: Content }) {
               </tr>
             </tfoot>
           </table>
+          <p className="mt-4 font-mono text-[10px] text-fg-muted">{pricing.billingNote}</p>
         </div>
       </div>
     </Section>
@@ -164,19 +167,23 @@ export function Pricing({ text }: { text: Content }) {
 export function Faq({ text }: { text: Content }) {
   return (
     <Section id="intrebari" titleId="intrebari-titlu">
-      <Heading id="intrebari-titlu">{text.faq.title}</Heading>
-      <div className="mt-8 max-w-3xl border-t border-line-strong">
-        {text.faq.items.map((item) => (
-          <details key={item.q} className="group border-b border-line">
-            <summary className="type-label flex cursor-pointer list-none items-center justify-between gap-6 py-4 text-fg [&::-webkit-details-marker]:hidden">
-              {item.q}
-              <span aria-hidden="true" className="font-mono text-[1.125rem] font-normal text-fg-muted transition-transform duration-200 group-open:rotate-45">
-                +
-              </span>
-            </summary>
-            <p className="type-tag max-w-[65ch] pb-4 text-fg-muted">{item.a}</p>
-          </details>
-        ))}
+      <div className="grid gap-8 lg:grid-cols-12 lg:gap-14">
+        <div className="lg:col-span-3">
+          <Heading id="intrebari-titlu">{text.faq.title}</Heading>
+        </div>
+        <div className="border-t border-line-strong lg:col-span-9">
+          {text.faq.items.map((item) => (
+            <details key={item.q} className="group border-b border-line">
+              <summary className="type-label flex cursor-pointer list-none items-center justify-between gap-6 py-4 text-fg [&::-webkit-details-marker]:hidden">
+                {item.q}
+                <span aria-hidden="true" className="font-mono text-[1.125rem] font-normal text-fg-muted transition-transform duration-200 group-open:rotate-45">
+                  +
+                </span>
+              </summary>
+              <p className="type-tag max-w-[65ch] pb-4 text-fg-muted">{item.a}</p>
+            </details>
+          ))}
+        </div>
       </div>
     </Section>
   );
