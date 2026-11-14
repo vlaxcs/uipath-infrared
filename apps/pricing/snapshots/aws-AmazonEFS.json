@@ -1,0 +1,16 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "provisioned-throughput": {
+      "amount": 6.6,
+      "currency": "USD",
+      "description": "USD $6.60 per MiBps-Mo for Provisioned Throughput (EU)",
+      "reference": "RV8CCARWJQXREPT4",
+      "unit": "MiBps-Mo"
+    }
+  },
+  "source": "aws-AmazonEFS",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEFS/20261104213451/eu-west-1/index.csv",
+  "version": "20261104213451"
+}

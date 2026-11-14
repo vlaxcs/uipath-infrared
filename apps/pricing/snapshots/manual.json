@@ -1,6 +1,20 @@
 {
   "fetched_on": "2026-11-14",
   "prices": {
+    "aws-route53:hosted-zone": {
+      "amount": 0.5,
+      "currency": "USD",
+      "description": "AWS Route53 public hosted zone, USD per zone-month. Not in the AmazonRoute53 price list CSV anymore, only on the pricing page.",
+      "reference": "https://aws.amazon.com/route53/pricing/",
+      "unit": "HostedZone"
+    },
+    "neon-launch:cu-hour": {
+      "amount": 0.106,
+      "currency": "USD",
+      "description": "Neon Launch plan, USD per CU-hour (Scale is USD 0.222).",
+      "reference": "https://neon.com/docs/introduction/plans",
+      "unit": "Hrs"
+    },
     "neon-scale:cu-hour": {
       "amount": 0.222,
       "currency": "USD",
@@ -63,10 +77,17 @@
       "description": "Supabase disk beyond the 8 GB included, USD per GB-month.",
       "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
       "unit": "GB-Mo"
+    },
+    "supabase:egress-gb": {
+      "amount": 0.09,
+      "currency": "USD",
+      "description": "Supabase Pro egress beyond the included 250 GB, USD per GB.",
+      "reference": "https://supabase.com/pricing",
+      "unit": "GB"
     }
   },
   "source": "manual",
   "unverified": {},
   "url": "apps/pricing/config/manual.json",
-  "version": "97fa73febc33"
+  "version": "df2c7829c9a5"
 }

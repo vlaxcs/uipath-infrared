@@ -1,6 +1,13 @@
 {
   "fetched_on": "2026-11-14",
   "prices": {
+    "aurora-postgres:db.r5.4xlarge": {
+      "amount": 2.56,
+      "currency": "USD",
+      "description": "USD 2.56 per RDS db.r5.4xlarge Single-AZ instance hour (or partial hour) running Aurora PostgreSQL",
+      "reference": "3GPYNJ83J5NZSFSM",
+      "unit": "Hrs"
+    },
     "aurora-postgres:db.r6g.2xlarge": {
       "amount": 1.146,
       "currency": "USD",
@@ -43,6 +50,13 @@
       "reference": "Z57JPT74TUYSYD9G",
       "unit": "GB-Mo"
     },
+    "postgres:db.m4.4xlarge": {
+      "amount": 1.612,
+      "currency": "USD",
+      "description": "$1.612 per RDS db.m4.4xlarge instance hour (or partial hour) running PostgreSQL",
+      "reference": "YHD94ZP4U9UP5DPM",
+      "unit": "Hrs"
+    },
     "postgres:db.m5.2xlarge": {
       "amount": 0.788,
       "currency": "USD",
@@ -62,6 +76,20 @@
       "currency": "USD",
       "description": "$0.394 per RDS db.m5.xlarge Single-AZ instance hour (or partial hour) running PostgreSQL",
       "reference": "567A3JXKZEN8GET6",
+      "unit": "Hrs"
+    },
+    "postgres:db.r4.4xlarge": {
+      "amount": 2.24,
+      "currency": "USD",
+      "description": "$2.240 per RDS db.r4.4xlarge Single-AZ instance hour (or partial hour) running PostgreSQL",
+      "reference": "BDR93UAXKFW98VPR",
+      "unit": "Hrs"
+    },
+    "postgres:db.r5.8xlarge": {
+      "amount": 4.48,
+      "currency": "USD",
+      "description": "$4.480 per RDS db.r5.8xlarge Single-AZ instance hour (or partial hour) running PostgreSQL",
+      "reference": "7U9NP9JSTP95DF66",
       "unit": "Hrs"
     },
     "postgres:db.r6g.2xlarge": {

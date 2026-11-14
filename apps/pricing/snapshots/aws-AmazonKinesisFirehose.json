@@ -1,0 +1,16 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "delivery:bytes": {
+      "amount": 0.031,
+      "currency": "USD",
+      "description": "Tier 1 $0.031 per GB of data ingested",
+      "reference": "AHM8Y29A6ZQAKNUE",
+      "unit": "GB"
+    }
+  },
+  "source": "aws-AmazonKinesisFirehose",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonKinesisFirehose/20261104213442/eu-west-1/index.csv",
+  "version": "20261104213442"
+}

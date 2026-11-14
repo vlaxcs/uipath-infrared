@@ -14,9 +14,9 @@ def baseline(mock_infra, catalog):
     return price_baseline(mock_infra, catalog)
 
 
-def cost_after(infra, catalog, action):
-    end_state = apply_candidate(infra, catalog, Candidate("probe", (action,)))
-    return cost_placement(end_state.placements[action.component], catalog)
+def cost_after(infra, catalog, *actions):
+    end_state = apply_candidate(infra, catalog, Candidate("probe", tuple(actions)))
+    return cost_placement(end_state.placements[actions[0].component], catalog)
 
 
 def with_reported_provenance(infra, component_id, provenance):
@@ -55,8 +55,14 @@ def test_cross_check_lists_only_differences_above_the_threshold(baseline):
     assert "nat-dev" not in mismatches
 
 
-def test_kinds_without_a_catalog_option_stay_at_their_reported_cost(baseline):
-    cache = next(c for c in baseline.costs if c.component == "cache-sessions")
+def test_kinds_without_a_catalog_option_stay_at_their_reported_cost(mock_infra, catalog):
+    as_cdn = replace(
+        mock_infra,
+        components=tuple(
+            replace(c, kind="cdn") if c.id == "cache-sessions" else c for c in mock_infra.components
+        ),
+    )
+    cache = next(c for c in price_baseline(as_cdn, catalog).costs if c.component == "cache-sessions")
     assert cache.catalog is None
     assert cache.monthly_eur == cache.reported_eur
 
@@ -74,7 +80,11 @@ def test_stopped_vm_keeps_paying_for_its_disks_only(mock_infra, catalog):
 
 def test_multi_az_database_pays_the_multi_az_multiplier(mock_infra, catalog):
     single = cost_after(mock_infra, catalog, Action("rds-orders", ActionKind.RESIZE, "probe", tier="db.r6g.8xlarge"))
-    multi = cost_after(mock_infra, catalog, Action("rds-orders", ActionKind.SCALE, "probe", zones=2))
+    multi = cost_after(
+        mock_infra, catalog,
+        Action("rds-orders", ActionKind.RESIZE, "probe", tier="db.r6g.8xlarge"),
+        Action("rds-orders", ActionKind.SCALE, "probe", zones=2),
+    )
     instance = lambda cost: next(l for l in cost.catalog.lines if l.driver == "instance")
     assert instance(multi).monthly_eur == pytest.approx(2 * instance(single).monthly_eur)
 
@@ -87,6 +97,26 @@ def test_changed_component_is_priced_from_the_catalog(mock_infra, catalog):
 
 def test_real_extraction_prices_without_crashing_and_flags_unpriced(real_infra, catalog):
     baseline = price_baseline(real_infra, catalog)
-    assert baseline.monthly_eur >= baseline.reported_monthly_eur
-    assert "fn-shop-resize-image" in baseline.unpriced
+    assert "topic-shop-alerts" in baseline.unpriced
     assert all(c.monthly_eur == 0 for c in baseline.costs if c.source == "unpriced")
+
+
+def test_an_other_kind_component_without_an_exact_service_match_stays_unpriced(real_infra, catalog):
+    baseline = price_baseline(real_infra, catalog)
+    rule = next(c for c in baseline.costs if c.component == "rule-legacy-cron-every-minute")
+    assert rule.catalog is None
+    assert rule.source == "unpriced"
+
+
+def test_an_ecr_matches_its_option_but_stays_unpriced_without_storage(real_infra, catalog):
+    baseline = price_baseline(real_infra, catalog)
+    ecr = next(c for c in baseline.costs if c.component == "ecr-repositories")
+    assert ecr.catalog.option_id == "aws-ecr"
+    assert ecr.source == "unpriced"
+
+
+def test_a_hosted_zone_prices_from_the_catalog(real_infra, catalog):
+    baseline = price_baseline(real_infra, catalog)
+    dns = next(c for c in baseline.costs if c.component == "dns-shop-example-com")
+    assert dns.source == "catalog"
+    assert dns.monthly_eur == pytest.approx(0.46)

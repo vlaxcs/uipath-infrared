@@ -49,8 +49,8 @@ def test_cleanup_acts_on_the_seven_idle_and_orphan_components(cleanup):
     }
 
 
-def test_cleanup_saves_about_9300_a_month_at_high_confidence(cleanup, mock_infra, catalog):
-    assert 9200 <= saving(DO_NOTHING, cleanup, mock_infra, catalog) <= 9400
+def test_cleanup_saves_about_6100_a_month_at_high_confidence(cleanup, mock_infra, catalog):
+    assert 6000 <= saving(DO_NOTHING, cleanup, mock_infra, catalog) <= 6250
     assert all(a.confidence.level == "high" for a in cleanup.actions)
 
 
@@ -140,11 +140,11 @@ def test_the_real_estate_runs_and_caps_copied_node_group_usage(real_infra, catal
 
 def test_single_zone_pools_on_a_critical_path_are_spread(cleanup, rightsize, mock_infra, catalog):
     spread = {a.component: a for a in own(rightsize, cleanup, kind=ActionKind.SCALE) if a.signal == "single_zone_pool"}
-    assert set(spread) == {"eks-data", "vmfleet-web"}
+    assert set(spread) == {"vmfleet-web"}
     end_state = apply_candidate(mock_infra, catalog, rightsize)
     assert end_state.placements["vmfleet-web"].zones == 2
     assert end_state.placements["vmfleet-web"].quantity == 2
-    assert saving(cleanup, cleanup.extend("spread", (spread["eks-data"],)), mock_infra, catalog, "eks-data") == 0
+    assert saving(cleanup, cleanup.extend("spread", (spread["vmfleet-web"],)), mock_infra, catalog, "vmfleet-web") == 0
 
 
 def test_a_staging_pool_is_not_spread(cleanup, rightsize):

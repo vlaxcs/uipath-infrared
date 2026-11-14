@@ -80,6 +80,13 @@ def test_a_catalog_with_every_price_sourced_is_not_illustrative():
     assert (built.document["illustrative"], built.unsourced) == (False, ())
 
 
+def test_an_unsourced_price_can_say_why_it_stays_illustrative():
+    document = skeleton()
+    document["x_unsourced_reasons"] = {"aws-ec2/tier:t3.large": "the vendor does not publish it"}
+    built = build_catalog(document, (), {}, snapshots(), FX)
+    assert built.document["x_unsourced"]["aws-ec2/tier:t3.large"] == "the vendor does not publish it"
+
+
 def test_a_price_whose_quote_vanished_stays_illustrative_with_the_reason():
     built = build_catalog(
         skeleton(), (bind("pricing:egress_per_gb_eur", "manual/vendor:gone", "GB"),), {},

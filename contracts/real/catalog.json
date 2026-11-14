@@ -1,9 +1,12 @@
 {
   "schema_version": "1.0",
   "illustrative": true,
-  "disclaimer": "49 prices come from dated snapshots listed in x_price_sources; 10 stay illustrative, listed in x_unsourced. SLAs and migration figures are not prices and stay as written.",
+  "disclaimer": "84 prices come from dated snapshots listed in x_price_sources; 1 stay illustrative, listed in x_unsourced. SLAs and migration figures are not prices and stay as written.",
   "currency": "EUR",
   "hours_per_month": 730,
+  "x_unsourced_reasons": {
+    "platform/onprem-dc1": "on-prem hardware is quoted per site, so there is no public price list to snapshot"
+  },
   "options": [
     {
       "id": "aws-rds-postgres",
@@ -52,6 +55,24 @@
             "vcpu": 32,
             "memory_gb": 256,
             "monthly_eur": 2660.55
+          },
+          {
+            "id": "db.m4.4xlarge",
+            "vcpu": 16,
+            "memory_gb": 64,
+            "monthly_eur": 1064.75
+          },
+          {
+            "id": "db.r4.4xlarge",
+            "vcpu": 16,
+            "memory_gb": 122,
+            "monthly_eur": 1479.55
+          },
+          {
+            "id": "db.r5.8xlarge",
+            "vcpu": 32,
+            "memory_gb": 256,
+            "monthly_eur": 2959.1
           }
         ],
         "per_unit": [
@@ -168,7 +189,7 @@
       "kind": "postgres",
       "provider": "managed_pg",
       "service": "serverless-postgres",
-      "description": "Generic autoscaling serverless Postgres vendor. Illustrative; lacks pg_partman and logical_replication in this catalog on purpose, to exercise feature blocking.",
+      "description": "Priced from Neon's Launch plan: CU-hours, storage and public transfer; see x_price_sources. Tiers are priced running all month (730 h); scale to zero costs less. 1 CU = 4 GB RAM per Neon's plans page; 1 vCPU per CU is the skeleton's assumption. Features are the skeleton's and were not checked against Neon's extension list.",
       "regions": [
         "eu-central-1",
         "eu-west-1",
@@ -181,34 +202,34 @@
             "id": "c2",
             "vcpu": 2,
             "memory_gb": 8,
-            "monthly_eur": 110
+            "monthly_eur": 140.029
           },
           {
             "id": "c4",
             "vcpu": 4,
             "memory_gb": 16,
-            "monthly_eur": 220
+            "monthly_eur": 280.058
           },
           {
             "id": "c8",
             "vcpu": 8,
             "memory_gb": 32,
-            "monthly_eur": 440
+            "monthly_eur": 560.116
           },
           {
             "id": "c16",
             "vcpu": 16,
             "memory_gb": 64,
-            "monthly_eur": 880
+            "monthly_eur": 1120.23
           }
         ],
         "per_unit": [
           {
             "driver": "storage_gb_month",
-            "eur_per_unit": 0.3
+            "eur_per_unit": 0.316685
           }
         ],
-        "egress_per_gb_eur": 0.09,
+        "egress_per_gb_eur": 0.0904814,
         "free_egress_gb": 50,
         "multi_az_multiplier": 1.0
       },
@@ -237,7 +258,7 @@
       "kind": "postgres",
       "provider": "managed_pg",
       "service": "postgres-platform",
-      "description": "Priced from Supabase's dedicated compute sizes (Large to 8XL) and its disk price; see x_price_sources. The Pro plan's monthly base fee is not included. Features are the skeleton's and were not checked against Supabase's extension list.",
+      "description": "Priced from Supabase's dedicated compute sizes (Large to 8XL), its disk price and its Pro egress price; see x_price_sources. The Pro plan's monthly base fee is not included. Features are the skeleton's and were not checked against Supabase's extension list.",
       "regions": [
         "eu-central-1",
         "eu-west-1",
@@ -283,7 +304,7 @@
             "eur_per_unit": 0.113102
           }
         ],
-        "egress_per_gb_eur": 0.09,
+        "egress_per_gb_eur": 0.0814332,
         "free_egress_gb": 250,
         "multi_az_multiplier": 2.0
       },
@@ -566,10 +587,6 @@
           {
             "driver": "storage_gb_month",
             "eur_per_unit": 0.0208107
-          },
-          {
-            "driver": "requests_million",
-            "eur_per_unit": 4.5
           }
         ],
         "egress_per_gb_eur": 0.0814332,
@@ -642,8 +659,12 @@
             "eur_per_unit": 0.256062
           },
           {
-            "driver": "requests_million",
-            "eur_per_unit": 1.3
+            "driver": "consumed_rcu_million",
+            "eur_per_unit": 0.128031
+          },
+          {
+            "driver": "consumed_wcu_million",
+            "eur_per_unit": 0.637894
           }
         ],
         "egress_per_gb_eur": 0.0814332,
@@ -736,6 +757,30 @@
             "vcpu": 16,
             "memory_gb": 64,
             "monthly_eur": 565.4
+          },
+          {
+            "id": "r5.2xlarge",
+            "vcpu": 8,
+            "memory_gb": 64,
+            "monthly_eur": 372.53
+          },
+          {
+            "id": "m5.4xlarge",
+            "vcpu": 16,
+            "memory_gb": 64,
+            "monthly_eur": 565.4
+          },
+          {
+            "id": "m5.8xlarge",
+            "vcpu": 32,
+            "memory_gb": 128,
+            "monthly_eur": 1130.8
+          },
+          {
+            "id": "c5.9xlarge",
+            "vcpu": 36,
+            "memory_gb": 72,
+            "monthly_eur": 1141.37
           }
         ],
         "per_unit": [
@@ -763,6 +808,533 @@
         "risk_factor": 0.15
       },
       "ops_hours_month_per_unit": 2
+    },
+    {
+      "id": "aws-dynamodb-provisioned",
+      "kind": "nosql",
+      "provider": "aws",
+      "service": "dynamodb",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [
+          {
+            "driver": "provisioned_rcu_month",
+            "eur_per_unit": 0.0970955
+          },
+          {
+            "driver": "provisioned_wcu_month",
+            "eur_per_unit": 0.485478
+          }
+        ],
+        "egress_per_gb_eur": 0.0814332,
+        "free_egress_gb": 100
+      },
+      "sla": {
+        "availability_pct": 99.99,
+        "failure_domain_scope": "multi_zone",
+        "failure_domains": 3
+      },
+      "features_supported": [
+        "ttl",
+        "pitr",
+        "streams",
+        "global_tables"
+      ],
+      "migration": {
+        "effort_hours_fixed": 16,
+        "same_provider_factor": 0.3,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.2
+      },
+      "ops_hours_month_per_unit": 0.5
+    },
+    {
+      "id": "aws-ebs",
+      "kind": "block_storage",
+      "provider": "aws",
+      "service": "ebs",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [
+          {
+            "driver": "storage_gb_month",
+            "eur_per_unit": 0.0995295
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 99.9,
+        "failure_domain_scope": "single_zone",
+        "failure_domains": 1
+      },
+      "features_supported": [
+        "encryption",
+        "snapshots"
+      ],
+      "migration": {
+        "effort_hours_fixed": 4,
+        "same_provider_factor": 0.2,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.1
+      },
+      "ops_hours_month_per_unit": 0.1
+    },
+    {
+      "id": "aws-efs",
+      "kind": "file_system",
+      "provider": "aws",
+      "service": "efs",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [
+          {
+            "driver": "throughput_mibps_month",
+            "eur_per_unit": 5.97177
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 99.99,
+        "failure_domain_scope": "multi_zone",
+        "failure_domains": 3
+      },
+      "features_supported": [
+        "encryption",
+        "snapshots"
+      ],
+      "migration": {
+        "effort_hours_fixed": 16,
+        "same_provider_factor": 0.4,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.25
+      },
+      "ops_hours_month_per_unit": 1
+    },
+    {
+      "id": "aws-eip",
+      "kind": "other",
+      "provider": "aws",
+      "service": "ec2-eip",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [
+          {
+            "driver": "address_month",
+            "eur_per_unit": 3.30257
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 99.9,
+        "failure_domain_scope": "single_zone",
+        "failure_domains": 1
+      },
+      "features_supported": [],
+      "migration": {
+        "effort_hours_fixed": 1,
+        "same_provider_factor": 0.2,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.05
+      },
+      "ops_hours_month_per_unit": 0.1
+    },
+    {
+      "id": "aws-eks",
+      "kind": "kubernetes_cluster",
+      "provider": "aws",
+      "service": "eks",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [
+          {
+            "driver": "cluster_month",
+            "eur_per_unit": 66.0514
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 99.95,
+        "failure_domain_scope": "multi_zone",
+        "failure_domains": 2
+      },
+      "features_supported": [
+        "autoscaling"
+      ],
+      "migration": {
+        "effort_hours_fixed": 16,
+        "same_provider_factor": 0.4,
+        "cutover_downtime_hours": 1,
+        "risk_factor": 0.2
+      },
+      "ops_hours_month_per_unit": 2
+    },
+    {
+      "id": "aws-elasticache-memcached",
+      "kind": "cache",
+      "provider": "aws",
+      "service": "elasticache-memcached",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "tiered_instance",
+        "tiers": [
+          {
+            "id": "cache.m4.2xlarge",
+            "vcpu": 8,
+            "memory_gb": 30,
+            "monthly_eur": 453.113
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 99.9,
+        "failure_domain_scope": "single_zone",
+        "failure_domains": 1
+      },
+      "features_supported": [],
+      "migration": {
+        "effort_hours_fixed": 12,
+        "same_provider_factor": 0.3,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.15
+      },
+      "ops_hours_month_per_unit": 0.5
+    },
+    {
+      "id": "aws-elasticache-redis",
+      "kind": "cache",
+      "provider": "aws",
+      "service": "elasticache-redis",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "tiered_instance",
+        "tiers": [
+          {
+            "id": "cache.r5.xlarge",
+            "vcpu": 4,
+            "memory_gb": 26,
+            "monthly_eur": 317.047
+          },
+          {
+            "id": "cache.r5.4xlarge",
+            "vcpu": 16,
+            "memory_gb": 105,
+            "monthly_eur": 1268.85
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 99.9,
+        "failure_domain_scope": "single_zone",
+        "failure_domains": 1
+      },
+      "features_supported": [
+        "cluster_mode",
+        "encryption"
+      ],
+      "migration": {
+        "effort_hours_fixed": 12,
+        "same_provider_factor": 0.3,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.15
+      },
+      "ops_hours_month_per_unit": 0.5
+    },
+    {
+      "id": "aws-kinesis",
+      "kind": "stream",
+      "provider": "aws",
+      "service": "kinesis",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [
+          {
+            "driver": "shard_month",
+            "eur_per_unit": 15.1918
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 99.99,
+        "failure_domain_scope": "multi_zone",
+        "failure_domains": 3
+      },
+      "features_supported": [],
+      "migration": {
+        "effort_hours_fixed": 8,
+        "same_provider_factor": 0.3,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.15
+      },
+      "ops_hours_month_per_unit": 0.5
+    },
+    {
+      "id": "aws-lambda",
+      "kind": "function",
+      "provider": "aws",
+      "service": "lambda",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [
+          {
+            "driver": "invocations_million",
+            "eur_per_unit": 0.180963
+          },
+          {
+            "driver": "gb_s_month",
+            "eur_per_unit": 1.50803e-05
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 99.99,
+        "failure_domain_scope": "multi_zone",
+        "failure_domains": 3
+      },
+      "features_supported": [],
+      "migration": {
+        "effort_hours_fixed": 8,
+        "same_provider_factor": 0.3,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.1
+      },
+      "ops_hours_month_per_unit": 0.2
+    },
+    {
+      "id": "aws-alb",
+      "kind": "load_balancer",
+      "provider": "aws",
+      "service": "alb",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [
+          {
+            "driver": "load_balancer_month",
+            "eur_per_unit": 16.645
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 99.99,
+        "failure_domain_scope": "multi_zone",
+        "failure_domains": 2
+      },
+      "features_supported": [],
+      "migration": {
+        "effort_hours_fixed": 4,
+        "same_provider_factor": 0.3,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.1
+      },
+      "ops_hours_month_per_unit": 0.5
+    },
+    {
+      "id": "aws-route53",
+      "kind": "dns",
+      "provider": "aws",
+      "service": "route53",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [
+          {
+            "driver": "zone_month",
+            "eur_per_unit": 0.452407
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 100.0,
+        "failure_domain_scope": "multi_region",
+        "failure_domains": 3
+      },
+      "features_supported": [
+        "health_checks"
+      ],
+      "migration": {
+        "effort_hours_fixed": 4,
+        "same_provider_factor": 0.3,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.1
+      },
+      "ops_hours_month_per_unit": 0.1
+    },
+    {
+      "id": "aws-sqs",
+      "kind": "queue",
+      "provider": "aws",
+      "service": "sqs",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [
+          {
+            "driver": "messages_million",
+            "eur_per_unit": 0.361925
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 99.99,
+        "failure_domain_scope": "multi_zone",
+        "failure_domains": 3
+      },
+      "features_supported": [],
+      "migration": {
+        "effort_hours_fixed": 8,
+        "same_provider_factor": 0.3,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.1
+      },
+      "ops_hours_month_per_unit": 0.2
+    },
+    {
+      "id": "aws-sns",
+      "kind": "queue",
+      "provider": "aws",
+      "service": "sns",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [
+          {
+            "driver": "messages_million",
+            "eur_per_unit": 0.452407
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 99.99,
+        "failure_domain_scope": "multi_zone",
+        "failure_domains": 3
+      },
+      "features_supported": [],
+      "migration": {
+        "effort_hours_fixed": 8,
+        "same_provider_factor": 0.3,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.1
+      },
+      "ops_hours_month_per_unit": 0.2,
+      "description": "Priced from the AWS Price List for API requests after the first million; the free tier and delivery attempts to HTTP/SQS are not modelled."
+    },
+    {
+      "id": "aws-ecr",
+      "kind": "other",
+      "provider": "aws",
+      "service": "ecr",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [
+          {
+            "driver": "storage_gb_month",
+            "eur_per_unit": 0.0904814
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 99.9,
+        "failure_domain_scope": "multi_zone",
+        "failure_domains": 3
+      },
+      "features_supported": [
+        "image_scanning",
+        "immutable_tags"
+      ],
+      "migration": {
+        "effort_hours_fixed": 4,
+        "same_provider_factor": 0.2,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.1
+      },
+      "ops_hours_month_per_unit": 0.2,
+      "description": "Priced from the AWS Price List for image storage in eu-west-1; the estate does not report repository sizes, so ECR components stay unpriced."
+    },
+    {
+      "id": "aws-firehose",
+      "kind": "stream",
+      "provider": "aws",
+      "service": "firehose",
+      "regions": [
+        "eu-*",
+        "us-*"
+      ],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [
+          {
+            "driver": "ingested_gb_month",
+            "eur_per_unit": 0.0280492
+          }
+        ]
+      },
+      "sla": {
+        "availability_pct": 99.99,
+        "failure_domain_scope": "multi_zone",
+        "failure_domains": 3
+      },
+      "features_supported": [
+        "compression",
+        "s3_destination"
+      ],
+      "migration": {
+        "effort_hours_fixed": 8,
+        "same_provider_factor": 0.3,
+        "cutover_downtime_hours": 0,
+        "risk_factor": 0.15
+      },
+      "ops_hours_month_per_unit": 0.5,
+      "description": "Priced from the AWS Price List per GB ingested (tier 1, batch); the estate does not report Firehose volume, so Firehose components stay unpriced."
     }
   ],
   "onprem_platforms": [
@@ -793,6 +1365,18 @@
     }
   ],
   "x_price_sources": {
+    "aws-alb/per_unit:load_balancer_month": {
+      "price": "aws-AmazonEC2/alb:hours",
+      "amount": 0.0252,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 16.645,
+      "reference": "82M2EADKC2JW45JZ",
+      "source_version": "20261110173852",
+      "fetched_on": "2026-11-14"
+    },
     "aws-aurora-postgres/per_unit:iops_month": {
       "price": "aws-AmazonRDS/aurora-postgres:io",
       "amount": 2.2e-07,
@@ -877,6 +1461,30 @@
       "source_version": "20261113215233",
       "fetched_on": "2026-11-14"
     },
+    "aws-dynamodb-ondemand/per_unit:consumed_rcu_million": {
+      "price": "aws-AmazonDynamoDB/ondemand-rcu",
+      "amount": 1.415e-07,
+      "currency": "USD",
+      "unit": "ReadRequestUnits",
+      "multiplier": 1000000.0,
+      "per": "unit",
+      "eur": 0.128031,
+      "reference": "3ERQSZWPAMX2JWHN",
+      "source_version": "20261111153612",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-dynamodb-ondemand/per_unit:consumed_wcu_million": {
+      "price": "aws-AmazonDynamoDB/ondemand-wcu",
+      "amount": 7.05e-07,
+      "currency": "USD",
+      "unit": "WriteRequestUnits",
+      "multiplier": 1000000.0,
+      "per": "unit",
+      "eur": 0.637894,
+      "reference": "F4EZE5SAMS3D49NJ",
+      "source_version": "20261111153612",
+      "fetched_on": "2026-11-14"
+    },
     "aws-dynamodb-ondemand/per_unit:storage_gb_month": {
       "price": "aws-AmazonDynamoDB/storage:after-free-25gb",
       "amount": 0.283,
@@ -901,6 +1509,54 @@
       "source_version": "20261111191941",
       "fetched_on": "2026-11-14"
     },
+    "aws-dynamodb-provisioned/per_unit:provisioned_rcu_month": {
+      "price": "aws-AmazonDynamoDB/rcu-hour",
+      "amount": 0.000147,
+      "currency": "USD",
+      "unit": "ReadCapacityUnit-Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 0.0970955,
+      "reference": "J7FH9ZNSN6J2RR9Q",
+      "source_version": "20261111153612",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-dynamodb-provisioned/per_unit:provisioned_wcu_month": {
+      "price": "aws-AmazonDynamoDB/wcu-hour",
+      "amount": 0.000735,
+      "currency": "USD",
+      "unit": "WriteCapacityUnit-Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 0.485478,
+      "reference": "36CGV8QUHJZG65HD",
+      "source_version": "20261111153612",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-dynamodb-provisioned/pricing:egress_per_gb_eur": {
+      "price": "aws-AWSDataTransfer/internet-out:first-10tb",
+      "amount": 0.09,
+      "currency": "USD",
+      "unit": "GB",
+      "multiplier": 1.0,
+      "per": "unit",
+      "eur": 0.0814332,
+      "reference": "FSEU4E6BRE95JTX8",
+      "source_version": "20261111191941",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-ebs/per_unit:storage_gb_month": {
+      "price": "aws-AmazonEC2/ebs:gp2",
+      "amount": 0.11,
+      "currency": "USD",
+      "unit": "GB-Mo",
+      "multiplier": 1.0,
+      "per": "unit",
+      "eur": 0.0995295,
+      "reference": "GDX844Q9TQAG2YZ2",
+      "source_version": "20261110173852",
+      "fetched_on": "2026-11-14"
+    },
     "aws-ec2-general/per_unit:storage_gb_month": {
       "price": "aws-AmazonEC2/ebs:gp3",
       "amount": 0.088,
@@ -923,6 +1579,42 @@
       "eur": 0.0814332,
       "reference": "FSEU4E6BRE95JTX8",
       "source_version": "20261111191941",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-ec2-general/tier:c5.9xlarge": {
+      "price": "aws-AmazonEC2/linux:c5.9xlarge",
+      "amount": 1.728,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 1141.37,
+      "reference": "N32SVFGZJ9NSZMT2",
+      "source_version": "20261110173852",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-ec2-general/tier:m5.4xlarge": {
+      "price": "aws-AmazonEC2/linux:m5.4xlarge",
+      "amount": 0.856,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 565.4,
+      "reference": "HUR96BZEUM9ZQAKA",
+      "source_version": "20261110173852",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-ec2-general/tier:m5.8xlarge": {
+      "price": "aws-AmazonEC2/linux:m5.8xlarge",
+      "amount": 1.712,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 1130.8,
+      "reference": "WHW892VQX5VFH5XS",
+      "source_version": "20261110173852",
       "fetched_on": "2026-11-14"
     },
     "aws-ec2-general/tier:m6i.2xlarge": {
@@ -961,6 +1653,18 @@
       "source_version": "20261110173852",
       "fetched_on": "2026-11-14"
     },
+    "aws-ec2-general/tier:r5.2xlarge": {
+      "price": "aws-AmazonEC2/linux:r5.2xlarge",
+      "amount": 0.564,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 372.53,
+      "reference": "BZ4QR6ZNEKBJMWVA",
+      "source_version": "20261110173852",
+      "fetched_on": "2026-11-14"
+    },
     "aws-ec2-general/tier:t3.large": {
       "price": "aws-AmazonEC2/linux:t3.large",
       "amount": 0.0912,
@@ -971,6 +1675,42 @@
       "eur": 60.2389,
       "reference": "SGF4MSKWRV77VRXR",
       "source_version": "20261110173852",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-ecr/per_unit:storage_gb_month": {
+      "price": "aws-AmazonECR/storage",
+      "amount": 0.1,
+      "currency": "USD",
+      "unit": "GB-Mo",
+      "multiplier": 1.0,
+      "per": "unit",
+      "eur": 0.0904814,
+      "reference": "4NWTEXUZBWQH8MDW",
+      "source_version": "20261113163947",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-efs/per_unit:throughput_mibps_month": {
+      "price": "aws-AmazonEFS/provisioned-throughput",
+      "amount": 6.6,
+      "currency": "USD",
+      "unit": "MiBps-Mo",
+      "multiplier": 1.0,
+      "per": "unit",
+      "eur": 5.97177,
+      "reference": "RV8CCARWJQXREPT4",
+      "source_version": "20261104213451",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-eip/per_unit:address_month": {
+      "price": "aws-AmazonVPC/eip:idle",
+      "amount": 0.005,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 3.30257,
+      "reference": "MHVKGXCT3GPZ4RVC",
+      "source_version": "20261105181945",
       "fetched_on": "2026-11-14"
     },
     "aws-eks-nodes/pricing:egress_per_gb_eur": {
@@ -1057,6 +1797,54 @@
       "source_version": "20261110173852",
       "fetched_on": "2026-11-14"
     },
+    "aws-eks/per_unit:cluster_month": {
+      "price": "aws-AmazonEKS/hours",
+      "amount": 0.1,
+      "currency": "USD",
+      "unit": "Hours",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 66.0514,
+      "reference": "HYMNGN7MKVJ8Y4HA",
+      "source_version": "20261111153557",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-elasticache-memcached/tier:cache.m4.2xlarge": {
+      "price": "aws-AmazonElastiCache/memcached:cache.m4.2xlarge",
+      "amount": 0.686,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 453.113,
+      "reference": "4XFSSG59K4PT7EQ8",
+      "source_version": "20261113003443",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-elasticache-redis/tier:cache.r5.4xlarge": {
+      "price": "aws-AmazonElastiCache/redis:cache.r5.4xlarge",
+      "amount": 1.921,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 1268.85,
+      "reference": "YN6JKEWR54AP5AW9",
+      "source_version": "20261113003443",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-elasticache-redis/tier:cache.r5.xlarge": {
+      "price": "aws-AmazonElastiCache/redis:cache.r5.xlarge",
+      "amount": 0.48,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 317.047,
+      "reference": "8TQT4HJRD7JYK2VH",
+      "source_version": "20261113003443",
+      "fetched_on": "2026-11-14"
+    },
     "aws-fargate/per_unit:task_gb_month": {
       "price": "aws-AmazonECS/fargate:gb-hour",
       "amount": 0.004445,
@@ -1091,6 +1879,54 @@
       "eur": 0.0814332,
       "reference": "FSEU4E6BRE95JTX8",
       "source_version": "20261111191941",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-firehose/per_unit:ingested_gb_month": {
+      "price": "aws-AmazonKinesisFirehose/delivery:bytes",
+      "amount": 0.031,
+      "currency": "USD",
+      "unit": "GB",
+      "multiplier": 1.0,
+      "per": "unit",
+      "eur": 0.0280492,
+      "reference": "AHM8Y29A6ZQAKNUE",
+      "source_version": "20261104213442",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-kinesis/per_unit:shard_month": {
+      "price": "aws-AmazonKinesis/shard-hour",
+      "amount": 0.023,
+      "currency": "USD",
+      "unit": "ShardHour",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 15.1918,
+      "reference": "DSK727HQAV732NNM",
+      "source_version": "20261110161953",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-lambda/per_unit:gb_s_month": {
+      "price": "aws-AWSLambda/gb-second",
+      "amount": 1.66667e-05,
+      "currency": "USD",
+      "unit": "Lambda-GB-Second",
+      "multiplier": 1.0,
+      "per": "unit",
+      "eur": 1.50803e-05,
+      "reference": "SGGKTWDV7PGMPPSJ",
+      "source_version": "20261111223004",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-lambda/per_unit:invocations_million": {
+      "price": "aws-AWSLambda/requests",
+      "amount": 2e-07,
+      "currency": "USD",
+      "unit": "Request",
+      "multiplier": 1000000.0,
+      "per": "unit",
+      "eur": 0.180963,
+      "reference": "B5V2RNHAWGVJBZD3",
+      "source_version": "20261111223004",
       "fetched_on": "2026-11-14"
     },
     "aws-nat-gateway/per_unit:gateway_month": {
@@ -1141,6 +1977,18 @@
       "source_version": "20261111191941",
       "fetched_on": "2026-11-14"
     },
+    "aws-rds-postgres/tier:db.m4.4xlarge": {
+      "price": "aws-AmazonRDS/postgres:db.m4.4xlarge",
+      "amount": 1.612,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 1064.75,
+      "reference": "YHD94ZP4U9UP5DPM",
+      "source_version": "20261113215233",
+      "fetched_on": "2026-11-14"
+    },
     "aws-rds-postgres/tier:db.m5.2xlarge": {
       "price": "aws-AmazonRDS/postgres:db.m5.2xlarge",
       "amount": 0.788,
@@ -1174,6 +2022,30 @@
       "per": "hour",
       "eur": 260.242,
       "reference": "567A3JXKZEN8GET6",
+      "source_version": "20261113215233",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-rds-postgres/tier:db.r4.4xlarge": {
+      "price": "aws-AmazonRDS/postgres:db.r4.4xlarge",
+      "amount": 2.24,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 1479.55,
+      "reference": "BDR93UAXKFW98VPR",
+      "source_version": "20261113215233",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-rds-postgres/tier:db.r5.8xlarge": {
+      "price": "aws-AmazonRDS/postgres:db.r5.8xlarge",
+      "amount": 4.48,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 1.0,
+      "per": "hour",
+      "eur": 2959.1,
+      "reference": "7U9NP9JSTP95DF66",
       "source_version": "20261113215233",
       "fetched_on": "2026-11-14"
     },
@@ -1213,6 +2085,18 @@
       "source_version": "20261113215233",
       "fetched_on": "2026-11-14"
     },
+    "aws-route53/per_unit:zone_month": {
+      "price": "manual/aws-route53:hosted-zone",
+      "amount": 0.5,
+      "currency": "USD",
+      "unit": "HostedZone",
+      "multiplier": 1.0,
+      "per": "unit",
+      "eur": 0.452407,
+      "reference": "https://aws.amazon.com/route53/pricing/",
+      "source_version": "df2c7829c9a5",
+      "fetched_on": "2026-11-14"
+    },
     "aws-s3/per_unit:storage_gb_month": {
       "price": "aws-AmazonS3/standard:first-50tb",
       "amount": 0.023,
@@ -1237,6 +2121,30 @@
       "source_version": "20261111191941",
       "fetched_on": "2026-11-14"
     },
+    "aws-sns/per_unit:messages_million": {
+      "price": "aws-AmazonSNS/requests:paid-tier",
+      "amount": 5e-07,
+      "currency": "USD",
+      "unit": "Requests",
+      "multiplier": 1000000.0,
+      "per": "unit",
+      "eur": 0.452407,
+      "reference": "ZVCRD326SNFYPYWV",
+      "source_version": "20261112195653",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-sqs/per_unit:messages_million": {
+      "price": "aws-AWSQueueService/requests",
+      "amount": 4e-07,
+      "currency": "USD",
+      "unit": "Requests",
+      "multiplier": 1000000.0,
+      "per": "unit",
+      "eur": 0.361925,
+      "reference": "SSZJAF3K6XY544ES",
+      "source_version": "20261111153551",
+      "fetched_on": "2026-11-14"
+    },
     "managed-pg-branching/per_unit:storage_gb_month": {
       "price": "manual/neon:storage-gb",
       "amount": 0.35,
@@ -1246,7 +2154,7 @@
       "per": "unit",
       "eur": 0.316685,
       "reference": "https://neon.com/docs/introduction/plans",
-      "source_version": "97fa73febc33",
+      "source_version": "df2c7829c9a5",
       "fetched_on": "2026-11-14"
     },
     "managed-pg-branching/pricing:egress_per_gb_eur": {
@@ -1258,7 +2166,7 @@
       "per": "unit",
       "eur": 0.0904814,
       "reference": "https://neon.com/docs/introduction/plans",
-      "source_version": "97fa73febc33",
+      "source_version": "df2c7829c9a5",
       "fetched_on": "2026-11-14"
     },
     "managed-pg-branching/tier:cu-16": {
@@ -1270,7 +2178,7 @@
       "per": "hour",
       "eur": 2346.15,
       "reference": "https://neon.com/docs/introduction/plans",
-      "source_version": "97fa73febc33",
+      "source_version": "df2c7829c9a5",
       "fetched_on": "2026-11-14"
     },
     "managed-pg-branching/tier:cu-2": {
@@ -1282,7 +2190,7 @@
       "per": "hour",
       "eur": 293.268,
       "reference": "https://neon.com/docs/introduction/plans",
-      "source_version": "97fa73febc33",
+      "source_version": "df2c7829c9a5",
       "fetched_on": "2026-11-14"
     },
     "managed-pg-branching/tier:cu-4": {
@@ -1294,7 +2202,7 @@
       "per": "hour",
       "eur": 586.536,
       "reference": "https://neon.com/docs/introduction/plans",
-      "source_version": "97fa73febc33",
+      "source_version": "df2c7829c9a5",
       "fetched_on": "2026-11-14"
     },
     "managed-pg-branching/tier:cu-8": {
@@ -1306,7 +2214,7 @@
       "per": "hour",
       "eur": 1173.07,
       "reference": "https://neon.com/docs/introduction/plans",
-      "source_version": "97fa73febc33",
+      "source_version": "df2c7829c9a5",
       "fetched_on": "2026-11-14"
     },
     "managed-pg-platform/per_unit:storage_gb_month": {
@@ -1318,7 +2226,19 @@
       "per": "unit",
       "eur": 0.113102,
       "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
-      "source_version": "97fa73febc33",
+      "source_version": "df2c7829c9a5",
+      "fetched_on": "2026-11-14"
+    },
+    "managed-pg-platform/pricing:egress_per_gb_eur": {
+      "price": "manual/supabase:egress-gb",
+      "amount": 0.09,
+      "currency": "USD",
+      "unit": "GB",
+      "multiplier": 1.0,
+      "per": "unit",
+      "eur": 0.0814332,
+      "reference": "https://supabase.com/pricing",
+      "source_version": "df2c7829c9a5",
       "fetched_on": "2026-11-14"
     },
     "managed-pg-platform/tier:p-2xl": {
@@ -1330,7 +2250,7 @@
       "per": "hour",
       "eur": 371.209,
       "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
-      "source_version": "97fa73febc33",
+      "source_version": "df2c7829c9a5",
       "fetched_on": "2026-11-14"
     },
     "managed-pg-platform/tier:p-4xl": {
@@ -1342,7 +2262,7 @@
       "per": "hour",
       "eur": 871.878,
       "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
-      "source_version": "97fa73febc33",
+      "source_version": "df2c7829c9a5",
       "fetched_on": "2026-11-14"
     },
     "managed-pg-platform/tier:p-8xl": {
@@ -1354,7 +2274,7 @@
       "per": "hour",
       "eur": 1692.24,
       "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
-      "source_version": "97fa73febc33",
+      "source_version": "df2c7829c9a5",
       "fetched_on": "2026-11-14"
     },
     "managed-pg-platform/tier:p-l": {
@@ -1366,7 +2286,7 @@
       "per": "hour",
       "eur": 100.2,
       "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
-      "source_version": "97fa73febc33",
+      "source_version": "df2c7829c9a5",
       "fetched_on": "2026-11-14"
     },
     "managed-pg-platform/tier:p-xl": {
@@ -1378,26 +2298,99 @@
       "per": "hour",
       "eur": 190.03,
       "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
-      "source_version": "97fa73febc33",
+      "source_version": "df2c7829c9a5",
+      "fetched_on": "2026-11-14"
+    },
+    "managed-pg-serverless/per_unit:storage_gb_month": {
+      "price": "manual/neon:storage-gb",
+      "amount": 0.35,
+      "currency": "USD",
+      "unit": "GB-Mo",
+      "multiplier": 1.0,
+      "per": "unit",
+      "eur": 0.316685,
+      "reference": "https://neon.com/docs/introduction/plans",
+      "source_version": "df2c7829c9a5",
+      "fetched_on": "2026-11-14"
+    },
+    "managed-pg-serverless/pricing:egress_per_gb_eur": {
+      "price": "manual/neon:transfer-gb",
+      "amount": 0.1,
+      "currency": "USD",
+      "unit": "GB",
+      "multiplier": 1.0,
+      "per": "unit",
+      "eur": 0.0904814,
+      "reference": "https://neon.com/docs/introduction/plans",
+      "source_version": "df2c7829c9a5",
+      "fetched_on": "2026-11-14"
+    },
+    "managed-pg-serverless/tier:c16": {
+      "price": "manual/neon-launch:cu-hour",
+      "amount": 0.106,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 16.0,
+      "per": "hour",
+      "eur": 1120.23,
+      "reference": "https://neon.com/docs/introduction/plans",
+      "source_version": "df2c7829c9a5",
+      "fetched_on": "2026-11-14"
+    },
+    "managed-pg-serverless/tier:c2": {
+      "price": "manual/neon-launch:cu-hour",
+      "amount": 0.106,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 2.0,
+      "per": "hour",
+      "eur": 140.029,
+      "reference": "https://neon.com/docs/introduction/plans",
+      "source_version": "df2c7829c9a5",
+      "fetched_on": "2026-11-14"
+    },
+    "managed-pg-serverless/tier:c4": {
+      "price": "manual/neon-launch:cu-hour",
+      "amount": 0.106,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 4.0,
+      "per": "hour",
+      "eur": 280.058,
+      "reference": "https://neon.com/docs/introduction/plans",
+      "source_version": "df2c7829c9a5",
+      "fetched_on": "2026-11-14"
+    },
+    "managed-pg-serverless/tier:c8": {
+      "price": "manual/neon-launch:cu-hour",
+      "amount": 0.106,
+      "currency": "USD",
+      "unit": "Hrs",
+      "multiplier": 8.0,
+      "per": "hour",
+      "eur": 560.116,
+      "reference": "https://neon.com/docs/introduction/plans",
+      "source_version": "df2c7829c9a5",
       "fetched_on": "2026-11-14"
     }
   },
   "x_unsourced": {
-    "aws-dynamodb-ondemand/per_unit:requests_million": "illustrative value from the skeleton",
-    "aws-s3/per_unit:requests_million": "illustrative value from the skeleton",
-    "managed-pg-platform/pricing:egress_per_gb_eur": "illustrative value from the skeleton",
-    "managed-pg-serverless/per_unit:storage_gb_month": "illustrative value from the skeleton",
-    "managed-pg-serverless/pricing:egress_per_gb_eur": "illustrative value from the skeleton",
-    "managed-pg-serverless/tier:c16": "illustrative value from the skeleton",
-    "managed-pg-serverless/tier:c2": "illustrative value from the skeleton",
-    "managed-pg-serverless/tier:c4": "illustrative value from the skeleton",
-    "managed-pg-serverless/tier:c8": "illustrative value from the skeleton",
-    "platform/onprem-dc1": "illustrative value from the skeleton"
+    "platform/onprem-dc1": "on-prem hardware is quoted per site, so there is no public price list to snapshot"
   },
   "x_snapshots": {
     "aws-AWSDataTransfer": {
       "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSDataTransfer/20261111191941/eu-west-1/index.csv",
       "version": "20261111191941",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-AWSLambda": {
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSLambda/20261111223004/eu-west-1/index.csv",
+      "version": "20261111223004",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-AWSQueueService": {
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSQueueService/20261111153551/eu-west-1/index.csv",
+      "version": "20261111153551",
       "fetched_on": "2026-11-14"
     },
     "aws-AmazonDynamoDB": {
@@ -1410,9 +2403,39 @@
       "version": "20261110173852",
       "fetched_on": "2026-11-14"
     },
+    "aws-AmazonECR": {
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonECR/20261113163947/eu-west-1/index.csv",
+      "version": "20261113163947",
+      "fetched_on": "2026-11-14"
+    },
     "aws-AmazonECS": {
       "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonECS/20261111234623/eu-west-1/index.csv",
       "version": "20261111234623",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-AmazonEFS": {
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEFS/20261104213451/eu-west-1/index.csv",
+      "version": "20261104213451",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-AmazonEKS": {
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEKS/20261111153557/eu-west-1/index.csv",
+      "version": "20261111153557",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-AmazonElastiCache": {
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonElastiCache/20261113003443/eu-west-1/index.csv",
+      "version": "20261113003443",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-AmazonKinesis": {
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonKinesis/20261110161953/eu-west-1/index.csv",
+      "version": "20261110161953",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-AmazonKinesisFirehose": {
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonKinesisFirehose/20261104213442/eu-west-1/index.csv",
+      "version": "20261104213442",
       "fetched_on": "2026-11-14"
     },
     "aws-AmazonRDS": {
@@ -1425,9 +2448,19 @@
       "version": "20261109154310",
       "fetched_on": "2026-11-14"
     },
+    "aws-AmazonSNS": {
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonSNS/20261112195653/eu-west-1/index.csv",
+      "version": "20261112195653",
+      "fetched_on": "2026-11-14"
+    },
+    "aws-AmazonVPC": {
+      "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonVPC/20261105181945/eu-west-1/index.csv",
+      "version": "20261105181945",
+      "fetched_on": "2026-11-14"
+    },
     "manual": {
       "url": "apps/pricing/config/manual.json",
-      "version": "97fa73febc33",
+      "version": "df2c7829c9a5",
       "fetched_on": "2026-11-14"
     }
   },

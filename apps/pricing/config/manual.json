@@ -1,83 +1,110 @@
 {
-  "supabase:compute-large": {
-    "amount": 0.1517,
+  "aws-route53:hosted-zone": {
+    "amount": 0.5,
     "currency": "USD",
-    "unit": "Hrs",
-    "url": "https://supabase.com/docs/guides/platform/compute-and-disk",
+    "note": "AWS Route53 public hosted zone, USD per zone-month. Not in the AmazonRoute53 price list CSV anymore, only on the pricing page.",
+    "quote": "$0.50 per hosted zone per month for the first 25 hosted zones",
     "read_on": "2026-11-14",
-    "quote": "Large $ 0.1517 ~ $ 110 Dedicated · 2 vCPUs 8 GB",
-    "note": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra."
+    "unit": "HostedZone",
+    "url": "https://aws.amazon.com/route53/pricing/"
   },
-  "supabase:compute-xl": {
-    "amount": 0.2877,
+  "neon-launch:cu-hour": {
+    "amount": 0.106,
     "currency": "USD",
+    "note": "Neon Launch plan, USD per CU-hour (Scale is USD 0.222).",
+    "quote": "Compute 100 CU-hours/project $0.106/CU-hour",
+    "read_on": "2026-11-14",
     "unit": "Hrs",
-    "url": "https://supabase.com/docs/guides/platform/compute-and-disk",
-    "read_on": "2026-11-14",
-    "quote": "XL $ 0.2877 ~ $ 210 Dedicated · 4 vCPUs 16 GB",
-    "note": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra."
-  },
-  "supabase:compute-2xl": {
-    "amount": 0.562,
-    "currency": "USD",
-    "unit": "Hrs",
-    "url": "https://supabase.com/docs/guides/platform/compute-and-disk",
-    "read_on": "2026-11-14",
-    "quote": "2XL $ 0.562 ~ $ 410 Dedicated · 8 vCPUs 32 GB",
-    "note": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra."
-  },
-  "supabase:compute-4xl": {
-    "amount": 1.32,
-    "currency": "USD",
-    "unit": "Hrs",
-    "url": "https://supabase.com/docs/guides/platform/compute-and-disk",
-    "read_on": "2026-11-14",
-    "quote": "4XL $ 1.32 ~ $ 960 Dedicated · 16 vCPUs 64 GB",
-    "note": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra."
-  },
-  "supabase:compute-8xl": {
-    "amount": 2.562,
-    "currency": "USD",
-    "unit": "Hrs",
-    "url": "https://supabase.com/docs/guides/platform/compute-and-disk",
-    "read_on": "2026-11-14",
-    "quote": "8XL $ 2.562 ~ $ 1,870 Dedicated · 32 vCPUs 128 GB",
-    "note": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra."
-  },
-  "supabase:disk-gb": {
-    "amount": 0.125,
-    "currency": "USD",
-    "unit": "GB-Mo",
-    "url": "https://supabase.com/docs/guides/platform/compute-and-disk",
-    "read_on": "2026-11-14",
-    "quote": "8 GB included, then $ 0.125 per GB",
-    "note": "Supabase disk beyond the 8 GB included, USD per GB-month."
+    "url": "https://neon.com/docs/introduction/plans"
   },
   "neon-scale:cu-hour": {
     "amount": 0.222,
     "currency": "USD",
-    "unit": "Hrs",
-    "url": "https://neon.com/docs/introduction/plans",
-    "read_on": "2026-11-14",
+    "note": "Neon Scale plan, USD per CU-hour (Launch is USD 0.106).",
     "quote": "Compute 100 CU-hours/project $0.106/CU-hour $0.222/CU-hour",
-    "note": "Neon Scale plan, USD per CU-hour (Launch is USD 0.106)."
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://neon.com/docs/introduction/plans"
   },
   "neon:storage-gb": {
     "amount": 0.35,
     "currency": "USD",
-    "unit": "GB-Mo",
-    "url": "https://neon.com/docs/introduction/plans",
-    "read_on": "2026-11-14",
+    "note": "Neon storage on Launch and Scale, USD per GB-month.",
     "quote": "Storage 1 GB/project, 20 GB account total $0.35/GB-month $0.35/GB-month",
-    "note": "Neon storage on Launch and Scale, USD per GB-month."
+    "read_on": "2026-11-14",
+    "unit": "GB-Mo",
+    "url": "https://neon.com/docs/introduction/plans"
   },
   "neon:transfer-gb": {
     "amount": 0.1,
     "currency": "USD",
-    "unit": "GB",
-    "url": "https://neon.com/docs/introduction/plans",
-    "read_on": "2026-11-14",
+    "note": "Neon public network transfer beyond 500 GB per project, USD per GB.",
     "quote": "500 GB per project included, then $0.10/GB",
-    "note": "Neon public network transfer beyond 500 GB per project, USD per GB."
+    "read_on": "2026-11-14",
+    "unit": "GB",
+    "url": "https://neon.com/docs/introduction/plans"
+  },
+  "supabase:compute-2xl": {
+    "amount": 0.562,
+    "currency": "USD",
+    "note": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+    "quote": "2XL $ 0.562 ~ $ 410 Dedicated \u00b7 8 vCPUs 32 GB",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://supabase.com/docs/guides/platform/compute-and-disk"
+  },
+  "supabase:compute-4xl": {
+    "amount": 1.32,
+    "currency": "USD",
+    "note": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+    "quote": "4XL $ 1.32 ~ $ 960 Dedicated \u00b7 16 vCPUs 64 GB",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://supabase.com/docs/guides/platform/compute-and-disk"
+  },
+  "supabase:compute-8xl": {
+    "amount": 2.562,
+    "currency": "USD",
+    "note": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+    "quote": "8XL $ 2.562 ~ $ 1,870 Dedicated \u00b7 32 vCPUs 128 GB",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://supabase.com/docs/guides/platform/compute-and-disk"
+  },
+  "supabase:compute-large": {
+    "amount": 0.1517,
+    "currency": "USD",
+    "note": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+    "quote": "Large $ 0.1517 ~ $ 110 Dedicated \u00b7 2 vCPUs 8 GB",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://supabase.com/docs/guides/platform/compute-and-disk"
+  },
+  "supabase:compute-xl": {
+    "amount": 0.2877,
+    "currency": "USD",
+    "note": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+    "quote": "XL $ 0.2877 ~ $ 210 Dedicated \u00b7 4 vCPUs 16 GB",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://supabase.com/docs/guides/platform/compute-and-disk"
+  },
+  "supabase:disk-gb": {
+    "amount": 0.125,
+    "currency": "USD",
+    "note": "Supabase disk beyond the 8 GB included, USD per GB-month.",
+    "quote": "8 GB included, then $ 0.125 per GB",
+    "read_on": "2026-11-14",
+    "unit": "GB-Mo",
+    "url": "https://supabase.com/docs/guides/platform/compute-and-disk"
+  },
+  "supabase:egress-gb": {
+    "amount": 0.09,
+    "currency": "USD",
+    "note": "Supabase Pro egress beyond the included 250 GB, USD per GB.",
+    "quote": "250 GB egress then $0.09 per GB",
+    "read_on": "2026-11-14",
+    "unit": "GB",
+    "url": "https://supabase.com/pricing"
   }
 }

@@ -17,9 +17,9 @@ Refresh, review the diff, and open a pull request: the snapshots and the catalog
 
 | Source | Snapshot | What it holds |
 |---|---|---|
-| [AWS Price List bulk API](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/using-the-aws-price-list-bulk-api.html), one CSV per service for `eu-west-1` | `snapshots/aws-<Offer>.json` | only the rows `config/sources.json` asks for, with the SKU, the price list version and its URL |
+| [AWS Price List bulk API](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/using-the-aws-price-list-bulk-api.html), one CSV per service for `eu-west-1` (`AmazonEC2`, `AmazonECR`, `AmazonECS`, `AmazonRDS`, `AmazonS3`, `AmazonDynamoDB`, `AWSDataTransfer`, `AmazonElastiCache`, `AmazonEKS`, `AmazonEFS`, `AmazonKinesis`, `AmazonKinesisFirehose`, `AmazonSNS`, `AWSLambda`, `AmazonVPC`, `AWSQueueService`) | `snapshots/aws-<Offer>.json` | only the rows `config/sources.json` asks for, with the SKU, the price list version and its URL |
 | [ECB euro reference rates](https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html) | `snapshots/ecb-fx.json` | the USD rate and its date |
-| Vendor pages with no price API (Supabase, Neon) | `snapshots/manual.json` | the prices typed into `config/manual.json`, kept only while their quote is still on the page |
+| Vendor pages with no price API (Supabase, Neon, and the Route53 hosted zone, which the `AmazonRoute53` price list no longer carries) | `snapshots/manual.json` | the prices typed into `config/manual.json`, kept only while their quote is still on the page |
 
 ## Rules
 

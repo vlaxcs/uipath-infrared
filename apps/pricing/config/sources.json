@@ -1,133 +1,133 @@
 {
-  "region": "eu-west-1",
   "aws": {
-    "AmazonRDS": {
-      "postgres:db.m5.large": {
-        "Instance Type": "db.m5.large",
-        "Database Engine": "PostgreSQL",
-        "Deployment Option": "Single-AZ",
-        "Storage": "EBS Only"
+    "AWSDataTransfer": {
+      "internet-out:first-10tb": {
+        "StartingRange": "0",
+        "usageType": "EU-DataTransfer-Out-Bytes"
+      }
+    },
+    "AWSLambda": {
+      "gb-second": {
+        "StartingRange": "0",
+        "usageType": "EU-Lambda-GB-Second"
       },
-      "postgres:db.m5.xlarge": {
-        "Instance Type": "db.m5.xlarge",
-        "Database Engine": "PostgreSQL",
-        "Deployment Option": "Single-AZ",
-        "Storage": "EBS Only"
+      "requests": {
+        "usageType": "EU-Request"
+      }
+    },
+    "AWSQueueService": {
+      "requests": {
+        "StartingRange": "0",
+        "usageType": "EU-Requests-Tier1"
+      }
+    },
+    "AmazonDynamoDB": {
+      "ondemand-rcu": {
+        "usageType": "EU-ReadRequestUnits"
       },
-      "postgres:db.m5.2xlarge": {
-        "Instance Type": "db.m5.2xlarge",
-        "Database Engine": "PostgreSQL",
-        "Deployment Option": "Single-AZ",
-        "Storage": "EBS Only"
+      "ondemand-wcu": {
+        "usageType": "EU-WriteRequestUnits"
       },
-      "postgres:db.r6g.2xlarge": {
-        "Instance Type": "db.r6g.2xlarge",
-        "Database Engine": "PostgreSQL",
-        "Deployment Option": "Single-AZ",
-        "Storage": "EBS Only"
+      "rcu-hour": {
+        "StartingRange": "18600",
+        "usageType": "EU-ReadCapacityUnit-Hrs"
       },
-      "postgres:db.r6g.4xlarge": {
-        "Instance Type": "db.r6g.4xlarge",
-        "Database Engine": "PostgreSQL",
-        "Deployment Option": "Single-AZ",
-        "Storage": "EBS Only"
+      "storage:after-free-25gb": {
+        "StartingRange": "25",
+        "usageType": "EU-TimedStorage-ByteHrs"
       },
-      "postgres:db.r6g.8xlarge": {
-        "Instance Type": "db.r6g.8xlarge",
-        "Database Engine": "PostgreSQL",
-        "Deployment Option": "Single-AZ",
-        "Storage": "EBS Only"
-      },
-      "postgres:gp3-storage": {
-        "usageType": "EU-RDS:GP3-Storage",
-        "Database Engine": "PostgreSQL",
-        "Deployment Option": "Single-AZ"
-      },
-      "aurora-postgres:db.r6g.large": {
-        "Instance Type": "db.r6g.large",
-        "Database Engine": "Aurora PostgreSQL",
-        "Deployment Option": "Single-AZ",
-        "Storage": "EBS Only"
-      },
-      "aurora-postgres:db.r6g.xlarge": {
-        "Instance Type": "db.r6g.xlarge",
-        "Database Engine": "Aurora PostgreSQL",
-        "Deployment Option": "Single-AZ",
-        "Storage": "EBS Only"
-      },
-      "aurora-postgres:db.r6g.2xlarge": {
-        "Instance Type": "db.r6g.2xlarge",
-        "Database Engine": "Aurora PostgreSQL",
-        "Deployment Option": "Single-AZ",
-        "Storage": "EBS Only"
-      },
-      "aurora-postgres:db.r6g.4xlarge": {
-        "Instance Type": "db.r6g.4xlarge",
-        "Database Engine": "Aurora PostgreSQL",
-        "Deployment Option": "Single-AZ",
-        "Storage": "EBS Only"
-      },
-      "aurora-postgres:storage": {
-        "usageType": "EU-Aurora:StorageUsage",
-        "Database Engine": "Aurora PostgreSQL"
-      },
-      "aurora-postgres:io": {
-        "usageType": "EU-Aurora:StorageIOUsage",
-        "Database Engine": "Aurora PostgreSQL"
+      "wcu-hour": {
+        "StartingRange": "18600",
+        "usageType": "EU-WriteCapacityUnit-Hrs"
       }
     },
     "AmazonEC2": {
-      "linux:g5.2xlarge": {
-        "Instance Type": "g5.2xlarge",
-        "operation": "RunInstances",
-        "Tenancy": "Shared",
-        "CapacityStatus": "Used",
-        "Pre Installed S/W": "NA"
+      "alb:hours": {
+        "operation": "LoadBalancing:Application",
+        "usageType": "EU-LoadBalancerUsage"
       },
-      "linux:m6i.2xlarge": {
-        "Instance Type": "m6i.2xlarge",
-        "operation": "RunInstances",
-        "Tenancy": "Shared",
-        "CapacityStatus": "Used",
-        "Pre Installed S/W": "NA"
-      },
-      "linux:m6i.4xlarge": {
-        "Instance Type": "m6i.4xlarge",
-        "operation": "RunInstances",
-        "Tenancy": "Shared",
-        "CapacityStatus": "Used",
-        "Pre Installed S/W": "NA"
-      },
-      "linux:m6i.8xlarge": {
-        "Instance Type": "m6i.8xlarge",
-        "operation": "RunInstances",
-        "Tenancy": "Shared",
-        "CapacityStatus": "Used",
-        "Pre Installed S/W": "NA"
-      },
-      "linux:m6i.xlarge": {
-        "Instance Type": "m6i.xlarge",
-        "operation": "RunInstances",
-        "Tenancy": "Shared",
-        "CapacityStatus": "Used",
-        "Pre Installed S/W": "NA"
-      },
-      "linux:r6i.4xlarge": {
-        "Instance Type": "r6i.4xlarge",
-        "operation": "RunInstances",
-        "Tenancy": "Shared",
-        "CapacityStatus": "Used",
-        "Pre Installed S/W": "NA"
-      },
-      "linux:t3.large": {
-        "Instance Type": "t3.large",
-        "operation": "RunInstances",
-        "Tenancy": "Shared",
-        "CapacityStatus": "Used",
-        "Pre Installed S/W": "NA"
+      "ebs:gp2": {
+        "usageType": "EU-EBS:VolumeUsage.gp2"
       },
       "ebs:gp3": {
         "usageType": "EU-EBS:VolumeUsage.gp3"
+      },
+      "linux:c5.9xlarge": {
+        "CapacityStatus": "Used",
+        "Instance Type": "c5.9xlarge",
+        "Pre Installed S/W": "NA",
+        "Tenancy": "Shared",
+        "operation": "RunInstances"
+      },
+      "linux:g5.2xlarge": {
+        "CapacityStatus": "Used",
+        "Instance Type": "g5.2xlarge",
+        "Pre Installed S/W": "NA",
+        "Tenancy": "Shared",
+        "operation": "RunInstances"
+      },
+      "linux:m5.4xlarge": {
+        "CapacityStatus": "Used",
+        "Instance Type": "m5.4xlarge",
+        "Pre Installed S/W": "NA",
+        "Tenancy": "Shared",
+        "operation": "RunInstances"
+      },
+      "linux:m5.8xlarge": {
+        "CapacityStatus": "Used",
+        "Instance Type": "m5.8xlarge",
+        "Pre Installed S/W": "NA",
+        "Tenancy": "Shared",
+        "operation": "RunInstances"
+      },
+      "linux:m6i.2xlarge": {
+        "CapacityStatus": "Used",
+        "Instance Type": "m6i.2xlarge",
+        "Pre Installed S/W": "NA",
+        "Tenancy": "Shared",
+        "operation": "RunInstances"
+      },
+      "linux:m6i.4xlarge": {
+        "CapacityStatus": "Used",
+        "Instance Type": "m6i.4xlarge",
+        "Pre Installed S/W": "NA",
+        "Tenancy": "Shared",
+        "operation": "RunInstances"
+      },
+      "linux:m6i.8xlarge": {
+        "CapacityStatus": "Used",
+        "Instance Type": "m6i.8xlarge",
+        "Pre Installed S/W": "NA",
+        "Tenancy": "Shared",
+        "operation": "RunInstances"
+      },
+      "linux:m6i.xlarge": {
+        "CapacityStatus": "Used",
+        "Instance Type": "m6i.xlarge",
+        "Pre Installed S/W": "NA",
+        "Tenancy": "Shared",
+        "operation": "RunInstances"
+      },
+      "linux:r5.2xlarge": {
+        "CapacityStatus": "Used",
+        "Instance Type": "r5.2xlarge",
+        "Pre Installed S/W": "NA",
+        "Tenancy": "Shared",
+        "operation": "RunInstances"
+      },
+      "linux:r6i.4xlarge": {
+        "CapacityStatus": "Used",
+        "Instance Type": "r6i.4xlarge",
+        "Pre Installed S/W": "NA",
+        "Tenancy": "Shared",
+        "operation": "RunInstances"
+      },
+      "linux:t3.large": {
+        "CapacityStatus": "Used",
+        "Instance Type": "t3.large",
+        "Pre Installed S/W": "NA",
+        "Tenancy": "Shared",
+        "operation": "RunInstances"
       },
       "nat:hours": {
         "usageType": "EU-NatGateway-Hours"
@@ -136,31 +136,165 @@
         "usageType": "EU-NatGateway-Bytes"
       }
     },
+    "AmazonECR": {
+      "storage": {
+        "usageType": "EU-TimedStorage-ByteHrs"
+      }
+    },
     "AmazonECS": {
-      "fargate:vcpu-hour": {
-        "usageType": "EU-Fargate-vCPU-Hours:perCPU"
-      },
       "fargate:gb-hour": {
         "usageType": "EU-Fargate-GB-Hours"
+      },
+      "fargate:vcpu-hour": {
+        "usageType": "EU-Fargate-vCPU-Hours:perCPU"
+      }
+    },
+    "AmazonEFS": {
+      "provisioned-throughput": {
+        "usageType": "EU-ProvisionedTP-MiBpsHrs"
+      }
+    },
+    "AmazonEKS": {
+      "hours": {
+        "usageType": "EU-AmazonEKS-Hours:perCluster"
+      }
+    },
+    "AmazonElastiCache": {
+      "memcached:cache.m4.2xlarge": {
+        "Cache Engine": "Memcached",
+        "usageType": "EU-NodeUsage:cache.m4.2xlarge"
+      },
+      "redis:cache.r5.4xlarge": {
+        "Cache Engine": "Redis",
+        "usageType": "EU-NodeUsage:cache.r5.4xlarge"
+      },
+      "redis:cache.r5.xlarge": {
+        "Cache Engine": "Redis",
+        "usageType": "EU-NodeUsage:cache.r5.xlarge"
+      }
+    },
+    "AmazonKinesis": {
+      "shard-hour": {
+        "usageType": "EU-Extended-ShardHour"
+      }
+    },
+    "AmazonKinesisFirehose": {
+      "delivery:bytes": {
+        "Group": "Batch Processing",
+        "StartingRange": "0",
+        "usageType": "EUW1-BilledBytes"
+      }
+    },
+    "AmazonRDS": {
+      "aurora-postgres:db.r6g.2xlarge": {
+        "Database Engine": "Aurora PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "Instance Type": "db.r6g.2xlarge",
+        "Storage": "EBS Only"
+      },
+      "aurora-postgres:db.r6g.4xlarge": {
+        "Database Engine": "Aurora PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "Instance Type": "db.r6g.4xlarge",
+        "Storage": "EBS Only"
+      },
+      "aurora-postgres:db.r6g.large": {
+        "Database Engine": "Aurora PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "Instance Type": "db.r6g.large",
+        "Storage": "EBS Only"
+      },
+      "aurora-postgres:db.r6g.xlarge": {
+        "Database Engine": "Aurora PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "Instance Type": "db.r6g.xlarge",
+        "Storage": "EBS Only"
+      },
+      "aurora-postgres:io": {
+        "Database Engine": "Aurora PostgreSQL",
+        "usageType": "EU-Aurora:StorageIOUsage"
+      },
+      "aurora-postgres:storage": {
+        "Database Engine": "Aurora PostgreSQL",
+        "usageType": "EU-Aurora:StorageUsage"
+      },
+      "postgres:db.m4.4xlarge": {
+        "Database Engine": "PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "Instance Type": "db.m4.4xlarge",
+        "Storage": "EBS Only"
+      },
+      "postgres:db.m5.2xlarge": {
+        "Database Engine": "PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "Instance Type": "db.m5.2xlarge",
+        "Storage": "EBS Only"
+      },
+      "postgres:db.m5.large": {
+        "Database Engine": "PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "Instance Type": "db.m5.large",
+        "Storage": "EBS Only"
+      },
+      "postgres:db.m5.xlarge": {
+        "Database Engine": "PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "Instance Type": "db.m5.xlarge",
+        "Storage": "EBS Only"
+      },
+      "postgres:db.r4.4xlarge": {
+        "Database Engine": "PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "Instance Type": "db.r4.4xlarge",
+        "Storage": "EBS Only"
+      },
+      "postgres:db.r5.8xlarge": {
+        "Database Engine": "PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "Instance Type": "db.r5.8xlarge",
+        "Storage": "EBS Only"
+      },
+      "postgres:db.r6g.2xlarge": {
+        "Database Engine": "PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "Instance Type": "db.r6g.2xlarge",
+        "Storage": "EBS Only"
+      },
+      "postgres:db.r6g.4xlarge": {
+        "Database Engine": "PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "Instance Type": "db.r6g.4xlarge",
+        "Storage": "EBS Only"
+      },
+      "postgres:db.r6g.8xlarge": {
+        "Database Engine": "PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "Instance Type": "db.r6g.8xlarge",
+        "Storage": "EBS Only"
+      },
+      "postgres:gp3-storage": {
+        "Database Engine": "PostgreSQL",
+        "Deployment Option": "Single-AZ",
+        "usageType": "EU-RDS:GP3-Storage"
       }
     },
     "AmazonS3": {
       "standard:first-50tb": {
-        "usageType": "EU-TimedStorage-ByteHrs",
-        "StartingRange": "0"
+        "StartingRange": "0",
+        "usageType": "EU-TimedStorage-ByteHrs"
       }
     },
-    "AmazonDynamoDB": {
-      "storage:after-free-25gb": {
-        "usageType": "EU-TimedStorage-ByteHrs",
-        "StartingRange": "25"
+    "AmazonSNS": {
+      "requests:paid-tier": {
+        "StartingRange": "1000000",
+        "usageType": "EU-Requests-Tier1"
       }
     },
-    "AWSDataTransfer": {
-      "internet-out:first-10tb": {
-        "usageType": "EU-DataTransfer-Out-Bytes",
-        "StartingRange": "0"
+    "AmazonVPC": {
+      "eip:idle": {
+        "usageType": "EU-PublicIPv4:IdleAddress"
       }
     }
-  }
+  },
+  "region": "eu-west-1"
 }
