@@ -4,7 +4,7 @@ const CRITERIA = ["High availability", "Cost reduction", "Data residency", "Perf
 
 export function ConfigurationPage() {
   return (
-    <section aria-labelledby="configuration-title" className="mx-auto flex max-w-3xl flex-col gap-4">
+    <section aria-labelledby="configuration-title" className="flex flex-col gap-4">
       <PageHeader id="configuration-title" title="Configuration" lead="Connections and the defaults every new analysis starts from." />
       <PageSection title="GitHub organisation">
         <dl className="flex flex-col gap-1">

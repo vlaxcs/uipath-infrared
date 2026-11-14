@@ -22,7 +22,7 @@ describe("the platform frame", () => {
     expect(screen.getByRole("button", { name: "Infrared home" })).toBeTruthy();
     const analyses = screen.getByRole("navigation", { name: "Analyses" });
     expect(within(analyses).getAllByRole("button").map((button) => button.textContent)).toEqual(["Analyze", "Previous analysis"]);
-    expect(screen.getByRole("link", { name: "+ Browser extension" }).getAttribute("href")).toBe(
+    expect(screen.getByRole("link", { name: "Browser extension" }).getAttribute("href")).toBe(
       "https://chromewebstore.google.com/detail/infrared",
     );
     expect(screen.queryByRole("navigation", { name: "Primary" })).toBeNull();
@@ -31,7 +31,7 @@ describe("the platform frame", () => {
 
   it("shows the extension button disabled when it has no URL", () => {
     render(<App extensionUrl={null} />);
-    const button = screen.getByRole("button", { name: "+ Browser extension" }) as HTMLButtonElement;
+    const button = screen.getByRole("button", { name: "Browser extension" }) as HTMLButtonElement;
     expect(button.disabled).toBe(true);
     expect(button.title).toBe("Not published yet");
   });
@@ -69,6 +69,21 @@ describe("the platform frame", () => {
     expect(window.location.hash).toBe("#/login");
     expect(screen.getByRole("link", { name: "Sign in with GitHub" }).getAttribute("href")).toBe("http://127.0.0.1:8090/auth/github");
     expect(screen.queryByRole("button", { name: "Account menu" })).toBeNull();
+  });
+
+  it("shows the runs left as Nx and the plan beside the avatar", async () => {
+    render(<App accountSource={{ load: async () => ({ login: "vlaxcs", avatarUrl: null, credits: 1, plan: "run_pack" }) }} />);
+    expect(await screen.findByRole("img", { name: "1 run left" })).toBeTruthy();
+    expect(screen.getByText("1x")).toBeTruthy();
+    expect(screen.getByText("Run pack")).toBeTruthy();
+  });
+
+  it("shows no balance when the orchestrator has no account to give", async () => {
+    const load = vi.fn(async () => null);
+    render(<App accountSource={{ load }} />);
+    await waitFor(() => expect(load).toHaveBeenCalled());
+    expect(screen.queryByRole("img", { name: /runs? left/ })).toBeNull();
+    expect(screen.getByRole("button", { name: "Account menu" })).toBeTruthy();
   });
 
   it("continues with sample data when there is no orchestrator", () => {

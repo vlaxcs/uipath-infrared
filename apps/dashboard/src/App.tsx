@@ -1,3 +1,5 @@
+import { createHttpAccountSource, sampleAccountSource, type AccountSource } from "~/account/accountSource";
+import { useAccount } from "~/account/useAccount";
 import { HomePage } from "~/home/HomePage";
 import { useHashRoute } from "~/navigation/useHashRoute";
 import { AccountPage } from "~/pages/AccountPage";
@@ -12,12 +14,21 @@ import { Frame } from "~/shell/Frame";
 
 type AppProps = {
   source?: RunSource;
+  accountSource?: AccountSource;
   orchestratorUrl?: string | null;
   extensionUrl?: string | null;
 };
 
-export function App({ source = runSource, orchestratorUrl = settings.orchestratorUrl, extensionUrl = settings.extensionUrl }: AppProps = {}) {
+const defaultAccountSource = settings.orchestratorUrl ? createHttpAccountSource(settings.orchestratorUrl) : sampleAccountSource;
+
+export function App({
+  source = runSource,
+  accountSource = defaultAccountSource,
+  orchestratorUrl = settings.orchestratorUrl,
+  extensionUrl = settings.extensionUrl,
+}: AppProps = {}) {
   const route = useHashRoute();
+  const account = useAccount(accountSource);
 
   if (route.page === "login") {
     return <LoginPage orchestratorUrl={orchestratorUrl} onContinue={() => route.go("home")} />;
@@ -26,7 +37,7 @@ export function App({ source = runSource, orchestratorUrl = settings.orchestrato
   return (
     <Frame
       showBack={route.page !== "home"}
-      credits={null}
+      account={account}
       onBack={route.back}
       onHome={() => route.go("home")}
       onNavigate={route.go}
@@ -37,7 +48,7 @@ export function App({ source = runSource, orchestratorUrl = settings.orchestrato
       ) : route.page === "analyze" ? (
         <AnalyzePage onFollowRun={route.openRun} />
       ) : route.page === "runs" ? (
-        <div className="mx-auto w-full max-w-6xl">
+        <div className="w-full">
           <RunsSection
             source={source}
             runId={route.runId}

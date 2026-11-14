@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import { CreditMark } from "~/credits/CreditMarks";
 import { Mascot } from "~/mascot/Mascot";
 
@@ -16,7 +17,7 @@ export function HomePage({ extensionUrl, onAnalyze, onPrevious }: HomePageProps)
       <div className="fixed inset-x-0 bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 p-4">
         <nav aria-label="Analyses" className="flex flex-wrap items-center gap-3">
           <button type="button" onClick={onAnalyze} className={`${PILL} bg-credit text-on-credit`}>
-            <CreditMark className="h-5 w-5" />
+            <CreditMark className="h-5 w-5 text-on-credit" />
             Analyze
           </button>
           <button type="button" onClick={onPrevious} className={`${PILL} border border-border bg-surface text-fg hover:bg-surface-muted`}>
@@ -30,7 +31,8 @@ export function HomePage({ extensionUrl, onAnalyze, onPrevious }: HomePageProps)
             rel="noreferrer"
             className={`${PILL} border border-border bg-surface text-fg hover:bg-surface-muted`}
           >
-            + Browser extension
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Browser extension
           </a>
         ) : (
           <button
@@ -39,7 +41,8 @@ export function HomePage({ extensionUrl, onAnalyze, onPrevious }: HomePageProps)
             title="Not published yet"
             className={`${PILL} border border-dashed border-border-strong bg-surface text-fg-muted`}
           >
-            + Browser extension
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Browser extension
           </button>
         )}
       </div>

@@ -1,3 +1,4 @@
+import { LogOut, Settings, User, type LucideIcon } from "lucide-react";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import type { PageId } from "~/navigation/route";
 
@@ -8,10 +9,10 @@ type AccountMenuProps = {
   onDisconnect: () => void;
 };
 
-const ITEMS: { label: string; page?: PageId }[] = [
-  { label: "Configuration", page: "configuration" },
-  { label: "Account", page: "account" },
-  { label: "Disconnect" },
+const ITEMS: { label: string; icon: LucideIcon; page?: PageId }[] = [
+  { label: "Configuration", icon: Settings, page: "configuration" },
+  { label: "Account", icon: User, page: "account" },
+  { label: "Disconnect", icon: LogOut },
 ];
 
 export function AccountMenu({ login, avatarUrl, onNavigate, onDisconnect }: AccountMenuProps) {
@@ -86,8 +87,9 @@ export function AccountMenu({ login, avatarUrl, onNavigate, onDisconnect }: Acco
               role="menuitem"
               tabIndex={-1}
               onClick={() => choose(item)}
-              className="rounded-control px-3 py-2 text-left text-label text-fg hover:bg-surface-muted focus-visible:bg-surface-muted"
+              className="flex items-center gap-2 rounded-control px-3 py-2 text-left text-label text-fg hover:bg-surface-muted focus-visible:bg-surface-muted"
             >
+              <item.icon className="h-4 w-4 text-fg-muted" aria-hidden="true" />
               {item.label}
             </button>
           ))}

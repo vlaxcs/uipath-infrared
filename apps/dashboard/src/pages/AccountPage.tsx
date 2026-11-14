@@ -2,7 +2,7 @@ import { Fact, PageHeader, PageSection } from "~/pages/PageSection";
 
 export function AccountPage() {
   return (
-    <section aria-labelledby="account-title" className="mx-auto flex max-w-3xl flex-col gap-4">
+    <section aria-labelledby="account-title" className="flex flex-col gap-4">
       <PageHeader id="account-title" title="Account" lead="Runs left, plan and payments." />
       <PageSection title="Runs">
         <dl className="flex flex-col gap-1">
