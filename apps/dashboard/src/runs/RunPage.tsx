@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { gateStep } from "~/runs/approvals";
 import type { RunSource } from "~/runs/source";
 import { START_PROJECT } from "~/runs/runSource";
@@ -18,19 +18,39 @@ export function RunPage({ source, runId, focusGate, onOpenRun }: RunPageProps) {
   useOnRefresh(reload);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
+  const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  const project = run?.project ?? null;
+  const terminal = run?.status === "completed" || run?.status === "failed";
+
+  // A project runs one analysis at a time: offer the active one instead of a start that would be refused.
+  useEffect(() => {
+    if (!project || !terminal) return;
+    let current = true;
+    source.listRuns().then(
+      (runs) => {
+        if (!current) return;
+        const active = runs.find((item) => item.project === project && item.id !== run?.id && (item.status === "running" || item.status === "awaiting_approval"));
+        setActiveRunId(active?.id ?? null);
+      },
+      () => undefined,
+    );
+    return () => {
+      current = false;
+    };
+  }, [source, project, terminal, run?.id]);
 
   const startAgain = useCallback(async () => {
     setStarting(true);
     setStartError(null);
     try {
-      const started = await source.startRun(START_PROJECT);
+      const started = await source.startRun(project ?? START_PROJECT);
       onOpenRun(started.id);
     } catch (cause) {
       setStartError(messageOf(cause));
     } finally {
       setStarting(false);
     }
-  }, [source, onOpenRun]);
+  }, [source, onOpenRun, project]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -71,6 +91,8 @@ export function RunPage({ source, runId, focusGate, onOpenRun }: RunPageProps) {
           initialStep={focusGate ? gateStep(run.awaiting) : null}
           onReload={reload}
           onStartAgain={() => void startAgain()}
+          activeRunId={activeRunId}
+          onOpenRun={onOpenRun}
         />
       ) : (
         <p className="text-body text-fg-muted">Run not found.</p>

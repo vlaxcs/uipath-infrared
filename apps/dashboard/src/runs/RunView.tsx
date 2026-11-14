@@ -48,6 +48,8 @@ type RunViewProps = {
   initialStep?: RunStep | null;
   onReload?: () => void;
   onStartAgain?: () => void;
+  activeRunId?: string | null;
+  onOpenRun?: (id: string) => void;
 };
 
 export function RunView({
@@ -56,6 +58,8 @@ export function RunView({
   initialStep = null,
   onReload,
   onStartAgain,
+  activeRunId = null,
+  onOpenRun,
 }: RunViewProps) {
   const { run, error, mergeEvent } = useRunFeed(initialRun, source);
   const steps = deriveStepStates(run.events, run);
@@ -221,16 +225,24 @@ export function RunView({
               Live updates failed: {error}
             </p>
           ) : null}
-          {source.mode === "live" &&
-          (run.status === "completed" || run.status === "failed") &&
-          onStartAgain ? (
-            <button
-              type="button"
-              onClick={onStartAgain}
-              className="rounded-control border border-border px-3 py-2 text-label hover:bg-surface-muted"
-            >
-              Run again
-            </button>
+          {source.mode === "live" && (run.status === "completed" || run.status === "failed") ? (
+            activeRunId && onOpenRun ? (
+              <button
+                type="button"
+                onClick={() => onOpenRun(activeRunId)}
+                className="rounded-control border border-border px-3 py-2 text-label hover:bg-surface-muted"
+              >
+                Open the active run
+              </button>
+            ) : onStartAgain ? (
+              <button
+                type="button"
+                onClick={onStartAgain}
+                className="rounded-control border border-border px-3 py-2 text-label hover:bg-surface-muted"
+              >
+                Run again
+              </button>
+            ) : null
           ) : null}
         </div>
       </section>

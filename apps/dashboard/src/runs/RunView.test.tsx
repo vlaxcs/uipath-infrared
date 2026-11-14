@@ -220,3 +220,20 @@ describe("the run view", () => {
     expect(screen.getByRole("list", { name: "Steps" })).toBeTruthy();
   });
 });
+
+describe("starting again from a finished run", () => {
+  it("offers the project's active run instead of a start the platform would refuse", () => {
+    const onOpenRun = vi.fn();
+    render(<RunView run={failedRun} source={sourceWith({ mode: "live" })} onStartAgain={vi.fn()} activeRunId="run-checkout-0002" onOpenRun={onOpenRun} />);
+    expect(screen.queryByRole("button", { name: "Run again" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Open the active run" }));
+    expect(onOpenRun).toHaveBeenCalledWith("run-checkout-0002");
+  });
+
+  it("runs the project again when nothing else is running", () => {
+    const onStartAgain = vi.fn();
+    render(<RunView run={failedRun} source={sourceWith({ mode: "live" })} onStartAgain={onStartAgain} />);
+    fireEvent.click(screen.getByRole("button", { name: "Run again" }));
+    expect(onStartAgain).toHaveBeenCalled();
+  });
+});
