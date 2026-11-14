@@ -12,7 +12,7 @@ export const DEFAULT_ORCHESTRATOR_URL =
 
 export const DEFAULT_SETTINGS: Settings = {
   orchestratorUrl: DEFAULT_ORCHESTRATOR_URL,
-  dashboardUrl: "http://localhost:5173",
+  dashboardUrl: "http://127.0.0.1:5173/app",
 };
 
 export function normalizeBaseUrl(value: string): string {

@@ -139,7 +139,7 @@ export function OptionsApp() {
             type="url"
             value={settings.dashboardUrl}
             onChange={(event) => setSettings({ ...settings, dashboardUrl: event.target.value })}
-            placeholder="http://localhost:5173"
+            placeholder="http://127.0.0.1:5173/app"
             aria-describedby="dashboard-hint"
           />
           <span id="dashboard-hint" className="field-hint">
