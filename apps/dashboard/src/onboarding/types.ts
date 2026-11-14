@@ -56,14 +56,15 @@ export type Criteria = {
   market?: string;
 };
 
-export type ProfileSite = {
-  kind: "headquarters" | "search";
-  label: string;
-  lat: number;
-  lng: number;
-  radius_km?: number;
-  free_area_m2?: number;
-};
+export type Point = { lat: number; lng: number };
+
+export type SearchArea = Point & { label?: string; radius_km: number };
+
+export type HeadquartersSite = Point & { kind: "headquarters"; label: string; free_area_m2: number };
+
+export type SearchSite = { kind: "search"; areas: SearchArea[] };
+
+export type ProfileSite = HeadquartersSite | SearchSite;
 
 export type Profile = {
   criteria: Criteria;

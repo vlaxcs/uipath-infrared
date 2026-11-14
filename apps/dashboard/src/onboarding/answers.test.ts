@@ -95,7 +95,7 @@ describe("the onboarding answers", () => {
 });
 
 describe("on-prem changes against the profile", () => {
-  const site = { kind: "search" as const, label: "Bucharest", lat: 44.43, lng: 26.1, radius_km: 25 };
+  const site = { kind: "search" as const, areas: [{ label: "Bucharest", lat: 44.43, lng: 26.1, radius_km: 25 }] };
   const profile = { criteria: DEFAULT_CRITERIA, onprem: { wanted: true, site } };
   const answers = { connection: "floci", project: "startup", targets: ["aws"], criteria: DEFAULT_CRITERIA, onprem: true, site, focusMode: "plan" as const, apps: [] };
 
@@ -104,16 +104,16 @@ describe("on-prem changes against the profile", () => {
   });
 
   it("sees a change in the site, or in wanting on-prem at all", () => {
-    expect(onpremChanged(profile, { ...answers, site: { ...site, radius_km: 40 } })).toBe(true);
+    expect(onpremChanged(profile, { ...answers, site: { ...site, areas: [...site.areas, { lat: 46.77, lng: 23.59, radius_km: 40 }] } })).toBe(true);
     expect(onpremChanged(profile, { ...answers, onprem: false })).toBe(true);
   });
 
   it("ignores the site when neither the profile nor the run wants on-prem", () => {
-    expect(onpremChanged({ ...profile, onprem: { wanted: false, site } }, { ...answers, onprem: false, site: { ...site, label: "Cluj" } })).toBe(false);
+    expect(onpremChanged({ ...profile, onprem: { wanted: false, site } }, { ...answers, onprem: false, site: { ...site, areas: [{ ...site.areas[0], label: "Cluj" }] } })).toBe(false);
   });
 
   it("writes the run's on-prem details onto the profile", () => {
-    const moved = { ...site, label: "Cluj" };
+    const moved = { ...site, areas: [{ ...site.areas[0], label: "Cluj" }] };
     expect(withOnpremOnProfile(profile, { ...answers, site: moved }).onprem).toEqual({ wanted: true, site: moved });
   });
 });
