@@ -64,7 +64,7 @@ For the layout buttons, the `present` `awaiting_approval` event carries the cand
 Read from the repo-root `.env` only, through `src/settings.ts`. The bot stops at startup naming the first missing variable, and never prints a value.
 
 - Required: `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, `SLACK_SIGNING_SECRET`.
-- Optional: `ORCHESTRATOR_URL` (default `http://127.0.0.1:8080`), `SLACK_CHANNEL` (default `infrared-runs`).
+- Optional: `ORCHESTRATOR_URL` (default `http://127.0.0.1:8080`), `SLACK_CHANNEL` (default `infrared-runs`), `ORCHESTRATOR_SERVICE_TOKEN` (sent as a bearer; required when the orchestrator has sign-in on, `docs/sign-in.md`).
 
 The Slack app uses Socket Mode with interactivity on, and the `chat:write` scope. The bot must be a member of the channel it posts to: invite it with `/invite @<bot name>` in that channel.
 

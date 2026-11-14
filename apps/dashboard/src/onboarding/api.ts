@@ -1,3 +1,4 @@
+import { reportSignedOut } from "~/account/session";
 import type { OnboardingSetup, Profile, StartRequest, StartedRun } from "~/onboarding/types";
 import type { RunSummary } from "~/runs/types";
 
@@ -23,12 +24,13 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const url = baseUrl() + path;
   let response: Response;
   try {
-    response = await fetch(url, init);
+    response = await fetch(url, { ...init, credentials: "include" });
   } catch {
     throw new OrchestratorError(UNREACHABLE);
   }
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) {
+    if (response.status === 401) reportSignedOut();
     const reason = (body as { error?: unknown } | null)?.error;
     throw new OrchestratorError(typeof reason === "string" ? reason : `The platform answered ${response.status}.`);
   }

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createHttpAccountSource } from "~/account/accountSource";
+import { onSignedOut } from "~/account/session";
 
 function answering(status: number, body: unknown) {
   return vi.fn(async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
@@ -16,5 +17,15 @@ describe("the account from the orchestrator", () => {
   it("has no account when the orchestrator does not answer /me", async () => {
     expect(await createHttpAccountSource("http://x", answering(404, { error: "not found" })).load()).toBeNull();
     expect(await createHttpAccountSource("http://x", answering(401, { error: "no session" })).load()).toBeNull();
+  });
+
+  it("reports a signed-out session on 401, and only on 401", async () => {
+    const signedOut = vi.fn();
+    const stop = onSignedOut(signedOut);
+    await createHttpAccountSource("http://x", answering(404, { error: "not found" })).load();
+    expect(signedOut).not.toHaveBeenCalled();
+    await createHttpAccountSource("http://x", answering(401, { error: "sign in first" })).load();
+    expect(signedOut).toHaveBeenCalledTimes(1);
+    stop();
   });
 });

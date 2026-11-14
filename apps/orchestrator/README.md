@@ -21,6 +21,23 @@ curl -s localhost:8080/runs/run-startup-0001/files
 curl -s localhost:8080/runs/run-startup-0001/files/infra.json
 ```
 
+## Sign-in
+
+`docs/sign-in.md`. With `ORCHESTRATOR_AUTH` unset or `on`, every route below needs the `infrared_session` cookie or `Authorization: Bearer $ORCHESTRATOR_SERVICE_TOKEN`, and the orchestrator needs Postgres:
+
+```bash
+docker compose up -d app-db
+```
+
+Migrations run at startup. `ORCHESTRATOR_AUTH=off` keeps the API open as before, and is only accepted on a loopback address. With auth on, the `curl` calls above need `-H "Authorization: Bearer $ORCHESTRATOR_SERVICE_TOKEN"`.
+
+| Route | Answers |
+| --- | --- |
+| `GET /auth/github` | redirects to GitHub with a `state` cookie |
+| `GET /auth/github/callback` | opens a session and redirects to the dashboard; failures go back to its login with `login_error` |
+| `POST /auth/logout` | `204`, ends the session |
+| `GET /me` | `200` `{login, avatar_url, credits, plan}`; `401` without a session; `403` with the service token |
+
 ## API
 
 | Route | Answers |
@@ -42,6 +59,13 @@ Errors are `{"error": "<reason>"}`. The file routes read the run directory on di
 cd apps/orchestrator
 go vet ./...
 go test ./...
+```
+
+The Postgres store's tests need a database and skip without one; CI runs them against its `app-db` service:
+
+```bash
+docker compose up -d app-db
+ORCHESTRATOR_TEST_DATABASE_URL=postgres://infrared:infrared@127.0.0.1:54330/infrared go test ./internal/adapters/postgres/
 ```
 
 `flow/flow_test.go` is the end-to-end flow test: one run of the demo path over HTTP, with the real engine and stubs for extract, the agent and the sandbox (`testdata/stubs/`). Point a stage at its real component with `FLOW_EXTRACT_CMD`, `FLOW_AGENT_CMD`, `FLOW_ENGINE_CMD` or `FLOW_SANDBOX_CMD`; `FLOW_PYTHON` picks the interpreter (default `python`). The finished run is checked by `contracts/check_run.py`.

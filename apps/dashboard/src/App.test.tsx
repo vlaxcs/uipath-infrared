@@ -1,5 +1,6 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { reportSignedOut } from "~/account/session";
 import { App } from "~/App";
 import { cutSampleRun } from "~/runs/fixtures";
 import { sampleRunSource } from "~/runs/sampleRunSource";
@@ -75,8 +76,35 @@ describe("the platform frame", () => {
     fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Disconnect" }));
     expect(window.location.hash).toBe("#/login");
-    expect(screen.getByRole("link", { name: "Sign in with GitHub" }).getAttribute("href")).toBe("http://127.0.0.1:8090/auth/github");
+    expect(screen.getByRole("button", { name: "Sign in with GitHub" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Account menu" })).toBeNull();
+  });
+
+  it("ends the session on the orchestrator when disconnecting", async () => {
+    const fetcher = vi.fn(async () => new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", fetcher);
+    render(<App orchestratorUrl="http://127.0.0.1:8090" accountSource={{ load: async () => null }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Disconnect" }));
+    await waitFor(() => expect(fetcher).toHaveBeenCalledWith("http://127.0.0.1:8090/auth/logout", { method: "POST", credentials: "include" }));
+    expect(window.location.hash).toBe("#/login");
+    vi.unstubAllGlobals();
+  });
+
+  it("opens the sign-in page when the orchestrator says the session is gone", async () => {
+    render(<App orchestratorUrl="http://127.0.0.1:8090" accountSource={{ load: async () => null }} />);
+    expect(screen.getByRole("button", { name: "Account menu" })).toBeTruthy();
+    act(() => reportSignedOut());
+    expect(window.location.hash).toBe("#/login");
+    expect(await screen.findByRole("button", { name: "Sign in with GitHub" })).toBeTruthy();
+  });
+
+  it("explains why the last sign-in came back", () => {
+    const before = window.location.href;
+    window.history.replaceState(null, "", "/app/?login_error=denied#/login");
+    render(<App orchestratorUrl="http://127.0.0.1:8090" accountSource={{ load: async () => null }} />);
+    expect(screen.getByRole("alert").textContent).toMatch(/cancelled on GitHub/);
+    window.history.replaceState(null, "", before);
   });
 
   it("shows the runs left as Nx and the plan beside the avatar", async () => {

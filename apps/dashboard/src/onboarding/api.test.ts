@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { onSignedOut } from "~/account/session";
 import { OrchestratorError, orchestratorOnboarding } from "~/onboarding/api";
 import { DEFAULT_CRITERIA } from "~/onboarding/criteria";
 
@@ -18,7 +19,20 @@ describe("the onboarding data source", () => {
     vi.stubEnv("VITE_ORCHESTRATOR_URL", "http://orchestrator.test/");
     const fetch = answering(200, { connections: [], providers: ["aws"], onprem: false, projects: [] });
     await expect(orchestratorOnboarding.load()).resolves.toMatchObject({ providers: ["aws"] });
-    expect(fetch).toHaveBeenCalledWith("http://orchestrator.test/onboarding", undefined);
+    expect(fetch).toHaveBeenCalledWith("http://orchestrator.test/onboarding", { credentials: "include" });
+  });
+
+  it("sends the session cookie and reports a signed-out session on 401", async () => {
+    vi.stubEnv("VITE_ORCHESTRATOR_URL", "http://orchestrator.test");
+    const fetch = answering(401, { error: "sign in first" });
+    const signedOut = vi.fn();
+    const stop = onSignedOut(signedOut);
+    await expect(orchestratorOnboarding.saveProfile({} as never)).rejects.toThrow("sign in first");
+    const [, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(init.credentials).toBe("include");
+    expect(init.method).toBe("PUT");
+    expect(signedOut).toHaveBeenCalledTimes(1);
+    stop();
   });
 
   it("posts the answers to start a run", async () => {

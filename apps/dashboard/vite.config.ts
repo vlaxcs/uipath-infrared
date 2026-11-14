@@ -10,6 +10,6 @@ export default defineConfig({
   base: "/app/",
   plugins: [sourceAliases(), react(), tailwindcss()],
   envDir: repoRoot,
-  server: { fs: { allow: [repoRoot] } },
+  server: { host: "127.0.0.1", fs: { allow: [repoRoot] } },
   resolve: { dedupe: ["react", "react-dom"] },
 });

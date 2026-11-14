@@ -116,8 +116,8 @@ The session is an HttpOnly, `SameSite=Strict` cookie. Every route but the auth r
 
 | Variable | Read by | Value |
 | --- | --- | --- |
-| `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET` | orchestrator | the GitHub OAuth app; callback `<orchestrator>/auth/github/callback` |
-| `SESSION_SECRET` | orchestrator | signs the session cookie |
+| `GITHUB_APP_CLIENT_ID`, `GITHUB_APP_CLIENT_SECRET` | orchestrator | the Infrared GitHub App's user authorization; callback `<orchestrator>/auth/github/callback`. No separate OAuth app, no `SESSION_SECRET`: `docs/sign-in.md` |
+| `ORCHESTRATOR_DATABASE_URL`, `ORCHESTRATOR_SERVICE_TOKEN`, `ORCHESTRATOR_DASHBOARD_URL`, `ORCHESTRATOR_AUTH` | orchestrator | users and sessions, the Slack bot's token, where sign-in returns, and the local opt-out: `docs/sign-in.md` section 6 |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | orchestrator | test mode keys |
 | `STRIPE_RUN_PACK_PRICE_ID` | orchestrator | the price of the 5-run pack in Stripe |
 | `CHROME_EXTENSION_URL` | dashboard (`VITE_`) | where Add browser extension points |

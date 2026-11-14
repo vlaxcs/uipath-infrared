@@ -1,3 +1,5 @@
+import { useEffect, useEffectEvent } from "react";
+import { onSignedOut, signOut } from "~/account/session";
 import { createHttpAccountSource, sampleAccountSource, type AccountSource } from "~/account/accountSource";
 import { useAccount } from "~/account/useAccount";
 import { HomePage } from "~/home/HomePage";
@@ -29,9 +31,22 @@ export function App({
 }: AppProps = {}) {
   const route = useHashRoute();
   const account = useAccount(accountSource);
+  const openLogin = useEffectEvent(() => route.go("login"));
+
+  useEffect(() => onSignedOut(openLogin), []);
+
+  function enterSignedIn() {
+    window.location.hash = "#/";
+    window.location.reload();
+  }
+
+  function disconnect() {
+    if (orchestratorUrl) void signOut(orchestratorUrl);
+    route.go("login");
+  }
 
   if (route.page === "login") {
-    return <LoginPage orchestratorUrl={orchestratorUrl} onContinue={() => route.go("home")} />;
+    return <LoginPage orchestratorUrl={orchestratorUrl} onContinue={() => route.go("home")} onSignedIn={enterSignedIn} />;
   }
 
   return (
@@ -41,7 +56,7 @@ export function App({
       onBack={route.back}
       onHome={() => route.go("home")}
       onNavigate={route.go}
-      onDisconnect={() => route.go("login")}
+      onDisconnect={disconnect}
     >
       {route.page === "home" ? (
         <HomePage extensionUrl={extensionUrl} onAnalyze={() => route.go("analyze")} onPrevious={() => route.go("runs")} />

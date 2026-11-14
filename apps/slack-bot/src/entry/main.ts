@@ -8,7 +8,7 @@ import { wait } from './wait.js';
 const POLL_MS = 2000;
 
 const settings = loadSettings();
-const orchestrator = new HttpOrchestrator(settings.orchestratorUrl);
+const orchestrator = new HttpOrchestrator(settings.orchestratorUrl, settings.orchestratorServiceToken);
 const { app, slack } = createBot(settings, orchestrator);
 
 app.command('/infrared', async ({ command, ack, client }) => {

@@ -37,7 +37,7 @@ func TestAnAllowedOriginPassesThePreflightForADecision(t *testing.T) {
 	if answer.Code != http.StatusNoContent {
 		t.Fatalf("status %d", answer.Code)
 	}
-	if answer.Header().Get("Access-Control-Allow-Origin") != dashboard || answer.Header().Get("Access-Control-Allow-Headers") != "Content-Type" {
+	if answer.Header().Get("Access-Control-Allow-Origin") != dashboard || answer.Header().Get("Access-Control-Allow-Headers") != "Content-Type, Authorization" {
 		t.Fatalf("headers %v", answer.Header())
 	}
 }
