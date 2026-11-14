@@ -3,6 +3,7 @@ import { nearestRest } from "./snap";
 
 const SNAP_DELAY = 90;
 const MIN_TRAVEL = 10;
+const JUMP = 0.75;
 const PANELS = "section[id], footer[id]";
 
 // The vertical page (narrow window, or reduced motion) with a mouse or trackpad: the same
@@ -45,7 +46,10 @@ export function startVerticalSnap() {
 
   function onScroll() {
     const y = window.scrollY;
-    if (!snapping) travel += y - lastY;
+    const delta = y - lastY;
+    // An anchor jump covers more than a viewport; it should land on its target, not
+    // read as a push toward the next section.
+    if (!snapping && Math.abs(delta) < window.innerHeight * JUMP) travel += delta;
     lastY = y;
     if (active()) snapSoon();
   }

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { animate, createAnimatable, createScope, utils } from "animejs";
 import type { Content } from "../content";
 import { buttonClass, PANEL } from "../lib/styles";
+import { InfraScene } from "./InfraScene";
 
 export function Hero({ text }: { text: Content }) {
   const root = useRef<HTMLElement>(null);
@@ -55,49 +56,31 @@ export function Hero({ text }: { text: Content }) {
   }, []);
 
   return (
-    <section ref={root} id="acasa" aria-labelledby="hero-titlu" className={`${PANEL} overflow-hidden pt-28 horizontal:w-screen`}>
-      <div className="mx-auto grid w-full max-w-content items-center gap-14 lg:grid-cols-2 lg:gap-20 horizontal:gap-[clamp(4rem,8vw,9rem)]">
-        <ChatScreenshot text={text} />
-        <div className="max-lg:order-first">
-          <p className="type-eyebrow mb-6 text-accent">{text.hero.eyebrow}</p>
-          <h1 id="hero-titlu" className="type-h1 max-w-[16ch] text-fg">
-            {text.hero.title}
-          </h1>
-          <p className="type-lead mt-6 max-w-[36ch] text-fg-muted">{text.hero.lead}</p>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <a href="#cum-merge" className={buttonClass("accent")}>
-              {text.hero.primary}
-            </a>
-            <a href="#ce-gaseste" className={buttonClass("secondary")}>
+    <section ref={root} id="acasa" aria-labelledby="hero-titlu" className={`${PANEL} overflow-hidden bg-canvas pt-28 horizontal:w-screen`}>
+      <div className="mx-auto flex w-full max-w-content flex-col items-center text-center horizontal:min-h-0 horizontal:flex-1">
+        <h1 id="hero-titlu" className="type-h1 text-fg">
+          <span className="block sm:whitespace-nowrap">{text.hero.title[0]}</span>{" "}
+          <span className="block sm:whitespace-nowrap">{text.hero.title[1]}</span>
+        </h1>
+        <p className="type-lead mt-4 max-w-[48ch] text-fg-muted">{text.hero.lead}</p>
+        <div className="relative mt-10 w-full perspective-distant horizontal:mt-6 horizontal:min-h-0 horizontal:flex-1">
+          <div data-intro className="transform-3d horizontal:h-full">
+            <div data-tilt className="transform-3d horizontal:h-full">
+              <div data-float className="horizontal:h-full">
+                <InfraScene label={text.hero.scene.label} />
+              </div>
+            </div>
+          </div>
+          <div className="mt-8 flex flex-wrap justify-center gap-3 sm:absolute sm:inset-x-0 sm:bottom-[6%] sm:z-10 sm:mt-0">
+            <a href="#ce-gaseste" className={buttonClass("secondary", "max-sm:w-full", "large")}>
               {text.hero.secondary}
+            </a>
+            <a href="#preturi" className={buttonClass("accent", "max-sm:w-full", "large")}>
+              {text.hero.primary}
             </a>
           </div>
         </div>
       </div>
     </section>
-  );
-}
-
-function ChatScreenshot({ text }: { text: Content }) {
-  return (
-    <div className="justify-self-center perspective-distant lg:justify-self-end">
-      <div className="rotate-x-20 -rotate-z-10 transform-3d">
-        <div data-intro className="transform-3d">
-          <div data-tilt className="transform-3d">
-            <img
-              data-float
-              src={text.hero.chatImage}
-              alt={text.hero.chatAlt}
-              width={835}
-              height={1704}
-              fetchPriority="high"
-              // The picture has its own black bezel: outer corner 99px = screen corner 77px + bezel 22px, out of 835px.
-              // Clipping with the same 99/835 of the width keeps that rule at every size.
-              className="w-(--phone) rounded-[calc(var(--phone)*0.1186)] shadow-float [--phone:min(20rem,72vw)]"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }

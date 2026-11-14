@@ -4,8 +4,6 @@
 @layer base {
   :root {
     interpolate-size: allow-keywords;
-    /* Four step cards share the screen between the side paddings; never narrower than 15rem. */
-    --step-column: clamp(15rem, calc((100vw - 2 * clamp(3rem, 7vw, 8rem) - 5.5rem) / 4), 17.5rem);
   }
 
   details::details-content {
@@ -13,9 +11,9 @@
     overflow: hidden;
     opacity: 0;
     transition:
-      block-size 320ms ease,
-      opacity 240ms ease,
-      content-visibility 320ms allow-discrete;
+      block-size 280ms ease,
+      opacity 200ms ease,
+      content-visibility 280ms allow-discrete;
   }
 
   details[open]::details-content {
@@ -24,14 +22,11 @@
   }
 
   html {
-    color-scheme: light;
+    color-scheme: dark;
     overscroll-behavior-x: none;
     scroll-padding-top: 0;
   }
 
-  /* Vertical page on a touch screen: the browser snaps between sections, and a section taller than
-     the screen can still be scrolled through. With a mouse, lib/verticalSnap.ts does it instead,
-     because the browser rounds a single wheel notch back to the same section. */
   @media (pointer: coarse) and (max-width: 63.99rem), (pointer: coarse) and (prefers-reduced-motion: reduce) {
     html {
       scroll-snap-type: y mandatory;
@@ -49,21 +44,32 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* A very low-opacity sensor film over the night field. No gradient, no blob. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    mix-blend-mode: soft-light;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
   button:not(:disabled),
   summary {
     cursor: pointer;
   }
 
   :focus-visible {
-    outline: 3px solid var(--focus-ring, var(--color-focus));
-    outline-offset: 3px;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .js [data-intro],
-    .js [data-reveal]:not([data-shown]) {
-      opacity: 0;
-    }
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -77,153 +83,53 @@
 }
 
 @layer components {
-  .badge * {
-    transform-box: fill-box;
-    transform-origin: center;
+  .infra-travel {
+    animation: infra-travel var(--travel, 7s) ease-in-out infinite;
   }
 
-  .badge .badge-body {
-    animation: badge-float 3s ease-in-out infinite;
-    animation-delay: var(--badge-delay, 0s);
+  .infra-link {
+    animation: infra-flow 1.8s linear infinite;
   }
 
-  .badge .badge-shadow {
-    animation: badge-shadow 3s ease-in-out infinite;
-    animation-delay: var(--badge-delay, 0s);
-  }
-
-  .badge .badge-glint {
-    animation: badge-glint 3s ease-in-out infinite;
-    animation-delay: var(--badge-delay, 0s);
-  }
-
-  .badge .badge-rec {
-    animation: badge-blink 1.2s steps(1, end) infinite;
-  }
-
-  .badge .badge-antenna {
-    animation: badge-pulse 1.4s ease-in-out infinite;
-  }
-
-  .badge .badge-antenna-late {
-    animation-delay: 0.7s;
-  }
-
-  .badge .badge-shackle {
-    animation: badge-shackle 2.4s ease-in-out infinite;
-  }
-
-  .badge .badge-rays {
-    animation: badge-rays 1.6s ease-in-out infinite;
-  }
-
-  .badge .badge-paper {
-    animation: badge-paper 2.2s ease-in-out infinite;
-  }
-
-  .badge .badge-question {
-    transform-origin: 50% 80%;
-    animation: badge-wobble 2.4s ease-in-out infinite;
+  .terminal-caret {
+    display: inline-block;
+    width: 0.46em;
+    height: 0.92em;
+    background: var(--color-fg);
+    animation: caret-blink 1.15s steps(1) infinite;
+    vertical-align: -0.1em;
   }
 }
 
-@keyframes badge-float {
+@keyframes infra-travel {
   0%,
+  10% {
+    translate: 0 0;
+  }
+  27% {
+    translate: calc(var(--dx) * 0.5) calc(var(--dy) * 0.5 - var(--lift));
+  }
+  44%,
+  60% {
+    translate: var(--dx) var(--dy);
+  }
+  77% {
+    translate: calc(var(--dx) * 0.5) calc(var(--dy) * 0.5 - var(--lift));
+  }
+  94%,
   100% {
     translate: 0 0;
   }
-  50% {
-    translate: 0 -4px;
+}
+
+@keyframes infra-flow {
+  to {
+    stroke-dashoffset: -20;
   }
 }
 
-@keyframes badge-shadow {
-  0%,
-  100% {
-    scale: 1 1;
-    opacity: 1;
-  }
-  50% {
-    scale: 0.85 1;
-    opacity: 0.7;
-  }
-}
-
-@keyframes badge-glint {
-  0%,
-  100% {
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes badge-blink {
-  0% {
-    opacity: 1;
-  }
+@keyframes caret-blink {
   50% {
     opacity: 0;
-  }
-}
-
-@keyframes badge-pulse {
-  0%,
-  100% {
-    scale: 1;
-    opacity: 1;
-  }
-  50% {
-    scale: 1.45;
-    opacity: 0.55;
-  }
-}
-
-@keyframes badge-shackle {
-  0%,
-  55%,
-  100% {
-    translate: 0 0;
-  }
-  20%,
-  40% {
-    translate: 0 -4px;
-  }
-}
-
-@keyframes badge-rays {
-  0%,
-  100% {
-    opacity: 0;
-    scale: 0.7;
-  }
-  50% {
-    opacity: 1;
-    scale: 1;
-  }
-}
-
-@keyframes badge-paper {
-  0%,
-  15% {
-    translate: 0 -7px;
-  }
-  70%,
-  100% {
-    translate: 0 1px;
-  }
-}
-
-@keyframes badge-wobble {
-  0%,
-  100% {
-    rotate: 0deg;
-  }
-  25% {
-    rotate: -12deg;
-  }
-  75% {
-    rotate: 12deg;
   }
 }

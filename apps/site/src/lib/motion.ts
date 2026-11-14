@@ -35,6 +35,7 @@ export function scrollToY(top: number, immediate: boolean) {
   frame = requestAnimationFrame(step);
 }
 
+// The pitch pages still use the old reveal helper; the product page does not.
 export function startReveal() {
   const targets = document.querySelectorAll("[data-reveal]");
   if (typeof IntersectionObserver === "undefined" || matches(REDUCED_MOTION_QUERY)) {
@@ -58,3 +59,4 @@ export function startReveal() {
     document.documentElement.classList.remove("js");
   };
 }
+

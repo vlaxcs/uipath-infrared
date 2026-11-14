@@ -42,13 +42,13 @@ export default function TokensPage({ text }: { text: Content }) {
         <h1 className="type-h1 text-fg">{text.tokens.title}</h1>
         <p className="max-w-3xl text-fg-muted">{text.tokens.lead}</p>
         <div className="flex flex-wrap gap-3">
-          <button type="button" onClick={copyCss} className="min-h-11 rounded-full bg-accent px-5 type-button text-on-accent">
+          <button type="button" onClick={copyCss} className="type-button min-h-11 rounded-[2px] bg-accent px-5 text-on-accent hover:bg-accent-lip">
             {copied ? text.tokens.copied : text.tokens.copy}
           </button>
           <button
             type="button"
             onClick={resetTokens}
-            className="min-h-11 rounded-full border border-line px-5 hover:border-fg-muted"
+            className="min-h-11 rounded-[2px] border border-fg px-5 hover:bg-fg hover:text-canvas"
           >
             {text.tokens.reset}
           </button>
@@ -66,7 +66,7 @@ export default function TokensPage({ text }: { text: Content }) {
                 aria-label={`--color-${token.name}`}
                 value={token.value}
                 onChange={(event) => updateToken(token.name, event.target.value)}
-                className="h-12 w-12 shrink-0 cursor-pointer rounded-[calc(var(--radius-well)-0.8125rem)] border border-line bg-transparent"
+                className="h-12 w-12 shrink-0 cursor-pointer rounded-none border border-line bg-transparent"
               />
               <label htmlFor={`token-${token.name}`} className="flex flex-col">
                 <span className="type-label">--color-{token.name}</span>
@@ -92,7 +92,7 @@ export default function TokensPage({ text }: { text: Content }) {
                 <span className="type-label">
                   {pair.text} / {pair.background}
                 </span>
-                <span className="flex items-center gap-2 rounded-full bg-canvas px-3 py-1 text-fg self-start">
+                <span className="flex items-center gap-2 self-start rounded-[2px] border border-line bg-canvas px-2 py-1 text-fg">
                   <span aria-hidden="true">{passes ? "✓" : "✕"}</span>
                   {passes ? text.tokens.pass : text.tokens.fail} · {ratio.toFixed(2)}:1
                 </span>
