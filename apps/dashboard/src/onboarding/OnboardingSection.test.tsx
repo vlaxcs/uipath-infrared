@@ -23,6 +23,7 @@ function source(overrides: Partial<OnboardingSource> = {}): OnboardingSource {
     start: vi.fn(async () => ({ id: "run-startup-0001", project: "startup" })),
     loadProfile: vi.fn(async () => DEFAULT_PROFILE),
     saveProfile: vi.fn(async (profile) => profile),
+    listRuns: vi.fn(async () => []),
     ...overrides,
   };
 }
@@ -114,6 +115,37 @@ describe("onboarding", () => {
     fireEvent.click(screen.getByRole("button", { name: "Start the run" }));
     expect((await screen.findByRole("alert")).textContent).toBe("project busy: startup is run-startup-0002");
     expect(box("Managed Postgres").checked).toBe(false);
+    expect((screen.getByRole("button", { name: "Start the run" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("says which run holds the project and why, and opens it", async () => {
+    const holder = {
+      id: "run-startup-0004",
+      project: "startup",
+      status: "awaiting_approval" as const,
+      step: "present" as const,
+      awaiting: "layout" as const,
+      revision: 1,
+      max_revisions: 2,
+      started_at: "2026-11-14T06:00:00Z",
+      updated_at: "2026-11-14T06:55:00Z",
+    };
+    const onFollowRun = vi.fn();
+    await shown(source({ listRuns: vi.fn(async () => [holder]) }), onFollowRun);
+    const status = await screen.findByText(/is held by/);
+    expect(status.textContent).toContain("run-startup-0004, waiting for the layout decision since");
+    expect((screen.getByRole("button", { name: "Start the run" }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Open run-startup-0004" }));
+    expect(onFollowRun).toHaveBeenCalledWith("run-startup-0004");
+
+    fireEvent.click(screen.getByRole("radio", { name: "strict" }));
+    expect(screen.queryByText(/is held by/)).toBeNull();
+  });
+
+  it("ignores finished runs of the project", async () => {
+    const finished = { id: "run-startup-0001", project: "startup", status: "completed" as const, step: "rehearse" as const, revision: 1, max_revisions: 2, started_at: "", updated_at: "" };
+    await shown(source({ listRuns: vi.fn(async () => [finished]) }));
+    await waitFor(() => expect(screen.queryByText(/is held by/)).toBeNull());
     expect((screen.getByRole("button", { name: "Start the run" }) as HTMLButtonElement).disabled).toBe(false);
   });
 

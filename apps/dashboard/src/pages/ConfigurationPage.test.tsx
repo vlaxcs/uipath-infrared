@@ -8,7 +8,7 @@ import { ConfigurationPage } from "~/pages/ConfigurationPage";
 afterEach(cleanup);
 
 function source(profile: Profile = DEFAULT_PROFILE, saveProfile = vi.fn(async (saved: Profile) => saved)): OnboardingSource {
-  return { load: vi.fn(), start: vi.fn(), loadProfile: vi.fn(async () => profile), saveProfile };
+  return { load: vi.fn(), start: vi.fn(), loadProfile: vi.fn(async () => profile), saveProfile, listRuns: vi.fn(async () => []) };
 }
 
 describe("the configuration page", () => {

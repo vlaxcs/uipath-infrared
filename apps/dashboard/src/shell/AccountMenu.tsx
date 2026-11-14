@@ -1,4 +1,4 @@
-import { LogOut, Settings, User, type LucideIcon } from "lucide-react";
+import { LogOut, Settings, User, type LucideIcon, UserRound } from "lucide-react";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import type { PageId } from "~/navigation/route";
 
@@ -66,7 +66,7 @@ export function AccountMenu({ login, avatarUrl, onNavigate, onDisconnect }: Acco
         onClick={() => setOpen((current) => !current)}
         className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-pill border border-border bg-surface text-label font-medium text-fg-muted hover:bg-surface-muted"
       >
-        {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : (login?.[0]?.toUpperCase() ?? "?")}
+        {avatarUrl ? <img src={avatarUrl} alt="" className="h-full w-full object-cover" /> : <UserRound className="h-5 w-5" aria-hidden="true" />}
       </button>
       {open ? (
         <div

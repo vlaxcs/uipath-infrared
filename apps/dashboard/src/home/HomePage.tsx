@@ -1,6 +1,5 @@
 import { Plus } from "lucide-react";
 import { CreditMark } from "~/credits/CreditMarks";
-import { Mascot } from "~/mascot/Mascot";
 
 type HomePageProps = {
   extensionUrl: string | null;
@@ -12,13 +11,15 @@ const PILL = "flex items-center gap-2 rounded-pill px-5 py-3 text-label font-sem
 
 export function HomePage({ extensionUrl, onAnalyze, onPrevious }: HomePageProps) {
   return (
-    <div className="flex min-h-[calc(100dvh-7.5rem)] items-center justify-center">
-      <Mascot animation="hood" className="h-48 w-48" />
+    <div>
       <div className="fixed inset-x-0 bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 p-4">
         <nav aria-label="Analyses" className="flex flex-wrap items-center gap-3">
-          <button type="button" onClick={onAnalyze} className={`${PILL} bg-credit text-on-credit`}>
-            <CreditMark className="h-5 w-5 text-on-credit" />
+          <button type="button" onClick={onAnalyze} aria-label="Analyze, costs 1 run" className={`${PILL} bg-credit text-on-credit`}>
             Analyze
+            <span className="flex items-center gap-1 rounded-pill bg-on-credit px-2 py-0.5 text-caption font-semibold text-credit" aria-hidden="true">
+              <CreditMark className="h-4 w-4 text-credit" />
+              <span>1x</span>
+            </span>
           </button>
           <button type="button" onClick={onPrevious} className={`${PILL} border border-border bg-surface text-fg hover:bg-surface-muted`}>
             Previous analysis

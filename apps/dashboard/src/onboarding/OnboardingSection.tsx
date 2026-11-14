@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { initialAnswers, startRequest } from "~/onboarding/answers";
 import { OrchestratorError, orchestratorOnboarding, type OnboardingSource } from "~/onboarding/api";
 import { OnboardingForm } from "~/onboarding/OnboardingForm";
+import { holderOf } from "~/onboarding/projectHolder";
+import type { RunSummary } from "~/runs/types";
 import { StartedRun } from "~/onboarding/StartedRun";
 import { DEFAULT_PROFILE } from "~/onboarding/criteria";
 import type { Answers, OnboardingSetup, Profile, StartedRun as Started } from "~/onboarding/types";
@@ -24,6 +26,21 @@ export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun
   const [error, setError] = useState<string | null>(null);
   const [started, setStarted] = useState<Started | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [runs, setRuns] = useState<RunSummary[]>([]);
+  const [runsAttempt, setRunsAttempt] = useState(0);
+
+  useEffect(() => {
+    let current = true;
+    source.listRuns().then(
+      (list) => {
+        if (current) setRuns(list);
+      },
+      () => undefined,
+    );
+    return () => {
+      current = false;
+    };
+  }, [source, runsAttempt]);
 
   useEffect(() => {
     let current = true;
@@ -49,7 +66,10 @@ export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun
     setError(null);
     source
       .start(startRequest(answers))
-      .then(setStarted, (failure: unknown) => setError(reasonOf(failure)))
+      .then(setStarted, (failure: unknown) => {
+        setError(reasonOf(failure));
+        setRunsAttempt((count) => count + 1);
+      })
       .finally(() => setStarting(false));
   }, [answers, source]);
 
@@ -96,6 +116,8 @@ export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun
       onStart={start}
       starting={starting}
       error={error}
+      holder={answers.project ? holderOf(runs, answers.project) : null}
+      onOpenRun={onFollowRun}
     />
   ) : null;
 }

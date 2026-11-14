@@ -14,7 +14,7 @@ type RunsPageProps = {
 };
 
 export function RunsPage({ source, onOpenRun }: RunsPageProps) {
-  const { runs, loading, error, refresh } = useRuns(source);
+  const { runs, loading, error, refresh } = useRuns(source, 3000);
   const costs = useRunCosts(source, runs);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);

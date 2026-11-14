@@ -1,6 +1,8 @@
 import type { FormEvent, ReactNode } from "react";
 import { canStart, onpremChoice, targetChoices, withProject, withTarget } from "~/onboarding/answers";
 import { CriteriaFields } from "~/onboarding/CriteriaFields";
+import { ProjectHeld } from "~/onboarding/ProjectHeld";
+import type { RunSummary } from "~/runs/types";
 import type { Answers, Choice, OnboardingSetup } from "~/onboarding/types";
 
 type OnboardingFormProps = {
@@ -10,11 +12,13 @@ type OnboardingFormProps = {
   onStart: () => void;
   starting: boolean;
   error: string | null;
+  holder?: RunSummary | null;
+  onOpenRun?: (id: string) => void;
 };
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, className = "", children }: { title: string; className?: string; children: ReactNode }) {
   return (
-    <fieldset className="flex min-w-0 flex-col gap-3 rounded-card border border-border bg-surface p-6">
+    <fieldset className={`flex min-w-0 flex-col gap-3 rounded-card border border-border bg-surface p-6 ${className}`}>
       <legend className="px-1 text-label font-semibold text-fg">{title}</legend>
       {children}
     </fieldset>
@@ -77,7 +81,7 @@ function Checkbox({ name, choice, onChange }: { name: string; choice: Choice; on
   );
 }
 
-export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, error }: OnboardingFormProps) {
+export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, error, holder = null, onOpenRun }: OnboardingFormProps) {
   const onprem = onpremChoice(setup, answers);
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -85,7 +89,7 @@ export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, e
   };
 
   return (
-    <form aria-label="New run" onSubmit={submit} className="flex max-w-3xl flex-col gap-6">
+    <form aria-label="New run" onSubmit={submit} className="grid w-full gap-6 lg:grid-cols-2">
       <Section title="1. Connect the infrastructure">
         {setup.connections.map((connection) => (
           <Option
@@ -119,7 +123,7 @@ export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, e
         )}
       </Section>
 
-      <Section title="3. Where it may move">
+      <Section title="3. Where it may move" className="lg:row-span-2">
         {targetChoices(setup, answers).map((choice) => (
           <Checkbox
             key={choice.id}
@@ -130,21 +134,22 @@ export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, e
         ))}
       </Section>
 
-      <Section title="4. Criteria">
+      <Section title="4. Criteria" className="lg:col-span-2">
         <CriteriaFields criteria={answers.criteria} onChange={(criteria) => onAnswers({ ...answers, criteria })} />
       </Section>
 
       {onprem ? (
-        <Section title="5. On-prem">
+        <Section title="5. On-prem" className="lg:col-start-1 lg:row-start-2">
           <Checkbox name="onprem" choice={onprem} onChange={(checked) => onAnswers({ ...answers, onprem: checked })} />
           <p className="text-caption text-fg-muted">Infrared prices the hardware, the space and the people to run it.</p>
         </Section>
       ) : null}
 
-      <div className="flex flex-col items-start gap-3">
+      <div className="flex flex-col items-start gap-3 lg:col-span-2">
+        {holder ? <ProjectHeld run={holder} onOpen={() => onOpenRun?.(holder.id)} /> : null}
         <button
           type="submit"
-          disabled={starting || !canStart(setup, answers)}
+          disabled={starting || holder !== null || !canStart(setup, answers)}
           aria-busy={starting}
           className="rounded-control bg-accent px-4 py-2 text-label font-medium text-on-accent disabled:opacity-50"
         >

@@ -13,6 +13,7 @@ vi.mock("~/onboarding/api", async (original) => ({
     start: () => new Promise(() => {}),
     loadProfile: () => new Promise(() => {}),
     saveProfile: () => new Promise(() => {}),
+    listRuns: () => new Promise(() => {}),
   },
 }));
 
@@ -26,7 +27,8 @@ describe("the platform frame", () => {
     render(<App extensionUrl="https://chromewebstore.google.com/detail/infrared" />);
     expect(screen.getByRole("button", { name: "Infrared home" })).toBeTruthy();
     const analyses = screen.getByRole("navigation", { name: "Analyses" });
-    expect(within(analyses).getAllByRole("button").map((button) => button.textContent)).toEqual(["Analyze", "Previous analysis"]);
+    expect(within(analyses).getAllByRole("button").map((button) => button.textContent)).toEqual(["Analyze1x", "Previous analysis"]);
+    expect(within(analyses).getByRole("button", { name: "Analyze, costs 1 run" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Browser extension" }).getAttribute("href")).toBe(
       "https://chromewebstore.google.com/detail/infrared",
     );
@@ -43,7 +45,7 @@ describe("the platform frame", () => {
 
   it("opens a new analysis with a fade, and Back returns home", async () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Analyze" }));
+    fireEvent.click(screen.getByRole("button", { name: "Analyze, costs 1 run" }));
     expect(window.location.hash).toBe("#/analyze");
     expect(screen.getByRole("heading", { level: 1, name: "New analysis" }).closest("section")?.className).toContain("animate-panel-in");
 
@@ -79,8 +81,8 @@ describe("the platform frame", () => {
 
   it("shows the runs left as Nx and the plan beside the avatar", async () => {
     render(<App accountSource={{ load: async () => ({ login: "vlaxcs", avatarUrl: null, credits: 1, plan: "run_pack" }) }} />);
-    expect(await screen.findByRole("img", { name: "1 run left" })).toBeTruthy();
-    expect(screen.getByText("1x")).toBeTruthy();
+    const balance = await screen.findByRole("img", { name: "1 run left" });
+    expect(balance.textContent).toBe("1x");
     expect(screen.getByText("Run pack")).toBeTruthy();
   });
 

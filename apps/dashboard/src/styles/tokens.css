@@ -9,10 +9,10 @@
   --color-fg: #14171c;
   --color-fg-muted: #5a6270;
   --color-fg-subtle: #7a8290;
-  --color-accent: #3557d6;
+  --color-accent: #ef3b24;
   --color-credit: #ef3b24;
   --color-on-credit: #14171c;
-  --color-on-accent: #ffffff;
+  --color-on-accent: #14171c;
   --color-focus: #3557d6;
   --color-status-running: #2f6fdb;
   --color-status-awaiting: #966200;
@@ -119,7 +119,7 @@
     --color-fg: #e7ebf1;
     --color-fg-muted: #9aa4b2;
     --color-fg-subtle: #7b8594;
-    --color-accent: #8aa2ff;
+    --color-accent: #ef3b24;
     --color-on-accent: #0d1015;
     --color-focus: #8aa2ff;
     --color-status-running: #6b9cff;
