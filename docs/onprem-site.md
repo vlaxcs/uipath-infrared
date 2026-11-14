@@ -36,6 +36,15 @@ After Evaluate, a `verify_site` step re-reads the chosen option and its two runn
 
 **Search is a demo adapter.** Listings come from scraping public listing pages, behind a `ListingSource` interface, so a licensed feed can replace it without touching the step. Demo only: one request at a time per host, a pause between requests, no personal data (agent names, phone numbers, emails) read into the store.
 
+**The two sources, for the MVP.** `ListingsByKind` sends each kind to its own source.
+- **Leases come from Storia** (`StoriaLeases`), its `spatiu-comercial` rentals, the only Storia category for commercial and industrial space. Storia searches around a city, not a point, so the pin picks the nearest city of a short verified list (Bucuresti, Cluj-Napoca, Timisoara, Iasi, Brasov, Constanta), and the search asks for the smallest radius Storia offers (0, 5, 10, 15, 25, 50, 75 km) that covers the pin's radius plus the pin's distance from that city. A pin more than 50 km from every listed city finds no lease.
+- One search page (36 offers) is read. An offer is kept only when it states its rent, its currency and its area. Each kept offer's page is then read for its exact coordinates, in order, until 20 lie within the radius of the pin; an offer outside it, or whose page is gone, is skipped.
+- **Colocation comes from a curated file**, `apps/agent/config/colocation.json` (`ColocationOffers`): providers that publish a monthly rack price on their own page, each with its URL, the date read and the exact quote. A search keeps an offer only while its quote is still on that page, compared with whitespace and case ignored, outside scripts and styles. Aggregator listings are not used. Today it holds one offer, Royal Server's 42U rack in Tulcea at EUR 400 a month, placed at the city centre because the provider names no address.
+- **Fetching** (`PoliteFetcher`): robots.txt is read once per host and obeyed; one request at a time with 2 s between requests to a host; two retries with backoff on a timeout, 429 or 5xx; a 404 or 410 skips that page. Any other failure makes the source unavailable and the step stops with the reason.
+- **Currency:** EUR is kept as is; USD is converted at the ECB rate in `apps/pricing/snapshots/ecb-fx.json`, whose date is in that file. A rent in any other currency is dropped, never guessed.
+- A layout change on Storia (no `__NEXT_DATA__`, no search results where they were) stops the step with the reason instead of returning nothing.
+- `python -m agent sites-search --lat --lng [--radius-km]` runs the search against the store and prints what it holds near the pin, so the store fills with real listings before the site step exists.
+
 The search runs once per run, not once per candidate: rent options do not depend on the candidate, only the fit does, and the engine decides the fit. The LLM finds facts; the engine decides, as section 1 of `docs/spec.md` asks.
 
 **The site store.** Listings are kept in Postgres with PostGIS, shared across companies, so two projects in the same area reuse the same listings instead of searching again.
@@ -228,7 +237,7 @@ The repo has no database today. This feature adds the first stateful service.
 
 ## 11. Decisions Claude picked, for Vlad to confirm
 
-1. The listing search scrapes public listing pages, for the demo only, behind a `ListingSource` interface, keeping only listings that state price and size. Vlad accepted that the portals' terms were not checked. Colocation providers rarely publish prices, so colocation options may stay few or none.
+1. The listing search scrapes public listing pages, for the demo only, behind a `ListingSource` interface, keeping only listings that state price and size. Vlad accepted that the portals' terms were not checked. Colocation providers rarely publish prices, so colocation options may stay few or none. **Confirmed by Vlad:** leases from Storia only, coordinates from each listing's own page, colocation from a curated file of providers' own published prices with their quote. The details in section 3 (the city list, the radius steps, 36 offers read, 2 s between requests, EUR and USD only) are Claude's, accepted by Vlad as MVP defaults.
 2. Colocation and lease are both searched, and the engine picks between them.
 3. The step runs once per run, before Investigate, not per candidate.
 4. The fit check is area only. Power and cooling are flagged, not checked.

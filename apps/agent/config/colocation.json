@@ -1,0 +1,20 @@
+{
+  "about": "Colocation offers whose provider publishes a monthly rack price on its own page. A search keeps an offer only while its quote is still on that page. Aggregator listings are not used.",
+  "offers": [
+    {
+      "provider": "Royal Server",
+      "plan": "Colocation 42U",
+      "label": "Royal Server, Colocation 42U, Tulcea",
+      "lat": 45.1716,
+      "lng": 28.7914,
+      "location_basis": "the centre of Tulcea: the provider names the city of its data centre, not an address",
+      "racks": 1,
+      "rent_original": 400,
+      "currency": "EUR",
+      "vat": "not stated on the page",
+      "source_url": "https://royal-server.ro/en/colocation.php",
+      "quote": "€400/month",
+      "read_on": "2026-11-14"
+    }
+  ]
+}
