@@ -1,14 +1,17 @@
 import type { Language } from "../content";
 
 type Point = { who: string; text: string };
-type Shot = { src: string; width: number; height: number; who: string; alt: string };
-type Section = { id: string; label: string; title: string; tagline?: string; shots?: [Shot, Shot]; points: Point[] };
+type Section = { id: string; label: string; title: string; tagline?: string; points: Point[] };
 
 export type Pitch2Copy = {
   title: string;
   skipLink: string;
   languageLabel: string;
   byDigi: string;
+  tagline: string;
+  heroLead: string;
+  cta: string;
+  sceneLabel: string;
   sections: [Section, Section, Section];
   closing: string;
 };
@@ -18,31 +21,44 @@ export const pitch2Copy: Record<Language, Pitch2Copy> = {
     title: "Infrared | Pitch",
     skipLink: "Skip to content",
     languageLabel: "Language",
-    byDigi: "Service for internet providers",
-    closing: "Infrared comes bundled with the router.",
+    byDigi: "The decision layer for cloud infrastructure.",
+    tagline: "Infrastructure decisions, with RECEIPTS.",
+    heroLead: "Reads the estate. Prices the move. Proves the plan. You sign it.",
+    cta: "Run an analysis",
+    sceneLabel: "Two infrastructure islands: racks, links, and small containers travelling between them.",
+    closing: "See the change before you make it.",
     sections: [
       {
         id: "problema",
         label: "The problem",
-        title: "The law puts home security on the provider. The customer doesn't see the risk.",
+        title: "High infrastructure costs. Constrained budgets. Compromised performance.",
+        tagline: "The plan to meet all three is unproven.",
         points: [
-          { who: "Providers", text: "Must secure the service and warn subscribers about risks (Law 506/2004, NIS2)." },
-          { who: "Customers", text: "Don't know what is open in their own home." },
+          { who: "Costs", text: "Infrastructure costs keep rising. Much of the bill is waste." },
+          { who: "Budget", text: "The budget is constrained. There is no new money for a rebuild." },
+          { who: "Performance", text: "Performance and reliability pay for the cuts." },
         ],
       },
-      { id: "solutia", label: "How we solved it", title: "ACTIONABLE reports, built from the home network.", tagline: "TAP and SOLVE.",
-        shots: [
-          { src: "/pitch-operator-ro.webp", width: 1600, height: 990, who: "You, the provider", alt: "The operator's page for one customer report: score 85, 3 of 5 steps fixed, the technical explanation and what to tell the customer on the phone." },
-          { src: "/pitch-whatsapp-ro.webp", width: 672, height: 1310, who: "Your customer", alt: "The customer's WhatsApp chat with Infrared: the customer taps I'm done, the step is checked and marked fixed, the next step arrives with three buttons." },
+      {
+        id: "solutia",
+        label: "How we solve it",
+        title: "PRICE it. PROVE it. SIGN it.",
+        tagline: "One run. The engine prices the move. The sandbox proves the plan. The CTO signs the decision.",
+        points: [
+          { who: "Price", text: "Catalog prices, the on-prem lab, egress, migration, outage, and payback." },
+          { who: "Prove", text: "Traffic and failure injection in the sandbox; measured availability and latency." },
+          { who: "Sign", text: "Two gates, an audit trail, and a decision record the CTO can sign." },
         ],
-        points: [] },
+      },
       {
         id: "de-ce-noi",
         label: "Why us",
-        title: "The customer gets it from their internet provider.",
+        title: "Cost tools REPORT. Migration tools MOVE. Infrared ADVISES.",
+        tagline: "Everyone can generate a plan. We can prove one.",
         points: [
-          { who: "You, the provider", text: "See the full context of every home, without a call." },
-          { who: "Your customer", text: "Gets the reports on WhatsApp. Nothing to install. Discovers the fixes through a learning map." },
+          { who: "Cost tools", text: "They show the bill. We show what to change, what it saves, and what could break." },
+          { who: "Migration tools", text: "They push a destination. We re-plan the whole estate, across providers and on-prem." },
+          { who: "Infrared", text: "The model proposes. The engine decides. The sandbox proves. The CTO signs." },
         ],
       },
     ],
@@ -51,31 +67,44 @@ export const pitch2Copy: Record<Language, Pitch2Copy> = {
     title: "Infrared | Pitch",
     skipLink: "Sari la conținut",
     languageLabel: "Limba",
-    byDigi: "Serviciu pentru furnizorii de internet",
-    closing: "Infrared vine la pachet cu routerul.",
+    byDigi: "Nivelul de decizie pentru infrastructura cloud.",
+    tagline: "Decizii de infrastructură, cu DOVEZI.",
+    heroLead: "Citește infrastructura. Prețuiește mutarea. Demonstrează planul. Tu semnezi.",
+    cta: "Rulează o analiză",
+    sceneLabel: "Două insule de infrastructură: rafturi, legături și mici containere care călătoresc între ele.",
+    closing: "Vezi schimbarea înainte să o faci.",
     sections: [
       {
         id: "problema",
         label: "Problema",
-        title: "Legea pune siguranța casei pe furnizor. Clientul nu vede riscul.",
+        title: "Costuri mari de infrastructură. Bugete limitate. Performanță compromisă.",
+        tagline: "Planul care le rezolvă pe toate trei nu e dovedit.",
         points: [
-          { who: "Furnizorii", text: "Trebuie să securizeze serviciul și să-și anunțe abonații despre riscuri (Legea 506/2004, NIS2)." },
-          { who: "Clienții", text: "Nu știu ce e deschis în propria casă." },
+          { who: "Costuri", text: "Costurile de infrastructură cresc. O mare parte din factură e risipă." },
+          { who: "Buget", text: "Bugetul e limitat. Nu există bani noi pentru o reconstrucție." },
+          { who: "Performanță", text: "Performanța și fiabilitatea plătesc pentru reducerile de cost." },
         ],
       },
-      { id: "solutia", label: "Cum am rezolvat-o", title: "Rapoarte ACȚIONABILE, pe baza rețelei de acasă.", tagline: "APEȘI și REZOLVI.",
-        shots: [
-          { src: "/pitch-operator-ro.webp", width: 1600, height: 990, who: "Tu, ca furnizor", alt: "Pagina operatorului pentru raportul unui client: scor 85, 3 din 5 pași rezolvați, explicația tehnică și ce îi spune clientului la telefon." },
-          { src: "/pitch-whatsapp-ro.webp", width: 672, height: 1310, who: "Clientul tău", alt: "Conversația clientului cu Infrared pe WhatsApp: apasă Am terminat, pasul e verificat și rezolvat, apoi vine pasul următor cu trei butoane." },
+      {
+        id: "solutia",
+        label: "Cum o rezolvăm",
+        title: "PREȚUIEȘTE. DEMONSTREAZĂ. SEMNEAZĂ.",
+        tagline: "Un run. Motorul prețuiește mutarea. Sandbox-ul demonstrează planul. CTO-ul semnează decizia.",
+        points: [
+          { who: "Prețuiește", text: "Prețuri din catalog, laboratorul on-prem, egress, migrare, cădere și payback." },
+          { who: "Demonstrează", text: "Trafic și căderi injectate în sandbox; disponibilitate și latență măsurate." },
+          { who: "Semnează", text: "Două porți de aprobare, o urmă de audit și o decizie pe care CTO-ul o poate semna." },
         ],
-        points: [] },
+      },
       {
         id: "de-ce-noi",
         label: "De ce noi",
-        title: "Clientul alege serviciul de la furnizorul de internet.",
+        title: "Uneltele de cost RAPORTEAZĂ. Uneltele de migrare MUTĂ. Infrared RECOMANDĂ.",
+        tagline: "Oricine poate genera un plan. Noi îl putem demonstra.",
         points: [
-          { who: "Tu, ca furnizor", text: "Vezi tot contextul fiecărei case, fără apel." },
-          { who: "Clientul tău", text: "Primește rapoartele pe WhatsApp. Nu instalează nimic. Descoperă reparațiile pe o hartă de învățare." },
+          { who: "Unelte de cost", text: "Arată factura. Noi arătăm ce să schimbi, cât economisești și ce se poate rupe." },
+          { who: "Unelte de migrare", text: "Împing o destinație. Noi replanificăm toată infrastructura, între provideri și on-prem." },
+          { who: "Infrared", text: "Modelul propune. Motorul decide. Sandbox-ul demonstrează. CTO-ul semnează." },
         ],
       },
     ],
