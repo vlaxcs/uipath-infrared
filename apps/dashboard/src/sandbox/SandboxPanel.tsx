@@ -2,13 +2,7 @@ import { useId, useMemo, useState, type FormEvent } from "react";
 import { parseArtifact } from "~/runs/artifactParse";
 import type { RunSource } from "~/runs/source";
 import { useRunArtifact } from "~/runs/useRunArtifact";
-import {
-  DEFAULT_TRAFFIC,
-  PHASE_LIMITS,
-  RATE_LIMITS,
-  readTrafficPrompt,
-  type TrafficProfile,
-} from "~/sandbox/trafficPrompt";
+import { DEFAULT_TRAFFIC, PHASE_LIMITS, RATE_LIMITS } from "~/sandbox/trafficPrompt";
 import { useTrials, type Trial } from "~/sandbox/useTrials";
 import { StatusBadge } from "~/ui/StatusBadge";
 
@@ -22,21 +16,18 @@ type SandboxPanelProps = { source: RunSource; runId: string; layout: string; pol
 export function SandboxPanel({ source, runId, layout, pollMs }: SandboxPanelProps) {
   const id = useId();
   const { trials, pending, starting, error, start } = useTrials(source, runId, pollMs);
-  const [traffic, setTraffic] = useState<TrafficProfile>(DEFAULT_TRAFFIC);
-  const [prompt, setPrompt] = useState("");
-  const [reading, setReading] = useState<string | null>(null);
+  // Kept as typed text so a field can be cleared or start with 0; read as numbers on Run.
+  const [rate, setRate] = useState(String(DEFAULT_TRAFFIC.requests_per_second));
+  const [phase, setPhase] = useState(String(DEFAULT_TRAFFIC.phase_seconds));
+  const traffic = { requests_per_second: Number(rate), phase_seconds: Number(phase) };
+  const valid = within(traffic.requests_per_second, RATE_LIMITS) && within(traffic.phase_seconds, PHASE_LIMITS);
   const [selected, setSelected] = useState<string | null>(null);
   const shown = selected ?? trials[0]?.file ?? null;
   const live = source.mode === "live";
 
-  const applyPrompt = () => {
-    const result = readTrafficPrompt(prompt, traffic);
-    setTraffic(result.profile);
-    setReading(result.unread ? "Nothing read. Name a rate (80 rps) or a phase length (30 s)." : `Read: ${result.understood.join(", ")}.`);
-  };
-
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    if (!valid) return;
     setSelected(null);
     void start(traffic);
   };
@@ -45,10 +36,10 @@ export function SandboxPanel({ source, runId, layout, pollMs }: SandboxPanelProp
     <section aria-labelledby={`${id}-title`} className="flex flex-col gap-4 rounded-control border border-border bg-surface p-4">
       <header className="flex flex-col gap-1">
         <h2 id={`${id}-title`} className="text-label font-semibold uppercase tracking-wide text-fg-subtle">
-          Sandbox
+          Try it in the sandbox
         </h2>
         <p className={HINT}>
-          Trial rehearsal of <span className="font-mono text-fg">{layout}</span>. Does not change the run or its gates.
+          Sends traffic to <span className="font-mono text-fg">{layout}</span>, breaks one part and checks it stays up. The run is not affected.
         </p>
       </header>
 
@@ -63,11 +54,11 @@ export function SandboxPanel({ source, runId, layout, pollMs }: SandboxPanelProp
               max={RATE_LIMITS.max}
               step={1}
               required
-              value={traffic.requests_per_second}
-              onChange={(event) => setTraffic({ ...traffic, requests_per_second: Number(event.target.value) })}
+              value={rate}
+              onChange={(event) => setRate(event.target.value)}
               className={INPUT}
             />
-            <p className={HINT}>{RATE_LIMITS.min} to {RATE_LIMITS.max}.</p>
+            <p className={HINT}>{RATE_LIMITS.min} to {RATE_LIMITS.max}</p>
           </div>
           <div className={FIELD}>
             <label htmlFor={`${id}-phase`} className={LABEL}>Seconds per phase</label>
@@ -78,43 +69,18 @@ export function SandboxPanel({ source, runId, layout, pollMs }: SandboxPanelProp
               max={PHASE_LIMITS.max}
               step={1}
               required
-              value={traffic.phase_seconds}
-              onChange={(event) => setTraffic({ ...traffic, phase_seconds: Number(event.target.value) })}
+              value={phase}
+              onChange={(event) => setPhase(event.target.value)}
               className={INPUT}
             />
-            <p className={HINT}>Baseline, failure and recovery each run this long.</p>
+            <p className={HINT}>{PHASE_LIMITS.min} to {PHASE_LIMITS.max}</p>
           </div>
-        </div>
-
-        <div className={FIELD}>
-          <label htmlFor={`${id}-prompt`} className={LABEL}>Prompt</label>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <input
-              id={`${id}-prompt`}
-              type="text"
-              value={prompt}
-              placeholder="150 rps for 30 seconds"
-              onChange={(event) => setPrompt(event.target.value)}
-              className={`${INPUT} min-w-0 flex-1`}
-            />
-            <button
-              type="button"
-              onClick={applyPrompt}
-              disabled={prompt.trim() === ""}
-              className="rounded-control border border-border px-4 py-2 text-label font-medium text-fg disabled:opacity-50"
-            >
-              Fill fields
-            </button>
-          </div>
-          <p className={HINT} aria-live="polite">
-            {reading ?? "Read in the browser. Only the two numbers are sent."}
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="submit"
-            disabled={!live || starting || pending !== null}
+            disabled={!live || !valid || starting || pending !== null}
             aria-busy={starting}
             className="rounded-control bg-accent px-4 py-2 text-label font-medium text-on-accent disabled:opacity-50"
           >
@@ -153,6 +119,10 @@ export function SandboxPanel({ source, runId, layout, pollMs }: SandboxPanelProp
       )}
     </section>
   );
+}
+
+function within(value: number, limits: { min: number; max: number }): boolean {
+  return Number.isFinite(value) && value >= limits.min && value <= limits.max;
 }
 
 function trialLabel(trial: Trial): string {

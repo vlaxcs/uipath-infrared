@@ -29,27 +29,18 @@ function liveSource(files: Record<string, string>, overrides: Partial<RunSource>
 }
 
 describe("the sandbox panel", () => {
-  it("sends only the two numbers the prompt filled in", async () => {
+  it("lets a field be cleared and retyped, and sends the two numbers", async () => {
     const source = liveSource({});
     render(<SandboxPanel source={source} runId="run-1" layout="managed_services" pollMs={10} />);
-
-    fireEvent.change(screen.getByLabelText("Prompt"), { target: { value: "150 rps for 30 seconds" } });
-    fireEvent.click(screen.getByRole("button", { name: "Fill fields" }));
-    expect(screen.getByText("Read: 150 requests/s, 30 s per phase.")).toBeTruthy();
-    expect((screen.getByLabelText("Requests per second") as HTMLInputElement).value).toBe("150");
-
+    const rate = screen.getByLabelText("Requests per second") as HTMLInputElement;
+    fireEvent.change(rate, { target: { value: "" } });
+    expect(rate.value).toBe("");
+    expect((screen.getByRole("button", { name: "Run trial" }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(rate, { target: { value: "150" } });
+    fireEvent.change(screen.getByLabelText("Seconds per phase"), { target: { value: "30" } });
     fireEvent.click(screen.getByRole("button", { name: "Run trial" }));
-    await waitFor(() => expect(source.rehearse).toHaveBeenCalled());
-    expect(source.rehearse).toHaveBeenCalledWith("run-1", { requests_per_second: 150, phase_seconds: 30 });
+    await waitFor(() => expect(source.rehearse).toHaveBeenCalledWith("run-1", { requests_per_second: 150, phase_seconds: 30 }));
     expect(await screen.findByRole("button", { name: "Trial running" })).toBeTruthy();
-  });
-
-  it("says when a prompt names neither a rate nor a phase", () => {
-    render(<SandboxPanel source={liveSource({})} runId="run-1" layout="managed_services" />);
-    fireEvent.change(screen.getByLabelText("Prompt"), { target: { value: "make it harder" } });
-    fireEvent.click(screen.getByRole("button", { name: "Fill fields" }));
-    expect(screen.getByText(/Nothing read/)).toBeTruthy();
-    expect((screen.getByLabelText("Requests per second") as HTMLInputElement).value).toBe("10");
   });
 
   it("lists trials newest first and shows the verdict of the one picked", async () => {
