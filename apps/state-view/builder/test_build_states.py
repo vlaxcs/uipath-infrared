@@ -130,6 +130,22 @@ class HonestyTest(unittest.TestCase):
         self.assertEqual(len(set(seen)), DATASET["stepCount"])
 
 
+class EstateTodayTest(unittest.TestCase):
+    def test_the_estate_alone_is_one_observed_state_with_no_plan(self):
+        dataset = build_states.build_document(build_states.INFRA_PATH, None)["dataset"]
+        self.assertEqual(len(dataset["states"]), 1)
+        self.assertEqual(dataset["stepCount"], 0)
+        self.assertEqual(dataset["stages"], [])
+        self.assertEqual(dataset["states"][0]["label"], "Current estate")
+        self.assertEqual(dataset["states"][0]["summary"]["components"], 38)
+        self.assertIsNone(dataset["source"]["result"])
+        self.assertTrue(dataset["subtitle"].startswith("Estate today"))
+
+    def test_estate_mode_refuses_a_result(self):
+        with self.assertRaises(SystemExit):
+            build_states.main(["--estate", "--infra", str(build_states.INFRA_PATH), "--result", str(build_states.RESULT_PATH)])
+
+
 class DashboardMappingTest(unittest.TestCase):
     def test_component_shape_matches_the_dashboard_type(self):
         required = {

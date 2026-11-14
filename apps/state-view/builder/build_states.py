@@ -631,11 +631,18 @@ def find_candidate(result: dict, candidate_id: str) -> dict:
     raise SystemExit(f"candidate {candidate_id!r} not found in result")
 
 
-def build_dataset(infra_path: Path = INFRA_PATH, result_path: Path = RESULT_PATH, candidate_id: str | None = None) -> dict:
+def build_dataset(
+    infra_path: Path = INFRA_PATH,
+    result_path: Path | None = RESULT_PATH,
+    candidate_id: str | None = None,
+) -> dict:
     infra = load_json(infra_path)
-    result = load_json(result_path)
-    sample = candidate_id is None
-    if sample:
+    estate = result_path is None
+    result = {} if estate else load_json(result_path)
+    sample = candidate_id is None and not estate
+    if estate:
+        winner = {"id": None, "actions": []}
+    elif sample:
         winner = find_winner(result)
         if winner.get("id") != CANDIDATE_ID:
             raise SystemExit(
@@ -820,11 +827,12 @@ def build_dataset(infra_path: Path = INFRA_PATH, result_path: Path = RESULT_PATH
         "title": "Demo shop" if sample else infra.get("project", "Estate"),
         "subtitle": (
             "Sample plan · 4 stacks · 38 resources" if sample
+            else f"Estate today · {len(stacks)} stacks · {len(baseline_components)} resources" if estate
             else f"Plan {winner.get('id')} · {len(stacks)} stacks · {len(baseline_components)} resources"
         ),
         "source": {
             "infra": relative(infra_path),
-            "result": relative(result_path),
+            "result": None if estate else relative(result_path),
             "candidate": winner.get("id"),
             "sample": sample,
         },
@@ -837,7 +845,7 @@ def build_dataset(infra_path: Path = INFRA_PATH, result_path: Path = RESULT_PATH
     }
 
 
-def build_document(infra_path: Path = INFRA_PATH, result_path: Path = RESULT_PATH, candidate_id: str | None = None) -> dict:
+def build_document(infra_path: Path = INFRA_PATH, result_path: Path | None = RESULT_PATH, candidate_id: str | None = None) -> dict:
     return {"dataset": build_dataset(infra_path, result_path, candidate_id)}
 
 
@@ -847,11 +855,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--infra", type=Path, help="a run's infra.json (default: the demo estate)")
     parser.add_argument("--result", type=Path, help="a run's result.json (default: the demo result)")
     parser.add_argument("--candidate", help="the candidate to lay out (default: the demo's winner)")
+    parser.add_argument("--estate", action="store_true", help="only the estate today, from --infra alone")
     args = parser.parse_args(argv)
-    if (args.infra is None) != (args.result is None) or (args.candidate is not None and args.infra is None):
-        parser.error("--infra, --result and --candidate go together; without them the demo dataset is built")
-
-    document = build_document(args.infra or INFRA_PATH, args.result or RESULT_PATH, args.candidate)
+    if args.estate:
+        if args.infra is None or args.result is not None or args.candidate is not None:
+            parser.error("--estate takes --infra and no --result or --candidate")
+        document = build_document(args.infra, None)
+    else:
+        if (args.infra is None) != (args.result is None) or (args.candidate is not None and args.infra is None):
+            parser.error("--infra, --result and --candidate go together; without them the demo dataset is built")
+        document = build_document(args.infra or INFRA_PATH, args.result or RESULT_PATH, args.candidate)
     out_path = Path(args.out)
     if not out_path.is_absolute():
         out_path = (Path.cwd() / out_path).resolve()
