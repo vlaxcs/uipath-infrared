@@ -1,87 +1,73 @@
-import { useId } from "react";
-import { AVAILABILITY_TARGETS, RANKINGS, REGION_GROUPS, ZONE_COUNTS, rankingOf, withRanking, withRegion } from "~/onboarding/criteria";
+import { useId, useState } from "react";
+import { FOCUSES, marketsOffered, withFocus } from "~/onboarding/criteria";
 import type { Criteria } from "~/onboarding/types";
 
-const FIELD = "flex flex-col gap-1";
-const LABEL = "text-label font-medium text-fg";
-const SELECT = "rounded-control border border-border bg-surface px-3 py-2 text-label text-fg";
-const HINT = "text-caption text-fg-subtle";
+type CriteriaFieldsProps = {
+  criteria: Criteria;
+  onChange: (criteria: Criteria) => void;
+  markets?: readonly string[];
+};
 
-export function CriteriaFields({ criteria, onChange }: { criteria: Criteria; onChange: (criteria: Criteria) => void }) {
+export function CriteriaFields({ criteria, onChange, markets }: CriteriaFieldsProps) {
   const id = useId();
-  const ranking = rankingOf(criteria.weights);
-  const { cost, risk, effort } = criteria.weights;
+  const [lastMarket, setLastMarket] = useState(criteria.market);
+  const offered = marketsOffered(markets);
+  const market = offered.find((item) => item.code === criteria.market);
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <div className={FIELD}>
-        <label htmlFor={`${id}-availability`} className={LABEL}>High availability</label>
-        <select
-          id={`${id}-availability`}
-          value={criteria.min_availability_pct}
-          onChange={(event) => onChange({ ...criteria, min_availability_pct: Number(event.target.value) })}
-          className={SELECT}
-        >
-          {AVAILABILITY_TARGETS.map((target) => (
-            <option key={target} value={target}>{target}% minimum</option>
-          ))}
-        </select>
-        <label htmlFor={`${id}-zones`} className="sr-only">Zones</label>
-        <select
-          id={`${id}-zones`}
-          value={criteria.min_zones}
-          onChange={(event) => onChange({ ...criteria, min_zones: Number(event.target.value) })}
-          className={SELECT}
-        >
-          {ZONE_COUNTS.map((zones) => (
-            <option key={zones} value={zones}>{zones === 1 ? "1 zone" : `${zones} zones`} minimum</option>
-          ))}
-        </select>
-        <p className={HINT}>Hard constraint: a candidate below it is infeasible.</p>
-      </div>
-
-      <div className={FIELD}>
-        <label htmlFor={`${id}-ranking`} className={LABEL}>Cost reduction</label>
-        <select
-          id={`${id}-ranking`}
-          value={ranking}
-          onChange={(event) => onChange(withRanking(criteria, event.target.value))}
-          className={SELECT}
-        >
-          {RANKINGS.map((option) => (
-            <option key={option.id} value={option.id}>{option.label}</option>
-          ))}
-          {ranking === "custom" ? <option value="custom">Custom</option> : null}
-        </select>
-        <p className={HINT}>Ranking weights: cost {cost}, risk {risk}, effort {effort}.</p>
-      </div>
-
-      <fieldset className={FIELD}>
-        <legend className={LABEL}>Data residency</legend>
-        {REGION_GROUPS.map((group) => {
-          const allowed = criteria.allowed_regions.includes(group.id);
-          const last = allowed && criteria.allowed_regions.length === 1;
+    <div className="flex flex-col gap-4">
+      <div role="radiogroup" aria-label="Focus" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {FOCUSES.map((focus) => {
+          const chosen = criteria.focus === focus.id;
           return (
-            <label key={group.id} className="flex items-center gap-2 text-label text-fg">
-              <input
-                type="checkbox"
-                name="region"
-                checked={allowed}
-                disabled={last}
-                onChange={(event) => onChange(withRegion(criteria, group.id, event.target.checked))}
-                className="accent-accent"
-              />
-              {group.label}
+            <label
+              key={focus.id}
+              className={
+                chosen
+                  ? "flex cursor-pointer flex-col gap-1 rounded-card border-2 border-accent bg-surface p-4"
+                  : "flex cursor-pointer flex-col gap-1 rounded-card border-2 border-border bg-surface p-4 hover:border-border-strong"
+              }
+            >
+              <span className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name={`${id}-focus`}
+                  value={focus.id}
+                  checked={chosen}
+                  onChange={() => onChange(withFocus(focus.id, lastMarket))}
+                  className="accent-accent"
+                />
+                <span className="text-label font-semibold text-fg">{focus.label}</span>
+              </span>
+              <span className="text-caption text-fg-subtle">{focus.effect}</span>
             </label>
           );
         })}
-        <p className={HINT}>Where personal and confidential data may live. At least one region stays allowed.</p>
-      </fieldset>
-
-      <div className={FIELD}>
-        <span className={LABEL}>Performance</span>
-        <p className="text-label text-fg-muted">Not evaluated by the engine yet.</p>
       </div>
+
+      {criteria.focus === "zone" ? (
+        <div className="flex flex-col gap-1 sm:max-w-sm">
+          <label htmlFor={`${id}-market`} className="text-label font-medium text-fg">Market</label>
+          <select
+            id={`${id}-market`}
+            value={criteria.market}
+            onChange={(event) => {
+              setLastMarket(event.target.value);
+              onChange({ focus: "zone", market: event.target.value });
+            }}
+            className="rounded-control border border-border bg-surface px-3 py-2 text-label text-fg"
+          >
+            {offered.map((item) => (
+              <option key={item.code} value={item.code}>{item.label}</option>
+            ))}
+          </select>
+          {market ? (
+            <p className="text-caption text-fg-subtle">
+              Allowed regions: <span className="font-mono">{market.regions}</span>. The catalog prices regions per group, so a country narrows to its group.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

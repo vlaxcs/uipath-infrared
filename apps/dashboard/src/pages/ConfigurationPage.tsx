@@ -75,7 +75,7 @@ export function ConfigurationPage({ source = orchestratorOnboarding }: { source?
         <p role="alert" className="text-label text-status-failed">{state.reason}</p>
       ) : (
         <form aria-label="Defaults" onSubmit={save} className="flex flex-col gap-4">
-          <PageSection title="Project defaults">
+          <PageSection title="Default focus">
             <CriteriaFields criteria={state.profile.criteria} onChange={(criteria) => update({ ...state.profile, criteria })} />
           </PageSection>
           <PageSection title="On-prem">

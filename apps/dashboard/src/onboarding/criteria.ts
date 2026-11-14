@@ -1,46 +1,43 @@
-import type { Criteria, Profile, Weights } from "~/onboarding/types";
+import type { Criteria, Focus, Profile } from "~/onboarding/types";
 
-export const AVAILABILITY_TARGETS = [99.5, 99.9, 99.95, 99.99] as const;
-export const ZONE_COUNTS = [1, 2, 3] as const;
-
-export const RANKINGS: readonly { id: string; label: string; weights: Weights }[] = [
-  { id: "cost", label: "Cost first", weights: { cost: 0.65, risk: 0.25, effort: 0.1 } },
-  { id: "balanced", label: "Balanced", weights: { cost: 0.4, risk: 0.4, effort: 0.2 } },
-  { id: "risk", label: "Risk first", weights: { cost: 0.2, risk: 0.65, effort: 0.15 } },
+export const FOCUSES: readonly { id: Focus; label: string; effect: string }[] = [
+  { id: "availability", label: "High availability", effect: "At least 99.95% and 2 zones. Ranks by risk." },
+  { id: "zone", label: "Zones", effect: "Keeps data in the regions allowed for the market you sell in." },
+  { id: "performance", label: "Performance", effect: "Not scored by the engine yet. Ranks balanced." },
+  { id: "cost", label: "Cost reduction", effect: "Keeps the project's constraints. Ranks by cost." },
 ];
 
-export const REGION_GROUPS: readonly { id: string; label: string }[] = [
-  { id: "eu-*", label: "EU (eu-*)" },
-  { id: "us-*", label: "US (us-*)" },
+export const MARKETS: readonly { code: string; label: string; regions: string }[] = [
+  { code: "at", label: "Austria", regions: "eu-*" },
+  { code: "be", label: "Belgium", regions: "eu-*" },
+  { code: "dk", label: "Denmark", regions: "eu-*" },
+  { code: "fi", label: "Finland", regions: "eu-*" },
+  { code: "fr", label: "France", regions: "eu-*" },
+  { code: "de", label: "Germany", regions: "eu-*" },
+  { code: "ie", label: "Ireland", regions: "eu-*" },
+  { code: "it", label: "Italy", regions: "eu-*" },
+  { code: "nl", label: "Netherlands", regions: "eu-*" },
+  { code: "no", label: "Norway", regions: "eu-*" },
+  { code: "pl", label: "Poland", regions: "eu-*" },
+  { code: "pt", label: "Portugal", regions: "eu-*" },
+  { code: "ro", label: "Romania", regions: "eu-*" },
+  { code: "es", label: "Spain", regions: "eu-*" },
+  { code: "se", label: "Sweden", regions: "eu-*" },
+  { code: "ch", label: "Switzerland", regions: "eu-*" },
+  { code: "gb", label: "United Kingdom", regions: "eu-*" },
+  { code: "us", label: "United States", regions: "us-*" },
 ];
 
-export const DEFAULT_CRITERIA: Criteria = {
-  min_availability_pct: 99.9,
-  min_zones: 2,
-  weights: RANKINGS[0].weights,
-  allowed_regions: ["eu-*"],
-};
+export const DEFAULT_MARKET = "fr";
+
+export const DEFAULT_CRITERIA: Criteria = { focus: "cost" };
 
 export const DEFAULT_PROFILE: Profile = { criteria: DEFAULT_CRITERIA, onprem: { wanted: false } };
 
-export function rankingOf(weights: Weights): string {
-  const match = RANKINGS.find(
-    (ranking) => ranking.weights.cost === weights.cost && ranking.weights.risk === weights.risk && ranking.weights.effort === weights.effort,
-  );
-  return match?.id ?? "custom";
+export function withFocus(focus: Focus, market: string | undefined): Criteria {
+  return focus === "zone" ? { focus, market: market ?? DEFAULT_MARKET } : { focus };
 }
 
-export function withRanking(criteria: Criteria, id: string): Criteria {
-  const ranking = RANKINGS.find((candidate) => candidate.id === id);
-  return ranking ? { ...criteria, weights: ranking.weights } : criteria;
-}
-
-export function withRegion(criteria: Criteria, region: string, allowed: boolean): Criteria {
-  const has = criteria.allowed_regions.includes(region);
-  if (allowed === has) return criteria;
-  if (!allowed && criteria.allowed_regions.length === 1) return criteria;
-  return {
-    ...criteria,
-    allowed_regions: allowed ? [...criteria.allowed_regions, region] : criteria.allowed_regions.filter((item) => item !== region),
-  };
+export function marketsOffered(codes: readonly string[] | undefined): readonly (typeof MARKETS)[number][] {
+  return codes ? MARKETS.filter((market) => codes.includes(market.code)) : MARKETS;
 }

@@ -25,6 +25,8 @@ describe("the Tailwind theme", () => {
     "stroke-graph-edge",
     "border-status-idle",
     "text-status-orphan",
+    "bg-accent-hover",
+    "bg-credit-hover",
   ])("generates the token utility %s", async (candidate) => {
       expect(await generates(candidate)).toBe(true);
     },

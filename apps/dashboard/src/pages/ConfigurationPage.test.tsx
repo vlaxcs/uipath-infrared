@@ -12,31 +12,20 @@ function source(profile: Profile = DEFAULT_PROFILE, saveProfile = vi.fn(async (s
 }
 
 describe("the configuration page", () => {
-  it("shows the saved defaults", async () => {
-    render(<ConfigurationPage source={source({ ...DEFAULT_PROFILE, criteria: { ...DEFAULT_PROFILE.criteria, min_availability_pct: 99.99, min_zones: 3 } })} />);
-    expect(((await screen.findByLabelText("High availability")) as HTMLSelectElement).value).toBe("99.99");
-    expect((screen.getByLabelText("Zones") as HTMLSelectElement).value).toBe("3");
-    expect((screen.getByRole("checkbox", { name: "EU (eu-*)" }) as HTMLInputElement).checked).toBe(true);
-    expect(screen.getByText("Not evaluated by the engine yet.")).toBeTruthy();
+  it("shows the saved focus", async () => {
+    render(<ConfigurationPage source={source({ ...DEFAULT_PROFILE, criteria: { focus: "zone", market: "de" } })} />);
+    expect(((await screen.findByRole("radio", { name: /Zones/ })) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText("Market") as HTMLSelectElement).value).toBe("de");
   });
 
-  it("saves the edited criteria", async () => {
+  it("saves one focus as the default", async () => {
     const saveProfile = vi.fn(async (saved: Profile) => saved);
     render(<ConfigurationPage source={source(DEFAULT_PROFILE, saveProfile)} />);
-    fireEvent.change(await screen.findByLabelText("Cost reduction"), { target: { value: "risk" } });
-    fireEvent.click(screen.getByRole("checkbox", { name: "US (us-*)" }));
+    fireEvent.click(await screen.findByRole("radio", { name: /High availability/ }));
     fireEvent.click(screen.getByRole("button", { name: "Save defaults" }));
     await waitFor(() => expect(saveProfile).toHaveBeenCalledTimes(1));
-    const saved = saveProfile.mock.calls[0][0];
-    expect(saved.criteria.weights).toEqual({ cost: 0.2, risk: 0.65, effort: 0.15 });
-    expect(saved.criteria.allowed_regions).toEqual(["eu-*", "us-*"]);
+    expect(saveProfile.mock.calls[0][0].criteria).toEqual({ focus: "availability" });
     expect(await screen.findByText("Saved. New analyses start from these defaults.")).toBeTruthy();
-  });
-
-  it("keeps the last region allowed", async () => {
-    render(<ConfigurationPage source={source()} />);
-    const eu = (await screen.findByRole("checkbox", { name: "EU (eu-*)" })) as HTMLInputElement;
-    expect(eu.disabled).toBe(true);
   });
 
   it("asks for the on-prem site once on-prem is wanted, and saves it", async () => {

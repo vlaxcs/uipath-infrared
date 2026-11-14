@@ -1,6 +1,8 @@
 export type Connection = {
   id: string;
   label: string;
+  endpoint?: string;
+  reachable?: boolean;
 };
 
 export type Project = {
@@ -14,19 +16,14 @@ export type OnboardingSetup = {
   providers: string[];
   onprem: boolean;
   projects: Project[];
+  markets?: string[];
 };
 
-export type Weights = {
-  cost: number;
-  risk: number;
-  effort: number;
-};
+export type Focus = "availability" | "zone" | "performance" | "cost";
 
 export type Criteria = {
-  min_availability_pct: number;
-  min_zones: number;
-  weights: Weights;
-  allowed_regions: string[];
+  focus: Focus;
+  market?: string;
 };
 
 export type ProfileSite = {

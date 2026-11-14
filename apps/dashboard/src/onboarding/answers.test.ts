@@ -77,9 +77,9 @@ describe("the onboarding answers", () => {
   });
 
   it("start from the saved profile: its criteria, and on-prem when it is wanted and allowed", () => {
-    const profile = { criteria: { ...DEFAULT_CRITERIA, min_availability_pct: 99.99 }, onprem: { wanted: true } };
+    const profile = { criteria: { focus: "zone" as const, market: "fr" }, onprem: { wanted: true } };
     const answers = initialAnswers(setup, profile);
-    expect(answers.criteria.min_availability_pct).toBe(99.99);
+    expect(answers.criteria).toEqual({ focus: "zone", market: "fr" });
     expect(answers.onprem).toBe(setup.onprem);
     expect(initialAnswers({ ...setup, onprem: false }, profile).onprem).toBe(false);
   });

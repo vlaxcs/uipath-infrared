@@ -2,6 +2,7 @@ import type { FormEvent, ReactNode } from "react";
 import { canStart, onpremChoice, targetChoices, withProject, withTarget } from "~/onboarding/answers";
 import { CriteriaFields } from "~/onboarding/CriteriaFields";
 import { ProjectHeld } from "~/onboarding/ProjectHeld";
+import { StatusBadge } from "~/ui/StatusBadge";
 import type { RunSummary } from "~/runs/types";
 import type { Answers, Choice, OnboardingSetup } from "~/onboarding/types";
 
@@ -81,6 +82,16 @@ function Checkbox({ name, choice, onChange }: { name: string; choice: Choice; on
   );
 }
 
+function ConnectionState({ reachable, endpoint }: { reachable?: boolean; endpoint?: string }) {
+  if (reachable === undefined) return null;
+  return (
+    <span className="flex flex-wrap items-center gap-2">
+      <StatusBadge label={reachable ? "Connected" : "Not reachable"} tone={reachable ? "completed" : "failed"} />
+      {endpoint ? <span className="font-mono text-caption text-fg-subtle">{endpoint}</span> : null}
+    </span>
+  );
+}
+
 export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, error, holder = null, onOpenRun }: OnboardingFormProps) {
   const onprem = onpremChoice(setup, answers);
   const submit = (event: FormEvent) => {
@@ -92,15 +103,17 @@ export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, e
     <form aria-label="New run" onSubmit={submit} className="grid w-full gap-6 lg:grid-cols-2">
       <Section title="1. Connect the infrastructure">
         {setup.connections.map((connection) => (
-          <Option
-            key={connection.id}
-            type="radio"
-            name="connection"
-            id={connection.id}
-            label={connection.label}
-            checked={answers.connection === connection.id}
-            onChange={() => onAnswers({ ...answers, connection: connection.id })}
-          />
+          <div key={connection.id} className="flex flex-wrap items-center justify-between gap-2">
+            <Option
+              type="radio"
+              name="connection"
+              id={connection.id}
+              label={connection.label}
+              checked={answers.connection === connection.id}
+              onChange={() => onAnswers({ ...answers, connection: connection.id })}
+            />
+            <ConnectionState reachable={connection.reachable} endpoint={connection.endpoint} />
+          </div>
         ))}
       </Section>
 
@@ -123,23 +136,26 @@ export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, e
         )}
       </Section>
 
-      <Section title="3. Where it may move" className="lg:row-span-2">
-        {targetChoices(setup, answers).map((choice) => (
-          <Checkbox
-            key={choice.id}
-            name="target"
-            choice={choice}
-            onChange={(checked) => onAnswers(withTarget(answers, choice.id, checked))}
-          />
-        ))}
+      <Section title="3. Focus" className="lg:col-span-2">
+        <p className="text-caption text-fg-muted">One focus for this run. The default comes from Configuration.</p>
+        <CriteriaFields criteria={answers.criteria} markets={setup.markets} onChange={(criteria) => onAnswers({ ...answers, criteria })} />
       </Section>
 
-      <Section title="4. Criteria" className="lg:col-span-2">
-        <CriteriaFields criteria={answers.criteria} onChange={(criteria) => onAnswers({ ...answers, criteria })} />
+      <Section title="4. Where it may move" className={onprem ? "" : "lg:col-span-2"}>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {targetChoices(setup, answers).map((choice) => (
+            <Checkbox
+              key={choice.id}
+              name="target"
+              choice={choice}
+              onChange={(checked) => onAnswers(withTarget(answers, choice.id, checked))}
+            />
+          ))}
+        </div>
       </Section>
 
       {onprem ? (
-        <Section title="5. On-prem" className="lg:col-start-1 lg:row-start-2">
+        <Section title="5. On-prem">
           <Checkbox name="onprem" choice={onprem} onChange={(checked) => onAnswers({ ...answers, onprem: checked })} />
           <p className="text-caption text-fg-muted">Infrared prices the hardware, the space and the people to run it.</p>
         </Section>

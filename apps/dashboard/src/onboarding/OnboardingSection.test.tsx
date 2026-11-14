@@ -39,9 +39,32 @@ describe("onboarding", () => {
   it("shows the sections in order, with the controls in that order", async () => {
     await shown(source());
     const legends = [...document.querySelectorAll("legend")].map((legend) => legend.textContent);
-    expect(legends).toEqual(["1. Connect the infrastructure", "2. Pick the project", "3. Where it may move", "4. Criteria", "Data residency", "5. On-prem"]);
+    expect(legends).toEqual(["1. Connect the infrastructure", "2. Pick the project", "3. Focus", "4. Where it may move", "5. On-prem"]);
     const controls = [...document.querySelectorAll("input, button")].map((element) => (element as HTMLInputElement).value || element.textContent);
-    expect(controls).toEqual(["floci", "startup", "strict", "aws", "managed_pg", "on", "on", "onprem", "Start the run"]);
+    expect(controls).toEqual(["floci", "startup", "strict", "availability", "zone", "performance", "cost", "aws", "managed_pg", "on", "Start the run"]);
+  });
+
+  it("runs with one focus, and a market when the focus is Zones", async () => {
+    const fake = source();
+    await shown(fake);
+    expect((screen.getByRole("radio", { name: /Cost reduction/ }) as HTMLInputElement).checked).toBe(true);
+    fireEvent.click(screen.getByRole("radio", { name: /Zones/ }));
+    fireEvent.change(screen.getByLabelText("Market"), { target: { value: "us" } });
+    expect(screen.getByText("us-*")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Start the run" }));
+    await waitFor(() => expect(fake.start).toHaveBeenCalled());
+    expect(vi.mocked(fake.start).mock.calls[0][0].onboarding.criteria).toEqual({ focus: "zone", market: "us" });
+  });
+
+  it("says whether the infrastructure answers", async () => {
+    const connected = { ...setup, connections: [{ id: "floci", label: "AWS (demo estate)", endpoint: "http://localhost:4566", reachable: true }] };
+    await shown(source({ load: vi.fn(async () => connected) }));
+    expect(screen.getByText("Connected")).toBeTruthy();
+    expect(screen.getByText("http://localhost:4566")).toBeTruthy();
+    cleanup();
+    const down = { ...setup, connections: [{ id: "floci", label: "AWS (demo estate)", endpoint: "http://localhost:4566", reachable: false }] };
+    await shown(source({ load: vi.fn(async () => down) }));
+    expect(screen.getByText("Not reachable")).toBeTruthy();
   });
 
   it("starts the run with every target ticked and on-prem off by default", async () => {

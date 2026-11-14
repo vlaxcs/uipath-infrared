@@ -35,19 +35,22 @@ Every page except `#/login` needs a session; without one it opens `#/login`.
 The mascot (`apps/site/rive/infrared.riv`, artboard `Infrared`, animation `float`) and one button: "Sign in with GitHub".
 
 ### Home
-- The mascot in the middle, animation `hood` (the hood falls and leaves the ghost).
-- Floating at the bottom, rounded: **Analyze** (with the credit mark) and **Previous analysis** side by side on the left; **+ Browser extension** on the right, linking to the Chrome extension, disabled until it is published.
+- Floating at the bottom, rounded: **Analyze** (with the credit mark and `1x`, the cost of a run) and **Previous analysis** side by side on the left; **+ Browser extension** on the right, linking to the Chrome extension, disabled until it is published.
 - Analyze with no credit left opens Account instead of a new analysis.
 
 ### Analyze
 Opens with a fade. The onboarding sections of `docs/onboarding.md`, pre-filled from Configuration:
-1. Infrastructure: the connected one.
-2. Project.
-3. Criteria: high availability, cost reduction, data residency, performance.
+1. Infrastructure: the connected one, with **Connected** or **Not reachable** and its endpoint. Connected means the orchestrator got an HTTP answer from the Floci endpoint (`AWS_ENDPOINT_URL`, default `http://localhost:4566`) within 1 s.
+2. Project. A project held by an active run says which run, why (running a step, waiting for the layout decision, waiting for the plan approval) and since when, with a link to that run. Start stays disabled until that run finishes or is stopped.
+3. Focus: one of **High availability**, **Zones**, **Performance**, **Cost reduction**, from the Configuration default, changeable for this run.
+   - High availability: at least 99.95% and 2 zones, never lowering a stricter project; ranks by risk.
+   - Zones: a market (a country). Personal and confidential data may only live in that market's regions. The catalog prices regions per group (`eu-*`, `us-*`), so a country narrows to its group: France gives `eu-*`.
+   - Performance: the engine does not score it yet; ranks balanced.
+   - Cost reduction: keeps the project's constraints; ranks by cost.
 4. Where it may move: every provider the run's catalog prices.
 5. On-prem.
 
-Start takes one credit and opens the run page.
+On desktop the sections sit in two columns, with Focus across both. Start takes one credit and opens the run page.
 
 ### Run
 - **Left: the agent.** A state graph of the workflow: each step's status in order, steps that run at the same time side by side, and the step in progress with its log streaming. The mascot plays the step's animation (section 6). A gate shows its decision in place, and the same gate goes to Slack.
@@ -57,12 +60,12 @@ Start takes one credit and opens the run page.
 - **Migration plan**: Andrei's A to B view (`docs/run-plan-view.md`), under the candidate it belongs to.
 
 ### Previous analysis
-A table of every run: id, project, started, status, winner, monthly cost before and after. A row opens its run page, with the same content as a live run.
+A table of every run: id, project, started, status, winner, monthly cost before and after. A row opens its run page, with the same content as a live run. A live run (running or at a gate) is highlighted and has a bar under its row: one segment per step, done, current or waiting at a gate. The table refreshes every 3 s.
 
 ### Configuration
 - **GitHub organisation**: the one connected at sign-in, with the repositories it grants.
 - **Infrastructure**: AWS. In the MVP it reaches Floci through the orchestrator's own credentials; the page says so.
-- **Project defaults**: the weight of each criterion (high availability, cost reduction, data residency, performance) and the allowed regions. New analyses start from these.
+- **Default focus**: one of the four focuses of Analyze, and the market when it is Zones. New analyses start from it. A profile saved in an older shape reads as the default (Cost reduction).
 - **On-prem**: wanted or not; headquarters with its free area, or a search area with a radius (`docs/onprem-site.md`).
 
 ### Account
