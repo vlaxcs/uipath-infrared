@@ -9,6 +9,7 @@ import type { RunSource } from "~/runs/source";
 import { deriveStepStates } from "~/runs/stepProgress";
 import type { HumanDecision, RunDetail, RunStep } from "~/runs/types";
 import { PlanView } from "~/plan/PlanView";
+import { useParallelTasks } from "~/runs/useParallelTasks";
 import { latestPickedLayout } from "~/sandbox/pickedLayout";
 import { SandboxPanel } from "~/sandbox/SandboxPanel";
 import { latestOutputPath, latestRevision, primaryArtifactPath, revisionsForStep } from "~/runs/artifactRefs";
@@ -127,6 +128,7 @@ export function RunView({ run: initialRun, source, initialStep = null, onReload,
   const log = useStepLog(source, run.id, loggedStep);
   const candidate = candidates?.candidates.find((item) => item.id === selectedCandidate) ?? null;
   const pickedLayout = useMemo(() => latestPickedLayout(run), [run]);
+  const parallel = useParallelTasks(source, run, typeof result?.winner === "string" ? result.winner : null);
 
   const reviewGate = () => {
     if (run.awaiting === "layout") pinStep("present");
@@ -155,7 +157,7 @@ export function RunView({ run: initialRun, source, initialStep = null, onReload,
           onStartAgain={source.mode === "live" ? onStartAgain : undefined}
         />
         <AwaitingBanner run={run} onReview={reviewGate} />
-        <StepGraph run={run} states={steps} selectedStep={selectedStep} onSelectStep={toggleStep} />
+        <StepGraph run={run} states={steps} selectedStep={selectedStep} onSelectStep={toggleStep} parallel={parallel} />
         {loggedStep ? <StepLog step={loggedStep} log={log} /> : null}
         {candidates && candidates.candidates.length > 0 ? (
           <section aria-labelledby="run-candidates-title" className="flex flex-col gap-3">

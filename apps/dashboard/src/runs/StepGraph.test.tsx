@@ -58,4 +58,27 @@ describe("the step graph", () => {
     fireEvent.click(within(list).getByRole("button", { name: /Evaluate/ }));
     expect(onSelectStep).toHaveBeenCalledWith("evaluate");
   });
+
+  it("shows the plan builds that run beside Present and Rehearse, with their state", () => {
+    const run = cutSampleRun(14);
+    render(
+      <StepGraph
+        run={run}
+        states={deriveStepStates(run.events, run)}
+        selectedStep={null}
+        onSelectStep={() => {}}
+        parallel={[
+          { id: "a", label: "Migration plan · managed", beside: "present", file: "states.1.managed.json", state: "done" },
+          { id: "b", label: "Migration plan · lift", beside: "rehearse", file: "states.1.lift.json", state: "running" },
+        ]}
+      />,
+    );
+
+    const present = screen.getByRole("list", { name: "In parallel with Present" });
+    expect(present.textContent).toContain("Migration plan · managed");
+    expect(present.textContent).toContain("Built");
+    const rehearse = screen.getByRole("list", { name: "In parallel with Rehearse" });
+    expect(rehearse.textContent).toContain("Building");
+    expect(screen.queryByRole("list", { name: "In parallel with Extract" })).toBeNull();
+  });
 });
