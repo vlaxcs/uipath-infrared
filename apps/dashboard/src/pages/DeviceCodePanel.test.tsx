@@ -59,7 +59,7 @@ describe("signing in with a GitHub code", () => {
       fireEvent.click(screen.getByRole("button", { name: "Copy the sign-in code" }));
     });
     expect(writeText).toHaveBeenCalledWith("WDJB-MJHT");
-    expect(screen.getByRole("status").textContent).toContain("Code copied");
+    expect(screen.getByText(/Code copied/).getAttribute("role")).toBe("status");
   });
 
   it("polls at GitHub's interval and signs in once the code is approved", async () => {

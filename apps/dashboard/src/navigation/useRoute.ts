@@ -14,7 +14,7 @@ const BASE = import.meta.env.BASE_URL;
 function currentRoute(): Route {
   if (isLegacyHash(window.location.hash)) {
     const route = readRoute(window.location.hash);
-    window.history.replaceState(null, "", BASE + routePath(route));
+    window.history.replaceState(null, "", BASE + routePath(route) + window.location.search);
     return route;
   }
   return readRoute(pathWithin(window.location.pathname, BASE));
