@@ -47,6 +47,8 @@ def driver_demand(placement: Placement, driver: str, hours_per_month: float) -> 
             return _usage_million(placement, "invocations")
         case "gb_s_month":
             return _gb_s(placement)
+        case "ingested_gb_month":
+            return _ingested(placement, hours_per_month)
         case "consumed_rcu_million":
             return _usage_rate_million(placement, "consumed_rcu", hours_per_month)
         case "consumed_wcu_million":
@@ -134,6 +136,17 @@ def _gb_s(placement: Placement) -> Demand | None:
         f"x invocations sum x 30 / window_days x {placement.quantity:g}"
     )
     return Demand(gb_s, basis, (memory.evidence, invocations.evidence, duration.evidence))
+
+
+def _ingested(placement: Placement, hours_per_month: float) -> Demand | None:
+    incoming = placement.component.usage.get("incoming_bytes_per_s")
+    if incoming is not None and incoming.avg is not None:
+        gb = incoming.avg * SECONDS_PER_HOUR * hours_per_month * placement.quantity / 1e9
+        return Demand(gb, "incoming bytes avg over the month", (incoming.evidence,))
+    data = placement.component.data_gb
+    if data is not None:
+        return Demand(data.value, f"data_gb {data.value:g}", (data.evidence,))
+    return None
 
 
 def _iops(placement: Placement, hours_per_month: float) -> Demand | None:

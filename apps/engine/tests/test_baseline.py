@@ -103,8 +103,15 @@ def test_real_extraction_prices_without_crashing_and_flags_unpriced(real_infra, 
 
 def test_an_other_kind_component_without_an_exact_service_match_stays_unpriced(real_infra, catalog):
     baseline = price_baseline(real_infra, catalog)
+    rule = next(c for c in baseline.costs if c.component == "rule-legacy-cron-every-minute")
+    assert rule.catalog is None
+    assert rule.source == "unpriced"
+
+
+def test_an_ecr_matches_its_option_but_stays_unpriced_without_storage(real_infra, catalog):
+    baseline = price_baseline(real_infra, catalog)
     ecr = next(c for c in baseline.costs if c.component == "ecr-repositories")
-    assert ecr.catalog is None
+    assert ecr.catalog.option_id == "aws-ecr"
     assert ecr.source == "unpriced"
 
 

@@ -1,9 +1,12 @@
 {
   "schema_version": "1.0",
   "illustrative": true,
-  "disclaimer": "Placeholder numbers for building and testing the engine. Not real price lists, SLAs or vendor terms. 'managed_pg' is a generic serverless-Postgres vendor, not a specific product.",
+  "disclaimer": "Placeholder numbers for building and testing the engine. Not real price lists, SLAs or vendor terms. 'managed_pg' labels the managed Postgres plans the pricing build maps to Supabase and Neon; the build in contracts/real/catalog.json replaces these prices with the vendors' published ones.",
   "currency": "EUR",
   "hours_per_month": 730,
+  "x_unsourced_reasons": {
+    "platform/onprem-dc1": "on-prem hardware is quoted per site, so there is no public price list to snapshot"
+  },
   "options": [
     {
       "id": "aws-rds-postgres", "kind": "postgres", "provider": "aws", "service": "rds",
@@ -352,6 +355,33 @@
       "features_supported": [],
       "migration": { "effort_hours_fixed": 8, "same_provider_factor": 0.3, "cutover_downtime_hours": 0, "risk_factor": 0.1 },
       "ops_hours_month_per_unit": 0.2
+    },
+    {
+      "id": "aws-sns", "kind": "queue", "provider": "aws", "service": "sns",
+      "regions": ["eu-*", "us-*"],
+      "pricing": { "model": "per_unit", "per_unit": [ { "driver": "messages_million", "eur_per_unit": 0.45 } ] },
+      "sla": { "availability_pct": 99.99, "failure_domain_scope": "multi_zone", "failure_domains": 3 },
+      "features_supported": [],
+      "migration": { "effort_hours_fixed": 8, "same_provider_factor": 0.3, "cutover_downtime_hours": 0, "risk_factor": 0.1 },
+      "ops_hours_month_per_unit": 0.2
+    },
+    {
+      "id": "aws-ecr", "kind": "other", "provider": "aws", "service": "ecr",
+      "regions": ["eu-*", "us-*"],
+      "pricing": { "model": "per_unit", "per_unit": [ { "driver": "storage_gb_month", "eur_per_unit": 0.09 } ] },
+      "sla": { "availability_pct": 99.9, "failure_domain_scope": "multi_zone", "failure_domains": 3 },
+      "features_supported": ["image_scanning", "immutable_tags"],
+      "migration": { "effort_hours_fixed": 4, "same_provider_factor": 0.2, "cutover_downtime_hours": 0, "risk_factor": 0.1 },
+      "ops_hours_month_per_unit": 0.2
+    },
+    {
+      "id": "aws-firehose", "kind": "stream", "provider": "aws", "service": "firehose",
+      "regions": ["eu-*", "us-*"],
+      "pricing": { "model": "per_unit", "per_unit": [ { "driver": "ingested_gb_month", "eur_per_unit": 0.028 } ] },
+      "sla": { "availability_pct": 99.99, "failure_domain_scope": "multi_zone", "failure_domains": 3 },
+      "features_supported": ["compression", "s3_destination"],
+      "migration": { "effort_hours_fixed": 8, "same_provider_factor": 0.3, "cutover_downtime_hours": 0, "risk_factor": 0.15 },
+      "ops_hours_month_per_unit": 0.5
     }
   ],
   "onprem_platforms": [

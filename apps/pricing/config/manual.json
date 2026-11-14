@@ -8,6 +8,15 @@
     "unit": "HostedZone",
     "url": "https://aws.amazon.com/route53/pricing/"
   },
+  "neon-launch:cu-hour": {
+    "amount": 0.106,
+    "currency": "USD",
+    "note": "Neon Launch plan, USD per CU-hour (Scale is USD 0.222).",
+    "quote": "Compute 100 CU-hours/project $0.106/CU-hour",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://neon.com/docs/introduction/plans"
+  },
   "neon-scale:cu-hour": {
     "amount": 0.222,
     "currency": "USD",
@@ -88,5 +97,14 @@
     "read_on": "2026-11-14",
     "unit": "GB-Mo",
     "url": "https://supabase.com/docs/guides/platform/compute-and-disk"
+  },
+  "supabase:egress-gb": {
+    "amount": 0.09,
+    "currency": "USD",
+    "note": "Supabase Pro egress beyond the included 250 GB, USD per GB.",
+    "quote": "250 GB egress then $0.09 per GB",
+    "read_on": "2026-11-14",
+    "unit": "GB",
+    "url": "https://supabase.com/pricing"
   }
 }
