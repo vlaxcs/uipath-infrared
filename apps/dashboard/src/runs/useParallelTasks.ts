@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { parallelTasks, type ParallelTask } from "~/runs/parallelTasks";
+import { parallelTasks, trialCount, type ParallelTask } from "~/runs/parallelTasks";
 import type { RunSource } from "~/runs/source";
 import type { RunDetail } from "~/runs/types";
 
 const POLL_MS = 2000;
 
-export function useParallelTasks(source: RunSource, run: RunDetail, winner: string | null, pollMs = POLL_MS): ParallelTask[] {
+export type BesideThePipeline = { tasks: ParallelTask[]; trials: number };
+
+export function useParallelTasks(source: RunSource, run: RunDetail, winner: string | null, pollMs = POLL_MS): BesideThePipeline {
   const [files, setFiles] = useState<ReadonlySet<string>>(new Set());
   const [now, setNow] = useState(() => Date.now());
   const [tick, setTick] = useState(0);
@@ -31,5 +33,6 @@ export function useParallelTasks(source: RunSource, run: RunDetail, winner: stri
     return () => window.clearTimeout(timer);
   }, [running, tick, pollMs]);
 
-  return tasks;
+  const trials = useMemo(() => trialCount(files), [files]);
+  return useMemo(() => ({ tasks, trials }), [tasks, trials]);
 }

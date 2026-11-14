@@ -10,7 +10,7 @@ from engine.domain.costing import ONPREM_SOURCE, ComponentCost, cost_placement
 from engine.domain.egress import new_boundary_egress
 from engine.domain.end_state import EndState, apply_candidate
 from engine.domain.forecast import Forecast
-from engine.domain.growth import growth_split, total_split
+from engine.domain.growth import curve_split, growth_split
 from engine.domain.migration import Migration, migration_of
 from engine.domain.model import Infra
 from engine.domain.onprem import OnpremPlatformCost, platform_cost
@@ -110,8 +110,11 @@ def evaluate_candidate(
     onprem_eur = onprem.component_eur_month if onprem else {}
     costs = tuple(_with_onprem(cost_placement(p, catalog), onprem_eur) for p in end_state.placements.values())
     egress = new_boundary_egress(end_state, infra, catalog)
-    split = total_split(growth_split(c, end_state.placements[c.component]) for c in costs)
-    split[Growth.TRAFFIC] += egress.monthly_eur
+    split = curve_split(
+        (forecast.project_of(end_state.placements[c.component].component.stack), growth_split(c, end_state.placements[c.component]))
+        for c in costs
+    )
+    split[(None, Growth.TRAFFIC)] = split.get((None, Growth.TRAFFIC), 0.0) + egress.monthly_eur
     projection = project(split, forecast)
     migration = migration_of(
         end_state, catalog, business,

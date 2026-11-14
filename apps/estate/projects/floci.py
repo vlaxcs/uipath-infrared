@@ -1,6 +1,6 @@
 import json
 
-from startup.build import AMI, LIVE_INSTANCE_STATES, ensure, name_tag, tagged
+from startup.build import AMI, LIVE_INSTANCE_STATES, OWNER, ensure, name_tag, owner_map, owner_tags, tagged
 from synth.common import ACCOUNT, attempt, client, lambda_zip
 
 ec2 = client("ec2")
@@ -49,6 +49,10 @@ def network(name, cidr_prefix):
     return vid, subnets
 
 
+def ecs_tags():
+    return [{"key": key, "value": value} for key, value in OWNER.items()]
+
+
 def from_group(group, *ports):
     return [{"IpProtocol": "tcp", "FromPort": p, "ToPort": p, "UserIdGroupPairs": [{"GroupId": group}]} for p in ports]
 
@@ -62,7 +66,7 @@ def postgres(name, instance_class, version, storage_gb, subnets, group, public=F
             AllocatedStorage=storage_gb, StorageType="gp2", DBSubnetGroupName=f"{name}-subnets", VpcSecurityGroupIds=[group],
             MasterUsername="app_admin", MasterUserPassword="Password123", PubliclyAccessible=public, MultiAZ=multi_az,
             BackupRetentionPeriod=backup_days, StorageEncrypted=encrypted, DeletionProtection=deletion_protection,
-            AutoMinorVersionUpgrade=False)
+            AutoMinorVersionUpgrade=False, Tags=owner_tags())
 
 
 def redis(name, node_type, subnets):
@@ -71,11 +75,11 @@ def redis(name, node_type, subnets):
     attempt(name, elasticache.create_cache_cluster,
             CacheClusterId=name, Engine="redis", CacheNodeType=node_type, NumCacheNodes=1,
             CacheSubnetGroupName=f"{name}-subnets", PreferredAvailabilityZone=ZONES[0],
-            AutoMinorVersionUpgrade=False, SnapshotRetentionLimit=0)
+            AutoMinorVersionUpgrade=False, SnapshotRetentionLimit=0, Tags=owner_tags())
 
 
 def queue(name, encrypted, visibility_s, wait_s, retention_s):
-    attempt(name, sqs.create_queue, QueueName=name, Attributes={
+    attempt(name, sqs.create_queue, QueueName=name, tags=owner_map(), Attributes={
         "VisibilityTimeout": str(visibility_s), "ReceiveMessageWaitTimeSeconds": str(wait_s),
         "MessageRetentionPeriod": str(retention_s), "SqsManagedSseEnabled": "true" if encrypted else "false"})
     url = sqs.get_queue_url(QueueName=name)["QueueUrl"]
@@ -88,6 +92,8 @@ def bucket(name, versioned=False):
         return
     print(f"  new   {name}")
     s3.create_bucket(Bucket=name)
+    if OWNER:
+        s3.put_bucket_tagging(Bucket=name, Tagging={"TagSet": owner_tags()})
     if versioned:
         s3.put_bucket_versioning(Bucket=name, VersioningConfiguration={"Status": "Enabled"})
 
@@ -105,7 +111,7 @@ def function(name, runtime, memory_mb, timeout_s, role_arn, environment, subnets
     vpc = {"VpcConfig": {"SubnetIds": subnets, "SecurityGroupIds": [group]}} if subnets else {}
     attempt(name, lam.create_function, FunctionName=name, Runtime=runtime, Role=role_arn, Handler="index.handler",
             Code={"ZipFile": lambda_zip()}, MemorySize=memory_mb, Timeout=timeout_s,
-            Environment={"Variables": environment}, **vpc)
+            Environment={"Variables": environment}, Tags=owner_map(), **vpc)
 
 
 def event_source(function_name, source_arn, batch_size, **extra):
@@ -125,10 +131,10 @@ def load_balancer(name, vid, subnets, group):
     else:
         print(f"  new   {name}")
         arn = elb.create_load_balancer(Name=name, Subnets=subnets, SecurityGroups=[group], Scheme="internet-facing",
-                                       Type="application")["LoadBalancers"][0]["LoadBalancerArn"]
+                                       Type="application", Tags=owner_tags())["LoadBalancers"][0]["LoadBalancerArn"]
     groups = [g for g in elb.describe_target_groups()["TargetGroups"] if g["TargetGroupName"] == f"{name}-tg"]
     target_group = groups[0]["TargetGroupArn"] if groups else elb.create_target_group(
-        Name=f"{name}-tg", Protocol="HTTP", Port=8080, VpcId=vid, TargetType="ip")["TargetGroups"][0]["TargetGroupArn"]
+        Name=f"{name}-tg", Protocol="HTTP", Port=8080, VpcId=vid, TargetType="ip", Tags=owner_tags())["TargetGroups"][0]["TargetGroupArn"]
     if not elb.describe_listeners(LoadBalancerArn=arn)["Listeners"]:
         elb.create_listener(LoadBalancerArn=arn, Protocol="HTTP", Port=80,
                             DefaultActions=[{"Type": "forward", "TargetGroupArn": target_group}])
@@ -136,7 +142,7 @@ def load_balancer(name, vid, subnets, group):
 
 
 def fargate_service(cluster, service, cpu, memory, count, subnets, group, public_ip, role_arn, environment, target_group=None):
-    attempt(f"{cluster} cluster", ecs.create_cluster, clusterName=cluster)
+    attempt(f"{cluster} cluster", ecs.create_cluster, clusterName=cluster, tags=ecs_tags())
     if any(arn.endswith(f"/{cluster}/{service}") for arn in ecs.list_services(cluster=cluster)["serviceArns"]):
         print(f"  reuse {cluster}/{service}")
         return
@@ -148,7 +154,7 @@ def fargate_service(cluster, service, cpu, memory, count, subnets, group, public
         containerDefinitions=[{"name": service, "image": NGINX, "essential": True, "portMappings": [{"containerPort": 8080}],
                                "environment": [{"name": k, "value": v} for k, v in environment.items()]}])
     balancers = [{"targetGroupArn": target_group, "containerName": service, "containerPort": 8080}] if target_group else []
-    ecs.create_service(cluster=cluster, serviceName=service, taskDefinition=family, desiredCount=count, launchType="FARGATE",
+    ecs.create_service(cluster=cluster, serviceName=service, taskDefinition=family, desiredCount=count, launchType="FARGATE", tags=ecs_tags(),
                        loadBalancers=balancers,
                        networkConfiguration={"awsvpcConfiguration": {"subnets": subnets[:1], "securityGroups": [group],
                                                                      "assignPublicIp": "ENABLED" if public_ip else "DISABLED"}})
@@ -157,6 +163,8 @@ def fargate_service(cluster, service, cpu, memory, count, subnets, group, public
 def stream(name, shards, retention_hours=24):
     if attempt(name, kinesis.create_stream, StreamName=name, ShardCount=shards):
         kinesis.get_waiter("stream_exists").wait(StreamName=name)
+        if OWNER:
+            kinesis.add_tags_to_stream(StreamName=name, Tags=owner_map())
         if retention_hours > 24:
             kinesis.increase_stream_retention_period(StreamName=name, RetentionPeriodHours=retention_hours)
     return kinesis.describe_stream_summary(StreamName=name)["StreamDescriptionSummary"]["StreamARN"]
@@ -169,7 +177,8 @@ def provisioned_table(name, key, rcu, wcu, index_key):
             ProvisionedThroughput={"ReadCapacityUnits": rcu, "WriteCapacityUnits": wcu},
             GlobalSecondaryIndexes=[{"IndexName": f"by-{index_key}", "KeySchema": [{"AttributeName": index_key, "KeyType": "HASH"}],
                                      "Projection": {"ProjectionType": "ALL"},
-                                     "ProvisionedThroughput": {"ReadCapacityUnits": rcu, "WriteCapacityUnits": wcu}}])
+                                     "ProvisionedThroughput": {"ReadCapacityUnits": rcu, "WriteCapacityUnits": wcu}}],
+            Tags=owner_tags())
 
 
 def nat(name, subnet):

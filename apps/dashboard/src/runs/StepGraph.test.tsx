@@ -68,8 +68,8 @@ describe("the step graph", () => {
         selectedStep={null}
         onSelectStep={() => {}}
         parallel={[
-          { id: "a", label: "Migration plan · managed", beside: "present", file: "states.1.managed.json", state: "done" },
-          { id: "b", label: "Migration plan · lift", beside: "rehearse", file: "states.1.lift.json", state: "running" },
+          { id: "a", label: "Migration plan · managed", beside: "present", file: "states.1.managed.json", candidate: "managed", state: "done" },
+          { id: "b", label: "Migration plan · lift", beside: "rehearse", file: "states.1.lift.json", candidate: "lift", state: "running" },
         ]}
       />,
     );
@@ -81,4 +81,47 @@ describe("the step graph", () => {
     expect(rehearse.textContent).toContain("Building");
     expect(screen.queryByRole("list", { name: "In parallel with Extract" })).toBeNull();
   });
+
+  it("draws the workflow around the steps: the checks, the gates, the revision loop and phase 2", () => {
+    const run = cutSampleRun(14);
+    render(<StepGraph run={run} states={deriveStepStates(run.events, run)} selectedStep={null} onSelectStep={() => {}} trials={2} />);
+
+    expect(screen.getByRole("group", { name: "Revision loop" }).textContent).toContain("Revision loop");
+    for (const text of ["Matches the infra contract?", "Every agent candidate feasible?", "CTO picks a feasible layout", "Availability meets the forecast?", "CTO approves the plan", "Trials: 2"]) {
+      expect(screen.getByText(text)).toBeTruthy();
+    }
+    expect(screen.getByRole("group", { name: "Phase 2" }).textContent).toContain("not built yet");
+    expect(screen.getAllByRole("button")).toHaveLength(6);
+  });
+
+  it("selects a step from the keyboard", () => {
+    const run = cutSampleRun(14);
+    const onSelectStep = vi.fn();
+    render(<StepGraph run={run} states={deriveStepStates(run.events, run)} selectedStep={null} onSelectStep={onSelectStep} />);
+    const evaluate = within(screen.getByRole("list", { name: "Steps" })).getByRole("button", { name: /Evaluate/ });
+    fireEvent.keyDown(evaluate, { key: "Enter" });
+    expect(onSelectStep).toHaveBeenCalledWith("evaluate");
+  });
+
+  it("opens a built migration plan from its node in the diagram", () => {
+    const run = cutSampleRun(14);
+    const onSelectPlan = vi.fn();
+    render(
+      <StepGraph
+        run={run}
+        states={deriveStepStates(run.events, run)}
+        selectedStep={null}
+        onSelectStep={() => {}}
+        onSelectPlan={onSelectPlan}
+        parallel={[
+          { id: "a", label: "Migration plan · managed", beside: "present", file: "states.1.managed.json", candidate: "managed", state: "done" },
+          { id: "b", label: "Migration plan · lift", beside: "rehearse", file: "states.1.lift.json", candidate: "lift", state: "running" },
+        ]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Open the migration plan of managed" }));
+    expect(onSelectPlan).toHaveBeenCalledWith("managed");
+    expect(screen.queryByRole("button", { name: "Open the migration plan of lift" })).toBeNull();
+  });
 });
+

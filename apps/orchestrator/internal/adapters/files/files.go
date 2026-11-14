@@ -253,9 +253,40 @@ func (Local) ReadProject(path string) (onboarding.Project, error) {
 		HardConstraints struct {
 			ForbiddenProviders []string `json:"forbidden_providers"`
 		} `json:"hard_constraints"`
+		Projects []struct {
+			ID     string   `json:"id"`
+			Name   string   `json:"name"`
+			Stacks []string `json:"stacks"`
+			Users  struct {
+				Metric   string  `json:"metric"`
+				Current  float64 `json:"current"`
+				Expected []struct {
+					Month int     `json:"month"`
+					Base  float64 `json:"base"`
+				} `json:"expected"`
+			} `json:"users"`
+		} `json:"projects"`
 	}
 	if err := readJSON(path, &document); err != nil {
 		return onboarding.Project{}, fmt.Errorf("%s: %w", filepath.Base(path), err)
+	}
+	summaries, err := readSummaries(strings.TrimSuffix(path, ".forecast.json") + ".projects.json")
+	if err != nil {
+		return onboarding.Project{}, err
+	}
+	apps := make([]onboarding.Application, 0, len(document.Projects))
+	for _, project := range document.Projects {
+		users := onboarding.ProjectUsers{Metric: project.Users.Metric, Current: int(project.Users.Current)}
+		for _, row := range project.Users.Expected {
+			if row.Month >= users.AtMonth {
+				users.AtMonth, users.Expected = row.Month, int(row.Base)
+			}
+		}
+		name := project.Name
+		if name == "" {
+			name = project.ID
+		}
+		apps = append(apps, onboarding.Application{ID: project.ID, Name: name, Summary: summaries[project.ID], Stacks: project.Stacks, Users: users})
 	}
 	forbidden := document.HardConstraints.ForbiddenProviders
 	if forbidden == nil {
@@ -265,7 +296,28 @@ func (Local) ReadProject(path string) (onboarding.Project, error) {
 	if err != nil {
 		return onboarding.Project{}, err
 	}
-	return onboarding.Project{Description: document.Description, ForbiddenProviders: forbidden, Profile: profile}, nil
+	return onboarding.Project{Description: document.Description, ForbiddenProviders: forbidden, Profile: profile, Applications: apps}, nil
+}
+
+func readSummaries(path string) (map[string]string, error) {
+	var document struct {
+		Projects []struct {
+			ID      string `json:"id"`
+			Summary string `json:"summary"`
+		} `json:"projects"`
+	}
+	err := readJSON(path, &document)
+	if errors.Is(err, fs.ErrNotExist) {
+		return map[string]string{}, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", filepath.Base(path), err)
+	}
+	summaries := make(map[string]string, len(document.Projects))
+	for _, project := range document.Projects {
+		summaries[project.ID] = project.Summary
+	}
+	return summaries, nil
 }
 
 func readProjectProfile(path string) (*onboarding.ProjectProfile, error) {

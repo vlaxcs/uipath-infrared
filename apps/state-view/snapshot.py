@@ -70,24 +70,29 @@ def resolve_state(dataset: dict, spec: str) -> int:
 
 
 def diff_against_current(dataset: dict, index: int) -> dict:
-    """Resource ids changed, added and removed between state 0 and ``index``.
+    """Resource ids changed, moved, added and removed between state 0 and ``index``.
 
-    A resource is changed when any step up to ``index`` touched it (flags are
-    review notes and do not count).
+    A resource is moved when it now runs in another zone (provider or region),
+    and changed when any other step up to ``index`` touched it (flags are review
+    notes and do not count).
     """
     states = dataset["states"]
     before = {c["id"] for c in states[0]["infra"]["components"]}
     now = {c["id"] for c in states[index]["infra"]["components"]}
+    zone_then = {c["id"]: c.get("zone") for c in states[0]["infra"]["components"]}
+    zone_now = {c["id"]: c.get("zone") for c in states[index]["infra"]["components"]}
+    moved = {cid for cid in before & now if zone_then[cid] != zone_now[cid]}
     touched = set()
     for state in states[1 : index + 1]:
         for change in state.get("changes") or []:
             if change.get("kind") not in ("removed", "flagged"):
                 touched.add(change.get("component"))
     return {
-        "changed": sorted((before & now) & touched),
+        "changed": sorted((before & now) & touched - moved),
+        "moved": sorted(moved),
         "added": sorted(now - before),
         "removed": sorted(before - now),
-        "unchanged": sorted((before & now) - touched),
+        "unchanged": sorted((before & now) - touched - moved),
     }
 
 
@@ -126,11 +131,12 @@ def card_facts(dataset: dict, index: int, state_name: str) -> dict:
         title = f"{label} after {index} change{'' if index == 1 else 's'}"
         caption = (
             f"{fmt_eur(base)}/mo → {fmt_eur(cost)}/mo · {counts['changed']} changed · "
-            f"{counts['added']} added · {counts['removed']} removed"
+            f"{counts['moved']} moved · {counts['added']} added · {counts['removed']} removed"
         )
         alt = (
             f"Diagram of the {project} estate after {index} steps of the {label} plan: "
             f"{plural(resources, 'resource')} in {plural(stacks, 'stack')}, {counts['changed']} changed, "
+            f"{counts['moved']} moved to another provider or region, "
             f"{counts['added']} added and {counts['removed']} removed compared with today, "
             f"monthly cost going from {fmt_eur(base)} to {fmt_eur(cost)}."
         )

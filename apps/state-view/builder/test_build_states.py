@@ -72,12 +72,12 @@ class TransitionsTest(unittest.TestCase):
                 self.assertNotIn(ghost["id"], live)
                 self.assertIn(ghost["tier"], {tier["id"] for tier in DATASET["tiers"]})
             self.assertEqual(state["summary"]["removed_total"], len(state["removed"]))
-        self.assertEqual(len(removed_ids), 8)
+        self.assertEqual(len(removed_ids), 7)
 
     def test_target_estate_has_the_expected_size(self):
         target = STATES[-1]
-        self.assertEqual(target["summary"]["components"], 30)
-        self.assertEqual(len(target["removed"]), 8)
+        self.assertEqual(target["summary"]["components"], 31)
+        self.assertEqual(len(target["removed"]), 7)
 
     def test_security_remediation_clears_the_addressed_issue(self):
         target = STATES[-1]
@@ -106,6 +106,83 @@ class TransitionsTest(unittest.TestCase):
         self.assertEqual(component["facts"][0]["value"], change["to"])
 
 
+def step(short_label):
+    return next(s for s in STATES if s["shortLabel"] == short_label)
+
+
+def component_in(state, component_id):
+    return next(c for c in state["infra"]["components"] if c["id"] == component_id)
+
+
+class PlacementTest(unittest.TestCase):
+    def test_zones_list_the_home_zone_first(self):
+        zones = [zone["id"] for zone in DATASET["zones"]]
+        self.assertEqual(zones[0], "aws:eu-west-1")
+        self.assertIn("aws:us-east-1", zones)
+        self.assertIn("neon:eu-west-1", zones)
+
+    def test_every_component_sits_in_a_listed_zone(self):
+        zones = {zone["id"] for zone in DATASET["zones"]}
+        for state in STATES:
+            for component in state["infra"]["components"]:
+                self.assertIn(component["zone"], zones, component["id"])
+
+    def test_move_to_another_provider_takes_the_catalog_provider(self):
+        state = step("Move rds-erp")
+        change = state["changes"][0]
+        erp = component_in(state, "rds-erp")
+        self.assertEqual(erp["provider"], "neon")
+        self.assertEqual(erp["service"], "neon-launch")
+        self.assertEqual((change["fromZone"], change["toZone"]), ("aws:eu-west-1", "neon:eu-west-1"))
+
+    def test_region_move_changes_zone(self):
+        change = step("Move s3-legacy-reports")["changes"][0]
+        self.assertEqual((change["fromZone"], change["toZone"]), ("aws:us-east-1", "aws:eu-west-1"))
+
+    def test_same_zone_move_has_no_zone_change(self):
+        change = step("Move rds-orders")["changes"][0]
+        self.assertNotIn("fromZone", change)
+
+    def test_on_prem_move_lands_on_the_platform_site(self):
+        dataset = build_states.build_dataset(candidate_id="move_to_onprem")
+        target = dataset["states"][-1]
+        for component_id in ("s3-legacy-reports", "rds-orders", "ng-shop-general"):
+            self.assertEqual(component_in(target, component_id)["zone"], "onprem:onprem-dc1", component_id)
+        self.assertEqual(dataset["zones"][-1]["label"], "On-prem · dc1")
+
+
+class HandoffTest(unittest.TestCase):
+    def test_consolidating_delete_names_where_the_work_goes(self):
+        state = STATES[-1]
+        change = state["changes"][0] if state["changes"][0]["component"] == "ng-shop-cpu" else step("Delete ng-shop-cpu")["changes"][0]
+        self.assertEqual(change["into"], "ng-shop-general")
+        ghost = next(r for r in STATES[-1]["removed"] if r["id"] == "ng-shop-cpu")
+        self.assertEqual(ghost["into"], "ng-shop-general")
+
+    def test_plain_delete_has_no_absorber(self):
+        ghost = next(r for r in STATES[-1]["removed"] if r["id"] == "vm-bastion")
+        self.assertIsNone(ghost["into"])
+
+    def test_shared_move_names_the_cluster_it_joins(self):
+        self.assertEqual(STATES[-1]["changes"][0]["component"], "pg-lake")
+        self.assertEqual(STATES[-1]["changes"][0]["into"], "rds-analytics")
+
+    def test_absorbed_edges_follow_the_absorber(self):
+        edges = [{"from": "a", "to": "old"}, {"from": "a", "to": "new"}, {"from": "old", "to": "b"}]
+        out = build_states.public_edges(edges, {"a", "new", "b"}, {"old": "new"})
+        self.assertEqual([(e["from"], e["to"]) for e in out], [("a", "new"), ("new", "b")])
+        self.assertEqual(out[1]["rehomedFrom"], "old")
+        self.assertNotIn("rehomedFrom", out[0])
+
+
+class StopTest(unittest.TestCase):
+    def test_stop_keeps_the_resource_as_stopped(self):
+        state = step("Stop vm-dev-jump")
+        self.assertEqual(state["changes"][0]["kind"], "stopped")
+        self.assertEqual(component_in(state, "vm-dev-jump")["status"], "stopped")
+        self.assertNotIn("vm-dev-jump", {r["id"] for r in state["removed"]})
+
+
 class HonestyTest(unittest.TestCase):
     def test_availability_is_reported_only_at_the_ends(self):
         self.assertEqual(STATES[0]["summary"]["availability_source"], "observed")
@@ -128,22 +205,6 @@ class HonestyTest(unittest.TestCase):
             seen.extend(stage["stateIds"])
         self.assertEqual(len(seen), DATASET["stepCount"])
         self.assertEqual(len(set(seen)), DATASET["stepCount"])
-
-
-class EstateTodayTest(unittest.TestCase):
-    def test_the_estate_alone_is_one_observed_state_with_no_plan(self):
-        dataset = build_states.build_document(build_states.INFRA_PATH, None)["dataset"]
-        self.assertEqual(len(dataset["states"]), 1)
-        self.assertEqual(dataset["stepCount"], 0)
-        self.assertEqual(dataset["stages"], [])
-        self.assertEqual(dataset["states"][0]["label"], "Current estate")
-        self.assertEqual(dataset["states"][0]["summary"]["components"], 38)
-        self.assertIsNone(dataset["source"]["result"])
-        self.assertTrue(dataset["subtitle"].startswith("Estate today"))
-
-    def test_estate_mode_refuses_a_result(self):
-        with self.assertRaises(SystemExit):
-            build_states.main(["--estate", "--infra", str(build_states.INFRA_PATH), "--result", str(build_states.RESULT_PATH)])
 
 
 class DashboardMappingTest(unittest.TestCase):
@@ -169,8 +230,20 @@ class DashboardMappingTest(unittest.TestCase):
         self.assertEqual(checked_in["dataset"]["states"], built["dataset"]["states"])
 
 
-if __name__ == "__main__":
-    unittest.main()
+class EstateTodayTest(unittest.TestCase):
+    def test_the_estate_alone_is_one_observed_state_with_no_plan(self):
+        dataset = build_states.build_document(build_states.INFRA_PATH, None)["dataset"]
+        self.assertEqual(len(dataset["states"]), 1)
+        self.assertEqual(dataset["stepCount"], 0)
+        self.assertEqual(dataset["stages"], [])
+        self.assertEqual(dataset["states"][0]["label"], "Current estate")
+        self.assertEqual(dataset["states"][0]["summary"]["components"], 38)
+        self.assertIsNone(dataset["source"]["result"])
+        self.assertTrue(dataset["subtitle"].startswith("Estate today"))
+
+    def test_estate_mode_refuses_a_result(self):
+        with self.assertRaises(SystemExit):
+            build_states.main(["--estate", "--infra", str(build_states.INFRA_PATH), "--result", str(build_states.RESULT_PATH)])
 
 
 class ARunsOwnFilesTest(unittest.TestCase):
@@ -212,3 +285,7 @@ class ARunsOwnFilesTest(unittest.TestCase):
         with self.assertRaises(SystemExit) as stopped:
             self.build("no-such-candidate")
         self.assertIn("no-such-candidate", str(stopped.exception))
+
+
+if __name__ == "__main__":
+    unittest.main()

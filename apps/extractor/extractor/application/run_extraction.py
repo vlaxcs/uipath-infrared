@@ -11,6 +11,7 @@ from extractor.application.series_reader import SeriesReader
 from extractor.application.warnings import Warnings
 from extractor.domain.document import infra_document
 from extractor.domain.inventory import Inventory
+from extractor.domain.ownership import resolve_ownership, tags_by_name
 from extractor.domain.projects import belongs, is_scoped, scope_to_project, tag_name
 from extractor.domain.provenance import metric_provenance
 from extractor.domain.status import apply_status
@@ -22,6 +23,7 @@ class ExtractionRequest:
     region: str
     project: str
     window_days: int
+    projects: tuple[str, ...] = ()
 
 
 def run_extraction(request, aws, extension_sources=None):
@@ -41,6 +43,8 @@ def run_extraction(request, aws, extension_sources=None):
     build_edges(context)
     apply_status(context.inventory.components, context.inventory.edges)
     scope_to_project(context.inventory, request.project)
+    mappings = warnings.guard("resource tags", aws.tagging.resources, []) if aws.tagging else []
+    context.inventory.components = resolve_ownership(context.inventory.components, context.inventory.edges, tags_by_name(mappings), request.projects)
     controls = collect_controls(context)
     extended = run_extensions(context, extension_sources, now) if extension_sources else None
     return infra_document(request.project, request.endpoint, request.region, now, controls, context.inventory, warnings.messages, extended)

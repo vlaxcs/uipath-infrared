@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RunSource } from "~/runs/source";
 import type { RunDetail } from "~/runs/types";
 
@@ -14,6 +14,7 @@ export function useSelectedRun(source: RunSource, id: string | null): SelectedRu
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
+  const shown = useRef<string | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -25,14 +26,17 @@ export function useSelectedRun(source: RunSource, id: string | null): SelectedRu
 
     let cancelled = false;
     const controller = new AbortController();
-    setRun(null);
-    setLoading(true);
+    if (shown.current !== id) {
+      setRun(null);
+      setLoading(true);
+    }
     setError(null);
 
     source
       .getRun(id, controller.signal)
       .then((next) => {
         if (cancelled) return;
+        shown.current = id;
         setRun(next);
         setLoading(false);
       })

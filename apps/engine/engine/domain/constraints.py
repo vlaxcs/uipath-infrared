@@ -35,29 +35,37 @@ def check_constraints(
     constraints = forecast.constraints
     availability = availability_of(end_state, infra, catalog)
     violations = (
-        _residency(end_state, constraints)
+        _residency(end_state, constraints, forecast)
         + _providers(end_state, constraints)
-        + _availability(availability, constraints)
+        + _availability(availability, constraints, forecast)
         + _figures(figures, constraints)
         + check_security_gates(end_state, infra, constraints.security_gates)
     )
     return ConstraintCheck(violations, availability)
 
 
-def _residency(end_state: EndState, constraints: HardConstraints) -> tuple[Violation, ...]:
+DEFAULT_RESIDENCY_CLASSES = frozenset({"pii", "confidential", "unknown"})
+
+
+def _residency(end_state: EndState, constraints: HardConstraints, forecast: Forecast) -> tuple[Violation, ...]:
     residency = constraints.residency
-    if residency is None:
-        return ()
-    return tuple(
-        Violation(
-            "data_residency", p.component.id,
-            f"{p.component.data_classification} data in {p.region}, allowed: {', '.join(residency.allowed_regions)}",
-        )
-        for p in end_state.live()
-        if p.component.stateful
-        and p.component.data_classification in residency.applies_to
-        and not region_matches(p.region, residency.allowed_regions)
-    )
+    violations = []
+    for p in end_state.live():
+        if not p.component.stateful:
+            continue
+        project = forecast.project_of(p.component.stack)
+        if project is not None and project.allowed_regions:
+            allowed, classes, owner = project.allowed_regions, residency.applies_to if residency else DEFAULT_RESIDENCY_CLASSES, f" for {project.name}"
+        elif residency is not None:
+            allowed, classes, owner = residency.allowed_regions, residency.applies_to, ""
+        else:
+            continue
+        if p.component.data_classification in classes and not region_matches(p.region, allowed):
+            violations.append(Violation(
+                "data_residency", p.component.id,
+                f"{p.component.data_classification} data in {p.region}, allowed{owner}: {', '.join(allowed)}",
+            ))
+    return tuple(violations)
 
 
 def _providers(end_state: EndState, constraints: HardConstraints) -> tuple[Violation, ...]:
@@ -76,13 +84,18 @@ def _providers(end_state: EndState, constraints: HardConstraints) -> tuple[Viola
     return tuple(violations)
 
 
-def _availability(availability: Availability, constraints: HardConstraints) -> tuple[Violation, ...]:
-    limit = constraints.min_availability_pct
-    if limit is None:
-        return ()
+def _availability_limit(stack: str | None, constraints: HardConstraints, forecast: Forecast) -> float | None:
+    project = forecast.project_of(stack)
+    own = project.min_availability_pct if project is not None else None
+    limits = [limit for limit in (constraints.min_availability_pct, own) if limit is not None]
+    return max(limits) if limits else None
+
+
+def _availability(availability: Availability, constraints: HardConstraints, forecast: Forecast) -> tuple[Violation, ...]:
     violations: dict[str | None, Violation] = {}
     for path in availability.paths:
-        if path.availability_pct >= limit:
+        limit = _availability_limit(path.stack, constraints, forecast)
+        if limit is None or path.availability_pct >= limit:
             continue
         weak = [c for c in path.components if c.availability_pct < limit]
         for component in weak:

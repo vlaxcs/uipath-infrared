@@ -23,14 +23,31 @@ def stack_of(vpc_name=None, name=""):
     return VPC_STACKS.get(vpc_name or "") or environment_stack(lowered) or environment_stack((vpc_name or "").lower())
 
 
+OWNERSHIP_LABELS = {"shared": ("Shared between projects", "unknown"), "unassigned": ("Not assigned to a project", "unknown")}
+
+
 def stack_label(stack):
     if stack in STACK_LABELS:
         return STACK_LABELS[stack]
-    environment = stack.rsplit("-", 1)[-1]
-    return (ENVIRONMENT_LABELS[environment], environment) if environment in ENVIRONMENT_LABELS else (stack, "unknown")
+    if stack in OWNERSHIP_LABELS:
+        return OWNERSHIP_LABELS[stack]
+    project, _, environment = stack.rpartition("-")
+    if environment in ENVIRONMENT_LABELS:
+        return (f"{project} · {ENVIRONMENT_LABELS[environment]}", environment) if project else (ENVIRONMENT_LABELS[environment], environment)
+    return (stack, "unknown")
+
+
+SOURCE_WORDS = {"tag": "tags", "cloudformation": "CloudFormation stacks", "namespace": "Kubernetes namespaces", "account": "accounts",
+                "name": "names", "dependency": "dependencies on a project", "shared": "use by several projects", "none": "nothing"}
 
 
 def stack_entries(components):
     used = sorted({c["stack"] for c in components if c.get("stack")})
-    return [{"id": s, "name": stack_label(s)[0], "environment": stack_label(s)[1],
-             "description": "Derived from VPC membership and name prefix."} for s in used]
+    return [{"id": s, "name": stack_label(s)[0], "environment": stack_label(s)[1], "description": _description(s, components)} for s in used]
+
+
+def _description(stack, components):
+    sources = sorted({c["x_ownership"]["source"] for c in components if c.get("stack") == stack and c.get("x_ownership")})
+    if not sources:
+        return "Derived from VPC membership and name prefix."
+    return "Assigned from " + ", ".join(SOURCE_WORDS[source] for source in sources) + "."
