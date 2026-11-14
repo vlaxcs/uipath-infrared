@@ -68,6 +68,17 @@ class Business:
         return self.downtime_cost_by_stack.get(stack or "", self.downtime_cost_per_hour_eur)
 
 
+USER_COLUMNS = ("low", "base", "high")
+
+
+@dataclass(frozen=True)
+class ProjectGrowth:
+    id: str
+    name: str
+    stacks: frozenset[str]
+    monthly_by_scenario: Mapping[str, float]
+
+
 @dataclass(frozen=True)
 class Forecast:
     id: str
@@ -77,6 +88,12 @@ class Forecast:
     constraints: HardConstraints
     cto: CtoSettings
     business: Business
+    projects: tuple[ProjectGrowth, ...] = ()
+
+    def project_of(self, stack: str | None) -> ProjectGrowth | None:
+        if stack is None:
+            return None
+        return next((project for project in self.projects if stack in project.stacks), None)
 
 
 def forecast_from_document(document: Mapping[str, Any]) -> Forecast:
@@ -100,7 +117,32 @@ def forecast_from_document(document: Mapping[str, Any]) -> Forecast:
         constraints=_constraints(document["hard_constraints"]),
         cto=_cto(document["cto_settings"]),
         business=_business(document["business"]),
+        projects=_projects(document.get("projects", []), sorted(document["scenarios"])),
     )
+
+
+def _projects(raw: list[Mapping[str, Any]], scenario_ids: list[str]) -> tuple[ProjectGrowth, ...]:
+    projects = []
+    owner: dict[str, str] = {}
+    for entry in raw:
+        users = entry["users"]
+        current = float(users["current"])
+        last = max(users["expected"], key=lambda row: row["month"])
+        if current <= 0 or last["month"] <= 0:
+            raise ValueError(f"project {entry['id']}: users now and the expected month must be above 0")
+        monthly = {}
+        for scenario_id in scenario_ids:
+            column = scenario_id if scenario_id in USER_COLUMNS and scenario_id in last else "base"
+            expected = float(last[column])
+            if expected <= 0:
+                raise ValueError(f"project {entry['id']}: expected users must be above 0")
+            monthly[scenario_id] = (expected / current) ** (1 / last["month"])
+        for stack in entry["stacks"]:
+            if stack in owner:
+                raise ValueError(f"stack {stack} belongs to both {owner[stack]} and {entry['id']}")
+            owner[stack] = entry["id"]
+        projects.append(ProjectGrowth(entry["id"], entry.get("name", entry["id"]), frozenset(entry["stacks"]), monthly))
+    return tuple(projects)
 
 
 def _constraints(raw: Mapping[str, Any]) -> HardConstraints:

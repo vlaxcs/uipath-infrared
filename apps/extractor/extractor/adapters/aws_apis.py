@@ -22,6 +22,7 @@ from extractor.adapters.route53_api import Route53Api
 from extractor.adapters.s3_api import S3Api
 from extractor.adapters.sns_api import SnsApi
 from extractor.adapters.sqs_api import SqsApi
+from extractor.adapters.tagging_api import TaggingApi
 
 
 @dataclass
@@ -47,6 +48,7 @@ class AwsApis:
     ecr: EcrApi
     cloudwatch: CloudwatchApi
     controls: AccountControlsApi
+    tagging: TaggingApi | None = None
 
 
 def connect(endpoint, region, access_key_id, secret_access_key):
@@ -58,4 +60,4 @@ def connect(endpoint, region, access_key_id, secret_access_key):
                    sns=SnsApi(c("sns")), kinesis=KinesisApi(c("kinesis")), firehose=FirehoseApi(c("firehose")),
                    lambdas=LambdaApi(c("lambda")), events=EventsApi(c("events")), route53=Route53Api(c("route53")),
                    iam=IamApi(c("iam")), ecr=EcrApi(c("ecr")), cloudwatch=CloudwatchApi(c("cloudwatch")),
-                   controls=AccountControlsApi(clients))
+                   controls=AccountControlsApi(clients), tagging=TaggingApi(c("resourcegroupstaggingapi")))

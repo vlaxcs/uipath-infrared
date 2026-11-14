@@ -47,3 +47,11 @@ export function parallelTasks(
     return [{ id: file, label: `Migration plan · ${fork.candidate}`, beside: fork.beside, file, state }];
   });
 }
+
+const TRIAL_FILE = /^rehearsal\.\d+\.trial-\d+\.json$/;
+
+export function trialCount(files: ReadonlySet<string>): number {
+  let count = 0;
+  for (const file of files) if (TRIAL_FILE.test(file)) count += 1;
+  return count;
+}

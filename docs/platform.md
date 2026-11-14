@@ -4,7 +4,7 @@ Status: draft. The layout, the pages and the rules below are Vlad's; the default
 
 ## 1. Scope
 
-The platform replaces the dashboard's sidebar layout. One home page with two actions, an account menu, and a run page that shows the agent working live. All routes live under `/app`, as hash routes.
+The platform replaces the dashboard's sidebar layout. One home page with two actions, an account menu, and a run page that shows the agent working live. All routes live under `/app` as plain paths (`/app/runs/<id>`); an old `#/…` link opens the same page and is rewritten to its path.
 
 The theme is out of scope for now: the pages use the dashboard's neutral tokens. Copy is short, technical, in English.
 
@@ -12,20 +12,20 @@ The theme is out of scope for now: the pages use the dashboard's neutral tokens.
 
 | Route | Page |
 | --- | --- |
-| `#/login` | sign in with GitHub |
-| `#/` | home: Analyze, Previous analysis, Add browser extension |
-| `#/analyze` | the configuration of a new analysis, then its run |
-| `#/runs` | previous analyses, as a table |
-| `#/runs/<id>` | one run: the pipeline live, its candidates, the sandbox, the migration plan |
-| `#/configuration` | connections and project defaults |
-| `#/account` | credits, plan, payments |
+| `/app/login` | sign in with GitHub |
+| `/app/` | home: Analyze, Previous analysis, Add browser extension |
+| `/app/analyze` | the configuration of a new analysis, then its run |
+| `/app/runs` | previous analyses, as a table |
+| `/app/runs/<id>` | one run: the pipeline live, its candidates, the sandbox, the migration plan |
+| `/app/configuration` | connections and project defaults |
+| `/app/account` | credits, plan, payments |
 
-Every page except `#/login` needs a session; without one it opens `#/login`.
+Every page except `/app/login` needs a session; without one it opens `/app/login`.
 
 ## 3. Frame
 
 - **Logo**, floating at the top left. A **Back** button sits to its left on every page but home, and goes to the previous page in the app.
-- **Avatar**, at the top right, from the GitHub account. Its menu: Configuration, Account, Disconnect. Disconnect ends the session and opens `#/login`.
+- **Avatar**, at the top right, from the GitHub account. Its menu: Configuration, Account, Disconnect. Disconnect ends the session and opens `/app/login`.
 - **Credits**, beside the avatar: one red half-circle per run left (`#EF3B24`, the mascot's red), facing left. Above 10, the count is shown as a number beside one mark.
 - No sidebar.
 
@@ -53,7 +53,7 @@ Opens with a fade. The onboarding sections of `docs/onboarding.md`, pre-filled f
 On desktop the sections sit in two columns, with Focus across both. Start takes one credit and opens the run page.
 
 ### Run
-- **Left: the agent.** A state graph of the workflow: each step's status in order, steps that run at the same time side by side, and the step in progress with its log streaming. The mascot plays the step's animation (section 6). A gate shows its decision in place, and the same gate goes to Slack.
+- **Left: the agent.** The workflow diagram, live: Analyze, Extract and its contract check, Investigate, then the revision loop (Propose, Evaluate and its feasibility check, Present and the layout gate, Rehearse and its forecast check, with the revision count), the plan gate and the end (completed, or failed with the step and reason). Plan builds and trial rehearsals hang beside the step they run with. Phase 2 (PR per step, approval and the client's CI, verify) is drawn under it, dashed and marked not built. Each step is selectable, and the step in progress streams its log. The mascot plays the step's animation (section 6). A gate shows its decision in place, and the same gate goes to Slack.
 - **Right: the selected item.** By default, the run's summary.
 - **Candidates**, listed under the agent once evaluate has run; selecting one loads its details on the right: cost, availability, risk, effort, violations, the change step by step.
 - **Sandbox**, once a layout is picked: the rehearsal's result, and a form to rehearse again with another traffic profile (requests per second, duration, which failure to inject). A prompt field turns a sentence into the same profile.
@@ -140,7 +140,7 @@ Each slice is its own pull request into `agentic-wf`:
 2. Sign-in with GitHub OAuth: Vlad's.
 3. Run packs through Stripe, prices from the PRD: Vlad's.
 4. Applying starts with phase 2: Vlad's.
-5. Hash routes under `/app`, and every page behind a session: Claude's.
+5. Path routes under `/app` (hash routes until 2026-11-14), and every page behind a session: Claude's.
 6. The credit mark faces left and switches to a number above 10: Claude's.
 7. The mascot animation per step (section 6): Claude's.
 8. A run that fails before investigate refunds its credit: Claude's.

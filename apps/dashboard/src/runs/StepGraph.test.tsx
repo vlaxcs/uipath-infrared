@@ -81,4 +81,25 @@ describe("the step graph", () => {
     expect(rehearse.textContent).toContain("Building");
     expect(screen.queryByRole("list", { name: "In parallel with Extract" })).toBeNull();
   });
+
+  it("draws the workflow around the steps: the checks, the gates, the revision loop and phase 2", () => {
+    const run = cutSampleRun(14);
+    render(<StepGraph run={run} states={deriveStepStates(run.events, run)} selectedStep={null} onSelectStep={() => {}} trials={2} />);
+
+    expect(screen.getByRole("group", { name: "Revision loop" }).textContent).toContain("Revision loop");
+    for (const text of ["Matches the infra contract?", "Every agent candidate feasible?", "CTO picks a feasible layout", "Availability meets the forecast?", "CTO approves the plan", "Trials: 2"]) {
+      expect(screen.getByText(text)).toBeTruthy();
+    }
+    expect(screen.getByRole("group", { name: "Phase 2" }).textContent).toContain("not built yet");
+    expect(screen.getAllByRole("button")).toHaveLength(6);
+  });
+
+  it("selects a step from the keyboard", () => {
+    const run = cutSampleRun(14);
+    const onSelectStep = vi.fn();
+    render(<StepGraph run={run} states={deriveStepStates(run.events, run)} selectedStep={null} onSelectStep={onSelectStep} />);
+    const evaluate = within(screen.getByRole("list", { name: "Steps" })).getByRole("button", { name: /Evaluate/ });
+    fireEvent.keyDown(evaluate, { key: "Enter" });
+    expect(onSelectStep).toHaveBeenCalledWith("evaluate");
+  });
 });

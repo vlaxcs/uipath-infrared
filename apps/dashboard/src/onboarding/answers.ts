@@ -22,6 +22,7 @@ export function initialAnswers(setup: OnboardingSetup, profile: Profile = DEFAUL
     project: project?.id ?? "",
     targets: defaultTargets(setup, project),
     onprem: setup.onprem && !onpremForbidden && profile.onprem.wanted,
+    site: profile.onprem.site,
     criteria: profile.criteria,
   };
 }
@@ -77,4 +78,14 @@ export function startRequest(answers: Answers): StartRequest {
       criteria: answers.criteria,
     },
   };
+}
+
+export function onpremChanged(profile: Profile, answers: Answers): boolean {
+  if (answers.onprem !== profile.onprem.wanted) return true;
+  if (!answers.onprem) return false;
+  return JSON.stringify(answers.site ?? null) !== JSON.stringify(profile.onprem.site ?? null);
+}
+
+export function withOnpremOnProfile(profile: Profile, answers: Answers): Profile {
+  return { ...profile, onprem: answers.onprem && answers.site ? { wanted: true, site: answers.site } : { wanted: false, site: answers.site } };
 }

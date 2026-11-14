@@ -54,6 +54,7 @@ export type Answers = {
   project: string;
   targets: string[];
   onprem: boolean;
+  site?: ProfileSite;
   criteria: Criteria;
 };
 
