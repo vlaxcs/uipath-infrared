@@ -18,11 +18,9 @@ export function StepGraph({ run, states, selectedStep, onSelectStep }: StepGraph
         <h2 id="steps-title" className="text-label font-semibold uppercase tracking-wide text-fg-subtle">
           Pipeline
         </h2>
-        <p className="text-caption text-fg-subtle">
-          Select a step to inspect it; select it again for the run overview.
-        </p>
+        <p className="text-caption text-fg-subtle">Select a step to inspect it.</p>
       </div>
-      <ol aria-label="Steps" className="flex items-center overflow-x-auto pb-1">
+      <ol aria-label="Steps" className="flex flex-col">
         {RUN_STEPS.map((step, index) => {
           const meta = STEP_META[step];
           const state = stepStateMeta[states[step]];
@@ -30,7 +28,7 @@ export function StepGraph({ run, states, selectedStep, onSelectStep }: StepGraph
           const selected = selectedStep === step;
 
           return (
-            <li key={step} className="flex shrink-0 items-center">
+            <li key={step} className="flex flex-col items-stretch">
               <button
                 type="button"
                 aria-pressed={selected}
@@ -38,8 +36,8 @@ export function StepGraph({ run, states, selectedStep, onSelectStep }: StepGraph
                 onClick={() => onSelectStep(step)}
                 className={
                   selected
-                    ? "flex min-w-36 flex-col gap-1 rounded-card border border-accent bg-surface px-4 py-3 text-left"
-                    : "flex min-w-36 flex-col gap-1 rounded-card border border-border bg-surface px-4 py-3 text-left hover:border-border-strong"
+                    ? "flex w-full flex-col gap-1 rounded-card border border-accent bg-surface px-4 py-3 text-left"
+                    : "flex w-full flex-col gap-1 rounded-card border border-border bg-surface px-4 py-3 text-left hover:border-border-strong"
                 }
               >
                 <span className="text-label font-semibold">{meta.title}</span>
@@ -49,7 +47,7 @@ export function StepGraph({ run, states, selectedStep, onSelectStep }: StepGraph
                 </span>
               </button>
               {index < RUN_STEPS.length - 1 ? (
-                <span aria-hidden="true" className="h-0.5 w-6 shrink-0 bg-border-strong" />
+                <span aria-hidden="true" className="ml-6 h-4 w-0.5 bg-border-strong" />
               ) : null}
             </li>
           );
