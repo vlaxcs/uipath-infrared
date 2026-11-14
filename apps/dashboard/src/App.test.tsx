@@ -92,6 +92,42 @@ describe("the platform frame", () => {
     vi.unstubAllGlobals();
   });
 
+  it("stays signed out after disconnecting, even when the browser goes back to a page", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(null, { status: 204 })));
+    const account = { login: "vlaxcs", avatarUrl: null, credits: 3, plan: "run_pack" as const };
+    render(<App orchestratorUrl="http://127.0.0.1:8090" accountSource={{ load: async () => account }} />);
+    await screen.findByRole("img", { name: "3 runs left" });
+    fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Disconnect" }));
+    act(() => {
+      window.history.replaceState(null, "", "/");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+    expect(screen.getByRole("button", { name: "Sign in with GitHub" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Account menu" })).toBeNull();
+    expect(screen.queryByRole("img", { name: /runs? left/ })).toBeNull();
+    vi.unstubAllGlobals();
+  });
+
+  it("stays signed out after the orchestrator ends the session, even when the browser goes back", async () => {
+    render(<App orchestratorUrl="http://127.0.0.1:8090" accountSource={{ load: async () => null }} />);
+    act(() => reportSignedOut());
+    act(() => {
+      window.history.replaceState(null, "", "/runs");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+    expect(await screen.findByRole("button", { name: "Sign in with GitHub" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Account menu" })).toBeNull();
+  });
+
+  it("lets the sample data back in after disconnecting when there is no orchestrator", () => {
+    render(<App orchestratorUrl={null} />);
+    fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Disconnect" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue with sample data" }));
+    expect(screen.getByRole("button", { name: "Account menu" })).toBeTruthy();
+  });
+
   it("opens the sign-in page when the orchestrator says the session is gone", async () => {
     render(<App orchestratorUrl="http://127.0.0.1:8090" accountSource={{ load: async () => null }} />);
     expect(screen.getByRole("button", { name: "Account menu" })).toBeTruthy();

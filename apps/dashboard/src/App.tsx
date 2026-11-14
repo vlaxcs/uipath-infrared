@@ -34,7 +34,11 @@ export function App({
   const route = useRoute();
   const account = useAccount(accountSource);
   const [refreshes, setRefreshes] = useState(0);
-  const openLogin = useEffectEvent(() => route.go("login"));
+  const [signedOut, setSignedOut] = useState(false);
+  const openLogin = useEffectEvent(() => {
+    setSignedOut(true);
+    route.go("login");
+  });
 
   useEffect(() => onSignedOut(openLogin), []);
 
@@ -44,11 +48,17 @@ export function App({
 
   function disconnect() {
     if (orchestratorUrl) void signOut(orchestratorUrl);
+    setSignedOut(true);
     route.go("login");
   }
 
-  if (route.page === "login") {
-    return <LoginPage orchestratorUrl={orchestratorUrl} onContinue={() => route.go("home")} onSignedIn={enterSignedIn} />;
+  function continueWithSamples() {
+    setSignedOut(false);
+    route.go("home");
+  }
+
+  if (signedOut || route.page === "login") {
+    return <LoginPage orchestratorUrl={orchestratorUrl} onContinue={continueWithSamples} onSignedIn={enterSignedIn} />;
   }
 
   return (
