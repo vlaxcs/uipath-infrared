@@ -43,7 +43,10 @@ def _build(paths: Paths, out: Path | None, check: bool) -> int:
         return 0
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(text, encoding="utf-8")
-    print(f"wrote {target}: {len(built.sourced)} prices from snapshots, {len(built.unsourced)} illustrative")
+    print(
+        f"wrote {target}: {len(built.sourced)} prices from snapshots, {len(built.unsourced)} illustrative; "
+        f"{len(built.sla_sourced)} SLAs from vendor pages, {len(built.sla_unsourced)} estimated"
+    )
     return 0
 
 

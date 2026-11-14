@@ -7,6 +7,7 @@ from pricing.domain.catalog_build import SKELETON_VALUE, build_catalog
 from pricing.domain.errors import BuildError
 from pricing.domain.fx import FxRate
 from pricing.domain.price import Price
+from pricing.domain.sla import SlaEntry, SlaSnapshot
 from pricing.domain.snapshot import Snapshot
 
 FX = FxRate("ecb-fx", "https://ecb", date(2026, 11, 13), date(2026, 11, 14), 1.25)
@@ -85,6 +86,18 @@ def test_an_unsourced_price_can_say_why_it_stays_illustrative():
     document["x_unsourced_reasons"] = {"aws-ec2/tier:t3.large": "the vendor does not publish it"}
     built = build_catalog(document, (), {}, snapshots(), FX)
     assert built.document["x_unsourced"]["aws-ec2/tier:t3.large"] == "the vendor does not publish it"
+
+
+def test_sla_commitments_are_overlaid_and_the_rest_is_listed():
+    entry = SlaEntry("aws-ec2/availability_pct", "https://vendor/sla", 99.9, DAY, "99.9% uptime", "test")
+    slas = SlaSnapshot("sla", "config/slas.json", "v1", DAY, {"aws-ec2/availability_pct": entry})
+    built = build_catalog(skeleton(), (), {}, snapshots(), FX, slas)
+    assert built.document["options"][0]["sla"]["availability_pct"] == 99.9
+    assert built.sla_sourced == ("aws-ec2/availability_pct",)
+    assert "platform/dc1/availability_pct" in built.sla_unsourced
+    assert built.document["x_sla_unsourced"]["platform/dc1/availability_pct"] == SKELETON_VALUE
+    assert built.document["x_migration_estimates"]["options"] == ["aws-ec2"]
+    assert built.document["x_sla_sources"]["aws-ec2/availability_pct"]["value"] == 99.9
 
 
 def test_a_price_whose_quote_vanished_stays_illustrative_with_the_reason():

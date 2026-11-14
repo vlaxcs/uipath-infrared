@@ -7,6 +7,16 @@
   "x_unsourced_reasons": {
     "platform/onprem-dc1": "on-prem hardware is quoted per site, so there is no public price list to snapshot"
   },
+  "x_sla_unsourced_reasons": {
+    "aws-eip/availability_pct": "the EC2 SLA covers Elastic IPs only when purchased with instances; an unassociated EIP has no separate commitment",
+    "aws-firehose/availability_pct": "Firehose is not an included service in the Kinesis SLA; no public uptime commitment found",
+    "managed-pg-platform/multi_az_availability_pct": "Supabase publishes one platform uptime commitment; the multi-AZ figure remains a catalog estimate",
+    "managed-pg-serverless/availability_pct": "Neon publishes an SLA for Business and Scale only; Launch has no uptime commitment",
+    "onprem-k8s-nodes/availability_pct": "on-prem availability is a site planning estimate, not a vendor SLA",
+    "onprem-object-storage/availability_pct": "on-prem availability is a site planning estimate, not a vendor SLA",
+    "onprem-postgres/availability_pct": "on-prem availability is a site planning estimate, not a vendor SLA",
+    "platform/onprem-dc1/availability_pct": "on-prem availability is a site planning estimate, not a vendor SLA"
+  },
   "options": [
     {
       "id": "aws-rds-postgres", "kind": "postgres", "provider": "aws", "service": "rds",
