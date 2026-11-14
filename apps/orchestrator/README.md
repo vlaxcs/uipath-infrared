@@ -25,8 +25,9 @@ curl -s localhost:8080/runs/run-startup-0001/files/infra.json
 
 | Route | Answers |
 | --- | --- |
+| `GET /onboarding` | connections, the catalog's providers, on-prem, and every project with its forbidden providers |
 | `GET /runs?project=&limit=` | run summaries, newest first, no events; `limit` 1 to 200, default 50 |
-| `POST /runs` `{"project"}` | `201` the new run; `404` no `<project>.forecast.json`; `409` the project already has an active run |
+| `POST /runs` `{"project", "onboarding"?}` | `201` the new run, with the onboarding answers in its `forecast.json`; `400` answers that break `docs/onboarding.md` section 5; `404` no `<project>.forecast.json`; `409` the project already has an active run |
 | `GET /runs/{id}` | the run document |
 | `GET /runs/{id}/events?after=` | the events after `seq`, `[]` when none |
 | `POST /runs/{id}/decisions` | `201` the appended event; `400` bad body; `409` gate not open; `422` layout not a feasible candidate |

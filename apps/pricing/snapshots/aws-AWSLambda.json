@@ -1,0 +1,23 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "gb-second": {
+      "amount": 1.66667e-05,
+      "currency": "USD",
+      "description": "AWS Lambda - Total Compute - EU (Ireland)-Tier-1",
+      "reference": "SGGKTWDV7PGMPPSJ",
+      "unit": "Lambda-GB-Second"
+    },
+    "requests": {
+      "amount": 2e-07,
+      "currency": "USD",
+      "description": "AWS Lambda - Total Requests - EU (Ireland)",
+      "reference": "B5V2RNHAWGVJBZD3",
+      "unit": "Request"
+    }
+  },
+  "source": "aws-AWSLambda",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSLambda/20261111223004/eu-west-1/index.csv",
+  "version": "20261111223004"
+}

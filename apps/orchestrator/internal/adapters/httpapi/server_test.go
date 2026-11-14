@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"infrared/orchestrator/internal/adapters/httpapi"
+	"infrared/orchestrator/internal/onboarding"
+	"infrared/orchestrator/internal/profile"
 	"infrared/orchestrator/internal/run"
 	"infrared/orchestrator/internal/workflow"
 )
@@ -22,9 +24,20 @@ type fakeRuns struct {
 	artifacts   []run.Artifact
 	artifact    []byte
 	fileErr     error
+	answers     *onboarding.Answers
+	started     bool
+	loggedStep  run.Step
+	loggedAfter int64
+	saved       *profile.Profile
+	trial       *workflow.TrialProfile
 }
 
-func (f *fakeRuns) Start(project string) (run.Run, error) {
+func (f *fakeRuns) Onboarding() (onboarding.Setup, error) {
+	return onboarding.Setup{Connections: onboarding.Connections, Providers: []string{"aws"}, Projects: []onboarding.Project{}}, f.err
+}
+
+func (f *fakeRuns) Start(project string, answers *onboarding.Answers) (run.Run, error) {
+	f.started, f.answers = true, answers
 	return run.Run{Summary: run.Summary{ID: "run-" + project + "-0001", Project: project}}, f.err
 }
 
@@ -55,6 +68,105 @@ func (f *fakeRuns) ListFiles(id string) ([]run.Artifact, error) {
 	return f.artifacts, f.fileErr
 }
 
+func (f *fakeRuns) ReadLog(id string, step run.Step, after int64) (workflow.LogChunk, error) {
+	f.loggedStep, f.loggedAfter = step, after
+	return workflow.LogChunk{Path: "logs/3-investigate.log", Text: "reading ec2\n", Next: after + 12, Running: true}, f.err
+}
+
+func TestALogChunkIsReadForAStepFromAnOffset(t *testing.T) {
+	runs := &fakeRuns{}
+	recorder := send(t, runs, "GET", "/runs/run-startup-0001/logs?step=investigate&after=30", "")
+	if recorder.Code != http.StatusOK || runs.loggedStep != run.Investigate || runs.loggedAfter != 30 {
+		t.Fatalf("%d, step %q after %d: %s", recorder.Code, runs.loggedStep, runs.loggedAfter, recorder.Body)
+	}
+	var chunk workflow.LogChunk
+	json.Unmarshal(recorder.Body.Bytes(), &chunk)
+	if chunk.Text != "reading ec2\n" || chunk.Next != 42 || !chunk.Running {
+		t.Fatalf("chunk %+v", chunk)
+	}
+}
+
+func TestALogRequestNeedsAStepWithALogAndAValidOffset(t *testing.T) {
+	for _, path := range []string{"/runs/x/logs", "/runs/x/logs?step=present", "/runs/x/logs?step=nope", "/runs/x/logs?step=extract&after=-1", "/runs/x/logs?step=extract&after=a"} {
+		if recorder := send(t, &fakeRuns{}, "GET", path, ""); recorder.Code != http.StatusBadRequest {
+			t.Errorf("%s answered %d", path, recorder.Code)
+		}
+	}
+}
+
+func (f *fakeRuns) Rehearse(id string, trial workflow.TrialProfile) (workflow.TrialStarted, error) {
+	f.trial = &trial
+	return workflow.TrialStarted{File: "rehearsal.1.trial-1.json", Candidate: "managed_services"}, f.err
+}
+
+func TestATrialRehearsalIsAcceptedAndNamesItsFile(t *testing.T) {
+	runs := &fakeRuns{}
+	recorder := send(t, runs, "POST", "/runs/run-1/rehearsals", `{"requests_per_second":80,"phase_seconds":20}`)
+	if recorder.Code != http.StatusAccepted || runs.trial == nil || runs.trial.RequestsPerSecond != 80 || runs.trial.PhaseSeconds != 20 {
+		t.Fatalf("%d %s", recorder.Code, recorder.Body)
+	}
+	if !strings.Contains(recorder.Body.String(), `"file":"rehearsal.1.trial-1.json"`) {
+		t.Fatalf("body %s", recorder.Body)
+	}
+}
+
+func TestATrialIsRefusedWithTheRightStatus(t *testing.T) {
+	cases := []struct {
+		err    error
+		status int
+	}{
+		{fmt.Errorf("%w: x", workflow.ErrNoLayout), http.StatusConflict},
+		{fmt.Errorf("%w: x", workflow.ErrTrialRunning), http.StatusConflict},
+		{fmt.Errorf("%w: x", workflow.ErrInvalidTrial), http.StatusBadRequest},
+		{fmt.Errorf("%w: run x", workflow.ErrNotFound), http.StatusNotFound},
+	}
+	for _, c := range cases {
+		if recorder := send(t, &fakeRuns{err: c.err}, "POST", "/runs/x/rehearsals", `{"requests_per_second":10,"phase_seconds":15}`); recorder.Code != c.status {
+			t.Errorf("%v answered %d, want %d", c.err, recorder.Code, c.status)
+		}
+	}
+}
+
+func (f *fakeRuns) Profile() (profile.Profile, error) {
+	if f.saved != nil {
+		return *f.saved, nil
+	}
+	return profile.Default(), f.err
+}
+
+func (f *fakeRuns) SaveProfile(saved profile.Profile) error {
+	if err := profile.Check(saved); err != nil {
+		return err
+	}
+	f.saved = &saved
+	return nil
+}
+
+func TestTheProfileIsReadAndSaved(t *testing.T) {
+	runs := &fakeRuns{}
+	read := send(t, runs, "GET", "/profile", "")
+	if read.Code != http.StatusOK || !strings.Contains(read.Body.String(), `"focus":"cost"`) {
+		t.Fatalf("read %d %s", read.Code, read.Body)
+	}
+	body := `{"criteria":{"focus":"zone","market":"fr"},"onprem":{"wanted":false}}`
+	if saved := send(t, runs, "PUT", "/profile", body); saved.Code != http.StatusOK || runs.saved == nil || runs.saved.Criteria.Market != "fr" {
+		t.Fatalf("save %d %s", saved.Code, saved.Body)
+	}
+}
+
+func TestABadProfileIsRefusedWith400(t *testing.T) {
+	for _, body := range []string{
+		`{"criteria":{"focus":"speed"},"onprem":{"wanted":false}}`,
+		`{"criteria":{},"onprem":{"wanted":false},"extra":1}`,
+		`not json`,
+	} {
+		runs := &fakeRuns{}
+		if recorder := send(t, runs, "PUT", "/profile", body); recorder.Code != http.StatusBadRequest || runs.saved != nil {
+			t.Errorf("%s: %d", body, recorder.Code)
+		}
+	}
+}
+
 func (f *fakeRuns) ReadFile(id, name string) ([]byte, error) {
 	if f.artifact == nil {
 		return []byte(`{"components":[]}`), f.fileErr
@@ -76,6 +188,7 @@ func TestRoutesAnswerWithTheirStatus(t *testing.T) {
 		method, path, body string
 		status             int
 	}{
+		{"GET", "/onboarding", "", http.StatusOK},
 		{"GET", "/runs", "", http.StatusOK},
 		{"POST", "/runs", `{"project": "startup"}`, http.StatusCreated},
 		{"GET", "/runs/run-startup-0001", "", http.StatusOK},
@@ -215,5 +328,58 @@ func TestTheDecisionBodyReachesTheWorkflowWhole(t *testing.T) {
 	got := runs.decided
 	if got.Step != run.Rehearse || got.Actor.Surface != "slack" || got.Decision.Kind != run.ApprovePlan || got.Decision.Reason != "go" {
 		t.Fatalf("decided %+v", got)
+	}
+}
+
+func TestStartPassesTheOnboardingAnswers(t *testing.T) {
+	runs := &fakeRuns{}
+	recorder := send(t, runs, "POST", "/runs", `{"project": "startup", "onboarding": {"connection": "floci", "targets": ["aws"], "onprem": {"wanted": true}}}`)
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("%d: %s", recorder.Code, recorder.Body)
+	}
+	if runs.answers == nil || runs.answers.Connection != "floci" || len(runs.answers.Targets) != 1 || !runs.answers.Onprem.Wanted {
+		t.Fatalf("answers reached the workflow as %+v", runs.answers)
+	}
+}
+
+func TestStartWithoutOnboardingPassesNoAnswers(t *testing.T) {
+	runs := &fakeRuns{}
+	send(t, runs, "POST", "/runs", `{"project": "startup"}`)
+	if !runs.started || runs.answers != nil {
+		t.Fatalf("started %v with answers %+v", runs.started, runs.answers)
+	}
+}
+
+func TestAnUnknownOnboardingFieldIsRefusedBeforeTheWorkflow(t *testing.T) {
+	runs := &fakeRuns{}
+	recorder := send(t, runs, "POST", "/runs", `{"project": "startup", "onboarding": {"connection": "floci", "targets": ["aws"], "region": "eu"}}`)
+	if recorder.Code != http.StatusBadRequest || runs.started {
+		t.Fatalf("%d, started %v", recorder.Code, runs.started)
+	}
+}
+
+func TestInvalidOnboardingAnswersAre400WithTheReason(t *testing.T) {
+	err := fmt.Errorf("%w: gcp is forbidden by the project", onboarding.ErrInvalid)
+	recorder := send(t, &fakeRuns{err: err}, "POST", "/runs", `{"project": "startup", "onboarding": {"connection": "floci", "targets": ["gcp"]}}`)
+	var body map[string]string
+	json.Unmarshal(recorder.Body.Bytes(), &body)
+	if recorder.Code != http.StatusBadRequest || body["error"] != err.Error() {
+		t.Fatalf("%d %v", recorder.Code, body)
+	}
+}
+
+func TestTheOnboardingSetupIsServedAsJSON(t *testing.T) {
+	recorder := send(t, &fakeRuns{}, "GET", "/onboarding", "")
+	var setup struct {
+		Connections []struct{ ID, Label string } `json:"connections"`
+		Providers   []string                     `json:"providers"`
+		Onprem      *bool                        `json:"onprem"`
+		Projects    []any                        `json:"projects"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &setup); err != nil {
+		t.Fatal(err)
+	}
+	if len(setup.Connections) != 1 || setup.Connections[0].ID != "floci" || setup.Onprem == nil || setup.Projects == nil {
+		t.Fatalf("setup %s", recorder.Body)
 	}
 }

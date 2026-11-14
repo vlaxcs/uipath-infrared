@@ -17,7 +17,7 @@ def test_baseline_command_prints_the_priced_estate(capsys):
     assert code == 0
     document = json.loads(out)
     assert document["project"] == "demo-shop"
-    assert document["monthly_eur"] == 133308
+    assert document["monthly_eur"] == 138112.8
     assert document["cross_check"]["mismatches"]
 
 
@@ -54,3 +54,14 @@ def test_evaluate_runs_on_the_real_extraction(tmp_path):
     out = tmp_path / "real.json"
     assert main(["evaluate", str(REAL_INFRA), str(FORECAST), str(CATALOG), "--out", str(out)]) == 0
     assert json.loads(out.read_text())["inputs"]["infra"]
+
+
+def test_evaluate_into_a_file_reports_what_it_decided_on_stderr(capsys, tmp_path):
+    out = tmp_path / "result.json"
+    code, stdout, stderr = run(capsys, "evaluate", str(MOCK_INFRA), str(FORECAST), str(CATALOG), "--out", str(out))
+    result = json.loads(out.read_text(encoding="utf-8"))
+    feasible = sum(1 for candidate in result["candidates"] if candidate["feasible"])
+    assert code == 0 and stdout == ""
+    assert f"{len(result['candidates'])} candidates, {feasible} feasible" in stderr
+    assert (f"winner {result['winner']}" if result["winner"] else "no winner") in stderr
+    assert f"wrote {out}" in stderr

@@ -1,32 +1,66 @@
-import { useState } from "react";
-import { GraphSection } from "~/graph/GraphSection";
-import { sampleGraphModel } from "~/graph/sampleGraph";
-import { sectionById, type SectionId } from "~/navigation/sections";
-import { sampleRuns } from "~/runs/sampleRun";
+import { createHttpAccountSource, sampleAccountSource, type AccountSource } from "~/account/accountSource";
+import { useAccount } from "~/account/useAccount";
+import { HomePage } from "~/home/HomePage";
+import { useHashRoute } from "~/navigation/useHashRoute";
+import { AccountPage } from "~/pages/AccountPage";
+import { AnalyzePage } from "~/pages/AnalyzePage";
+import { ConfigurationPage } from "~/pages/ConfigurationPage";
+import { LoginPage } from "~/pages/LoginPage";
+import { runSource } from "~/runs/runSource";
 import { RunsSection } from "~/runs/RunsSection";
-import { StatusBadge } from "~/ui/StatusBadge";
-import { AppShell } from "~/shell/AppShell";
-import { SectionPlaceholder } from "~/shell/SectionPlaceholder";
+import { settings } from "~/runs/settings";
+import type { RunSource } from "~/runs/source";
+import { Frame } from "~/shell/Frame";
 
-export function App() {
-  const [section, setSection] = useState<SectionId>("runs");
-  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
-  const activeSection = sectionById(section);
+type AppProps = {
+  source?: RunSource;
+  accountSource?: AccountSource;
+  orchestratorUrl?: string | null;
+  extensionUrl?: string | null;
+};
+
+const defaultAccountSource = settings.orchestratorUrl ? createHttpAccountSource(settings.orchestratorUrl) : sampleAccountSource;
+
+export function App({
+  source = runSource,
+  accountSource = defaultAccountSource,
+  orchestratorUrl = settings.orchestratorUrl,
+  extensionUrl = settings.extensionUrl,
+}: AppProps = {}) {
+  const route = useHashRoute();
+  const account = useAccount(accountSource);
+
+  if (route.page === "login") {
+    return <LoginPage orchestratorUrl={orchestratorUrl} onContinue={() => route.go("home")} />;
+  }
 
   return (
-    <AppShell
-      activeSection={section}
-      onSelectSection={setSection}
-      title={activeSection.label}
-      headerBadge={<StatusBadge label="Sample data" tone="neutral" />}
+    <Frame
+      showBack={route.page !== "home"}
+      account={account}
+      onBack={route.back}
+      onHome={() => route.go("home")}
+      onNavigate={route.go}
+      onDisconnect={() => route.go("login")}
     >
-      {section === "runs" ? (
-        <RunsSection runs={sampleRuns} selectedRunId={selectedRunId} onSelectRun={setSelectedRunId} />
-      ) : section === "graph" ? (
-        <GraphSection model={sampleGraphModel} />
+      {route.page === "home" ? (
+        <HomePage extensionUrl={extensionUrl} onAnalyze={() => route.go("analyze")} onPrevious={() => route.go("runs")} />
+      ) : route.page === "analyze" ? (
+        <AnalyzePage onFollowRun={route.openRun} />
+      ) : route.page === "runs" ? (
+        <div className="w-full">
+          <RunsSection
+            source={source}
+            runId={route.runId}
+            focusGate={route.focusGate}
+            onOpenRun={route.openRun}
+          />
+        </div>
+      ) : route.page === "configuration" ? (
+        <ConfigurationPage />
       ) : (
-        <SectionPlaceholder section={activeSection} />
+        <AccountPage />
       )}
-    </AppShell>
+    </Frame>
   );
 }

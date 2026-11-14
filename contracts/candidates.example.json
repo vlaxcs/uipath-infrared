@@ -14,7 +14,7 @@
           "action": "move",
           "reason": "cpu_pct avg 8, p95 22 over 14 d on a single-AZ instance",
           "signal": "oversized",
-          "to": { "option": "managed-pg-serverless", "region": "us-east-1", "tier": "c4" }
+          "to": { "option": "neon-launch", "region": "us-east-1", "tier": "c4" }
         }
       ]
     },

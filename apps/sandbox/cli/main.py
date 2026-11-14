@@ -14,6 +14,7 @@ from ..domain.naming import BASE_PREFIX
 from ..domain.teardown_selection import select_owned
 
 DEFAULT_MIN_AVAILABILITY_PCT = 99.9
+MAX_REQUESTS_PER_SECOND = 200
 
 
 def load_forecast(path: str):
@@ -37,7 +38,7 @@ def rehearse(arguments) -> int:
     aws = settings.aws()
     print(f"rehearsing candidate {candidate.id} on Floci at {aws.endpoint_url}, target availability {min_availability_pct}%")
     try:
-        outcome = Rehearsal(aws, phase_seconds=arguments.phase_seconds).run(state, min_availability_pct, forecast_id)
+        outcome = Rehearsal(aws, phase_seconds=arguments.phase_seconds, requests_per_second=arguments.requests_per_second).run(state, min_availability_pct, forecast_id)
     except LeftoverResources as leftovers:
         print(f"refusing to run: {BASE_PREFIX} resources already exist in Floci: {leftovers}")
         print("inspect them with `sandbox inventory`; remove them with `sandbox teardown` only if they are yours")
@@ -69,6 +70,16 @@ def teardown(arguments) -> int:
     return 0 if not remaining else 1
 
 
+def requests_per_second(value: str) -> int:
+    try:
+        rate = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{value!r} is not a whole number of requests per second")
+    if not 1 <= rate <= MAX_REQUESTS_PER_SECOND:
+        raise argparse.ArgumentTypeError(f"the rate must be from 1 to {MAX_REQUESTS_PER_SECOND} requests per second")
+    return rate
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(prog="sandbox")
     commands = root.add_subparsers(dest="command", required=True)
@@ -79,6 +90,7 @@ def parser() -> argparse.ArgumentParser:
     rehearse_command.add_argument("--forecast")
     rehearse_command.add_argument("--out", default="rehearsal.json")
     rehearse_command.add_argument("--phase-seconds", type=float, default=15.0)
+    rehearse_command.add_argument("--requests-per-second", type=requests_per_second, default=5)
     rehearse_command.set_defaults(handler=rehearse)
     for name, handler in (("inventory", inventory), ("teardown", teardown)):
         command = commands.add_parser(name)

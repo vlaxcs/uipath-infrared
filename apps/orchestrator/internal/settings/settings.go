@@ -22,6 +22,8 @@ type Settings struct {
 	Workflow       workflow.Config
 }
 
+const defaultFlociURL = "http://localhost:4566"
+
 func Load() (Settings, error) {
 	loadDotEnv()
 	missing := []string{}
@@ -44,6 +46,7 @@ func Load() (Settings, error) {
 				Agent:   strings.Fields(value("ORCHESTRATOR_AGENT_CMD")),
 				Engine:  strings.Fields(value("ORCHESTRATOR_ENGINE_CMD")),
 				Sandbox: strings.Fields(value("ORCHESTRATOR_SANDBOX_CMD")),
+				States:  strings.Fields(os.Getenv("ORCHESTRATOR_STATES_CMD")),
 			},
 			Timeouts: workflow.DefaultTimeouts,
 		},
@@ -56,6 +59,10 @@ func Load() (Settings, error) {
 		return Settings{}, err
 	}
 	settings.Workflow.MaxRevisions = maxRevisions
+	settings.Workflow.FlociURL = strings.TrimSpace(os.Getenv("AWS_ENDPOINT_URL"))
+	if settings.Workflow.FlociURL == "" {
+		settings.Workflow.FlociURL = defaultFlociURL
+	}
 	settings.AllowedOrigins = optionalList("ORCHESTRATOR_ALLOWED_ORIGINS")
 	return settings, nil
 }

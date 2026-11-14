@@ -21,7 +21,7 @@ func withCORS(next http.Handler, allowedOrigins []string) http.Handler {
 		}
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 		if preflight {
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 			w.WriteHeader(http.StatusNoContent)
 			return

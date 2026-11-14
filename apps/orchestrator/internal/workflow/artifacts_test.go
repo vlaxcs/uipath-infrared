@@ -47,6 +47,33 @@ func TestRunFilesAreListedAndRead(t *testing.T) {
 	}
 }
 
+func TestThePlansStatesAreListedAndRead(t *testing.T) {
+	h := newHarness(t, options{maxRevisions: 2})
+	started := h.start()
+	h.waitForGate(started.ID, run.LayoutGate)
+	waitForFile(t, filepath.Join(h.runsDir, started.ID, "states.1.agent-serverless-db-eu.json"))
+
+	files, err := h.flow.ListFiles(started.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	listed := false
+	for _, file := range files {
+		listed = listed || file.Path == "states.1.agent-serverless-db-eu.json"
+	}
+	if !listed {
+		t.Fatalf("the states file is not listed: %+v", files)
+	}
+	if _, err := h.flow.ReadFile(started.ID, "states.1.agent-serverless-db-eu.json"); err != nil {
+		t.Fatalf("the states file cannot be read: %v", err)
+	}
+	for _, name := range []string{"states.json", "states.1.json", "states.1.Bad_Name.json", "states.x.winner.json"} {
+		if _, err := h.flow.ReadFile(started.ID, name); !errors.Is(err, workflow.ErrNotFound) {
+			t.Errorf("%q: %v, want not found", name, err)
+		}
+	}
+}
+
 func TestRunFilesRefuseNamesOutsideTheAllowlist(t *testing.T) {
 	h := newHarness(t, options{maxRevisions: 2})
 	started := h.start()

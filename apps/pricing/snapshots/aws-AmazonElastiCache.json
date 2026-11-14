@@ -1,0 +1,30 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "memcached:cache.m4.2xlarge": {
+      "amount": 0.686,
+      "currency": "USD",
+      "description": "$0.686 per Gen Purpose M4.2xlarge node hour running Memcached",
+      "reference": "4XFSSG59K4PT7EQ8",
+      "unit": "Hrs"
+    },
+    "redis:cache.r5.4xlarge": {
+      "amount": 1.921,
+      "currency": "USD",
+      "description": "$1.921 per Enhanced High memory R5.4xlarge node hour running Redis",
+      "reference": "YN6JKEWR54AP5AW9",
+      "unit": "Hrs"
+    },
+    "redis:cache.r5.xlarge": {
+      "amount": 0.48,
+      "currency": "USD",
+      "description": "$0.48 per Enhanced High memory R5.xlarge node hour running Redis",
+      "reference": "8TQT4HJRD7JYK2VH",
+      "unit": "Hrs"
+    }
+  },
+  "source": "aws-AmazonElastiCache",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonElastiCache/20261113003443/eu-west-1/index.csv",
+  "version": "20261113003443"
+}

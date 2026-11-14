@@ -213,7 +213,11 @@ def run(args: argparse.Namespace) -> dict:
         if value and not Path(value).is_file():
             raise SnapshotError(f"{flag} file not found: {value}")
     try:
-        dataset = build_states.build_dataset(args.layout, args.infra, args.result)
+        dataset = build_states.build_dataset(
+            Path(args.infra) if args.infra else build_states.INFRA_PATH,
+            Path(args.result) if args.result else build_states.RESULT_PATH,
+            args.layout,
+        )
     except build_states.LayoutError as error:
         raise SnapshotError(str(error))
     except (OSError, ValueError) as error:

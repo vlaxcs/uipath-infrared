@@ -1,0 +1,16 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "requests:paid-tier": {
+      "amount": 5e-07,
+      "currency": "USD",
+      "description": "$0.50 per 1,000,000 Amazon SNS API Requests per month thereafter",
+      "reference": "ZVCRD326SNFYPYWV",
+      "unit": "Requests"
+    }
+  },
+  "source": "aws-AmazonSNS",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonSNS/20261112195653/eu-west-1/index.csv",
+  "version": "20261112195653"
+}

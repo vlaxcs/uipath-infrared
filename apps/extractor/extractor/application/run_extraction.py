@@ -11,6 +11,7 @@ from extractor.application.series_reader import SeriesReader
 from extractor.application.warnings import Warnings
 from extractor.domain.document import infra_document
 from extractor.domain.inventory import Inventory
+from extractor.domain.projects import belongs, is_scoped, scope_to_project, tag_name
 from extractor.domain.provenance import metric_provenance
 from extractor.domain.status import apply_status
 
@@ -33,10 +34,13 @@ def run_extraction(request, aws, extension_sources=None):
     load_network(context)
     context.eks_cluster_names = warnings.guard("eks list", aws.eks.cluster_names, [])
     context.volumes = warnings.guard("volumes", aws.ec2.volumes, [])
+    if is_scoped(request.project):
+        context.volumes = [v for v in context.volumes if belongs(tag_name(v), request.project)]
     for label, section in SECTIONS:
         warnings.guard(label, lambda: section(context))
     build_edges(context)
     apply_status(context.inventory.components, context.inventory.edges)
+    scope_to_project(context.inventory, request.project)
     controls = collect_controls(context)
     extended = run_extensions(context, extension_sources, now) if extension_sources else None
     return infra_document(request.project, request.endpoint, request.region, now, controls, context.inventory, warnings.messages, extended)

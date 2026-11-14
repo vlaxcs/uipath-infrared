@@ -3,17 +3,79 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import App from "./App.tsx";
 import { content } from "./content.ts";
+import { PROJECT_DELTA_LINES } from "./data/run.ts";
 import tokensCss from "./tokens.css?raw";
 import { parseColorTokens } from "./tokens.ts";
 
 const accent = parseColorTokens(tokensCss).find((token) => token.name === "accent")!.value;
 
 describe("product page", () => {
-  it("opens in Romanian and says it comes from Digi", () => {
+  it("opens in Romanian as Infrared", () => {
     render(<App />);
     expect(document.documentElement.lang).toBe("ro");
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(content.ro.hero.title);
-    expect(screen.getAllByText("de la Digi").length).toBeGreaterThan(0);
+    expect(document.title).toBe("Infrared");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(content.ro.hero.title.join(" "));
+    expect(screen.getAllByText(content.ro.tagline).length).toBeGreaterThan(0);
+  });
+
+  it("sets the English hero title on two lines, with Explore and a red Start using Infrared", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "EN" }));
+    const lines = screen.getByRole("heading", { level: 1 }).querySelectorAll(":scope > span");
+    expect([...lines].map((line) => line.textContent)).toEqual(["Infrastructure replanned", "around every project."]);
+    const hero = document.getElementById("acasa")!;
+    expect(within(hero).getByRole("link", { name: "Explore" })).toHaveAttribute("href", "#ce-gaseste");
+    const start = within(hero).getByRole("link", { name: "Start using Infrared" });
+    expect(start).toHaveAttribute("href", "#preturi");
+    expect(start.className).toContain("bg-accent");
+  });
+
+  it("shows the sample run as a terminal plan", () => {
+    render(<App />);
+    const run = screen.getByRole("figure", { name: content.ro.run.label });
+    expect(run).toHaveTextContent("sources selected");
+    expect(run).toHaveTextContent("current layout");
+    expect(run).toHaveTextContent("proposed layout");
+    expect(run).toHaveTextContent("cost delta");
+    expect(run).toHaveTextContent("availability delta");
+    expect(run).toHaveTextContent("implementation steps");
+    expect(within(run).getByRole("button", { name: content.ro.run.copy })).toBeInTheDocument();
+  });
+
+  it("groups every finding under its criterion", () => {
+    render(<App />);
+    for (const criterion of ["cost", "availability", "database"] as const) {
+      const group = screen.getByRole("group", { name: content.ro.finds.criteria[criterion] });
+      const names = within(group).getAllByRole("heading", { level: 4 }).map((heading) => heading.textContent);
+      expect(names).toEqual(content.ro.finds.items.filter((item) => item.criterion === criterion).map((item) => item.name));
+    }
+  });
+
+  it("lists both plans with their prices", () => {
+    render(<App />);
+    const section = screen.getByRole("region", { name: content.ro.pricing.title });
+    for (const plan of content.ro.pricing.plans) {
+      const row = within(section).getByRole("rowheader", { name: new RegExp(`^${plan.name}`) }).closest("tr")!;
+      expect(row).toHaveTextContent(plan.price);
+      expect(row).toHaveTextContent(plan.unit);
+      expect(row).toHaveTextContent(plan.detail);
+    }
+  });
+
+  it("ends on a command, not an illustration", () => {
+    render(<App />);
+    const footer = screen.getByRole("contentinfo");
+    expect(within(footer).getByText(new RegExp(content.ro.footer.prompt))).toBeInTheDocument();
+    expect(within(footer).getByRole("button", { name: content.ro.footer.copy })).toBeInTheDocument();
+  });
+
+  it("links project plan rows to the cluster", () => {
+    render(<App />);
+    const rail = screen.getByRole("heading", { name: "project delta" }).closest("section")!;
+    const rows = within(rail).getAllByRole("listitem");
+    expect(rows).toHaveLength(PROJECT_DELTA_LINES.length);
+    fireEvent.focus(rows[0]);
+    expect(rows[0]).toHaveAttribute("aria-current", "true");
   });
 
   it("switches every section to English", async () => {
@@ -21,7 +83,7 @@ describe("product page", () => {
     await userEvent.click(screen.getByRole("button", { name: "EN" }));
     expect(document.documentElement.lang).toBe("en");
     expect(screen.getByRole("button", { name: "EN" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(content.en.hero.title);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(content.en.hero.title.join(" "));
     expect(screen.getByRole("heading", { name: content.en.how.title })).toBeInTheDocument();
     expect(screen.queryByText(content.ro.how.promise)).not.toBeInTheDocument();
   });

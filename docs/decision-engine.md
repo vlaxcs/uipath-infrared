@@ -74,7 +74,7 @@ The strategies are **cumulative layers**, so each one shows what it adds on top 
 | `do_nothing` | nothing (the baseline, always present) |
 | `cleanup_orphans` | delete orphans, stop idle components |
 | `rightsize_in_place` | resize to fit p95, grow undersized components, autoscale static pools, multi-AZ for stateful prod |
-| `managed_services` | move each component to the cheapest feasible catalog option at a different provider (`managed_pg` and so on) |
+| `managed_services` | move each component to the cheapest feasible catalog option at a different provider (Supabase, Neon, Hetzner and so on) |
 | `consolidate` | merge duplicates (NAT gateways, duplicate databases, overlapping clusters) |
 | `move_to_onprem` | move to `onprem-*` options, with the platform cost allocated (section 3) |
 
@@ -90,7 +90,7 @@ Movement rules:
 | Horizon run cost | Σ over months, discounted at `discount_rate_annual`, then weighted by scenario `probability` |
 | Migration cost (one-off) | per moved component: `(effort_hours_fixed + effort_hours_per_100gb * data_gb/100) * same_provider_factor * engineer_hourly_eur`, plus 1 month of running old and new side by side for stateful moves, plus data-transfer egress |
 | Ops cost | Σ `ops_hours_month_per_unit * quantity * engineer_hourly_eur` per month |
-| On-prem platform | `capex/(amortization_years*12) + power_cooling + colocation + disks.count*AFR*(replacement_eur + labor_hours*rate)/12 + (base_hours + hours_per_100_vcpu*vcpu/100)*rate`, allocated by the share of platform capacity used. If the share is above 1, add another platform. |
+| On-prem platform | `capex/(amortization_years*12) + power_cooling + colocation + disks.count*AFR*(replacement_eur + labor_hours*rate)/12 + (base_hours + hours_per_100_vcpu*vcpu/100)*rate + capex*maintenance_pct/100/12 + network + licences`, plus `contingency_pct` of every line except capex; allocated by the share of platform capacity used, and spread over the on-prem components so it grows with them. Platforms are sized for the base scenario at the horizon month; if the share is above 1, add another platform. One-off: the share of `setup_one_off_eur` goes into migration cost; the share of capex is paid up front, so it counts against the one-off budget and in payback, but not twice in the expected total. |
 | Availability | critical path = product of component availabilities. A component in *z* ≥ 2 zones uses `multi_az_availability_pct` when the catalog gives one, otherwise `1-(1-a)^z` |
 | Expected outage loss | `(1 - availability) * 8760 * downtime_cost_per_hour_eur` per year, using the per-stack override where given |
 | Risk | mean `risk_factor` of the moved components, weighted by their monthly cost (0 when nothing moves) |
@@ -164,7 +164,7 @@ Each step can be demoed on its own. Tests come from `contracts/mock/demo-shop.ex
 | b | `do_nothing` + constraint checks | infeasible: `s3-legacy-reports` residency, single-AZ RDS under 99.9% |
 | c | `cleanup_orphans` | about EUR 9.2k/month from `rds-orders-clone`, `ebs-orphans`, `nat-dev`, `vm-dev-jump`, `vm-bastion`, `cache-legacy-mc`, `efs-legacy`; high confidence |
 | d | `rightsize_in_place` | `ng-data-gpu` and `ng-shop-staging` cut; **`rds-analytics` grows**; `ddb-orders` flagged as a design problem with no capacity added |
-| e | `managed_services` + feature check | `managed-pg-serverless` rejected for `rds-analytics` (`pg_partman`, `logical_replication`), `rds-orders`, `pg-lake`; `rds-erp` allowed but kept with `erp-core` |
+| e | `managed_services` + feature check | `neon-launch` rejected for `rds-analytics` (`pg_partman`, `logical_replication`), `rds-orders`, `pg-lake`; `rds-erp` allowed but kept with `erp-core` |
 | f | `move_to_onprem` | the full platform cost shown (capex, cooling, disks, staff) |
 | g | scoring, Pareto, payback, robustness, nothing-feasible fallback | deterministic winner; every loser has a reason |
 | h | run on `real/floci-estate.infra.json` | no crash; the flags from "Gaps in real data" appear |

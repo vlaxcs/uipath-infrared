@@ -9,6 +9,7 @@ FLOW = Path(__file__).resolve().parents[1] / "flow"
 
 def investigate(arguments):
     Path(arguments.out).write_text(json.dumps({"findings": []}) + "\n", encoding="utf-8")
+    print("agent stub: no model call; wrote no findings", file=sys.stderr)
     return 0
 
 
@@ -23,6 +24,7 @@ def propose(arguments):
         print(f"the stub has no proposal for revision {arguments.revision}", file=sys.stderr)
         return 1
     shutil.copyfile(proposal, arguments.out)
+    print(f"agent stub: no model call; proposed {proposal.name}", file=sys.stderr)
     return 0
 
 

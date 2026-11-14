@@ -1,5 +1,7 @@
 import json
+import os
 import shutil
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -31,7 +33,7 @@ def answer_of(reply: dict):
 def run_dir(tmp_path):
     shutil.copyfile(MOCK / "startup.infra.json", tmp_path / "infra.json")
     shutil.copyfile(MOCK / "startup.forecast.json", tmp_path / "forecast.json")
-    shutil.copyfile(REPO / "contracts" / "catalog.example.json", tmp_path / "catalog.json")
+    shutil.copyfile(REPO / "contracts" / "real" / "catalog.json", tmp_path / "catalog.json")
     (tmp_path / "findings.json").write_text('{"findings": []}', encoding="utf-8")
     return tmp_path
 
@@ -44,3 +46,14 @@ def engine_command(monkeypatch):
 
 def candidate(revision: int) -> dict:
     return json.loads((FLOW / f"candidates.{revision}.json").read_text(encoding="utf-8"))["candidates"][0]
+
+
+@pytest.fixture(scope="session")
+def engine_result_0(tmp_path_factory):
+    out = tmp_path_factory.mktemp("engine") / "result.0.json"
+    subprocess.run(
+        [sys.executable, "-m", "engine", "evaluate", str(MOCK / "startup.infra.json"), str(MOCK / "startup.forecast.json"),
+         str(REPO / "contracts" / "real" / "catalog.json"), "--candidates", str(FLOW / "candidates.0.json"), "--out", str(out)],
+        check=True, env={**os.environ, "PYTHONPATH": str(REPO / "apps" / "engine")},
+    )
+    return out

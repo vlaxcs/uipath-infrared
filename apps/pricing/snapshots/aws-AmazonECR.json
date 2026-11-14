@@ -1,0 +1,16 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "storage": {
+      "amount": 0.1,
+      "currency": "USD",
+      "description": "$0.10 per GB-month of data storage",
+      "reference": "4NWTEXUZBWQH8MDW",
+      "unit": "GB-Mo"
+    }
+  },
+  "source": "aws-AmazonECR",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonECR/20261113163947/eu-west-1/index.csv",
+  "version": "20261113163947"
+}

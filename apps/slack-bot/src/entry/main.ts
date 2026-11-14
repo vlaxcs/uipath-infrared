@@ -1,6 +1,7 @@
 import { loadSettings } from '../settings.js';
 import { HttpOrchestrator } from '../adapters/http-orchestrator.js';
 import { RunTracker } from '../application/run-tracker.js';
+import { RunWatcher } from '../application/run-watcher.js';
 import { createDiagramRenderer } from '../adapters/state-view-diagrams.js';
 import { createBot } from './bot.js';
 import { wait } from './wait.js';
@@ -24,7 +25,15 @@ app.command('/infrared', async ({ command, ack, client }) => {
   });
 });
 
+const watcher = new RunWatcher(
+  () => orchestrator.listRuns(),
+  runId => new RunTracker(slack, orchestrator, settings.slackChannel, wait, POLL_MS, settings.dashboardUrl, diagrams).track(runId),
+  wait,
+  (runId, error) => console.error(`Tracking ${runId} stopped: ${error.message}`)
+);
+
 (async () => {
   await app.start();
-  console.log(`Slack bot started; polling ${settings.orchestratorUrl}`);
+  console.log(`Slack bot started; watching every run on ${settings.orchestratorUrl}, posting to #${settings.slackChannel}`);
+  await watcher.watch();
 })();

@@ -9,6 +9,7 @@ import (
 	"infrared/orchestrator/internal/adapters/httpapi"
 	"infrared/orchestrator/internal/adapters/store"
 	"infrared/orchestrator/internal/adapters/subprocess"
+	"infrared/orchestrator/internal/profile"
 	"infrared/orchestrator/internal/settings"
 	"infrared/orchestrator/internal/workflow"
 )
@@ -31,5 +32,9 @@ func Build(config settings.Settings) (App, error) {
 	if err := flow.Load(); err != nil {
 		return App{}, err
 	}
-	return App{Handler: httpapi.Handler(flow, config.AllowedOrigins...), Workflow: flow}, nil
+	platform := struct {
+		*workflow.Workflow
+		*profile.Store
+	}{flow, profile.Open(config.RunsDir)}
+	return App{Handler: httpapi.Handler(platform, config.AllowedOrigins...), Workflow: flow}, nil
 }

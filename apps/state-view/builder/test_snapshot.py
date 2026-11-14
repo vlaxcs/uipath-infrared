@@ -26,7 +26,7 @@ def ids(state):
 class LayoutParameterTest(unittest.TestCase):
     def test_default_is_the_winner(self):
         default = build_states.build_dataset()
-        explicit = build_states.build_dataset(RESULT["winner"])
+        explicit = build_states.build_dataset(candidate_id=RESULT["winner"])
         self.assertEqual(default["states"], explicit["states"])
         self.assertTrue(default["layout"]["winner"])
 
@@ -34,7 +34,7 @@ class LayoutParameterTest(unittest.TestCase):
         self.assertEqual(len(LAYOUTS), 6)
         for layout in LAYOUTS:
             candidate = next(c for c in RESULT["candidates"] if c["id"] == layout)
-            dataset = build_states.build_dataset(layout)
+            dataset = build_states.build_dataset(candidate_id=layout)
             actions = candidate.get("actions") or []
             self.assertEqual(dataset["layout"]["id"], layout)
             self.assertEqual(dataset["layout"]["feasible"], candidate["feasible"])
@@ -52,24 +52,24 @@ class LayoutParameterTest(unittest.TestCase):
         infeasible = [c["id"] for c in RESULT["candidates"] if not c["feasible"]]
         self.assertTrue(infeasible)
         for layout in infeasible:
-            self.assertFalse(build_states.build_dataset(layout)["layout"]["feasible"])
+            self.assertFalse(build_states.build_dataset(candidate_id=layout)["layout"]["feasible"])
 
     def test_do_nothing_target_is_the_current_estate(self):
-        dataset = build_states.build_dataset("do_nothing")
+        dataset = build_states.build_dataset(candidate_id="do_nothing")
         self.assertEqual(len(dataset["states"]), 1)
         current = build_states.build_dataset()["states"][0]
         self.assertEqual(dataset["states"][-1]["infra"], current["infra"])
 
     def test_unknown_layout_errors_clearly(self):
         with self.assertRaises(build_states.LayoutError) as caught:
-            build_states.build_dataset("no_such_layout")
+            build_states.build_dataset(candidate_id="no_such_layout")
         self.assertIn("no_such_layout", str(caught.exception))
         self.assertIn("consolidate", str(caught.exception))
 
 
 class DiffTest(unittest.TestCase):
     def test_target_diff_against_current(self):
-        dataset = build_states.build_dataset("consolidate")
+        dataset = build_states.build_dataset(candidate_id="consolidate")
         diff = snapshot.diff_against_current(dataset, len(dataset["states"]) - 1)
         self.assertEqual(len(diff["removed"]), 8)
         self.assertEqual(diff["added"], [])
@@ -79,12 +79,12 @@ class DiffTest(unittest.TestCase):
         self.assertEqual(total, len(ids(dataset["states"][-1])))
 
     def test_current_has_no_changes(self):
-        dataset = build_states.build_dataset("consolidate")
+        dataset = build_states.build_dataset(candidate_id="consolidate")
         diff = snapshot.diff_against_current(dataset, 0)
         self.assertEqual((diff["changed"], diff["added"], diff["removed"]), ([], [], []))
 
     def test_state_resolution(self):
-        dataset = build_states.build_dataset("consolidate")
+        dataset = build_states.build_dataset(candidate_id="consolidate")
         self.assertEqual(snapshot.resolve_state(dataset, "current"), 0)
         self.assertEqual(snapshot.resolve_state(dataset, "target"), 21)
         self.assertEqual(snapshot.resolve_state(dataset, "5"), 5)

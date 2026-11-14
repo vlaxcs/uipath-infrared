@@ -18,6 +18,13 @@ describe('HTTP orchestrator', () => {
     expect(events).toEqual([{ seq: 21 }]);
   });
 
+  it('lists the runs to watch, newest first', async () => {
+    const fetch = stubFetch(200, [{ id: 'run-2', status: 'running' }]);
+    const runs = await new HttpOrchestrator('http://orch').listRuns();
+    expect(fetch).toHaveBeenCalledWith('http://orch/runs?limit=50', undefined);
+    expect(runs).toEqual([{ id: 'run-2', status: 'running' }]);
+  });
+
   it('posts a plan approval shaped like the contract approved event', async () => {
     const fetch = stubFetch(201, { seq: 21 });
     await new HttpOrchestrator('http://orch').submitDecision('run-1', planApprovalFromSlack('andrei'));

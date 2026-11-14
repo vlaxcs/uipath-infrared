@@ -28,3 +28,12 @@ def test_gpu_nodes_are_only_priced_on_gpu_tiers(catalog):
 
 def test_no_size_facts_means_no_price(catalog):
     assert resolve_tier(tiers_of(catalog, "aws-rds-postgres"), "db.unknown", None, None) is None
+
+
+def test_work_without_gpus_is_never_priced_on_a_gpu_tier():
+    from engine.domain.catalog import Tier
+
+    cheap_gpu = Tier("rtx-pod", 16, 64, 100, gpus=1)
+    plain = Tier("plain-16", 16, 64, 300)
+    assert resolve_tier((cheap_gpu, plain), None, 16, 64).tier.id == "plain-16"
+    assert resolve_tier((cheap_gpu,), None, 16, 64) is None

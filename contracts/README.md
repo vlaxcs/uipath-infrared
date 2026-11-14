@@ -6,7 +6,8 @@ Everything the extractor side and the decision-engine side must agree on, plus a
 |---|---|
 | `infra.schema.json` | **The contract.** Extractor output: facts about one project's infrastructure. |
 | `forecast.schema.json` / `forecast.example.json` | Roadmap + CTO settings turned into numbers (hand-written for now). |
-| `catalog.schema.json` / `catalog.example.json` | Priced options per `kind` and provider. **Illustrative prices.** |
+| `catalog.schema.json` / `catalog.example.json` | Priced options per `kind` and provider. **Illustrative prices and SLAs.** |
+| `real/catalog.json` | The same catalog with real, dated prices and SLA commitments: built by `apps/pricing` from its committed snapshots (AWS Price List, ECB rate, checked vendor quotes and SLA pages). `x_price_sources` and `x_sla_sources` trace every value; `x_unsourced` and `x_sla_unsourced` list what is still illustrative. Migration and feature figures remain estimates. Generated: do not edit by hand. |
 | `rehearsal.schema.json` / `rehearsal.example.json` | Sandbox output: traffic profile, failure injected, measured availability/latency, pass/fail verdict. All provenance is `synthetic` on Floci. |
 | `result.schema.json` | Engine output: every candidate priced, checked, scored and ranked, with the winner. |
 | `result.example.json` / `result.example.nothing-feasible.json` | Sample engine output on `demo-shop`: one with a winner, one where no candidate passes the hard constraints. **Sample values, not engine results.** |
@@ -17,6 +18,12 @@ Everything the extractor side and the decision-engine side must agree on, plus a
 | `mock/startup.forecast.json` | The start-up's forecast: EUR 12k budget, EU-only, 99.5% availability, 24 months. |
 | `mock/startup.expected-signals.md` | What a competent engine should notice in the start-up mock. Engine-side, not input. |
 | `mock/build_startup.py` | Authoring helper for the start-up mock. All numbers typed by hand. |
+| `mock/clinic-booking.*` | A third mock: a clinic booking SaaS, 14 components, EUR 4,305/month, with dev, staging and prod (`build_clinic.py`, `.infra.json`, `.forecast.json`, `.expected-signals.md`). |
+| `mock/fleet-telemetry.*` | A fourth mock: GPS telemetry for courier vans, 13 components, EUR 6,913/month, prod and dev only (`build_fleet.py`, `.infra.json`, `.forecast.json`, `.expected-signals.md`). |
+| `mock/demo-shop.forecast.json` | A copy of `forecast.example.json` under the name the orchestrator looks for; `check_mock.py` fails if the two differ. |
+| `project.schema.json` | **Project profile.** What the product is, which environments it runs (dev/staging/prod), users today and expected users by month. |
+| `mock/<project>.project.json` / `mock/build_profiles.py` | One profile per mock project. The builder writes all four and derives the expected users from each forecast. |
+| `project_integrity.py` / `test_project_contract.py` | The profile rules a JSON Schema can't express, and a test per rule. |
 | `candidates.schema.json` / `candidates.example.json` | The agent's proposals: what changes, never what it costs. Input to `engine evaluate --candidates`. |
 | `candidates_integrity.py` / `test_candidates_contract.py` | The candidate rules a JSON Schema can't express, and a test per rule. |
 | `run.schema.json` / `run.example.json` | One run of the workflow: its state and its event log. Written by the orchestrator, read by the surfaces and the flow test. |
@@ -63,6 +70,22 @@ Do **not** build the mock from `ground_truth/planted_issues.json`; that is the a
 - **Edges**: `from` depends on `to`. `kind` ∈ network/data/event/traffic/dns/config. `evidence` ∈ declared/observed/inferred. `gb_month` optional: **Floci produces no traffic data**, so there it is estimated or synthetic. Omit rather than invent. Kind and `stay_together` decide what moves together; `gb_month` only prices egress.
 - **`stay_together`**: optional owner/extractor hints. The engine should also derive groups from `data`/`traffic` edges with `latency_sensitive` or large volume; hints win.
 - **Extensions**: new fields must start with `x_`.
+
+## Field rules (project.json)
+
+- **One per project**, `mock/<project>.project.json`, next to `<project>.infra.json` and `<project>.forecast.json`. `project` equals the infra's `project`; `forecast_id` equals the forecast's `id`.
+- **`environments`**: only the ones that exist, each `dev`, `staging` or `prod` at most once. `stacks` lists infra stack ids. Every infra stack whose `environment` is dev, staging or prod must be listed under that environment; a stack may also appear under another one (demo-shop's staging cluster lives in the `shop` stack). `data` says where the data comes from: `copy_of_production` means real customer data outside prod.
+- **`users.current`**: an integer with `as_of` and `provenance`. `metric` says whether it counts monthly or daily active users, `definition` who counts. `peak_concurrent` is optional and sizes the sandbox's traffic.
+- **`users.expected`**: rows by month from `as_of`, months increasing, the last at the forecast's `horizon_months`. Each scenario is `current x traffic^month x every event traffic_multiplier up to that month`, rounded to the nearest 100. Users are assumed to drive traffic one-for-one, so the profile and the engine never disagree on growth. Change the forecast, then rerun `python3 mock/build_profiles.py`.
+
+| Project | What it is | Environments | Users now | Expected (base, at horizon) |
+|---|---|---|---|---|
+| `startup` | Receipt scanner for freelancers and small accounting firms | prod | 6,500 MAU | 13,600 at month 24 |
+| `demo-shop` | EU e-commerce: storefront, data platform, legacy ERP | prod, staging, dev | 1,200,000 MAU | 3,427,000 at month 36 |
+| `clinic-booking` | Booking platform for private clinics | prod, staging, dev | 41,000 MAU | 112,500 at month 24 |
+| `fleet-telemetry` | GPS tracking for courier vans | prod, dev | 3,200 DAU | 10,700 at month 18 |
+
+For the surfaces (not built yet): the orchestrator already finds a project by `<project>.forecast.json` in `ORCHESTRATOR_PROJECTS_DIR`; a `GET /projects` returning each `<project>.project.json` would let the dashboard and the Slack bot show what a project is before a run starts.
 
 ## Field rules (candidates.json)
 
@@ -150,7 +173,7 @@ Known Floci gaps: no `CreateSnapshot`, ASG/ECS/EKS resources are real Docker con
 
 - **Sizing**: smallest catalog tier with `vcpu*(1-headroom) >= capacity.vcpu * usage.cpu_pct.p95/100` (same for memory); keep `p95`, not `avg`, in the headroom test.
 - **Run cost**: sum catalog price for every component under the candidate, per scenario: month n uses `multiplier^n`, `traffic` on request-driven drivers, `data` on storage drivers, plus edge egress where an edge crosses a provider/region boundary (`gb_month * egress_per_gb_eur`).
-- **On-prem**: monthly = `capex/(amortization_years*12) + power_cooling + colocation + disks.count*AFR*(replacement_eur + labor_hours*rate)/12 + staff_hours*rate`, allocated by share of platform capacity used.
+- **On-prem**: monthly = `capex/(amortization_years*12) + power_cooling + colocation + disks.count*AFR*(replacement_eur + labor_hours*rate)/12 + staff_hours*rate + capex*maintenance_pct_of_capex_year/100/12 + network + licences`, plus `contingency_pct` of every line except capex, allocated by share of platform capacity used. The new lines (catalog 1.1) are optional and default to 0. Platforms are sized for the base scenario at the horizon. `setup_one_off_eur` is a one-off; the capex share is also paid up front.
 - **Availability**: series of the critical path (product of availabilities); parallel zones raise it. Expected outage loss = `(1 - availability) * 8760 * downtime_cost_per_hour_eur`.
 - **Score** (lower better): `w_cost*norm(total cost over horizon) + w_risk*norm(risk) + w_effort*norm(effort hours)` with min-max across surviving candidates; ties by `cto_settings.tie_break`. Payback = migration cost / monthly saving vs `do_nothing`.
 - Constraints are evaluated on each candidate's **end state, including `do_nothing`** (the mock's `s3-legacy-reports` in `us-east-1` makes `do_nothing` infeasible under the example EU-only rule; show it as a baseline, flagged).
@@ -163,7 +186,7 @@ Known Floci gaps: no `CreateSnapshot`, ASG/ECS/EKS resources are real Docker con
 - **`winner`** is the feasible candidate with `rank` 1. When nothing is feasible, `winner` is `null` and `closest_if_none_feasible` names the candidate with the smallest `violation_distance` and repeats what blocks it. Exactly one of the two is set.
 - **`lost_because`** is `null` for the winner only. Every other candidate carries `{ reason, detail }`, with `reason` one of `constraint`, `cost`, `risk`, `effort`, `payback`.
 - **Actions**: `saving_eur_month` is positive when the action saves money and negative when it costs more (growing an undersized database). `flag` is a finding with no priced change. Each action carries `confidence` (`high`/`medium`/`low` = weakest provenance observed/estimated/synthetic) and `confidence_reason`.
-- **Cost**: `expected_total_eur` = `horizon_run_eur` + `migration_eur` + ops and expected outage loss over the horizon; it is the cost term of the score. `security_remediation` and `onprem_platform` are breakdowns of amounts already inside the totals.
+- **Cost**: `expected_total_eur` = `horizon_run_eur` + `migration_eur` + ops and expected outage loss over the horizon; it is the cost term of the score. `security_remediation` and `onprem_platform` are breakdowns of amounts already inside the totals, except `onprem_platform.upfront_hardware_eur`: the cash paid on day one, which the totals carry only as the monthly write-off (it counts against the one-off budget and in payback). `onprem_platform.setup_eur` is inside `migration_eur`.
 - **`flags`** is an open list of caveats (`egress_unpriced`, `catalog_illustrative`, `usage_synthetic`); show the ones you know, keep the rest as text.
 
 ## Validate

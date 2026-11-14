@@ -2,6 +2,10 @@
 
 Posts a run's decisions into Slack and lets a person pick the architecture and approve the plan from Slack. It reads the run contract (`contracts/run.schema.json`, spec section 6): one run document, a summary plus an append-only `events` log.
 
+## Which runs
+
+`npm start` watches the orchestrator: every 3 s it lists the runs (`GET /runs?limit=50`) and starts tracking each one that is `running` or `awaiting_approval` and not tracked yet, in `SLACK_CHANNEL`. A run started from the platform therefore gets its header and its gate cards without anyone asking. Finished runs are not posted. A run that cannot be tracked is logged and the others go on; an orchestrator that does not answer is asked again on the next poll. `/infrared status <run-id>` still tracks one run in the channel it is typed in.
+
 ## What it posts
 
 - **No emoji and no label/value grids.** The hierarchy comes from Slack's native blocks: a plain header, sentences with bold numbers, dividers between candidates, and plain status words (`our pick`, `not picked`, `These can't run`). Context lines carry a human date (*14 Nov, 09:25*) instead of the raw ISO timestamp.

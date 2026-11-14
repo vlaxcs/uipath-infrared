@@ -98,3 +98,12 @@ def test_status_mismatch_is_reported():
     mock = component("old-bastion", status="idle")
     extractor = component("vm-startup-old-bastion", name="startup-old-bastion", status="active")
     assert compare_component(mock, extractor)["diffs"] == ["status: mock=idle extractor=active"]
+
+
+def test_another_project_prefix_scopes_and_matches_by_its_own_names():
+    mock = {"components": [component("prod-api", "container")]}
+    extractor = {"components": [component("svc-clinic-prod-api", "container", "clinic-prod/api"),
+                                component("svc-legacy-api", "container", "legacy-ecs/orders-api")]}
+    results = compare_docs(extractor, mock, "clinic")
+    assert results["matched"] == [{"id": "prod-api", "extractor_id": "svc-clinic-prod-api"}]
+    assert passed(results)

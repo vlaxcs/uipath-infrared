@@ -71,9 +71,11 @@ func defaultStage(name string) stage {
 		case "propose":
 			copyFile(filepath.Join(fixtures, "candidates."+argument(invocation.Command, "--revision")+".json"), out)
 		case "engine":
-			copyFile(filepath.Join(fixtures, "result."+revisionInName.FindStringSubmatch(out)[1]+".json"), out)
+			copyFile(filepath.Join(results, "result."+revisionInName.FindStringSubmatch(out)[1]+".json"), out)
 		case "sandbox":
 			copyFile(filepath.Join(repo, "contracts", "rehearsal.example.json"), out)
+		case "states":
+			os.WriteFile(out, []byte(`{"dataset": {"candidate": "`+argument(invocation.Command, "--candidate")+`"}}`), 0o644)
 		}
 		return workflow.Outcome{}, nil
 	}
@@ -116,6 +118,9 @@ type options struct {
 	runsDir      string
 	projectsDir  string
 	timeout      time.Duration
+	noStates     bool
+	flociURL     string
+	probe        func(context.Context, string) bool
 }
 
 func newHarness(t *testing.T, opts options) *harness {
@@ -157,11 +162,13 @@ func build(t *testing.T, opts options) (*harness, error) {
 		opts.projectsDir = filepath.Join(repo, "contracts", "mock")
 	}
 	config := workflow.Config{
-		Commands:     workflow.Commands{Extract: []string{"extract"}, Agent: []string{"agent"}, Engine: []string{"engine"}, Sandbox: []string{"sandbox"}},
+		Commands:     workflow.Commands{Extract: []string{"extract"}, Agent: []string{"agent"}, Engine: []string{"engine"}, Sandbox: []string{"sandbox"}, States: statesCommand(opts)},
 		ProjectsDir:  opts.projectsDir,
-		CatalogPath:  filepath.Join(repo, "contracts", "catalog.example.json"),
+		CatalogPath:  filepath.Join(repo, "contracts", "real", "catalog.json"),
 		MaxRevisions: opts.maxRevisions,
 		Timeouts:     timeouts,
+		FlociURL:     opts.flociURL,
+		Probe:        opts.probe,
 	}
 	flow := workflow.New(config, stages, schemas, files.Local{}, runs, time.Now)
 	if err := flow.Load(); err != nil {
@@ -182,7 +189,7 @@ func projectsNamed(t *testing.T, names ...string) string {
 
 func (h *harness) start() run.Run {
 	h.t.Helper()
-	started, err := h.flow.Start("startup")
+	started, err := h.flow.Start("startup", nil)
 	if err != nil {
 		h.t.Fatal(err)
 	}
@@ -257,4 +264,11 @@ func (s *flakyStore) Save(doc *run.Run) error {
 		return errors.New("disk full")
 	}
 	return s.Store.Save(doc)
+}
+
+func statesCommand(opts options) []string {
+	if opts.noStates {
+		return nil
+	}
+	return []string{"states"}
 }

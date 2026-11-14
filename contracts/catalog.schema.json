@@ -28,7 +28,7 @@
       "properties": {
         "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
         "kind": { "enum": ["postgres", "nosql", "cache", "stream", "queue", "object_storage", "block_storage", "file_system", "container", "kubernetes_cluster", "node_group", "virtual_machine", "function", "load_balancer", "nat", "cdn", "dns", "other"], "description": "Must equal infra component kinds." },
-        "provider": { "enum": ["aws", "gcp", "azure", "onprem", "managed_pg", "other"] },
+        "provider": { "enum": ["aws", "gcp", "azure", "onprem", "supabase", "neon", "hetzner", "fly", "cloudflare", "backblaze", "runpod", "managed_pg", "other"] },
         "service": { "type": "string" },
         "description": { "type": "string" },
         "regions": { "type": "array", "items": { "type": "string" }, "description": "Regions the option can run in; prefix wildcards allowed (eu-*). Used for data residency." },
@@ -55,7 +55,7 @@
               "items": {
                 "type": "object", "required": ["driver", "eur_per_unit"], "additionalProperties": false,
                 "properties": {
-                  "driver": { "enum": ["storage_gb_month", "requests_million", "iops_month", "provisioned_rcu_month", "provisioned_wcu_month", "shard_month", "gateway_month", "task_vcpu_month", "task_gb_month", "lcu_month", "other"] },
+                  "driver": { "enum": ["storage_gb_month", "requests_million", "iops_month", "provisioned_rcu_month", "provisioned_wcu_month", "consumed_rcu_million", "consumed_wcu_million", "shard_month", "throughput_mibps_month", "gateway_month", "cluster_month", "load_balancer_month", "address_month", "zone_month", "messages_million", "invocations_million", "gb_s_month", "ingested_gb_month", "task_vcpu_month", "task_gb_month", "lcu_month", "other"] },
                   "eur_per_unit": { "type": "number", "minimum": 0 },
                   "free_units": { "type": "number", "minimum": 0, "default": 0 }
                 }
@@ -111,6 +111,11 @@
         "amortization_years": { "type": "number", "exclusiveMinimum": 0 },
         "power_cooling_eur_month": { "type": "number", "minimum": 0 },
         "colocation_eur_month": { "type": "number", "minimum": 0, "default": 0 },
+        "maintenance_pct_of_capex_year": { "type": "number", "minimum": 0, "default": 0, "description": "Support contracts, spare parts and failures other than disks (servers, power supplies, switches), as a yearly % of hardware_capex_eur." },
+        "network_eur_month": { "type": "number", "minimum": 0, "default": 0, "description": "Uplinks, transit and network gear support." },
+        "licences_eur_month": { "type": "number", "minimum": 0, "default": 0, "description": "Virtualisation, OS, backup and monitoring software support." },
+        "setup_one_off_eur": { "type": "number", "minimum": 0, "default": 0, "description": "Racking, cabling, network gear and installation, paid once." },
+        "contingency_pct": { "type": "number", "minimum": 0, "default": 0, "description": "Safety margin for costs nobody listed, as a % of every monthly line except capex." },
         "disks": {
           "type": "object", "required": ["count", "annual_failure_rate_pct", "replacement_eur", "replacement_labor_hours"], "additionalProperties": false,
           "properties": {

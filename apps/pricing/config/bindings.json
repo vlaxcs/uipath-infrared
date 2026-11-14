@@ -1,0 +1,1110 @@
+{
+  "bindings": [
+    {
+      "multiplier": 1.0,
+      "option": "aws-rds-postgres",
+      "per": "hour",
+      "price": "aws-AmazonRDS/postgres:db.m5.large",
+      "target": "tier:db.m5.large",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-rds-postgres",
+      "per": "hour",
+      "price": "aws-AmazonRDS/postgres:db.m5.xlarge",
+      "target": "tier:db.m5.xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-rds-postgres",
+      "per": "hour",
+      "price": "aws-AmazonRDS/postgres:db.m5.2xlarge",
+      "target": "tier:db.m5.2xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-rds-postgres",
+      "per": "hour",
+      "price": "aws-AmazonRDS/postgres:db.r6g.2xlarge",
+      "target": "tier:db.r6g.2xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-rds-postgres",
+      "per": "hour",
+      "price": "aws-AmazonRDS/postgres:db.r6g.4xlarge",
+      "target": "tier:db.r6g.4xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-rds-postgres",
+      "per": "hour",
+      "price": "aws-AmazonRDS/postgres:db.r6g.8xlarge",
+      "target": "tier:db.r6g.8xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-rds-postgres",
+      "per": "unit",
+      "price": "aws-AmazonRDS/postgres:gp3-storage",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-rds-postgres",
+      "per": "unit",
+      "price": "aws-AWSDataTransfer/internet-out:first-10tb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-aurora-postgres",
+      "per": "hour",
+      "price": "aws-AmazonRDS/aurora-postgres:db.r6g.large",
+      "target": "tier:db.r6g.large",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-aurora-postgres",
+      "per": "hour",
+      "price": "aws-AmazonRDS/aurora-postgres:db.r6g.xlarge",
+      "target": "tier:db.r6g.xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-aurora-postgres",
+      "per": "hour",
+      "price": "aws-AmazonRDS/aurora-postgres:db.r6g.2xlarge",
+      "target": "tier:db.r6g.2xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-aurora-postgres",
+      "per": "hour",
+      "price": "aws-AmazonRDS/aurora-postgres:db.r6g.4xlarge",
+      "target": "tier:db.r6g.4xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-aurora-postgres",
+      "per": "unit",
+      "price": "aws-AmazonRDS/aurora-postgres:storage",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-aurora-postgres",
+      "per": "unit",
+      "price": "aws-AmazonRDS/aurora-postgres:io",
+      "target": "per_unit:iops_month",
+      "unit": "IOs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-aurora-postgres",
+      "per": "unit",
+      "price": "aws-AWSDataTransfer/internet-out:first-10tb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-eks-nodes",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:m6i.xlarge",
+      "target": "tier:m6i.xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-eks-nodes",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:m6i.2xlarge",
+      "target": "tier:m6i.2xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-eks-nodes",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:m6i.4xlarge",
+      "target": "tier:m6i.4xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-eks-nodes",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:m6i.8xlarge",
+      "target": "tier:m6i.8xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-eks-nodes",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:r6i.4xlarge",
+      "target": "tier:r6i.4xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-eks-nodes",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:g5.2xlarge",
+      "target": "tier:g5.2xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-eks-nodes",
+      "per": "unit",
+      "price": "aws-AWSDataTransfer/internet-out:first-10tb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-ec2-general",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:t3.large",
+      "target": "tier:t3.large",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-ec2-general",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:m6i.xlarge",
+      "target": "tier:m6i.xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-ec2-general",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:m6i.2xlarge",
+      "target": "tier:m6i.2xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-ec2-general",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:m6i.4xlarge",
+      "target": "tier:m6i.4xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-ec2-general",
+      "per": "unit",
+      "price": "aws-AmazonEC2/ebs:gp3",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-ec2-general",
+      "per": "unit",
+      "price": "aws-AWSDataTransfer/internet-out:first-10tb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-fargate",
+      "per": "hour",
+      "price": "aws-AmazonECS/fargate:vcpu-hour",
+      "target": "per_unit:task_vcpu_month",
+      "unit": "hours"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-fargate",
+      "per": "hour",
+      "price": "aws-AmazonECS/fargate:gb-hour",
+      "target": "per_unit:task_gb_month",
+      "unit": "hours"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-fargate",
+      "per": "unit",
+      "price": "aws-AWSDataTransfer/internet-out:first-10tb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-s3",
+      "per": "unit",
+      "price": "aws-AmazonS3/standard:first-50tb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-s3",
+      "per": "unit",
+      "price": "aws-AWSDataTransfer/internet-out:first-10tb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-dynamodb-ondemand",
+      "per": "unit",
+      "price": "aws-AmazonDynamoDB/storage:after-free-25gb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-dynamodb-ondemand",
+      "per": "unit",
+      "price": "aws-AWSDataTransfer/internet-out:first-10tb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-nat-gateway",
+      "per": "hour",
+      "price": "aws-AmazonEC2/nat:hours",
+      "target": "per_unit:gateway_month",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-nat-gateway",
+      "per": "unit",
+      "price": "aws-AmazonEC2/nat:processed-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "supabase-postgres",
+      "per": "hour",
+      "price": "manual/supabase:compute-large",
+      "target": "tier:p-l",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "supabase-postgres",
+      "per": "hour",
+      "price": "manual/supabase:compute-xl",
+      "target": "tier:p-xl",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "supabase-postgres",
+      "per": "hour",
+      "price": "manual/supabase:compute-2xl",
+      "target": "tier:p-2xl",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "supabase-postgres",
+      "per": "hour",
+      "price": "manual/supabase:compute-4xl",
+      "target": "tier:p-4xl",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "supabase-postgres",
+      "per": "hour",
+      "price": "manual/supabase:compute-8xl",
+      "target": "tier:p-8xl",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "supabase-postgres",
+      "per": "unit",
+      "price": "manual/supabase:disk-gb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "supabase-postgres",
+      "per": "unit",
+      "price": "manual/supabase:egress-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 2.0,
+      "option": "neon-scale",
+      "per": "hour",
+      "price": "manual/neon-scale:cu-hour",
+      "target": "tier:cu-2",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 4.0,
+      "option": "neon-scale",
+      "per": "hour",
+      "price": "manual/neon-scale:cu-hour",
+      "target": "tier:cu-4",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 8.0,
+      "option": "neon-scale",
+      "per": "hour",
+      "price": "manual/neon-scale:cu-hour",
+      "target": "tier:cu-8",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 16.0,
+      "option": "neon-scale",
+      "per": "hour",
+      "price": "manual/neon-scale:cu-hour",
+      "target": "tier:cu-16",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "neon-scale",
+      "per": "unit",
+      "price": "manual/neon:storage-gb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "neon-scale",
+      "per": "unit",
+      "price": "manual/neon:transfer-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 2.0,
+      "option": "neon-launch",
+      "per": "hour",
+      "price": "manual/neon-launch:cu-hour",
+      "target": "tier:c2",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 4.0,
+      "option": "neon-launch",
+      "per": "hour",
+      "price": "manual/neon-launch:cu-hour",
+      "target": "tier:c4",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 8.0,
+      "option": "neon-launch",
+      "per": "hour",
+      "price": "manual/neon-launch:cu-hour",
+      "target": "tier:c8",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 16.0,
+      "option": "neon-launch",
+      "per": "hour",
+      "price": "manual/neon-launch:cu-hour",
+      "target": "tier:c16",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "neon-launch",
+      "per": "unit",
+      "price": "manual/neon:storage-gb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "neon-launch",
+      "per": "unit",
+      "price": "manual/neon:transfer-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-ec2-general",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:m5.8xlarge",
+      "target": "tier:m5.8xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-ec2-general",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:m5.4xlarge",
+      "target": "tier:m5.4xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-ec2-general",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:c5.9xlarge",
+      "target": "tier:c5.9xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-ec2-general",
+      "per": "hour",
+      "price": "aws-AmazonEC2/linux:r5.2xlarge",
+      "target": "tier:r5.2xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-rds-postgres",
+      "per": "hour",
+      "price": "aws-AmazonRDS/postgres:db.r4.4xlarge",
+      "target": "tier:db.r4.4xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-rds-postgres",
+      "per": "hour",
+      "price": "aws-AmazonRDS/postgres:db.m4.4xlarge",
+      "target": "tier:db.m4.4xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-rds-postgres",
+      "per": "hour",
+      "price": "aws-AmazonRDS/postgres:db.r5.8xlarge",
+      "target": "tier:db.r5.8xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1000000.0,
+      "option": "aws-dynamodb-ondemand",
+      "per": "unit",
+      "price": "aws-AmazonDynamoDB/ondemand-rcu",
+      "target": "per_unit:consumed_rcu_million",
+      "unit": "ReadRequestUnits"
+    },
+    {
+      "multiplier": 1000000.0,
+      "option": "aws-dynamodb-ondemand",
+      "per": "unit",
+      "price": "aws-AmazonDynamoDB/ondemand-wcu",
+      "target": "per_unit:consumed_wcu_million",
+      "unit": "WriteRequestUnits"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-dynamodb-provisioned",
+      "per": "hour",
+      "price": "aws-AmazonDynamoDB/rcu-hour",
+      "target": "per_unit:provisioned_rcu_month",
+      "unit": "ReadCapacityUnit-Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-dynamodb-provisioned",
+      "per": "hour",
+      "price": "aws-AmazonDynamoDB/wcu-hour",
+      "target": "per_unit:provisioned_wcu_month",
+      "unit": "WriteCapacityUnit-Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-eks",
+      "per": "hour",
+      "price": "aws-AmazonEKS/hours",
+      "target": "per_unit:cluster_month",
+      "unit": "Hours"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-elasticache-redis",
+      "per": "hour",
+      "price": "aws-AmazonElastiCache/redis:cache.r5.4xlarge",
+      "target": "tier:cache.r5.4xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-elasticache-redis",
+      "per": "hour",
+      "price": "aws-AmazonElastiCache/redis:cache.r5.xlarge",
+      "target": "tier:cache.r5.xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-elasticache-memcached",
+      "per": "hour",
+      "price": "aws-AmazonElastiCache/memcached:cache.m4.2xlarge",
+      "target": "tier:cache.m4.2xlarge",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-kinesis",
+      "per": "hour",
+      "price": "aws-AmazonKinesis/shard-hour",
+      "target": "per_unit:shard_month",
+      "unit": "ShardHour"
+    },
+    {
+      "multiplier": 1000000.0,
+      "option": "aws-sqs",
+      "per": "unit",
+      "price": "aws-AWSQueueService/requests",
+      "target": "per_unit:messages_million",
+      "unit": "Requests"
+    },
+    {
+      "multiplier": 1000000.0,
+      "option": "aws-lambda",
+      "per": "unit",
+      "price": "aws-AWSLambda/requests",
+      "target": "per_unit:invocations_million",
+      "unit": "Request"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-lambda",
+      "per": "unit",
+      "price": "aws-AWSLambda/gb-second",
+      "target": "per_unit:gb_s_month",
+      "unit": "Lambda-GB-Second"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-route53",
+      "per": "unit",
+      "price": "manual/aws-route53:hosted-zone",
+      "target": "per_unit:zone_month",
+      "unit": "HostedZone"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-ebs",
+      "per": "unit",
+      "price": "aws-AmazonEC2/ebs:gp2",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-eip",
+      "per": "hour",
+      "price": "aws-AmazonVPC/eip:idle",
+      "target": "per_unit:address_month",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-efs",
+      "per": "unit",
+      "price": "aws-AmazonEFS/provisioned-throughput",
+      "target": "per_unit:throughput_mibps_month",
+      "unit": "MiBps-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-alb",
+      "per": "hour",
+      "price": "aws-AmazonEC2/alb:hours",
+      "target": "per_unit:load_balancer_month",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-dynamodb-provisioned",
+      "per": "unit",
+      "price": "aws-AWSDataTransfer/internet-out:first-10tb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1000000.0,
+      "option": "aws-sns",
+      "per": "unit",
+      "price": "aws-AmazonSNS/requests:paid-tier",
+      "target": "per_unit:messages_million",
+      "unit": "Requests"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-ecr",
+      "per": "unit",
+      "price": "aws-AmazonECR/storage",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "aws-firehose",
+      "per": "unit",
+      "price": "aws-AmazonKinesisFirehose/delivery:bytes",
+      "target": "per_unit:ingested_gb_month",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 2.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:vcpu-hour",
+      "target": "tier:db-custom-2-8",
+      "unit": "Hrs",
+      "part": "vcpu"
+    },
+    {
+      "multiplier": 8.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:memory-gib-hour",
+      "target": "tier:db-custom-2-8",
+      "unit": "GiB-Hrs",
+      "part": "memory"
+    },
+    {
+      "multiplier": 4.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:vcpu-hour",
+      "target": "tier:db-custom-4-16",
+      "unit": "Hrs",
+      "part": "vcpu"
+    },
+    {
+      "multiplier": 16.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:memory-gib-hour",
+      "target": "tier:db-custom-4-16",
+      "unit": "GiB-Hrs",
+      "part": "memory"
+    },
+    {
+      "multiplier": 8.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:vcpu-hour",
+      "target": "tier:db-custom-8-32",
+      "unit": "Hrs",
+      "part": "vcpu"
+    },
+    {
+      "multiplier": 32.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:memory-gib-hour",
+      "target": "tier:db-custom-8-32",
+      "unit": "GiB-Hrs",
+      "part": "memory"
+    },
+    {
+      "multiplier": 16.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:vcpu-hour",
+      "target": "tier:db-custom-16-64",
+      "unit": "Hrs",
+      "part": "vcpu"
+    },
+    {
+      "multiplier": 64.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:memory-gib-hour",
+      "target": "tier:db-custom-16-64",
+      "unit": "GiB-Hrs",
+      "part": "memory"
+    },
+    {
+      "multiplier": 32.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:vcpu-hour",
+      "target": "tier:db-custom-32-128",
+      "unit": "Hrs",
+      "part": "vcpu"
+    },
+    {
+      "multiplier": 128.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:memory-gib-hour",
+      "target": "tier:db-custom-32-128",
+      "unit": "GiB-Hrs",
+      "part": "memory"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:ssd-gib-hour",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GiB-Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "unit",
+      "price": "manual/gcp-net:egress-gib",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GiB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "gcp-gcs",
+      "per": "hour",
+      "price": "manual/gcp-gcs:standard-gib-hour",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GiB-Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "gcp-gcs",
+      "per": "unit",
+      "price": "manual/gcp-net:egress-gib",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GiB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-vm-dsv5",
+      "per": "hour",
+      "price": "manual/azure-vm:d2s-v5",
+      "target": "tier:d2s_v5",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-vm-dsv5",
+      "per": "hour",
+      "price": "manual/azure-vm:d4s-v5",
+      "target": "tier:d4s_v5",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-vm-dsv5",
+      "per": "hour",
+      "price": "manual/azure-vm:d8s-v5",
+      "target": "tier:d8s_v5",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-vm-dsv5",
+      "per": "hour",
+      "price": "manual/azure-vm:d16s-v5",
+      "target": "tier:d16s_v5",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-vm-dsv5",
+      "per": "hour",
+      "price": "manual/azure-vm:d32s-v5",
+      "target": "tier:d32s_v5",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-vm-dsv5",
+      "per": "unit",
+      "price": "manual/azure-net:egress-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "hour",
+      "price": "manual/azure-pg:2-vcore",
+      "target": "tier:gp-ddsv5-2-vcore",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "hour",
+      "price": "manual/azure-pg:4-vcore",
+      "target": "tier:gp-ddsv5-4-vcore",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "hour",
+      "price": "manual/azure-pg:8-vcore",
+      "target": "tier:gp-ddsv5-8-vcore",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "hour",
+      "price": "manual/azure-pg:16-vcore",
+      "target": "tier:gp-ddsv5-16-vcore",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "hour",
+      "price": "manual/azure-pg:32-vcore",
+      "target": "tier:gp-ddsv5-32-vcore",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "unit",
+      "price": "manual/azure-pg:storage-gb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "unit",
+      "price": "manual/azure-net:egress-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-blob-hot",
+      "per": "unit",
+      "price": "manual/azure-blob:hot-lrs-gb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-blob-hot",
+      "per": "unit",
+      "price": "manual/azure-net:egress-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "hetzner-cloud-ccx",
+      "per": "unit",
+      "price": "manual/hetzner:ccx13",
+      "target": "tier:ccx13",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "hetzner-cloud-ccx",
+      "per": "unit",
+      "price": "manual/hetzner:ccx23",
+      "target": "tier:ccx23",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "hetzner-cloud-ccx",
+      "per": "unit",
+      "price": "manual/hetzner:ccx33",
+      "target": "tier:ccx33",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "hetzner-cloud-ccx",
+      "per": "unit",
+      "price": "manual/hetzner:ccx43",
+      "target": "tier:ccx43",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "hetzner-cloud-ccx",
+      "per": "unit",
+      "price": "manual/hetzner:ccx53",
+      "target": "tier:ccx53",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 0.001,
+      "option": "hetzner-cloud-ccx",
+      "per": "unit",
+      "price": "manual/hetzner:traffic-tb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "TB"
+    },
+    {
+      "multiplier": 0.001,
+      "option": "hetzner-object-storage",
+      "per": "hour",
+      "price": "manual/hetzner-object:storage-tb-hour",
+      "target": "per_unit:storage_gb_month",
+      "unit": "TB-Hrs"
+    },
+    {
+      "multiplier": 0.001,
+      "option": "hetzner-object-storage",
+      "per": "unit",
+      "price": "manual/hetzner-object:egress-tb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "TB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "cloudflare-r2",
+      "per": "unit",
+      "price": "manual/r2:storage-gb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "cloudflare-r2",
+      "per": "unit",
+      "price": "manual/r2:egress-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 0.001,
+      "option": "backblaze-b2",
+      "per": "unit",
+      "price": "manual/b2:storage-tb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "TB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "fly-machines",
+      "per": "unit",
+      "price": "manual/fly:shared-cpu-2x-2gb",
+      "target": "tier:shared-cpu-2x-2gb",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "fly-machines",
+      "per": "unit",
+      "price": "manual/fly:performance-1x-2gb",
+      "target": "tier:performance-1x-2gb",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "fly-machines",
+      "per": "unit",
+      "price": "manual/fly:performance-2x-4gb",
+      "target": "tier:performance-2x-4gb",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 4.0,
+      "option": "fly-machines",
+      "per": "unit",
+      "price": "manual/fly:performance-1x-2gb",
+      "target": "tier:performance-4x-8gb",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 8.0,
+      "option": "fly-machines",
+      "per": "unit",
+      "price": "manual/fly:performance-1x-2gb",
+      "target": "tier:performance-8x-16gb",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "fly-machines",
+      "per": "unit",
+      "price": "manual/fly:egress-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "runpod-gpu",
+      "per": "hour",
+      "price": "manual/runpod:rtx-a5000",
+      "target": "tier:rtx-a5000",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "runpod-gpu",
+      "per": "hour",
+      "price": "manual/runpod:a40",
+      "target": "tier:a40",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "runpod-gpu",
+      "per": "hour",
+      "price": "manual/runpod:l4",
+      "target": "tier:l4",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "runpod-gpu",
+      "per": "hour",
+      "price": "manual/runpod:l40s",
+      "target": "tier:l40s",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "runpod-gpu",
+      "per": "hour",
+      "price": "manual/runpod:a100-pcie",
+      "target": "tier:a100-pcie",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "runpod-gpu",
+      "per": "hour",
+      "price": "manual/runpod:h100-pcie",
+      "target": "tier:h100-pcie",
+      "unit": "Hrs"
+    }
+  ],
+  "descriptions": {
+    "aws-ecr": "Priced from the AWS Price List for image storage in eu-west-1; the estate does not report repository sizes, so ECR components stay unpriced.",
+    "aws-firehose": "Priced from the AWS Price List per GB ingested (tier 1, batch); the estate does not report Firehose volume, so Firehose components stay unpriced.",
+    "aws-sns": "Priced from the AWS Price List for API requests after the first million; the free tier and delivery attempts to HTTP/SQS are not modelled.",
+    "neon-scale": "Priced from Neon's Scale plan: CU-hours, storage and public transfer; see x_price_sources. Tiers are priced running all month (730 h); scale to zero costs less. 1 CU = 4 GB RAM per Neon's plans page; 1 vCPU per CU is the skeleton's assumption. Features are the skeleton's and were not checked against Neon's extension list.",
+    "supabase-postgres": "Priced from Supabase's dedicated compute sizes (Large to 8XL), its disk price and its Pro egress price; see x_price_sources. The Pro plan's monthly base fee is not included. Features are the skeleton's and were not checked against Supabase's extension list.",
+    "neon-launch": "Priced from Neon's Launch plan: CU-hours, storage and public transfer; see x_price_sources. Tiers are priced running all month (730 h); scale to zero costs less. 1 CU = 4 GB RAM per Neon's plans page; 1 vCPU per CU is the skeleton's assumption. Features are the skeleton's and were not checked against Neon's extension list."
+  }
+}
