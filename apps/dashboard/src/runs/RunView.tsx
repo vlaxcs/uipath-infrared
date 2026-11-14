@@ -8,7 +8,8 @@ import { Mascot } from "~/mascot/Mascot";
 import type { RunSource } from "~/runs/source";
 import { deriveStepStates } from "~/runs/stepProgress";
 import type { HumanDecision, RunDetail, RunStep } from "~/runs/types";
-import { latestRevision, primaryArtifactPath, revisionsForStep } from "~/runs/artifactRefs";
+import { PlanView } from "~/plan/PlanView";
+import { latestOutputPath, latestRevision, primaryArtifactPath, revisionsForStep } from "~/runs/artifactRefs";
 import { analysisOptions } from "~/runs/findings";
 import { layoutOptions, layoutOptionsFromResult } from "~/runs/xCandidates";
 import { nextPreview } from "~/runs/nextPreview";
@@ -81,7 +82,8 @@ export function RunView({ run: initialRun, source, initialStep = null, onReload,
   const artifactPath = selectedStep ? primaryArtifactPath(run, selectedStep, effectiveRevision) : null;
   const artifact = useRunArtifact(source, run.id, artifactPath);
 
-  const resultPath = latestRevision(run, "evaluate") === null ? null : primaryArtifactPath(run, "evaluate", latestRevision(run, "evaluate"));
+  const evaluatedRevision = latestRevision(run, "evaluate");
+  const resultPath = evaluatedRevision === null ? null : primaryArtifactPath(run, "evaluate", evaluatedRevision);
   const resultArtifact = useRunArtifact(source, run.id, resultPath);
   const result = useMemo(() => {
     if (resultArtifact.status !== "ready" || resultArtifact.text === undefined) return null;
@@ -165,7 +167,18 @@ export function RunView({ run: initialRun, source, initialStep = null, onReload,
 
       <section aria-label="Details" className="min-w-0">
         {candidate ? (
-          <CandidateDetail candidate={candidate} />
+          <div className="flex flex-col gap-6">
+            <CandidateDetail candidate={candidate} />
+            {evaluatedRevision !== null ? (
+              <PlanView
+                source={source}
+                runId={run.id}
+                revision={evaluatedRevision}
+                candidate={candidate.id}
+                rehearsalPath={latestOutputPath(run, "rehearsal")}
+              />
+            ) : null}
+          </div>
         ) : selectedStep && preview ? (
           <div className="flex flex-col gap-4">
             <StepResultPane
