@@ -1,9 +1,19 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { HomePage } from "~/home/HomePage";
+import { sampleInsightSource } from "~/insights/sampleInsightSource";
 
 function renderHome(extensionUrl: string | null) {
-  return render(<HomePage extensionUrl={extensionUrl} onAnalyze={() => {}} onPrevious={() => {}} />);
+  return render(
+    <HomePage
+      extensionUrl={extensionUrl}
+      onAnalyze={() => {}}
+      onPrevious={() => {}}
+      source={sampleInsightSource}
+      runHref={(id) => `/runs/${id}`}
+      onOpenRun={() => {}}
+    />,
+  );
 }
 
 function openGuide() {

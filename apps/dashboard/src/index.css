@@ -20,6 +20,9 @@
   --color-credit: var(--color-credit);
   --color-on-credit: var(--color-on-credit);
   --animate-panel-in: panel-in 220ms ease-out both;
+  --animate-breathe: breathe var(--motion-breathe) ease-in-out infinite;
+  --animate-beacon: beacon var(--motion-beacon) ease-out infinite;
+  --animate-draw: draw var(--motion-draw) cubic-bezier(0.65, 0, 0.35, 1) both;
   --color-on-accent: var(--color-on-accent);
   --color-focus: var(--color-focus);
   --color-status-running: var(--color-status-running);
@@ -82,6 +85,15 @@
   font-size: var(--text-settings-title);
   line-height: 1.2;
   font-weight: 800;
+}
+
+@utility type-hero {
+  font-family: var(--font-sans);
+  font-size: var(--text-insight-hero);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
 }
 
 @utility type-heading {
@@ -154,6 +166,56 @@
   to { opacity: 1; transform: none; }
 }
 
+@keyframes breathe {
+  0%, 100% { transform: scale(0.94); opacity: 0.08; }
+  50% { transform: scale(1.04); opacity: 0.16; }
+}
+
+@keyframes beacon {
+  from { transform: scale(1); opacity: 0.6; }
+  to { transform: scale(2.8); opacity: 0; }
+}
+
+@keyframes draw {
+  from { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  to { stroke-dasharray: 1; stroke-dashoffset: 0; }
+}
+
+@keyframes orbit {
+  to { transform: rotate(360deg); }
+}
+
+.animate-breathe,
+.animate-beacon {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.orbit {
+  animation: orbit var(--motion-orbit) linear infinite;
+}
+
+.orbit:hover,
+.orbit:focus-within,
+.orbit-paused {
+  animation-play-state: paused;
+}
+
+.orb-body:focus-visible > circle:nth-child(2),
+.open-run:focus-visible > circle {
+  stroke: var(--color-focus);
+  stroke-width: var(--focus-ring-width);
+}
+
+.lane:focus-visible > rect:first-child {
+  stroke: var(--color-focus);
+  stroke-width: var(--focus-ring-width);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-panel-in { animation: none; }
+  .animate-panel-in,
+  .animate-breathe,
+  .animate-beacon,
+  .animate-draw,
+  .orbit { animation: none; }
 }
