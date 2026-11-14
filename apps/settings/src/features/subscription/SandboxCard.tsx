@@ -17,32 +17,33 @@ function Sandbox({ sandbox }: { sandbox: SandboxControls }) {
 
   return (
     <Card
+      dense
       title={
         <span className="inline-flex items-center gap-2">
           Stripe sandbox <Badge tone="warn">Test mode</Badge>
         </span>
       }
-      description="Payments run against a local Stripe test-mode simulator. Pick a test card in the payment method dialog to try a decline or 3-D Secure."
+      description="Local Stripe test-mode simulator. Use a test card in the payment dialog to try a decline or 3-D Secure."
       actions={
-        <Button disabled={!renews} pending={renew.pending} onClick={() => renew.run()}>
+        <Button size="sm" disabled={!renews} pending={renew.pending} onClick={() => renew.run()}>
           {renews ? `Simulate renewal on ${formatDate(subscription.renewsAt!)}` : "Simulate renewal"}
         </Button>
       }
     >
       {renew.error && (
-        <div className="mb-4">
+        <div className="mb-3">
           <Notice tone="danger">{renew.error}</Notice>
         </div>
       )}
-      <h3 className="type-eyebrow mb-2 text-fg-muted">Webhook events</h3>
+      <h3 className="type-eyebrow mb-1 text-fg-muted">Webhook events</h3>
       {events.length === 0 ? (
-        <p className="type-body rounded-well border border-dashed border-line bg-sunken px-4 py-6 text-center text-fg-muted">
+        <p className="type-small text-fg-muted">
           No events yet. Save a card or buy something.
         </p>
       ) : (
         <ol aria-label="Webhook events" className="flex flex-col">
           {events.slice(0, SHOWN_EVENTS).map((event) => (
-            <li key={event.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 border-b border-line py-2 last:border-b-0">
+            <li key={event.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 border-b border-line py-1.5 last:border-b-0">
               <span className="min-w-0">
                 <span className="type-code">{event.type}</span>
                 <span className="type-small ml-2 text-fg-muted">{event.summary}</span>

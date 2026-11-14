@@ -38,7 +38,7 @@ export function AccessScopeCard() {
     >
       <div className="grid gap-5 sm:grid-cols-2">
         <List heading="Infrared reads" items={READS} mark="✓" tone="text-success" />
-        <List heading="Infrared never" items={NEVER} mark="✕" tone="text-danger" />
+        <List heading="Infrared never" items={NEVER} mark="✕" tone="text-danger-ink" />
       </div>
     </Card>
   );

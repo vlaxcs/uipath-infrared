@@ -14,19 +14,19 @@ export function InvoicesCard() {
   const { invoices } = useSettings().subscription;
 
   return (
-    <Card title="Invoices">
+    <Card dense title="Invoices">
       {invoices.length === 0 ? (
-        <p className="type-body rounded-well border border-dashed border-line bg-sunken px-4 py-6 text-center text-fg-muted">
+        <p className="type-small text-fg-muted">
           No invoices yet. They appear here after your first purchase.
         </p>
       ) : (
         <table className="w-full border-collapse">
           <thead className="hidden sm:table-header-group">
             <tr className="type-eyebrow border-b border-line text-left text-fg-muted">
-              <th className="py-2 pr-4 font-bold">Date</th>
-              <th className="py-2 pr-4 font-bold">Description</th>
-              <th className="py-2 pr-4 text-right font-bold">Amount</th>
-              <th className="py-2 text-right font-bold">Status</th>
+              <th className="pb-1.5 pr-4 font-semibold">Date</th>
+              <th className="pb-1.5 pr-4 font-semibold">Description</th>
+              <th className="pb-1.5 pr-4 text-right font-semibold">Amount</th>
+              <th className="pb-1.5 text-right font-semibold">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -35,12 +35,12 @@ export function InvoicesCard() {
               return (
                 <tr
                   key={invoice.id}
-                  className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 border-b border-line py-3 last:border-b-0 sm:table-row sm:py-0"
+                  className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 border-b border-line py-2 last:border-b-0 sm:table-row sm:py-0"
                 >
-                  <td className="type-small col-start-1 row-start-2 text-fg-muted sm:py-3 sm:pr-4 sm:text-fg">{formatDate(invoice.date)}</td>
-                  <td className="type-body col-start-1 row-start-1 sm:py-3 sm:pr-4">{invoice.description}</td>
-                  <td className="type-label col-start-2 row-start-1 text-right tabular-nums sm:py-3 sm:pr-4">{formatUsd(invoice.amountUsd)}</td>
-                  <td className="col-start-2 row-start-2 text-right sm:py-3">
+                  <td className="type-small col-start-1 row-start-2 text-fg-muted sm:py-2 sm:pr-4 sm:text-fg">{formatDate(invoice.date)}</td>
+                  <td className="type-small col-start-1 row-start-1 sm:py-2 sm:pr-4">{invoice.description}</td>
+                  <td className="type-label col-start-2 row-start-1 text-right tabular-nums sm:py-2 sm:pr-4">{formatUsd(invoice.amountUsd)}</td>
+                  <td className="col-start-2 row-start-2 text-right sm:py-2">
                     <Badge tone={status.tone}>{status.label}</Badge>
                   </td>
                 </tr>

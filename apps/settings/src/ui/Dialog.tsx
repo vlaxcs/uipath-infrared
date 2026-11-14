@@ -45,7 +45,7 @@ export function Dialog({ open, title, description, onClose, footer, children, si
         aria-describedby={description ? `${id}-description` : undefined}
         tabIndex={-1}
         onMouseDown={(event) => event.stopPropagation()}
-        className={`flex max-h-[92vh] w-full ${widths[size]} flex-col rounded-t-card border border-line bg-surface shadow-float sm:rounded-card`}
+        className={`flex max-h-[92vh] w-full ${widths[size]} flex-col rounded-t-card border border-line bg-surface sm:rounded-card`}
       >
         <header className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
           <div>

@@ -24,10 +24,10 @@ function statusOf(subscription: Subscription): { tone: Tone; label: string } {
 
 function Figure({ value, caption }: { value: ReactNode; caption: ReactNode }) {
   return (
-    <div className="flex flex-col gap-1">
-      <span className="type-figure">{value}</span>
+    <span className="flex flex-wrap items-baseline gap-x-2">
+      <span className="type-heading tabular-nums">{value}</span>
       <span className="type-small text-fg-muted">{caption}</span>
-    </div>
+    </span>
   );
 }
 
@@ -64,28 +64,29 @@ export function CurrentPlanCard({ onCharge }: { onCharge(kind: ChargeKind): void
   let actions: ReactNode = null;
   if (isSubscription && subscription.cancelAtPeriodEnd) {
     actions = (
-      <Button variant="primary" pending={resumeAction.pending} onClick={() => resumeAction.run()}>
+      <Button variant="primary" size="sm" pending={resumeAction.pending} onClick={() => resumeAction.run()}>
         Resume subscription
       </Button>
     );
   } else if (isSubscription && subscription.status === "active") {
-    actions = <Button onClick={() => setConfirmCancel(true)}>Cancel subscription</Button>;
+    actions = (
+      <Button variant="ghost" size="sm" onClick={() => setConfirmCancel(true)}>
+        Cancel subscription
+      </Button>
+    );
   } else if (!isSubscription) {
     actions = (
-      <Button variant="primary" onClick={() => onCharge("buy_pack")}>
+      <Button variant="primary" size="sm" onClick={() => onCharge("buy_pack")}>
         Buy run pack
       </Button>
     );
   }
 
   return (
-    <Card
-      title="Current plan"
-      actions={<Badge tone={status.tone}>{status.label}</Badge>}
-    >
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="flex flex-col gap-3">
+    <Card dense title="Current plan" actions={<Badge tone={status.tone}>{status.label}</Badge>}>
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
             <span className="type-eyebrow text-fg-muted">{subscription.plan === "none" ? "No plan" : offerFor(subscription.plan).name}</span>
             {figure}
             {isSubscription && subscription.runsRemaining > 0 && (

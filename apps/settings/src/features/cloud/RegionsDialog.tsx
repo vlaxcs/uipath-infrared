@@ -53,7 +53,7 @@ export function RegionsDialog({ connection, onClose }: { connection: CloudConnec
             </label>
           ))}
         </div>
-        {selected.length === 0 && <p className="type-small text-danger">Pick at least one region.</p>}
+        {selected.length === 0 && <p className="type-small text-danger-ink">Pick at least one region.</p>}
         {update.error && <Notice tone="danger">{update.error}</Notice>}
       </fieldset>
     </Dialog>

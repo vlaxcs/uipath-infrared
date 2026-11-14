@@ -17,8 +17,8 @@ export function PlansCard({ onCharge }: { onCharge(kind: ChargeKind): void }) {
   const { subscription } = useSettings();
 
   return (
-    <Card title="Plans" description="Pay per run, or let Infrared schedule runs for you.">
-      <ul className="grid gap-3 sm:grid-cols-2">
+    <Card dense title="Plans">
+      <ul className="flex flex-col divide-y divide-line">
         {PLAN_OFFERS.map((offer) => {
           const current = offer.id === subscription.plan;
           const charge = chargeFor(offer, subscription.plan);
@@ -26,29 +26,19 @@ export function PlansCard({ onCharge }: { onCharge(kind: ChargeKind): void }) {
             <li
               key={offer.id}
               aria-label={offer.name}
-              className={`flex flex-col gap-4 rounded-well border p-4 ${current ? "border-accent bg-accent-soft" : "border-line bg-sunken"}`}
+              className={`-mx-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 px-2 py-2.5 first:pt-1 last:pb-1 ${current ? "border-l-2 border-l-accent" : ""}`}
             >
-              <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="flex min-w-40 items-baseline gap-2">
                 <h3 className="type-label">{offer.name}</h3>
-                {current && <Badge tone="accent">Current plan</Badge>}
+                <span className="type-label tabular-nums">{formatUsd(offer.priceUsd)}</span>
+                <span className="type-small text-fg-muted">{offer.cadence === "monthly" ? "/ month" : `once, ${offer.runs} runs`}</span>
               </div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="type-figure">{formatUsd(offer.priceUsd)}</span>
-                <span className="type-small text-fg-muted">{offer.cadence === "monthly" ? "per month" : `one-time, ${offer.runs} runs`}</span>
-              </div>
-              <ul className="type-small flex flex-col gap-1.5 text-fg-muted">
-                {offer.features.map((feature) => (
-                  <li key={feature} className="flex gap-2">
-                    <span aria-hidden className="text-accent">
-                      ✓
-                    </span>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              {!current && (
+              <p className="type-small min-w-0 flex-1 basis-60 text-fg-muted">{offer.features.join(" · ")}</p>
+              {current ? (
+                <Badge tone="accent">Current plan</Badge>
+              ) : (
                 <Button
-                  className="mt-auto self-start"
+                  size="sm"
                   variant={offer.id === "subscription" ? "primary" : "secondary"}
                   onClick={() => onCharge(charge.kind)}
                 >

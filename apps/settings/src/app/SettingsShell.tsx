@@ -48,7 +48,7 @@ export function SettingsShell() {
                     <a
                       href={`#/${section.id}`}
                       aria-current={selected ? "page" : undefined}
-                      className={`type-label block rounded-item px-3 py-2 transition ${selected ? "bg-accent-soft text-accent" : "text-fg-muted hover:bg-sunken hover:text-fg"}`}
+                      className={`type-label block rounded-item px-3 py-2 transition ${selected ? "bg-accent-soft text-accent-ink" : "text-fg-muted hover:bg-sunken hover:text-fg"}`}
                     >
                       {section.label}
                     </a>

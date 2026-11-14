@@ -1,126 +1,165 @@
 /* app.css — estate states: a migration ledger and an infrastructure plate. */
 
+/* Theme: the InfraRed product tokens (apps/site/src/tokens.css). Dark is the
+   product's Night surfaces with the Thermal accent; light is a paper variant of
+   the same family. Text roles meet WCAG AA on bg, surface and surface-2. */
+
 :root {
   color-scheme: light;
-  --bg: #e6e8e2;
-  --grid: rgba(17, 26, 21, 0.055);
-  --surface: #f5f6f1;
-  --surface-2: #e5e8df;
-  --surface-3: #d4dacf;
-  --ink: #111a15;
-  --ink-2: #2b3a32;
-  --muted: #56665d;
-  --faint: #5c6c63;
-  --line: #bcc5bb;
-  --line-strong: #84948a;
-  --accent: #0e5a52;
-  --accent-2: #0a3f39;
-  --accent-soft: #d2e7e0;
-  --accent-ink: #f3fbf8;
-  --saving: #0e5a52;
-  --spend: #8a5a00;
-  --removed: #a33a2c;
-  --moved: #31578f;
-  --handoff: #0e5a52;
-  --egress: #a8620a;
-  --prov-aws: #c26a00;
-  --prov-gcp: #1a73e8;
-  --prov-azure: #0a6ccb;
-  --prov-managed_pg: #336791;
-  --prov-onprem: #5a6b61;
-  --prov-other: #77807a;
-  --prov-neon: #12a37a;
-  --prov-supabase: #249b63;
-  --prov-hetzner: #d50c2d;
-  --prov-fly: #7b3fe4;
-  --prov-cloudflare: #e8740f;
-  --prov-backblaze: #e21e29;
-  --prov-runpod: #673ab7;
-  --adjusted: #8a5a00;
-  --flagged: #5b4678;
-  --idle: #8a5a00;
-  --orphan: #a33a2c;
-  --shadow: 0 24px 60px rgba(17, 26, 21, 0.22);
-  --font-display: "Avenir Next Condensed", "Roboto Condensed", "Helvetica Neue", "Arial Narrow", sans-serif;
-  --font-body: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-mono: "SFMono-Regular", "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
+  /* Paper: the light variant. */
+  --bg: #f5f0e4;
+  --grid: rgba(18, 18, 20, 0.05);
+  --surface: #fbf8f1;
+  --surface-2: #ece6d7;
+  --surface-3: #ded7c6;
+  --ink: #121214;
+  --ink-2: #34322e;
+  --muted: #5c5a55;
+  --faint: #67645d;
+  --line: #dcd4c2;
+  --line-strong: #a39a86;
+  /* Thermal accent, deepened one step so it reads as text on paper. */
+  --accent: #bb2d18;
+  --accent-2: #9e2614;
+  --accent-soft: #f6dcd3;
+  --accent-ink: #ffffff;
+  --accent-fg: #bb2d18;
+  /* Statuses and change kinds: fixed (sage), warn (lip), danger (thermal),
+     with the cluster pastels deepened for paper. */
+  --saving: #3d6b1f;
+  --spend: #a14f0a;
+  --removed: #bb2d18;
+  --removed-fg: #bb2d18;
+  --moved: #2f6690;
+  --handoff: #1d6f65;
+  --egress: #a14f0a;
+  --link-live: #8f8676;
+  /* Providers: cluster pastels first, then the thermal ramp. */
+  --prov-aws: #9c5222;
+  --prov-gcp: #2f6690;
+  --prov-azure: #5f4fa3;
+  --prov-managed_pg: #1d6f65;
+  --prov-onprem: #67645d;
+  --prov-other: #6e6b63;
+  --prov-neon: #45722a;
+  --prov-supabase: #1d6f65;
+  --prov-hetzner: #ad3735;
+  --prov-fly: #5f4fa3;
+  --prov-cloudflare: #9c520c;
+  --prov-backblaze: #a81f50;
+  --prov-runpod: #6b2a8a;
+  --adjusted: #80600a;
+  --flagged: #5f4fa3;
+  --idle: #80600a;
+  --orphan: #bb2d18;
+  --focus: #bb2d18;
+  --shadow: none;
+  --font-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Martian Mono", ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace;
   --mast-h: 66px;
   --detail-w: 348px;
-  --radius: 2px;
+  --radius: 0px;
+  --radius-card: 8px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0b1310;
-    --grid: rgba(222, 238, 229, 0.05);
-    --surface: #121d18;
-    --surface-2: #192720;
-    --surface-3: #22342b;
-    --ink: #e5ede7;
-    --ink-2: #b9c9c0;
-    --muted: #93a59b;
-    --faint: #7f9188;
-    --line: #2b3d34;
-    --line-strong: #4a6155;
-    --accent: #62d3b8;
-    --accent-2: #92e8d1;
-    --accent-soft: #143a32;
-    --accent-ink: #06251f;
-    --saving: #62d3b8;
-    --spend: #e2bd64;
-    --removed: #ef8a78;
-    --moved: #8fb3ef;
-    --handoff: #62d3b8;
-    --egress: #e7b05a;
-    --prov-aws: #ffad4a;
-    --prov-gcp: #7fb0ff;
-    --prov-azure: #5fb1ff;
-    --prov-managed_pg: #82b2db;
-    --prov-onprem: #a9bab0;
-    --prov-other: #9aa49e;
-    --adjusted: #e2bd64;
-    --flagged: #c3a6ec;
-    --idle: #e2bd64;
-    --orphan: #ef8a78;
-    --shadow: 0 24px 60px rgba(0, 0, 0, 0.62);
+    /* Night surfaces. */
+    --bg: #121214;
+    --grid: #2b2b2f;
+    --surface: #1b1b1e;
+    --surface-2: #262629;
+    --surface-3: #2a2a2e;
+    --ink: #ece8dc;
+    --ink-2: #c8c4b9;
+    --muted: #9a978f;
+    --faint: #908d85;
+    --line: #2a2a2e;
+    --line-strong: #3a3a3f;
+    /* Thermal. */
+    --accent: #ef3b24;
+    --accent-2: #f5922b;
+    --accent-soft: #34181a;
+    --accent-ink: #000000;
+    --accent-fg: #ff6b52;
+    /* Statuses: fixed, warn, danger; change kinds on the cluster pastels. */
+    --saving: #b5d98e;
+    --spend: #f5922b;
+    --removed: #ef3b24;
+    --removed-fg: #ff6b52;
+    --moved: #a9d4ee;
+    --handoff: #96d8ce;
+    --egress: #f5922b;
+    --link-live: #5e5b55;
+    --prov-aws: #f0a878;
+    --prov-gcp: #a9d4ee;
+    --prov-azure: #a99be0;
+    --prov-managed_pg: #96d8ce;
+    --prov-onprem: #9a978f;
+    --prov-other: #9a978f;
+    --prov-neon: #b5d98e;
+    --prov-supabase: #96d8ce;
+    --prov-hetzner: #e8918f;
+    --prov-fly: #a99be0;
+    --prov-cloudflare: #f5922b;
+    --prov-backblaze: #e8918f;
+    --prov-runpod: #a99be0;
+    --adjusted: #ffd36b;
+    --flagged: #a99be0;
+    --idle: #ffd36b;
+    --orphan: #ff6b52;
+    --focus: #f5922b;
+    --shadow: none;
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0b1310;
-  --grid: rgba(222, 238, 229, 0.05);
-  --surface: #121d18;
-  --surface-2: #192720;
-  --surface-3: #22342b;
-  --ink: #e5ede7;
-  --ink-2: #b9c9c0;
-  --muted: #93a59b;
-  --faint: #71837a;
-  --line: #2b3d34;
-  --line-strong: #4a6155;
-  --accent: #62d3b8;
-  --accent-2: #92e8d1;
-  --accent-soft: #143a32;
-  --accent-ink: #06251f;
-  --saving: #62d3b8;
-  --spend: #e2bd64;
-  --removed: #ef8a78;
-  --moved: #8fb3ef;
-  --handoff: #62d3b8;
-  --egress: #e7b05a;
-  --prov-aws: #ffad4a;
-  --prov-gcp: #7fb0ff;
-  --prov-azure: #5fb1ff;
-  --prov-managed_pg: #82b2db;
-  --prov-onprem: #a9bab0;
-  --prov-other: #9aa49e;
-  --adjusted: #e2bd64;
-  --flagged: #c3a6ec;
-  --idle: #e2bd64;
-  --orphan: #ef8a78;
-  --shadow: 0 24px 60px rgba(0, 0, 0, 0.62);
+  --bg: #121214;
+  --grid: #2b2b2f;
+  --surface: #1b1b1e;
+  --surface-2: #262629;
+  --surface-3: #2a2a2e;
+  --ink: #ece8dc;
+  --ink-2: #c8c4b9;
+  --muted: #9a978f;
+  --faint: #908d85;
+  --line: #2a2a2e;
+  --line-strong: #3a3a3f;
+  --accent: #ef3b24;
+  --accent-2: #f5922b;
+  --accent-soft: #34181a;
+  --accent-ink: #000000;
+  --accent-fg: #ff6b52;
+  --saving: #b5d98e;
+  --spend: #f5922b;
+  --removed: #ef3b24;
+  --removed-fg: #ff6b52;
+  --moved: #a9d4ee;
+  --handoff: #96d8ce;
+  --egress: #f5922b;
+  --link-live: #5e5b55;
+  --prov-aws: #f0a878;
+  --prov-gcp: #a9d4ee;
+  --prov-azure: #a99be0;
+  --prov-managed_pg: #96d8ce;
+  --prov-onprem: #9a978f;
+  --prov-other: #9a978f;
+  --prov-neon: #b5d98e;
+  --prov-supabase: #96d8ce;
+  --prov-hetzner: #e8918f;
+  --prov-fly: #a99be0;
+  --prov-cloudflare: #f5922b;
+  --prov-backblaze: #e8918f;
+  --prov-runpod: #a99be0;
+  --adjusted: #ffd36b;
+  --flagged: #a99be0;
+  --idle: #ffd36b;
+  --orphan: #ff6b52;
+  --focus: #f5922b;
+  --shadow: none;
 }
 
 * { box-sizing: border-box; }
@@ -141,7 +180,7 @@ body {
 button, input { font: inherit; color: inherit; }
 button { cursor: pointer; }
 
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 ::selection { background: var(--accent-soft); color: var(--ink); }
 
@@ -497,9 +536,9 @@ button { cursor: pointer; }
   color: var(--muted);
 }
 .tl-node[data-place="current"] .tl-label { color: var(--ink); font-weight: 600; }
-.tl-node[data-place="current"] .tl-index { color: var(--accent); }
+.tl-node[data-place="current"] .tl-index { color: var(--accent-fg); }
 .tl-node button:hover .tl-label { color: var(--ink); }
-.tl-node button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.tl-node button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 
 .footnote {
   margin: 0;
@@ -581,8 +620,8 @@ button { cursor: pointer; }
 .status-pill[data-status="active"] { color: var(--saving); }
 .status-pill[data-status="idle"] { color: var(--idle); }
 .status-pill[data-status="orphan"] { color: var(--orphan); }
-.status-pill[data-status="issue"] { color: var(--removed); }
-.status-pill[data-kind="secured"] { color: var(--accent); }
+.status-pill[data-status="issue"] { color: var(--removed-fg); }
+.status-pill[data-kind="secured"] { color: var(--accent-fg); }
 
 .icon-btn {
   display: inline-flex;
@@ -767,10 +806,10 @@ button { cursor: pointer; }
   color: var(--faint);
 }
 .topo-ends button svg { width: 10px; height: 10px; align-self: center; fill: currentColor; }
-.topo-ends button[data-topo-play] { color: var(--accent); }
+.topo-ends button[data-topo-play] { color: var(--accent-fg); }
 .topo-ends button[aria-pressed="true"] { background: var(--accent-soft); }
 .topo-ends button:hover { background: var(--accent-soft); }
-.topo-ends button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.topo-ends button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 
 .topo-ends { margin-left: auto; }
 .topo-readout {
@@ -785,8 +824,8 @@ button { cursor: pointer; }
   color: var(--muted);
 }
 .topo-readout .tr-pos { color: var(--ink); font-weight: 600; }
-.topo-readout .tr-cut { color: var(--removed); }
-.topo-readout .tr-now { color: var(--removed); }
+.topo-readout .tr-cut { color: var(--removed-fg); }
+.topo-readout .tr-now { color: var(--removed-fg); }
 .topo-readout .tr-move { color: var(--moved); font-weight: 600; }
 .topo-readout .tr-handoff { color: var(--handoff); font-weight: 600; }
 .topo-readout .tr-stop { color: var(--muted); }
@@ -814,19 +853,20 @@ button { cursor: pointer; }
   gap: 4px;
   padding: 1px 7px 1px 2px;
   border: 1px solid color-mix(in srgb, var(--prov) 45%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: color-mix(in srgb, var(--prov) 10%, var(--surface));
   color: var(--ink);
   font-weight: 600;
   white-space: nowrap;
   vertical-align: middle;
 }
-.zone-chip > i { width: 8px; height: 8px; margin-left: 3px; border-radius: 50%; background: var(--prov); }
+.zone-chip > i { width: 8px; height: 8px; margin-left: 3px; border-radius: var(--radius); background: var(--prov); }
 .zone-chip-icon { display: inline-flex; }
 .zone-chip-icon svg { display: block; }
 
 
 .tband rect {
+  rx: var(--radius-card);
   fill: var(--surface);
   stroke: var(--line);
   stroke-width: 1;
@@ -851,7 +891,7 @@ button { cursor: pointer; }
 /* Links: thick while live, then each half retracts toward its endpoint. */
 .tlink-half {
   fill: none;
-  stroke: color-mix(in srgb, var(--accent) 62%, var(--surface));
+  stroke: var(--link-live);
   stroke-width: 2.6;
   stroke-linecap: butt;
   stroke-linejoin: round;
@@ -933,7 +973,7 @@ button { cursor: pointer; }
   stroke-dasharray: 2.5 2;
 }
 .tnode[data-status="removing"] .tnode-shape { stroke: var(--removed); }
-.tnode[data-status="removing"] .tnode-label { fill: var(--removed); text-decoration: line-through; }
+.tnode[data-status="removing"] .tnode-label { fill: var(--removed-fg); text-decoration: line-through; }
 .tnode[data-status="removed"] { opacity: 0.38; }
 .tnode[data-status="removed"] .tnode-shape { stroke: var(--line-strong); }
 .tnode[data-status="removed"] .tnode-core,
@@ -954,7 +994,7 @@ button { cursor: pointer; }
 }
 .topo-legend li { display: flex; align-items: center; gap: 7px; }
 .topo-legend svg { flex: none; width: 28px; height: 8px; }
-.lg-live { stroke: color-mix(in srgb, var(--accent) 62%, var(--surface)); stroke-width: 2.6; }
+.lg-live { stroke: var(--link-live); stroke-width: 2.6; }
 .lg-host { stroke: var(--line-strong); stroke-width: 2.4; }
 .lg-broken { stroke: var(--line-strong); stroke-width: 1.2; }
 .lg-ghost { fill: none; stroke: var(--line-strong); stroke-dasharray: 2 1.5; }
@@ -968,6 +1008,7 @@ button { cursor: pointer; }
 /* Zones: one strip per provider and region. The home zone is quiet; any other
    provider is tinted with its colour so a move into it cannot be missed. */
 .tzone-frame {
+  rx: var(--radius-card);
   fill: color-mix(in srgb, var(--ink) 2.5%, transparent);
   stroke: var(--line-strong);
   stroke-width: 1;
@@ -985,7 +1026,7 @@ button { cursor: pointer; }
 @keyframes tzone-pulse {
   0%, 30% { fill: color-mix(in srgb, var(--moved) 20%, transparent); }
 }
-.tzone-mark { fill: var(--prov); }
+.tzone-mark { rx: var(--radius); fill: var(--prov); }
 .tzone-mark-text {
   font-family: var(--font-mono);
   font-size: 8.5px;
@@ -1092,23 +1133,26 @@ button { cursor: pointer; }
    ~360-500 px wide. Type is large, labels short, no motion. Always light. */
 
 html.is-card {
-  --card-bg: #ffffff;
-  --card-panel: #f3f5f1;
-  --card-panel-line: #d3d9d1;
-  --card-ink: #17211b;
-  --card-muted: #4f5e55;
-  --card-link: #a3aea7;
-  --card-changed: #b86e00;
-  --card-changed-soft: #fde9c2;
-  --card-changed-ink: #6e4100;
-  --card-added: #1c7c3f;
-  --card-added-soft: #d3f0db;
-  --card-added-ink: #0f5228;
-  --card-removed: #b8392b;
-  --card-removed-soft: #fbe5e1;
-  --card-moved: #2d5fb3;
-  --card-moved-soft: #dde8fa;
-  --card-moved-ink: #1a3d78;
+  /* The card's header was set for a condensed face; keep one as the fallback
+     so the one-line header still fits when Schibsted Grotesk is not installed. */
+  --font-display: "Schibsted Grotesk", "Avenir Next Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
+  --card-bg: #fbf8f1;
+  --card-panel: #f1ebdd;
+  --card-panel-line: #d6cdb9;
+  --card-ink: #121214;
+  --card-muted: #5c5a55;
+  --card-link: #b3aa96;
+  --card-changed: #a14f0a;
+  --card-changed-soft: #fbe3c8;
+  --card-changed-ink: #6e3500;
+  --card-added: #3d6b1f;
+  --card-added-soft: #e1edcf;
+  --card-added-ink: #2a4c12;
+  --card-removed: #ad2915;
+  --card-removed-soft: #f8ddd5;
+  --card-moved: #2f6690;
+  --card-moved-soft: #dcebf5;
+  --card-moved-ink: #1d4a6c;
 }
 html.is-card, html.is-card body {
   width: 100vw;
@@ -1155,7 +1199,7 @@ html.is-card *, html.is-card *::before, html.is-card *::after {
 .card-chip {
   padding: 3px 10px 2px;
   border: 2px solid currentColor;
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-family: var(--font-display);
   font-size: 21px;
   font-weight: 600;
@@ -1182,7 +1226,7 @@ html.is-card *, html.is-card *::before, html.is-card *::after {
 .card-delta {
   margin-left: 10px;
   padding: 2px 9px 1px;
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 26px;
   font-weight: 700;
 }
@@ -1222,7 +1266,7 @@ html.is-card *, html.is-card *::before, html.is-card *::after {
   width: 20px;
   height: 20px;
   border: 2.5px solid var(--card-ink);
-  border-radius: 4px;
+  border-radius: var(--radius);
   background: var(--card-bg);
 }
 .card-legend [data-status="changed"] i { border-color: var(--card-changed); background: var(--card-changed-soft); }
@@ -1246,7 +1290,7 @@ html.is-card *, html.is-card *::before, html.is-card *::after {
 .is-card .tzone:not([data-home]) .tzone-frame { fill: color-mix(in srgb, var(--prov) 6%, transparent); stroke: var(--prov); stroke-width: 2.5; }
 .is-card .tzone[data-empty="true"] .tzone-frame { stroke-dasharray: 10 7; fill: transparent; }
 .is-card .tzone-name { font-size: 24px; fill: var(--card-ink); }
-.is-card .tzone-mark-text { font-size: 13px; fill: #fff; }
+.is-card .tzone-mark-text { font-size: 13px; fill: var(--card-bg); }
 .is-card .ttrail-halo { stroke: var(--card-bg); stroke-width: 9; }
 .is-card .ttrail-path { stroke: var(--card-moved); stroke-width: 3.5; }
 .is-card .tarrow[data-kind="move"] path { fill: var(--card-moved); }
@@ -1292,7 +1336,7 @@ html.is-card *, html.is-card *::before, html.is-card *::after {
 .is-card .tnode[data-kind="kubernetes_cluster"] .tnode-shape { fill: var(--card-bg); stroke: var(--card-ink); stroke-width: 1.6; }
 .is-card .tnode-core { fill: var(--card-ink); }
 .is-card .tnode-core-line { stroke: var(--card-ink); }
-.is-card .tnode-hit { rx: 5px; fill: transparent; }
+.is-card .tnode-hit { rx: var(--radius); fill: transparent; }
 
 .is-card .tnode[data-status="changed"] .tnode-hit { fill: var(--card-changed-soft); stroke: var(--card-changed); stroke-width: 2; }
 .is-card .tnode[data-status="changed"] .tnode-shape { stroke: var(--card-changed); stroke-width: 1.8; }
@@ -1319,20 +1363,23 @@ html.is-card *, html.is-card *::before, html.is-card *::after {
    ~360-500 px wide. Type is large, labels short, no motion. Always light. */
 
 html.is-card {
-  --card-bg: #ffffff;
-  --card-panel: #f3f5f1;
-  --card-panel-line: #d3d9d1;
-  --card-ink: #17211b;
-  --card-muted: #4f5e55;
-  --card-link: #a3aea7;
-  --card-changed: #b86e00;
-  --card-changed-soft: #fde9c2;
-  --card-changed-ink: #6e4100;
-  --card-added: #1c7c3f;
-  --card-added-soft: #d3f0db;
-  --card-added-ink: #0f5228;
-  --card-removed: #b8392b;
-  --card-removed-soft: #fbe5e1;
+  /* The card's header was set for a condensed face; keep one as the fallback
+     so the one-line header still fits when Schibsted Grotesk is not installed. */
+  --font-display: "Schibsted Grotesk", "Avenir Next Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
+  --card-bg: #fbf8f1;
+  --card-panel: #f1ebdd;
+  --card-panel-line: #d6cdb9;
+  --card-ink: #121214;
+  --card-muted: #5c5a55;
+  --card-link: #b3aa96;
+  --card-changed: #a14f0a;
+  --card-changed-soft: #fbe3c8;
+  --card-changed-ink: #6e3500;
+  --card-added: #3d6b1f;
+  --card-added-soft: #e1edcf;
+  --card-added-ink: #2a4c12;
+  --card-removed: #ad2915;
+  --card-removed-soft: #f8ddd5;
 }
 html.is-card, html.is-card body {
   width: 100vw;
@@ -1379,7 +1426,7 @@ html.is-card *, html.is-card *::before, html.is-card *::after {
 .card-chip {
   padding: 3px 10px 2px;
   border: 2px solid currentColor;
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-family: var(--font-display);
   font-size: 21px;
   font-weight: 600;
@@ -1406,7 +1453,7 @@ html.is-card *, html.is-card *::before, html.is-card *::after {
 .card-delta {
   margin-left: 10px;
   padding: 2px 9px 1px;
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 26px;
   font-weight: 700;
 }
@@ -1446,7 +1493,7 @@ html.is-card *, html.is-card *::before, html.is-card *::after {
   width: 20px;
   height: 20px;
   border: 2.5px solid var(--card-ink);
-  border-radius: 4px;
+  border-radius: var(--radius);
   background: var(--card-bg);
 }
 .card-legend [data-status="changed"] i { border-color: var(--card-changed); background: var(--card-changed-soft); }
@@ -1495,7 +1542,7 @@ html.is-card *, html.is-card *::before, html.is-card *::after {
 .is-card .tnode[data-kind="kubernetes_cluster"] .tnode-shape { fill: var(--card-bg); stroke: var(--card-ink); stroke-width: 1.6; }
 .is-card .tnode-core { fill: var(--card-ink); }
 .is-card .tnode-core-line { stroke: var(--card-ink); }
-.is-card .tnode-hit { rx: 5px; fill: transparent; }
+.is-card .tnode-hit { rx: var(--radius); fill: transparent; }
 
 .is-card .tnode[data-status="changed"] .tnode-hit { fill: var(--card-changed-soft); stroke: var(--card-changed); stroke-width: 2; }
 .is-card .tnode[data-status="changed"] .tnode-shape { stroke: var(--card-changed); stroke-width: 1.8; }
