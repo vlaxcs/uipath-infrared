@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type KeyboardEvent } from "react";
+import { createPortal } from "react-dom";
 
 export type SaveChoice = { saving: boolean; onSave: () => void; onSkip: () => void; onBack: () => void };
 
@@ -30,8 +31,8 @@ export function SaveProfileDialog({ choice }: { choice: SaveChoice }) {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-scrim p-4 backdrop-blur-sm" onKeyDown={onKeyDown}>
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4 backdrop-blur-sm" onKeyDown={onKeyDown}>
       <div
         ref={dialog}
         role="dialog"
@@ -75,6 +76,7 @@ export function SaveProfileDialog({ choice }: { choice: SaveChoice }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

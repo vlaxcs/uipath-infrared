@@ -32,4 +32,11 @@ describe("the save-to-profile dialog", () => {
     fireEvent.keyDown(back, { key: "Tab" });
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "Save to profile and start" }));
   });
+
+  it("covers the whole screen, outside the form's own layout", () => {
+    const { container } = render(<div className="animate-panel-in"><SaveProfileDialog choice={choice()} /></div>);
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.body.querySelector('[role="dialog"]')?.parentElement?.parentElement).toBe(document.body);
+  });
 });
+
