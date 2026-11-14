@@ -4,11 +4,11 @@ type Point = [number, number, number];
 type Tone = "steel" | "accent";
 type Block = { x: number; y: number; z: number; w: number; d: number; h: number };
 type Rack = Block & { slots: number; led?: "fixed" | "accent" };
-type Traveller = { kind: "cube" | "window"; from: Point; to: Point; delay: number };
+type Traveller = { kind: "cube" | "window"; from: Point; to: Point; delay: number; duration: number };
 
 const UNIT = 26;
 const COS = Math.cos(Math.PI / 6);
-const ARC_LIFT = 90;
+const MAX_LIFT = 170;
 
 function project([x, y, z]: Point): [number, number] {
   return [(x - y) * COS * UNIT, ((x + y) / 2 - z) * UNIT];
@@ -82,38 +82,53 @@ function Window({ x, y, z, w = 1.8, h = 1.3 }: { x: number; y: number; z: number
   );
 }
 
-const SITE_A: Point = [0, 0, 0];
-const SITE_B: Point = [7, -7, 0];
+const SITES: Point[] = [
+  [0, 0, 0],
+  [7, -7, 0],
+  [14, -14, 0],
+];
 const SLAB = 5;
 
-const RACKS_A: Rack[] = [
+const RACKS: Rack[] = [
   { x: 0.4, y: 0.4, z: 0, w: 1, d: 1, h: 3, slots: 5, led: "accent" },
   { x: 1.9, y: 0.4, z: 0, w: 1, d: 1, h: 2.2, slots: 3 },
   { x: 3.4, y: 0.4, z: 0, w: 1.1, d: 1.1, h: 3.4, slots: 6, led: "accent" },
   { x: 0.4, y: 2.1, z: 0, w: 1, d: 1, h: 1.6, slots: 2 },
   { x: 3.3, y: 2.4, z: 0, w: 1.2, d: 1.2, h: 1.2, slots: 1 },
-];
-
-const RACKS_B: Rack[] = [
   { x: 7.4, y: -6.6, z: 0, w: 1, d: 1, h: 1.8, slots: 3 },
   { x: 8.8, y: -6.6, z: 0, w: 1, d: 1, h: 1.8, slots: 3 },
   { x: 10.2, y: -6.6, z: 0, w: 1, d: 1, h: 1.8, slots: 3 },
   { x: 7.4, y: -5.1, z: 0, w: 1, d: 1, h: 1.2, slots: 2 },
+  { x: 14.4, y: -13.6, z: 0, w: 1, d: 1, h: 2.6, slots: 4, led: "accent" },
+  { x: 15.9, y: -13.6, z: 0, w: 1, d: 1, h: 3.2, slots: 5 },
+  { x: 17.4, y: -13.6, z: 0, w: 1.2, d: 1.2, h: 2, slots: 3 },
+  { x: 14.4, y: -12.1, z: 0, w: 1, d: 1, h: 1.4, slots: 2 },
 ];
 
 const TRAVELLERS: Traveller[] = [
-  { kind: "cube", from: [1.9, 3.1, 0], to: [9.1, -3.6, 0], delay: 0 },
-  { kind: "window", from: [10.4, -3.2, 0.2], to: [1.6, 4.4, 0.2], delay: -4.5 },
-  { kind: "cube", from: [0.6, 3.6, 0], to: [10.6, -4.9, 0], delay: -2.2 },
+  { kind: "cube", from: [1.9, 3.1, 0], to: [9.1, -3.6, 0], delay: 0, duration: 6.4 },
+  { kind: "window", from: [7.2, -2.1, 0.2], to: [0.2, 4.9, 0.2], delay: -2.8, duration: 7.6 },
+  { kind: "cube", from: [0.6, 3.6, 0], to: [17.6, -10.9, 0], delay: -1.2, duration: 8.8 },
+  { kind: "cube", from: [10.6, -4.9, 0], to: [15, -10.6, 0], delay: -4, duration: 5.8 },
+  { kind: "window", from: [16.2, -9.1, 0.2], to: [2.6, 5, 0.2], delay: -6.2, duration: 9.2 },
+  { kind: "cube", from: [17.9, -11.9, 0], to: [10.9, -3.3, 0], delay: -2, duration: 6.8 },
+  { kind: "cube", from: [3, 4, 0], to: [11.4, -5.4, 0], delay: -5.2, duration: 6.2 },
 ];
 
-function TravellerShape({ traveller }: { traveller: Traveller }) {
+function arc(traveller: Traveller) {
   const [fromX, fromY] = project(traveller.from);
   const [toX, toY] = project(traveller.to);
+  const lift = Math.min(MAX_LIFT, 50 + Math.abs(toX - fromX) * 0.18);
+  return { fromX, fromY, toX, toY, lift };
+}
+
+function TravellerShape({ traveller }: { traveller: Traveller }) {
+  const { fromX, fromY, toX, toY, lift } = arc(traveller);
   const style = {
     "--dx": `${(toX - fromX).toFixed(1)}px`,
     "--dy": `${(toY - fromY).toFixed(1)}px`,
-    "--lift": `${ARC_LIFT}px`,
+    "--lift": `${lift.toFixed(1)}px`,
+    "--travel": `${traveller.duration}s`,
     animationDelay: `${traveller.delay}s`,
   } as CSSProperties;
   const [x, y, z] = traveller.from;
@@ -124,18 +139,17 @@ function TravellerShape({ traveller }: { traveller: Traveller }) {
   );
 }
 
-function Link({ from, to }: { from: Point; to: Point }) {
-  const [fromX, fromY] = project(from);
-  const [toX, toY] = project(to);
+function Link({ traveller }: { traveller: Traveller }) {
+  const { fromX, fromY, toX, toY, lift } = arc(traveller);
   const controlX = (fromX + toX) / 2;
-  const controlY = (fromY + toY) / 2 - ARC_LIFT * 2;
+  const controlY = (fromY + toY) / 2 - lift * 2;
   return (
     <path
       d={`M${fromX.toFixed(1)} ${fromY.toFixed(1)} Q${controlX.toFixed(1)} ${controlY.toFixed(1)} ${toX.toFixed(1)} ${toY.toFixed(1)}`}
       fill="none"
       strokeWidth={1.5}
       strokeDasharray="4 6"
-      className="stroke-fg/25"
+      className="infra-link stroke-fg/25"
     />
   );
 }
@@ -144,17 +158,15 @@ const byDepth = (first: Block, second: Block) => first.x + first.y - (second.x +
 
 export function InfraScene({ label }: { label: string }) {
   return (
-    <svg viewBox="-150 -215 600 370" role="img" aria-label={label} className="h-auto w-full overflow-visible">
-      <Box x={SITE_A[0]} y={SITE_A[1]} z={-0.5} w={SLAB} d={SLAB} h={0.5} />
-      <Box x={SITE_B[0]} y={SITE_B[1]} z={-0.5} w={SLAB} d={SLAB} h={0.5} />
-      {[...RACKS_A].sort(byDepth).map((rack) => (
-        <RackBox key={`a${rack.x}${rack.y}`} {...rack} />
+    <svg viewBox="-140 -145 910 305" role="img" aria-label={label} className="h-auto w-full overflow-visible horizontal:h-full">
+      {SITES.map(([x, y]) => (
+        <Box key={`slab${x}`} x={x} y={y} z={-0.5} w={SLAB} d={SLAB} h={0.5} />
       ))}
-      {[...RACKS_B].sort(byDepth).map((rack) => (
-        <RackBox key={`b${rack.x}${rack.y}`} {...rack} />
+      {[...RACKS].sort(byDepth).map((rack) => (
+        <RackBox key={`${rack.x}${rack.y}`} {...rack} />
       ))}
       {TRAVELLERS.map((traveller) => (
-        <Link key={`link${traveller.from.join()}`} from={traveller.from} to={traveller.to} />
+        <Link key={`link${traveller.from.join()}`} traveller={traveller} />
       ))}
       {TRAVELLERS.map((traveller) => (
         <TravellerShape key={traveller.from.join()} traveller={traveller} />

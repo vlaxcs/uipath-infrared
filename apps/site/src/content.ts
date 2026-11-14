@@ -10,7 +10,7 @@ export type Content = {
   tagline: string;
   nav: { cta: string; progress: string; sections: string[] };
   hero: {
-    title: string;
+    title: [string, string];
     lead: string;
     primary: string;
     secondary: string;
@@ -58,10 +58,10 @@ const ro: Content = {
   tagline: "infrastructură per proiect",
   nav: { cta: "Rulează o analiză", progress: "Secțiunile paginii", sections: ["Acasă", "Ce găsește", "Un run", "Plan", "Cum funcționează", "Prețuri", "Întrebări", "Final"] },
   hero: {
-    title: "Infrastructura, replanificată pentru fiecare proiect.",
+    title: ["Infrastructura, replanificată", "pentru fiecare proiect."],
     lead: "Citește cloud-ul. Propune mutarea. O testează în sandbox. Îți dă pașii.",
-    primary: "Rulează o analiză",
-    secondary: "Vezi un run",
+    primary: "Începe cu Infrared",
+    secondary: "Explorează",
     scene: {
       label: "Două insule de infrastructură: rafturi, legături și mici containere care călătoresc între ele.",
     },
@@ -152,10 +152,10 @@ const en: Content = {
   tagline: "infrastructure per project",
   nav: { cta: "Run an analysis", progress: "Page sections", sections: ["Home", "What it finds", "A run", "Plan", "How it works", "Pricing", "Questions", "End"] },
   hero: {
-    title: "Infrastructure, replanned around every project.",
+    title: ["Infrastructure replanned", "around every project."],
     lead: "Reads your cloud. Proposes the move. Rehearses it in a sandbox. Hands you the steps.",
-    primary: "Run an analysis",
-    secondary: "See a sample run",
+    primary: "Start using Infrared",
+    secondary: "Explore",
     scene: {
       label: "Two infrastructure islands: racks, links, and small containers travelling between them.",
     },

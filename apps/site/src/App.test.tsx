@@ -14,8 +14,20 @@ describe("product page", () => {
     render(<App />);
     expect(document.documentElement.lang).toBe("ro");
     expect(document.title).toBe("Infrared");
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(content.ro.hero.title);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(content.ro.hero.title.join(" "));
     expect(screen.getAllByText(content.ro.tagline).length).toBeGreaterThan(0);
+  });
+
+  it("sets the English hero title on two lines, with Explore and a red Start using Infrared", async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole("button", { name: "EN" }));
+    const lines = screen.getByRole("heading", { level: 1 }).querySelectorAll(":scope > span");
+    expect([...lines].map((line) => line.textContent)).toEqual(["Infrastructure replanned", "around every project."]);
+    const hero = document.getElementById("acasa")!;
+    expect(within(hero).getByRole("link", { name: "Explore" })).toHaveAttribute("href", "#ce-gaseste");
+    const start = within(hero).getByRole("link", { name: "Start using Infrared" });
+    expect(start).toHaveAttribute("href", "#preturi");
+    expect(start.className).toContain("bg-accent");
   });
 
   it("shows the sample run as a terminal plan", () => {
@@ -71,7 +83,7 @@ describe("product page", () => {
     await userEvent.click(screen.getByRole("button", { name: "EN" }));
     expect(document.documentElement.lang).toBe("en");
     expect(screen.getByRole("button", { name: "EN" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(content.en.hero.title);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(content.en.hero.title.join(" "));
     expect(screen.getByRole("heading", { name: content.en.how.title })).toBeInTheDocument();
     expect(screen.queryByText(content.ro.how.promise)).not.toBeInTheDocument();
   });

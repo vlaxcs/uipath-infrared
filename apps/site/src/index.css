@@ -84,7 +84,11 @@
 
 @layer components {
   .infra-travel {
-    animation: infra-travel 9s ease-in-out infinite;
+    animation: infra-travel var(--travel, 7s) ease-in-out infinite;
+  }
+
+  .infra-link {
+    animation: infra-flow 1.8s linear infinite;
   }
 
   .terminal-caret {
@@ -115,6 +119,12 @@
   94%,
   100% {
     translate: 0 0;
+  }
+}
+
+@keyframes infra-flow {
+  to {
+    stroke-dashoffset: -20;
   }
 }
 

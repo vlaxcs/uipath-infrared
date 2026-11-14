@@ -5,11 +5,12 @@ const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   secondary: "border-line bg-surface text-fg hover:border-fg-muted hover:bg-surface-raised",
 };
 
-type ButtonSize = "regular" | "compact";
+type ButtonSize = "regular" | "compact" | "large";
 
 const BUTTON_SIZES: Record<ButtonSize, string> = {
   regular: "type-button min-h-11 px-5",
   compact: "type-tag h-9 px-3.5",
+  large: "type-lead min-h-14 px-8 font-medium",
 };
 
 export function buttonClass(variant: ButtonVariant, extra = "", size: ButtonSize = "regular") {
