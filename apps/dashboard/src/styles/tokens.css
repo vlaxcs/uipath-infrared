@@ -47,11 +47,67 @@
 
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
+
+  --color-estate-bg: #e6e8e2;
+  --color-estate-link-live: color-mix(in srgb, var(--color-estate-accent) 62%, var(--color-estate-surface));
+  --color-estate-grid: rgba(17, 26, 21, 0.055);
+  --color-estate-surface: #f5f6f1;
+  --color-estate-surface-2: #e5e8df;
+  --color-estate-surface-3: #d4dacf;
+  --color-estate-ink: #111a15;
+  --color-estate-ink-2: #2b3a32;
+  --color-estate-muted: #56665d;
+  --color-estate-faint: #5c6c63;
+  --color-estate-line: #bcc5bb;
+  --color-estate-line-strong: #84948a;
+  --color-estate-accent: #0e5a52;
+  --color-estate-accent-2: #0a3f39;
+  --color-estate-accent-soft: #d2e7e0;
+  --color-estate-accent-ink: #f3fbf8;
+  --color-estate-saving: #0e5a52;
+  --color-estate-spend: #8a5a00;
+  --color-estate-removed: #a33a2c;
+  --color-estate-moved: #31578f;
+  --color-estate-adjusted: #8a5a00;
+  --color-estate-flagged: #5b4678;
+  --color-estate-idle: #8a5a00;
+  --color-estate-orphan: #a33a2c;
+  --shadow-estate: 0 1.5rem 3.75rem rgba(17, 26, 21, 0.22);
+  --font-estate-display: "Avenir Next Condensed", "Roboto Condensed", "Helvetica Neue", "Arial Narrow", sans-serif;
+  --font-estate-body: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-estate-mono: "SFMono-Regular", "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
+  --size-estate-detail: 21.75rem;
+  --radius-estate: 0.125rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
+
+    --color-estate-bg: #0b1310;
+    --color-estate-grid: rgba(222, 238, 229, 0.05);
+    --color-estate-surface: #121d18;
+    --color-estate-surface-2: #192720;
+    --color-estate-surface-3: #22342b;
+    --color-estate-ink: #e5ede7;
+    --color-estate-ink-2: #b9c9c0;
+    --color-estate-muted: #93a59b;
+    --color-estate-faint: #71837a;
+    --color-estate-line: #2b3d34;
+    --color-estate-line-strong: #4a6155;
+    --color-estate-accent: #62d3b8;
+    --color-estate-accent-2: #92e8d1;
+    --color-estate-accent-soft: #143a32;
+    --color-estate-accent-ink: #06251f;
+    --color-estate-saving: #62d3b8;
+    --color-estate-spend: #e2bd64;
+    --color-estate-removed: #ef8a78;
+    --color-estate-moved: #8fb3ef;
+    --color-estate-adjusted: #e2bd64;
+    --color-estate-flagged: #c3a6ec;
+    --color-estate-idle: #e2bd64;
+    --color-estate-orphan: #ef8a78;
+    --shadow-estate: 0 1.5rem 3.75rem rgba(0, 0, 0, 0.62);
 
     --color-canvas: #0d1015;
     --color-surface: #141920;
