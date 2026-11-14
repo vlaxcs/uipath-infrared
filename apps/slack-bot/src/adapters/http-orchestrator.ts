@@ -1,8 +1,13 @@
+import type { ListedRun } from '../application/run-watcher.js';
 import type { Orchestrator } from '../application/ports.js';
 import type { HumanDecision, Run, RunEvent } from '../domain/run.js';
 
 export class HttpOrchestrator implements Orchestrator {
   constructor(private baseUrl: string) {}
+
+  listRuns(): Promise<ListedRun[]> {
+    return this.request<ListedRun[]>('/runs?limit=50');
+  }
 
   getRun(runId: string): Promise<Run> {
     return this.request<Run>(`/runs/${encodeURIComponent(runId)}`);
