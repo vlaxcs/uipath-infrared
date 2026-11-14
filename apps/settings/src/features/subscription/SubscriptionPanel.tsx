@@ -21,7 +21,7 @@ export function SubscriptionPanel() {
   const pending = subscription.pendingPayment;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3">
       {subscription.status === "past_due" && (
         <Notice tone="danger">Your last payment failed. Update your payment method to keep your plan and scheduled runs.</Notice>
       )}

@@ -31,10 +31,10 @@ describe("the account settings inside the platform", () => {
     expect((await screen.findAllByText(/Connect/)).length).toBeGreaterThan(0);
   });
 
-  it("shows the subscription panel, with the Stripe test-mode sandbox, under the runs on Account", async () => {
+  it("shows the subscription panel, with the Stripe test-mode sandbox, on Account", async () => {
     render(<AccountPage accountSettings={settings()} />);
-    expect(screen.getByRole("heading", { name: "Runs" })).toBeTruthy();
-    expect(await screen.findByText("Current plan")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2, name: "Subscription" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Current plan" })).toBeTruthy();
     expect(await screen.findByText("Test mode")).toBeTruthy();
   });
 

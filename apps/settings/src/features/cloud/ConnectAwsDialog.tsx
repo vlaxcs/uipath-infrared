@@ -25,7 +25,7 @@ function StepIndicator({ step }: { step: ConnectStep }) {
         const state = number < step ? "done" : number === step ? "current" : "todo";
         return (
           <li key={label} aria-current={state === "current" ? "step" : undefined} className="flex min-w-0 flex-col gap-1.5">
-            <span className={`h-1 rounded-full ${state === "todo" ? "bg-line" : "bg-accent"}`} />
+            <span className={`h-1 ${state === "todo" ? "bg-line" : "bg-accent"}`} />
             <span className={`type-small truncate ${state === "current" ? "font-semibold text-fg" : "text-fg-muted"}`}>
               {number}. {label}
             </span>
@@ -121,7 +121,7 @@ export function ConnectAwsDialog({ setup, initialStep = 1, initialRoleArn, onClo
             href={setup.cfnTemplateUrl}
             target="_blank"
             rel="noreferrer"
-            className="type-label inline-flex min-h-9 w-fit items-center rounded-item bg-accent px-3.5 py-1.5 text-on-accent shadow-[0_2px_0_var(--accent-lip)] hover:brightness-110"
+            className="type-label inline-flex min-h-9 w-fit items-center rounded-item bg-accent px-3.5 py-1.5 text-on-accent hover:brightness-110"
           >
             Launch CloudFormation stack
           </a>
