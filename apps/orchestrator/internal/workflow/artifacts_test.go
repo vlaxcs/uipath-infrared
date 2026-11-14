@@ -25,14 +25,14 @@ func TestRunFilesAreListedAndRead(t *testing.T) {
 		names[file.Path] = true
 	}
 	for _, want := range []string{
-		"infra.json", "findings.json", "candidates.0.json", "candidates.1.json",
+		"forecast.json", "infra.json", "findings.json", "candidates.0.json", "candidates.1.json",
 		"result.0.json", "result.1.json", "feedback.1.json",
 	} {
 		if !names[want] {
 			t.Errorf("the list is missing %s: %+v", want, files)
 		}
 	}
-	for _, unwanted := range []string{"run.json", "forecast.json", "catalog.json"} {
+	for _, unwanted := range []string{"run.json", "catalog.json"} {
 		if names[unwanted] {
 			t.Errorf("the list exposes %s", unwanted)
 		}
@@ -80,7 +80,7 @@ func TestRunFilesRefuseNamesOutsideTheAllowlist(t *testing.T) {
 	h.waitForGate(started.ID, run.LayoutGate)
 
 	for _, name := range []string{
-		"run.json", "forecast.json", "catalog.json",
+		"run.json", "catalog.json",
 		"logs/1-extract.log", "../run.json", "..", ".",
 	} {
 		if _, err := h.flow.ReadFile(started.ID, name); !errors.Is(err, workflow.ErrNotFound) {

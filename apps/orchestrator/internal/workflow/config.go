@@ -15,15 +15,19 @@ type Commands struct {
 	States  []string
 }
 
+// Config.Company is the project a run starts for when no project is named: the company whose roadmap Infrared analyses.
 type Config struct {
 	Commands     Commands
 	ProjectsDir  string
+	Company      string
 	CatalogPath  string
 	MaxRevisions int
 	Timeouts     map[run.Step]time.Duration
 	FlociURL     string
 	Probe        func(ctx context.Context, url string) bool
 }
+
+const DefaultCompany = "company"
 
 const StatesTimeout = time.Minute
 

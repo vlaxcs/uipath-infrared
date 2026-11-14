@@ -30,6 +30,8 @@ Without `--out` it overwrites `contracts/real/floci-estate.infra.json`, which CI
 
 `--project` scopes the extraction when Floci holds several estates. `startup`, `clinic-booking` and `fleet-telemetry` keep only the components whose name carries their prefix (`startup-`, `clinic-`, `fleet-`, also inside aggregate names such as `1 NAT gateway(s) in clinic-prod-vpc`) and the edges between them; orphan volumes are filtered by their Name tag before they are grouped. `demo-shop` keeps what no other project claims. Any other name (the default `floci-estate`) keeps the whole account, as before. Names shaped `<prefix>-<prod|staging|dev>-...` give the stack `<prefix>-<environment>` with that environment; a scoped extraction drops the prefix, so clinic-booking reads back with stacks `prod`, `staging`, `dev`. The registry is `extractor/domain/projects.py`.
 
+`--forecast <forecast.json>` attributes every component to the roadmap's `projects` (`extractor/domain/roadmap.py`): a project tag (`Project`/`App`/`Application`, any case) equal to one of `match.tags` wins, else a name starting with one of `match.names` (also inside aggregate names); defaults `tags = [id]`, `names = [id-]`. The document gains `x_projects` and `x_unassigned`, and claimed components without a stack, or in a stack another project holds more of, move to their project's stack (the only one it holds, else `<project id>`). The company run is `--project company --forecast forecast.json` (whole estate); this supersedes the prefix scoping above.
+
 EC2 instances in state `terminated` or `shutting-down` are not components (Floci keeps them listed forever); they are named in one `x_extraction_warnings` entry.
 
 ## Mock vs real

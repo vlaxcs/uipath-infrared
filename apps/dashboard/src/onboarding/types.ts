@@ -38,7 +38,8 @@ export type AppAnswer = {
   users_now: number;
   users_expected: number;
   at_month: number;
-  criteria: Criteria;
+  criteria?: Criteria;
+  intent?: string;
 };
 
 export type OnboardingSetup = {
@@ -46,6 +47,7 @@ export type OnboardingSetup = {
   providers: string[];
   onprem: boolean;
   projects: Project[];
+  company?: string;
   markets?: string[];
 };
 
@@ -79,7 +81,6 @@ export type Answers = {
   onprem: boolean;
   site?: ProfileSite;
   criteria: Criteria;
-  focusMode: FocusMode;
   apps: AppAnswer[];
 };
 

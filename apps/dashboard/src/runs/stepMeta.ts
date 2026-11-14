@@ -13,33 +13,33 @@ export const STEP_META: Record<RunStep, StepMeta> = {
   extract: {
     title: "Extract",
     control: "automatic",
-    hint: "Reads the infrastructure and writes infra.json.",
+    hint: "Reads the cloud account: every resource, its metrics and what depends on what. Writes infra.json.",
   },
   investigate: {
     title: "Investigate",
     control: "automatic",
-    hint: "Records findings with their evidence.",
+    hint: "The agent reads the estate with read-only tools and records each problem it finds, with the evidence behind it.",
   },
   propose: {
     title: "Propose",
     control: "automatic",
-    hint: "Turns the findings into candidate plans.",
+    hint: "The agent turns the findings into candidate plans: which components change, and how.",
   },
   evaluate: {
     title: "Evaluate",
     control: "automatic",
-    hint: "Prices, checks and ranks every candidate.",
+    hint: "The engine prices every candidate, checks it against the hard constraints and ranks the ones that pass. If none of the agent's plans pass, the run goes back to Propose.",
   },
   present: {
     title: "Present",
     control: "approval",
     gate: "layout",
-    hint: "Runs automatically, then waits for the layout choice.",
+    hint: "Lays out the ranked candidates and waits for a person to pick the one to rehearse.",
   },
   rehearse: {
     title: "Rehearse",
     control: "approval",
     gate: "plan",
-    hint: "Runs automatically, then waits for plan approval.",
+    hint: "Builds the picked layout in the sandbox, breaks one part of it and measures what stays up. Then waits for a person to approve the plan.",
   },
 };

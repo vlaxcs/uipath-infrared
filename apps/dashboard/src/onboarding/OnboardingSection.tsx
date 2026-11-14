@@ -1,31 +1,31 @@
 import { useCallback, useEffect, useState } from "react";
 import { initialAnswers, onpremChanged, startRequest, withOnpremOnProfile } from "~/onboarding/answers";
 import { OrchestratorError, orchestratorOnboarding, type OnboardingSource } from "~/onboarding/api";
+import type { MapEngine } from "~/onboarding/mapEngine";
 import { OnboardingForm } from "~/onboarding/OnboardingForm";
 import { holderOf } from "~/onboarding/projectHolder";
 import type { RunSummary } from "~/runs/types";
 import { useOnRefresh } from "~/ui/refreshSignal";
-import { StartedRun } from "~/onboarding/StartedRun";
 import { DEFAULT_PROFILE } from "~/onboarding/criteria";
-import type { Answers, OnboardingSetup, Profile, StartedRun as Started } from "~/onboarding/types";
+import type { Answers, OnboardingSetup, Profile } from "~/onboarding/types";
 
 type Loaded = { state: "loading" } | { state: "failed"; reason: string } | { state: "ready"; setup: OnboardingSetup; profile: Profile };
 
 type OnboardingSectionProps = {
   source?: OnboardingSource;
   onFollowRun: (id: string) => void;
+  loadMap?: () => Promise<MapEngine>;
 };
 
 function reasonOf(error: unknown): string {
   return error instanceof OrchestratorError ? error.message : "Something went wrong. Try again.";
 }
 
-export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun }: OnboardingSectionProps) {
+export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun, loadMap }: OnboardingSectionProps) {
   const [loaded, setLoaded] = useState<Loaded>({ state: "loading" });
   const [answers, setAnswers] = useState<Answers | null>(null);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [started, setStarted] = useState<Started | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [runs, setRuns] = useState<RunSummary[]>([]);
   const [runsAttempt, setRunsAttempt] = useState(0);
@@ -71,12 +71,12 @@ export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun
     setError(null);
     source
       .start(startRequest(answers))
-      .then(setStarted, (failure: unknown) => {
+      .then((run) => onFollowRun(run.id), (failure: unknown) => {
         setError(reasonOf(failure));
         setRunsAttempt((count) => count + 1);
       })
       .finally(() => setStarting(false));
-  }, [answers, source]);
+  }, [answers, source, onFollowRun]);
 
   const start = useCallback(() => {
     if (!answers || loaded.state !== "ready") return;
@@ -129,18 +129,6 @@ export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun
       </div>
     );
   }
-  if (started) {
-    return (
-      <StartedRun
-        run={started}
-        onFollow={() => onFollowRun(started.id)}
-        onAnother={() => {
-          setStarted(null);
-          setAnswers(initialAnswers(loaded.setup, loaded.profile));
-        }}
-      />
-    );
-  }
   return answers ? (
     <OnboardingForm
       setup={loaded.setup}
@@ -151,7 +139,7 @@ export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun
       error={error}
       holder={answers.project ? holderOf(runs, answers.project) : null}
       onOpenRun={onFollowRun}
-      profile={loaded.profile}
+      loadMap={loadMap}
       saveChoice={asking ? { saving: savingProfile, onSave: saveAndStart, onSkip: launch, onBack: () => setAsking(false) } : null}
     />
   ) : null;

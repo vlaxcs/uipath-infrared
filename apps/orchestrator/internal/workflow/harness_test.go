@@ -119,6 +119,7 @@ type options struct {
 	store        func(workflow.Store) workflow.Store
 	runsDir      string
 	projectsDir  string
+	company      string
 	timeout      time.Duration
 	noStates     bool
 	flociURL     string
@@ -166,6 +167,7 @@ func build(t *testing.T, opts options) (*harness, error) {
 	config := workflow.Config{
 		Commands:     workflow.Commands{Extract: []string{"extract"}, Agent: []string{"agent"}, Engine: []string{"engine"}, Sandbox: []string{"sandbox"}, States: statesCommand(opts)},
 		ProjectsDir:  opts.projectsDir,
+		Company:      opts.company,
 		CatalogPath:  filepath.Join(repo, "contracts", "real", "catalog.json"),
 		MaxRevisions: opts.maxRevisions,
 		Timeouts:     timeouts,

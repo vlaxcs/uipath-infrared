@@ -42,7 +42,16 @@ export class RunWatcher {
     for (const run of runs) {
       if (!ACTIVE.has(run.status) || this.tracked.has(run.id)) continue;
       this.tracked.add(run.id);
-      this.track(run.id).catch((error: unknown) => this.onFailure(run.id, error instanceof Error ? error : new Error(String(error))));
+      this.track(run.id).catch((error: unknown) => {
+        const failure = error instanceof Error ? error : new Error(String(error));
+        // The orchestrator was briefly unreachable (a restart): pick the run up again on the next poll.
+        if (isUnreachable(failure)) this.tracked.delete(run.id);
+        this.onFailure(run.id, failure);
+      });
     }
   }
+}
+
+function isUnreachable(error: Error): boolean {
+  return /fetch failed|ECONNREFUSED|ECONNRESET/.test(`${error.message} ${String((error as { cause?: unknown }).cause ?? '')}`);
 }

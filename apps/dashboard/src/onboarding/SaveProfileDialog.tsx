@@ -32,7 +32,7 @@ export function SaveProfileDialog({ choice }: { choice: SaveChoice }) {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4 backdrop-blur-sm" onKeyDown={onKeyDown}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4" onKeyDown={onKeyDown}>
       <div
         ref={dialog}
         role="dialog"

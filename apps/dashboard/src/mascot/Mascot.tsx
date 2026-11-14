@@ -42,7 +42,11 @@ export function Mascot({ animation, className = "h-24 w-24", label }: MascotProp
       .catch(() => setPlaying(false));
     return () => {
       cancelled = true;
-      instance.current?.cleanup();
+      try {
+        instance.current?.cleanup();
+      } catch {
+        // Unmounted before the Rive runtime finished loading; nothing to release.
+      }
       instance.current = null;
     };
     // Loaded once; the effect below switches the animation without reloading the file.

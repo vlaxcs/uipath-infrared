@@ -70,7 +70,7 @@ class Proposal:
 
     def run(self) -> int:
         feedback = read(self.inputs.feedback) if self.inputs.feedback else None
-        prompt = proposal_prompt(self.infra, read(self.inputs.forecast), read(self.inputs.findings), feedback, self._rejected(feedback))
+        prompt = proposal_prompt(self.infra, read(self.inputs.forecast), read(self.inputs.findings), feedback, self._rejected(feedback), read(self.inputs.catalog))
         self.session.run(PROPOSER, prompt, self.tools(), ())
         if not self.submitted:
             print(f"propose: the model finished without submitting candidates for revision {self.inputs.revision}", file=sys.stderr)

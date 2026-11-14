@@ -175,13 +175,9 @@ describe("previous analyses", () => {
     expect(table.textContent).toContain("demo-shop");
 
     fireEvent.click(within(table).getByRole("button", { name: /run-demo-shop-0001/ }));
-    const summary = await screen.findByRole("region", { name: "demo-shop" });
+    const summary = await screen.findByRole("group", { name: "Run status" });
     expect(summary.textContent).toContain("Completed");
     expect(window.location.pathname).toBe("/runs/run-demo-shop-0001");
-
-    const timeline = screen.getByRole("region", { name: "Timeline" });
-    expect(timeline.textContent).toContain("pick_layout");
-    expect(timeline.textContent).toContain("approve_plan");
 
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
     expect(await screen.findByRole("table", { name: "Runs" })).toBeTruthy();
@@ -190,7 +186,7 @@ describe("previous analyses", () => {
   it("opens a run directly from the URL, and Back goes to the list", async () => {
     window.history.replaceState(null, "", "/runs/run-demo-shop-0001");
     render(<App />);
-    expect(await screen.findByRole("region", { name: "demo-shop" })).toBeTruthy();
+    expect(await screen.findByRole("group", { name: "Run status" })).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
     expect(await screen.findByRole("table", { name: "Runs" })).toBeTruthy();
@@ -211,7 +207,7 @@ describe("previous analyses", () => {
     window.history.replaceState(null, "", "/runs/run-approvals-0001/gate");
     render(<App source={source} />);
     expect(await screen.findByRole("heading", { level: 2, name: "Present" })).toBeTruthy();
-    expect(screen.getByText("Keep analyses")).toBeTruthy();
+    expect(await screen.findByText(/Which should I keep for the next plans/)).toBeTruthy();
   });
 
   it("reloads the page's data from the square Refresh button beside the avatar", async () => {

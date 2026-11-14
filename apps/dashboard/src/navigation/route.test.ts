@@ -72,3 +72,12 @@ describe("writing a path", () => {
     expect(routePath({ page: "runs", runId: "run/1", focusGate: false })).toBe("runs/run%2F1");
   });
 });
+
+describe("the parent of a page", () => {
+  it("goes from a run to the runs list, and from any page to home, like a breadcrumb", async () => {
+    const { parentOf } = await import("~/navigation/route");
+    expect(parentOf({ page: "runs", runId: "run-1", focusGate: true })).toEqual({ page: "runs", runId: null, focusGate: false });
+    expect(parentOf({ page: "runs", runId: null, focusGate: false })).toEqual({ page: "home", runId: null, focusGate: false });
+    expect(parentOf({ page: "analyze", runId: null, focusGate: false })).toEqual({ page: "home", runId: null, focusGate: false });
+  });
+});

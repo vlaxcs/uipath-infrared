@@ -1,11 +1,11 @@
 import { AreaMap } from "~/onboarding/AreaMap";
+import { AREA_SWATCH } from "~/onboarding/areaColours";
 import { loadLeaflet, type MapEngine } from "~/onboarding/mapEngine";
 import { addArea, areaBeside, DEFAULT_RADIUS_KM, MAX_RADIUS_KM, MAX_SEARCH_AREAS, MIN_RADIUS_KM, removeArea } from "~/onboarding/searchAreas";
 import type { HeadquartersSite, ProfileSite, SearchArea, SearchSite } from "~/onboarding/types";
 
 const INPUT = "rounded-control border border-border bg-surface px-3 py-2 text-label text-fg";
 const SMALL_BUTTON = "rounded-control border border-border-strong bg-surface px-3 py-1 text-label text-fg hover:bg-surface-muted disabled:opacity-50 disabled:hover:bg-surface";
-const AREA_SWATCH = ["bg-graph-stack-1", "bg-graph-stack-2", "bg-graph-stack-3"];
 
 export const NEW_SITE: ProfileSite = { kind: "search", areas: [{ lat: 44.4268, lng: 26.1025, radius_km: DEFAULT_RADIUS_KM }] };
 

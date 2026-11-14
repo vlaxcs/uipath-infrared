@@ -14,7 +14,7 @@ def timestamp(moment):
     return moment.isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
-def infra_document(project, endpoint, region, generated_at, controls, inventory, warnings, extended=None):
+def infra_document(project, endpoint, region, generated_at, controls, inventory, warnings, extended=None, attribution=None):
     document = {
         "schema_version": EXTENDED_SCHEMA_VERSION if extended is not None else SCHEMA_VERSION, "project": project,
         "source": {"extractor": EXTRACTOR_NAME, "extractor_version": EXTRACTOR_VERSION, "generated_at": timestamp(generated_at),
@@ -23,5 +23,6 @@ def infra_document(project, endpoint, region, generated_at, controls, inventory,
         "controls": controls, "components": inventory.components, "edges": inventory.edges,
     }
     document.update({k: v for k, v in (extended or {}).items() if v is not None})
+    document.update(attribution or {})
     document["x_extraction_warnings"] = warnings
     return document

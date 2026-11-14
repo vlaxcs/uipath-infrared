@@ -38,10 +38,10 @@ func TestAPickedLayoutThatDidNotWinGetsItsOwnStates(t *testing.T) {
 	h := newHarness(t, options{maxRevisions: 2})
 	id := h.start().ID
 	h.waitForGate(id, run.LayoutGate)
-	if err := h.pick(id, "managed_services"); err != nil {
+	if err := h.pick(id, "rightsize_in_place"); err != nil {
 		t.Fatal(err)
 	}
-	waitForFile(t, filepath.Join(h.runsDir, id, "states.1.managed_services.json"))
+	waitForFile(t, filepath.Join(h.runsDir, id, "states.1.rightsize_in_place.json"))
 }
 
 func TestAStatesBuildThatFailsNeverFailsTheRun(t *testing.T) {

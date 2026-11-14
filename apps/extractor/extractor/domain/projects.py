@@ -1,5 +1,8 @@
 import re
 
+# Legacy scoping for the old one-company-per-project mocks (--project startup, clinic-booking, fleet-telemetry, demo-shop).
+# A company run (--project company --forecast forecast.json) extracts the whole estate and attributes components with the
+# roadmap's `projects[].match` rules instead (domain/roadmap.py); that supersedes these prefixes.
 NAME_PREFIXES = {"startup": "startup-", "clinic-booking": "clinic-", "fleet-telemetry": "fleet-"}
 REMAINDER_PROJECT = "demo-shop"
 

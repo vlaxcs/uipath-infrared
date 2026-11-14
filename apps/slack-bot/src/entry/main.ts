@@ -9,7 +9,7 @@ import { wait } from './wait.js';
 const POLL_MS = 2000;
 
 const settings = loadSettings();
-const orchestrator = new HttpOrchestrator(settings.orchestratorUrl, settings.orchestratorServiceToken);
+const orchestrator = new HttpOrchestrator(settings.orchestratorUrl, settings.orchestratorServiceToken, settings.slackChannel);
 const { app, slack } = createBot(settings, orchestrator);
 const diagrams = createDiagramRenderer(settings.diagrams, (runId, path) => orchestrator.getFile(runId, path));
 

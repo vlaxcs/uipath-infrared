@@ -3,7 +3,7 @@ import type { Orchestrator } from '../application/ports.js';
 import type { HumanDecision, Run, RunEvent } from '../domain/run.js';
 
 export class HttpOrchestrator implements Orchestrator {
-  constructor(private baseUrl: string, private serviceToken?: string) {}
+  constructor(private baseUrl: string, private serviceToken?: string, private channel?: string) {}
 
   listRuns(): Promise<ListedRun[]> {
     return this.request<ListedRun[]>('/runs?limit=50');
@@ -27,7 +27,7 @@ export class HttpOrchestrator implements Orchestrator {
 
   async getFile(runId: string, path: string): Promise<string> {
     const route = `/runs/${encodeURIComponent(runId)}/files/${encodeURIComponent(path)}`;
-    const response = await fetch(`${this.baseUrl}${route}`);
+    const response = await fetch(`${this.baseUrl}${route}`, this.withToken());
     if (!response.ok) throw new Error(`GET ${route} answered ${response.status} ${(await response.text()).slice(0, 200)}`);
     return response.text();
   }
@@ -40,10 +40,12 @@ export class HttpOrchestrator implements Orchestrator {
     return response.json() as Promise<T>;
   }
 
-  private withToken(init?: RequestInit): RequestInit | undefined {
-    if (!this.serviceToken) return init;
+  // Names the bot on every request so the dashboard can show that Slack is connected.
+  private withToken(init?: RequestInit): RequestInit {
     const headers = new Headers(init?.headers);
-    headers.set('Authorization', `Bearer ${this.serviceToken}`);
+    headers.set('X-Infrared-Client', 'slack-bot');
+    if (this.channel) headers.set('X-Infrared-Slack-Channel', this.channel);
+    if (this.serviceToken) headers.set('Authorization', `Bearer ${this.serviceToken}`);
     return { ...init, headers };
   }
 }

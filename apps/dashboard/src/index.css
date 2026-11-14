@@ -20,6 +20,10 @@
   --color-credit: var(--color-credit);
   --color-on-credit: var(--color-on-credit);
   --animate-panel-in: panel-in 220ms ease-out both;
+  --animate-chat-in: chat-in 260ms ease-out both;
+  --animate-typing: typing 1s ease-in-out infinite;
+  --animate-node-pulse: node-pulse 1.6s ease-out infinite;
+  --animate-frame-pulse: frame-pulse 2.2s ease-out infinite;
   --animate-breathe: breathe var(--motion-breathe) ease-in-out infinite;
   --animate-beacon: beacon var(--motion-beacon) ease-out infinite;
   --animate-draw: draw var(--motion-draw) cubic-bezier(0.65, 0, 0.35, 1) both;
@@ -166,6 +170,28 @@
   to { opacity: 1; transform: none; }
 }
 
+@keyframes chat-in {
+  from { opacity: 0; transform: translateY(0.5rem) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes typing {
+  0%, 60%, 100% { opacity: 0.3; transform: none; }
+  30% { opacity: 1; transform: translateY(-0.2rem); }
+}
+
+@keyframes node-pulse {
+  from { opacity: 0.9; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.08, 1.5); }
+}
+
+/* The pipeline frame takes the status colour as currentColor and breathes it outwards. */
+@keyframes frame-pulse {
+  0% { box-shadow: 0 0 0 0 currentColor; }
+  70% { box-shadow: 0 0 0 0.4rem transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
 @keyframes breathe {
   0%, 100% { transform: scale(0.94); opacity: 0.08; }
   50% { transform: scale(1.04); opacity: 0.16; }
@@ -214,6 +240,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .animate-panel-in,
+  .animate-chat-in,
+  .animate-typing,
+  .animate-node-pulse,
+  .animate-frame-pulse,
   .animate-breathe,
   .animate-beacon,
   .animate-draw,

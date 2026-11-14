@@ -78,7 +78,7 @@ def investigation_prompt(infra: dict) -> str:
     )
 
 
-def proposal_prompt(infra: dict, forecast: dict, findings: dict, feedback: dict | None, rejected: list) -> str:
+def proposal_prompt(infra: dict, forecast: dict, findings: dict, feedback: dict | None, rejected: list, catalog: dict | None = None) -> str:
     sections = [
         f"Project {infra['project']}, revision {feedback['revision'] if feedback else 0}.",
         f"Components:\n{json.dumps(component_index(infra), indent=1)}",
@@ -86,10 +86,45 @@ def proposal_prompt(infra: dict, forecast: dict, findings: dict, feedback: dict 
         f"Engine strategies you can build on: {', '.join(forecast['cto_settings']['strategies_enabled'])}",
         f"Findings:\n{json.dumps(findings['findings'], indent=1)}",
     ]
+    if forecast.get("projects"):
+        sections.append(roadmap_section(forecast["projects"]))
+    if catalog and catalog.get("options"):
+        sections.append(catalog_section(catalog["options"], forecast["hard_constraints"].get("allowed_providers")))
     if feedback:
         sections.append(f"Your previous revision was sent back: {feedback['reason']}")
         sections.append(f"The engine's verdict on your previous candidates:\n{json.dumps(rejected, indent=1)}")
     return "\n\n".join(sections)
+
+
+def catalog_section(options: list, allowed: list | None) -> str:
+    lines = ['Catalog options a "move" can target: set to.option to the id and to.region to a region the option offers (a "*" region means any region with that prefix, e.g. eu-* allows eu-west-1).']
+    for option in options:
+        if allowed and option.get("provider") not in allowed:
+            continue
+        lines.append(f"- {option['id']}: {option.get('kind')}, {option.get('provider')}, regions {', '.join(option.get('regions') or [])}")
+    return "\n".join(lines)
+
+
+def roadmap_section(projects: list) -> str:
+    lines = ["Roadmap projects (the owner's plan for each; focus \"default\" means the plan's own focus):"]
+    for project in projects:
+        name = project.get("name") or project["id"]
+        stacks = ", ".join(project.get("stacks") or []) or "none listed"
+        focus = project.get("focus")
+        line = f"- {name}: stacks {stacks}; focus {describe_focus(focus) if focus else 'default'}"
+        if project.get("intent"):
+            line += f"; intent {json.dumps(project['intent'], ensure_ascii=False)}"
+        lines.append(line)
+    lines.append(
+        "Every candidate must honour each project's stated intent where the hard constraints allow; "
+        "say in the candidate's rationale how it does, or which hard constraint stops it."
+    )
+    return "\n".join(lines)
+
+
+def describe_focus(focus: dict) -> str:
+    details = [f"{key} {json.dumps(focus[key])}" for key in sorted(focus) if key != "focus"]
+    return focus.get("focus", "custom") + (f" ({', '.join(details)})" if details else "")
 
 
 def component_index(infra: dict) -> list:

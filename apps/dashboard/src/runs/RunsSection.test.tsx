@@ -51,10 +51,10 @@ describe("the runs section", () => {
 
     fireEvent.click(within(table).getByRole("button", { name: /run-demo-shop-0001/ }));
 
-    const summary = await screen.findByRole("region", { name: "demo-shop" });
+    const summary = await screen.findByRole("group", { name: "Run status" });
     expect(summary.textContent).toContain("Completed");
     expect(screen.queryByRole("table", { name: "Runs" })).toBeNull();
-    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("opens a run with its gate already pinned", async () => {
@@ -68,8 +68,8 @@ describe("the runs section", () => {
     );
 
     expect(await screen.findByRole("heading", { level: 2, name: "Present" })).toBeTruthy();
-    expect(screen.getByText("Keep analyses")).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "Run overview" })).toBeNull();
+    expect(await screen.findByText(/Which should I keep for the next plans/)).toBeTruthy();
+    expect(screen.getByRole("dialog")).toBeTruthy();
   });
 
   it("opens the active run from the start panel", async () => {
@@ -87,8 +87,8 @@ describe("the runs section", () => {
     expect(await screen.findByRole("table", { name: "Runs" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "View active run" }));
 
-    expect(await screen.findByRole("region", { name: "demo-shop" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "A layout is waiting to be picked" })).toBeTruthy();
+    expect(await screen.findByRole("group", { name: "Run status" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Pick a layout" })).toBeTruthy();
   });
 
   it("starts a live run and navigates to its page", async () => {
@@ -109,7 +109,7 @@ describe("the runs section", () => {
     fireEvent.click(screen.getByRole("button", { name: "Start run" }));
 
     await waitFor(() => expect(startRun).toHaveBeenCalledWith("startup"));
-    expect(await screen.findByRole("region", { name: "demo-shop" })).toBeTruthy();
+    expect(await screen.findByRole("group", { name: "Run status" })).toBeTruthy();
   });
 
   it("shows a live list error and retries", async () => {

@@ -72,6 +72,11 @@ func Load() (Settings, error) {
 		return Settings{}, err
 	}
 	settings.Workflow.MaxRevisions = maxRevisions
+	company, err := optionalProject("ORCHESTRATOR_COMPANY", workflow.DefaultCompany)
+	if err != nil {
+		return Settings{}, err
+	}
+	settings.Workflow.Company = company
 	settings.Workflow.FlociURL = strings.TrimSpace(os.Getenv("AWS_ENDPOINT_URL"))
 	if settings.Workflow.FlociURL == "" {
 		settings.Workflow.FlociURL = defaultFlociURL
@@ -157,6 +162,17 @@ func optionalCount(name string, fallback int) (int, error) {
 		return 0, fmt.Errorf("%s must be a non-negative integer", name)
 	}
 	return count, nil
+}
+
+func optionalProject(name, fallback string) (string, error) {
+	raw := strings.TrimSpace(os.Getenv(name))
+	if raw == "" {
+		return fallback, nil
+	}
+	if !workflow.ValidProject(raw) {
+		return "", fmt.Errorf("%s must be a project id of lowercase letters, digits and dashes, not %q", name, raw)
+	}
+	return raw, nil
 }
 
 func loadDotEnv() {

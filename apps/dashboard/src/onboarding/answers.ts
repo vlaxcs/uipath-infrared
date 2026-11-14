@@ -1,6 +1,7 @@
 import { DEFAULT_PROFILE } from "~/onboarding/criteria";
 import { providerLabel } from "~/onboarding/providers";
-import type { AppAnswer, Answers, Choice, Criteria, OnboardingSetup, Profile, Project, StartRequest } from "~/onboarding/types";
+import { DEFAULT_RADIUS_KM } from "~/onboarding/searchAreas";
+import type { AppAnswer, Answers, Choice, Criteria, OnboardingSetup, Profile, ProfileSite, Project, SearchArea, StartRequest } from "~/onboarding/types";
 
 const ONPREM = "onprem";
 export const FORBIDDEN_HINT = "Forbidden by the project";
@@ -14,8 +15,15 @@ function defaultTargets(setup: OnboardingSetup, project: Project | undefined): s
   return setup.providers.filter((provider) => !project?.forbidden_providers.includes(provider));
 }
 
+export const MAX_INTENT = 2000;
+
+export function companyOf(setup: OnboardingSetup): Project | undefined {
+  const named = setup.company === undefined ? undefined : projectById(setup, setup.company);
+  return named ?? setup.projects.find((project) => (project.applications?.length ?? 0) > 0) ?? setup.projects[0];
+}
+
 export function initialAnswers(setup: OnboardingSetup, profile: Profile = DEFAULT_PROFILE): Answers {
-  const project = setup.projects[0];
+  const project = companyOf(setup);
   const onpremForbidden = project?.forbidden_providers.includes(ONPREM) ?? false;
   return {
     connection: setup.connections[0]?.id ?? "",
@@ -24,36 +32,40 @@ export function initialAnswers(setup: OnboardingSetup, profile: Profile = DEFAUL
     onprem: setup.onprem && !onpremForbidden && profile.onprem.wanted,
     site: profile.onprem.site,
     criteria: profile.criteria,
-    focusMode: "plan",
     apps: appAnswers(project, profile),
   };
 }
 
 export function appAnswers(project: Project | undefined, profile: Profile = DEFAULT_PROFILE): AppAnswer[] {
-  return (project?.applications ?? []).map((app) => ({
-    id: app.id,
-    users_now: app.users.current,
-    users_expected: app.users.expected,
-    at_month: app.users.at_month,
-    criteria: profile.projects?.[app.id] ?? profile.criteria,
-  }));
-}
-
-export function withProject(setup: OnboardingSetup, answers: Answers, id: string, profile: Profile = DEFAULT_PROFILE): Answers {
-  const project = projectById(setup, id);
-  return { ...answers, project: id, targets: defaultTargets(setup, project), onprem: false, apps: appAnswers(project, profile) };
+  return (project?.applications ?? []).map((app) => {
+    const own = profile.projects?.[app.id];
+    return {
+      id: app.id,
+      users_now: app.users.current,
+      users_expected: app.users.expected,
+      at_month: app.users.at_month,
+      ...(own ? { criteria: own } : {}),
+    };
+  });
 }
 
 export function withApp(answers: Answers, id: string, change: Partial<Omit<AppAnswer, "id">>): Answers {
   return { ...answers, apps: answers.apps.map((app) => (app.id === id ? { ...app, ...change } : app)) };
 }
 
-export function withAppFocus(answers: Answers, id: string, criteria: Criteria): Answers {
-  return withApp(answers, id, { criteria });
+export function withAppFocus(answers: Answers, id: string, criteria: Criteria | null): Answers {
+  return {
+    ...answers,
+    apps: answers.apps.map((app) => {
+      if (app.id !== id) return app;
+      const { criteria: _dropped, ...rest } = app;
+      return criteria ? { ...rest, criteria } : rest;
+    }),
+  };
 }
 
 export function appsValid(answers: Answers): boolean {
-  return answers.apps.every((app) => app.users_now > 0 && app.users_expected > 0 && app.at_month >= 1);
+  return answers.apps.every((app) => app.users_now > 0 && app.users_expected > 0 && app.at_month >= 1 && (app.intent ?? "").length <= MAX_INTENT);
 }
 
 export function withTarget(answers: Answers, provider: string, ticked: boolean): Answers {
@@ -89,8 +101,22 @@ export function onpremChoice(setup: OnboardingSetup, answers: Answers): Choice |
   };
 }
 
+export function searchAreas(site: ProfileSite | undefined): SearchArea[] {
+  if (!site) return [];
+  return site.kind === "search" ? site.areas : [{ lat: site.lat, lng: site.lng, radius_km: DEFAULT_RADIUS_KM }];
+}
+
+function siteValid(answers: Answers): boolean {
+  return !answers.onprem || searchAreas(answers.site).length > 0;
+}
+
 export function canStart(setup: OnboardingSetup, answers: Answers): boolean {
-  return answers.connection !== "" && projectById(setup, answers.project) !== undefined && answers.targets.length > 0 && appsValid(answers);
+  return answers.connection !== "" && projectById(setup, answers.project) !== undefined && answers.targets.length > 0 && appsValid(answers) && siteValid(answers);
+}
+
+function appRequest({ intent, ...app }: AppAnswer): AppAnswer {
+  const said = intent?.trim() ?? "";
+  return said === "" ? app : { ...app, intent: said };
 }
 
 export function startRequest(answers: Answers): StartRequest {
@@ -103,11 +129,8 @@ export function startRequest(answers: Answers): StartRequest {
       criteria: answers.criteria,
       ...(answers.apps.length > 0
         ? {
-            focus_mode: answers.focusMode,
-            applications: answers.apps.map((app) => ({
-              ...app,
-              criteria: answers.focusMode === "project" ? app.criteria : answers.criteria,
-            })),
+            focus_mode: answers.apps.some((app) => app.criteria) ? ("project" as const) : ("plan" as const),
+            applications: answers.apps.map(appRequest),
           }
         : {}),
     },

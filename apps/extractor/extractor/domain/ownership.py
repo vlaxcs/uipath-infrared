@@ -102,14 +102,17 @@ def own(component, tags, known_projects, accounts):
     return Ownership(None, environment, "none")
 
 
+def component_tags(component, tags):
+    name = component.get("name") or component["id"]
+    return {**(component.get("tags") or {}), **tags.get(name, {}), **tags.get(component["id"], {})}
+
+
 def resolve_ownership(components, edges, tags=None, known_projects=(), accounts=None):
     tags = tags or {}
     accounts = accounts or {}
     owned = {}
     for component in components:
-        name = component.get("name") or component["id"]
-        merged = {**(component.get("tags") or {}), **tags.get(name, {}), **tags.get(component["id"], {})}
-        owned[component["id"]] = own(component, merged, known_projects, accounts)
+        owned[component["id"]] = own(component, component_tags(component, tags), known_projects, accounts)
     if not any(ownership.project for ownership in owned.values()):
         return components
     neighbours = {component["id"]: set() for component in components}

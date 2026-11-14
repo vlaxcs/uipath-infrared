@@ -16,7 +16,7 @@ Every stage is a subprocess. Its command prefix comes from configuration (sectio
 
 | Step | Command | Writes | Checked against |
 | --- | --- | --- | --- |
-| extract | `<extract> --project <project> --out infra.json` | `infra.json` | `infra.schema.json` |
+| extract | `<extract> --project <project> --forecast forecast.json --out infra.json` (the run's own forecast, so the extractor can attribute resources to its roadmap `projects`) | `infra.json` | `infra.schema.json` |
 | investigate | `<agent> investigate --infra infra.json --out findings.json` | `findings.json` | a JSON object |
 | propose | `<agent> propose --infra infra.json --forecast forecast.json --catalog catalog.json --findings findings.json --revision <n> [--feedback feedback.<n>.json] --out candidates.<n>.json` | `candidates.<n>.json` | `candidates.schema.json`, and its `revision` equals `n` |
 | evaluate | `<engine> evaluate infra.json forecast.json catalog.json --candidates candidates.<n>.json --out result.<n>.json` | `result.<n>.json` | `result.schema.json` |
@@ -78,7 +78,7 @@ JSON in and out, `Content-Type: application/json`. Errors are `{"error": "<reaso
 | --- | --- |
 | `GET /onboarding` | `200`, what onboarding offers: the connections, the providers the catalog prices (without `onprem`), whether it has an on-prem option, and every project with its description and forbidden providers (`docs/onboarding.md` section 5). `500` naming the file when the catalog or a project's forecast does not parse |
 | `GET /runs?project=<p>&limit=<n>` | `200`, an array of run summaries, newest first: the run document without `events` and `inputs`. `limit` defaults to 50 and is capped at 200; `project` is optional |
-| `POST /runs` with `{"project": "<p>", "onboarding": {...}}` | `201`, the new run document. `onboarding` is optional; when present, its answers are written into the run's copy of `forecast.json` (`docs/onboarding.md` section 5), and `400` with the reason when they break its rules. `404` when the project has no forecast. `409` when the project already has a run that is `running` or `awaiting_approval` |
+| `POST /runs` with `{"project": "<p>", "onboarding": {...}}` | `201`, the new run document. `project` is optional: absent or empty, the run is for the company (`ORCHESTRATOR_COMPANY`). `onboarding` is optional; when present, its answers are written into the run's copy of `forecast.json` (`docs/onboarding.md` section 5), and `400` with the reason when they break its rules. `404` when the project has no forecast. `409` when the project already has a run that is `running` or `awaiting_approval` |
 | `GET /runs/{id}` | `200`, the run document. `404` |
 | `GET /runs/{id}/events?after=<seq>` | `200`, the events with `seq` greater than `after`, in order; `[]` when there is none. `after` defaults to 0; `400` when it is not a non-negative integer. `404` |
 | `POST /runs/{id}/decisions` | `201`, the appended event. `400` when the body breaks the rules below. `404`. `409` when the gate it targets is not open. `422` when `pick_layout` names a candidate that is not a feasible candidate of the latest result |
@@ -116,6 +116,7 @@ Read once at startup by the orchestrator's settings package from the environment
 | `ORCHESTRATOR_CATALOG` | the `catalog.json` every run uses |
 | `ORCHESTRATOR_EXTRACT_CMD`, `ORCHESTRATOR_AGENT_CMD`, `ORCHESTRATOR_ENGINE_CMD`, `ORCHESTRATOR_SANDBOX_CMD` | the command prefix of each stage |
 | `ORCHESTRATOR_CONTRACTS_DIR` | the `contracts/` directory, for the schemas |
+| `ORCHESTRATOR_COMPANY` | optional, default `company`: the project a run starts for when `POST /runs` names none; `GET /onboarding` returns it as `company`. Must be a project id (lowercase letters, digits, dashes) |
 | `ORCHESTRATOR_MAX_REVISIONS` | optional, default 2 |
 | `ORCHESTRATOR_STATES_CMD` | optional: the plan view's state builder (`docs/run-plan-view.md`); unset, no states are built |
 | `ORCHESTRATOR_ALLOWED_ORIGINS` | optional, comma-separated: the browser origins allowed to call the API, e.g. the dashboard's `http://127.0.0.1:5173`. Unset, no CORS |

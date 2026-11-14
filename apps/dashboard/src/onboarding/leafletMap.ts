@@ -1,11 +1,11 @@
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { AREA_SHAPE } from "~/onboarding/areaColours";
 import type { MapEngine } from "~/onboarding/mapEngine";
 import type { SearchArea } from "~/onboarding/types";
 
 const TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-const AREA_SHAPE = ["stroke-graph-stack-1 fill-graph-stack-1", "stroke-graph-stack-2 fill-graph-stack-2", "stroke-graph-stack-3 fill-graph-stack-3"];
 const HANDLE = "rounded-pill border-2 border-surface bg-fg";
 const METRES_PER_DEGREE = 111_320;
 

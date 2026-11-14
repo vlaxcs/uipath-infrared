@@ -1,5 +1,5 @@
 import { reportSignedOut } from "~/account/session";
-import { RunSourceError, type RunLogChunk, type RunSource, type TrialStarted } from "~/runs/source";
+import { RunSourceError, type RunLogChunk, type RunSource, type SlackStatus, type TrialStarted } from "~/runs/source";
 import type {
   HumanDecision,
   RunArtifactInfo,
@@ -30,6 +30,7 @@ export function createHttpRunSource(baseUrl: string): RunSource {
   return {
     mode: "live",
     listRuns: (signal) => request<RunSummary[]>("/runs", { signal }),
+    slackStatus: async (signal) => (await request<{ slack: SlackStatus }>("/integrations", { signal })).slack,
     getRun: (id, signal) => request<RunDetail>(`/runs/${encodeURIComponent(id)}`, { signal }),
     startRun: (project, signal) =>
       request<RunDetail>("/runs", {

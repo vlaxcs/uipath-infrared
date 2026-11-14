@@ -23,16 +23,14 @@ function clickStep(title: string) {
   fireEvent.click(within(list).getByRole("button", { name: new RegExp(title) }));
 }
 
+const status = () => screen.getByRole("group", { name: "Run status" });
+
 describe("the run view", () => {
-  it("shows the current run's details before a step is selected, then the step's result", async () => {
+  it("shows the run's state beside the pipeline, and opens a step in a dialog", async () => {
     render(<RunView run={sampleRun} source={sampleRunSource} />);
 
-    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
-    const summary = screen.getByRole("region", { name: "demo-shop" });
-    expect(summary.textContent).toContain("Completed");
-    expect(summary.textContent).toContain("rehearse");
-    expect(summary.textContent).toContain("1 / 2");
-    expect(summary.textContent).toContain("forecast.json");
+    expect(status().textContent).toContain("Completed");
+    expect(screen.queryByRole("dialog")).toBeNull();
 
     const steps = screen.getByRole("list", { name: "Steps" });
     for (const title of ["Extract", "Investigate", "Propose", "Evaluate", "Present", "Rehearse"]) {
@@ -44,63 +42,70 @@ describe("the run view", () => {
 
     clickStep("Rehearse");
 
-    expect(screen.getByRole("heading", { level: 2, name: "Rehearse" })).toBeTruthy();
-    expect(await screen.findByText("Passed")).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "Run overview" })).toBeNull();
+    const dialog = screen.getByRole("dialog", { name: "Rehearse" });
+    expect(await within(dialog).findByText("Passed")).toBeTruthy();
 
-    const timeline = screen.getByRole("region", { name: "Timeline" });
-    expect(timeline.textContent).toContain("keep_analyses");
-    expect(timeline.textContent).toContain("the GPU and orphan findings stand; the ERP one waits for the vendor");
-    expect(timeline.textContent).toContain("pick_layout");
-    expect(timeline.textContent).toContain("managed_services");
-    expect(timeline.textContent).toContain("approve_plan");
-    expect(timeline.textContent).toContain("cto (dashboard)");
-    expect(timeline.textContent).toContain("cto (slack)");
-    expect(timeline.textContent).toContain("result.1.json");
-    expect(timeline.textContent).toContain("rehearsal.json");
-    expect(screen.queryByText("A layout is waiting to be picked")).toBeNull();
+    fireEvent.click(within(dialog).getByRole("tab", { name: "Log" }));
+    expect(dialog.textContent).toContain("approve_plan");
+    expect(dialog.textContent).toContain("cto (slack)");
 
-    clickStep("Rehearse");
-    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
+    fireEvent.keyDown(dialog, { key: "ArrowLeft" });
+    const present = screen.getByRole("dialog", { name: "Present" });
+    expect(present.textContent).toContain("keep_analyses");
+    expect(present.textContent).toContain("pick_layout");
+    expect(present.textContent).toContain("cto (dashboard)");
+
+    fireEvent.click(within(present).getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("shows the results of the clicked step and previews the next one", async () => {
+  it("walks the steps with the arrows and keeps what happened apart from the log", async () => {
     render(<RunView run={sampleRun} source={sampleRunSource} />);
     const steps = screen.getByRole("list", { name: "Steps" });
 
     clickStep("Extract");
 
-    expect(screen.getByRole("heading", { level: 2, name: "Extract" })).toBeTruthy();
-    expect(await screen.findByText("hand-written-mock")).toBeTruthy();
-    expect(screen.getByText("38")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Next: Investigate" })).toBeTruthy();
+    const dialog = screen.getByRole("dialog", { name: "Extract" });
+    expect(within(dialog).getByRole("tab", { name: "What happened" }).getAttribute("aria-selected")).toBe("true");
+    expect(await within(dialog).findByText("hand-written-mock")).toBeTruthy();
+    expect(within(dialog).getByRole("button", { name: /Previous step: Analyze/ })).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Next step" }));
+    fireEvent.click(within(dialog).getByRole("tab", { name: "Log" }));
+    expect(within(dialog).getByRole("heading", { name: "Events" })).toBeTruthy();
+    expect(within(dialog).queryByText("hand-written-mock")).toBeNull();
 
-    expect(screen.getByRole("heading", { level: 2, name: "Investigate" })).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole("tab", { name: "What happened" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Next step: Investigate" }));
+
+    expect(screen.getByRole("dialog", { name: "Investigate" })).toBeTruthy();
     expect(await screen.findByText("The GPU node group is idle")).toBeTruthy();
-    expect(screen.getAllByText(/gpu_pct average 0\.4/).length).toBeGreaterThan(0);
     expect(within(steps).getByRole("button", { name: /Investigate/ }).getAttribute("aria-pressed")).toBe("true");
     expect(within(steps).getByRole("button", { name: /Extract/ }).getAttribute("aria-pressed")).toBe("false");
+
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "ArrowLeft" });
+    expect(screen.getByRole("dialog", { name: "Extract" })).toBeTruthy();
+
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("reviews the layout gate from the overview and submits pick_layout", async () => {
+  it("opens the layout gate from the status and submits pick_layout", async () => {
     const submitDecision = vi.fn().mockResolvedValue(eventAt(16));
     render(<RunView run={cutSampleRun(14)} source={sourceWith({ submitDecision })} />);
 
-    const banner = screen.getByRole("region", { name: "A layout is waiting to be picked" });
-    expect(banner.textContent).toContain("Keep analyses, then pick the layout to rehearse.");
-    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
+    expect(status().textContent).toContain("Waiting for your decision");
+    fireEvent.click(within(status()).getByRole("button", { name: "Pick a layout" }));
+    expect(screen.getByRole("dialog", { name: "Evaluate" })).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Review the gate" }));
-
+    fireEvent.click(await screen.findByRole("button", { name: "Skip" }));
     const highest = await screen.findByRole("radio", { name: /consolidate/ });
-    await waitFor(() => expect((highest as HTMLInputElement).checked).toBe(true));
-    expect(screen.getByRole("radio", { name: /managed_services/ })).toBeTruthy();
+    expect((highest as HTMLInputElement).checked).toBe(true);
 
     fireEvent.click(screen.getByRole("radio", { name: /managed_services/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Choose" }));
+    expect(await screen.findByText("Why this one?")).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Reason"), { target: { value: "stays in the EU" } });
-    fireEvent.click(screen.getByRole("button", { name: "Pick layout" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
 
     await waitFor(() => expect(submitDecision).toHaveBeenCalledTimes(1));
     expect(submitDecision).toHaveBeenCalledWith("run-demo-shop-0001", {
@@ -110,23 +115,21 @@ describe("the run view", () => {
       decision: { kind: "pick_layout", reason: "stays in the EU", layout: "managed_services" },
     });
 
-    await waitFor(() =>
-      expect(screen.queryByRole("heading", { name: "A layout is waiting to be picked" })).toBeNull(),
-    );
-    const timeline = screen.getByRole("region", { name: "Timeline" });
-    expect(timeline.textContent).toContain("pick_layout");
+    await waitFor(() => expect(within(status()).queryByRole("button", { name: "Pick a layout" })).toBeNull());
   });
 
   it("keeps analyses at the layout gate without closing it", async () => {
     const submitDecision = vi.fn().mockResolvedValue(eventAt(15));
     render(<RunView run={cutSampleRun(14)} source={sourceWith({ submitDecision })} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Review the gate" }));
+    fireEvent.click(within(status()).getByRole("button", { name: "Pick a layout" }));
 
     expect(await screen.findByRole("checkbox", { name: /The GPU node group is idle/ })).toBeTruthy();
     fireEvent.click(screen.getByRole("checkbox", { name: /The ERP database waits/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Keep these" }));
+    expect(await screen.findByText("Why keep them?")).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Reason for keeping"), { target: { value: "these stand" } });
-    fireEvent.click(screen.getByRole("button", { name: "Keep selected analyses" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
 
     await waitFor(() => expect(submitDecision).toHaveBeenCalledTimes(1));
     expect(submitDecision).toHaveBeenCalledWith("run-demo-shop-0001", {
@@ -140,38 +143,32 @@ describe("the run view", () => {
       },
     });
 
-    expect(screen.getByRole("heading", { name: "A layout is waiting to be picked" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Pick layout" })).toBeTruthy();
-    const banner = screen.getByRole("region", { name: "A layout is waiting to be picked" });
-    await waitFor(() => expect(banner.textContent).toContain("keep_analyses"));
-    expect(banner.textContent).toContain("idle-gpu-nodes");
-    expect(banner.textContent).toContain("orphan-volumes");
+    expect(await screen.findByText(/I kept all 2 for the next plans/)).toBeTruthy();
+    expect(await screen.findByRole("button", { name: "Choose" })).toBeTruthy();
+    expect(within(status()).getByRole("button", { name: "Pick a layout" })).toBeTruthy();
   });
 
-  it("pins the gated step when the route asks for it", async () => {
+  it("opens the gated step when the route asks for it", async () => {
     render(<RunView run={cutSampleRun(14)} source={sampleRunSource} initialStep="present" />);
 
-    expect(screen.getByRole("heading", { level: 2, name: "Present" })).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "Run overview" })).toBeNull();
-    expect(screen.getByText("Keep analyses")).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Present" })).toBeTruthy();
+    expect(await screen.findByText(/Which should I keep for the next plans/)).toBeTruthy();
   });
 
-  it("pins the rehearse step for the plan gate", () => {
+  it("opens the rehearse step for the plan gate", () => {
     render(<RunView run={cutSampleRun(20)} source={sampleRunSource} initialStep="rehearse" />);
 
-    expect(screen.getByRole("heading", { level: 2, name: "Rehearse" })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Rehearse" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Approve plan" })).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "Run overview" })).toBeNull();
   });
 
   it("reviews the plan gate and submits approve_plan", async () => {
     const submitDecision = vi.fn().mockResolvedValue(eventAt(21));
     render(<RunView run={cutSampleRun(20)} source={sourceWith({ submitDecision })} />);
 
-    expect(screen.getByRole("heading", { name: "The plan is waiting for approval" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Review the gate" }));
+    fireEvent.click(within(status()).getByRole("button", { name: "Review the plan" }));
 
-    expect(screen.getByRole("heading", { level: 2, name: "Rehearse" })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Rehearse" })).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Reason"), { target: { value: "rehearsal held" } });
     fireEvent.click(screen.getByRole("button", { name: "Approve plan" }));
 
@@ -184,13 +181,10 @@ describe("the run view", () => {
     });
   });
 
-  it("keeps the overview live and returns to it from a pinned step", async () => {
+  it("follows the live run in the status and the pipeline", async () => {
     vi.useFakeTimers();
     const source = sourceWith({ mode: "live", eventsAfter: async () => [eventAt(18)] });
     render(<RunView run={cutSampleRun(17)} source={source} />);
-
-    expect(screen.getByRole("button", { name: "Following live" }).getAttribute("aria-pressed")).toBe("true");
-    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2000);
@@ -198,25 +192,19 @@ describe("the run view", () => {
 
     const steps = screen.getByRole("list", { name: "Steps" });
     expect(within(steps).getByRole("button", { name: /Rehearse/ }).getAttribute("aria-current")).toBe("step");
-    expect(screen.getByRole("region", { name: "demo-shop" }).textContent).toContain("rehearse");
-    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
+    expect(status().textContent).toContain("Working on Rehearse");
+  });
 
-    clickStep("Extract");
-    expect(screen.getByRole("heading", { level: 2, name: "Extract" })).toBeTruthy();
-    const follow = screen.getByRole("button", { name: "Follow live" });
-    expect(follow.getAttribute("aria-pressed")).toBe("false");
-
-    fireEvent.click(follow);
-    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Following live" })).toBeTruthy();
+  it("shows above the status whether the Slack bot is connected", async () => {
+    const slackStatus = vi.fn().mockResolvedValue({ connected: true, channel: "infrared-runs" });
+    render(<RunView run={cutSampleRun(14)} source={sourceWith({ slackStatus })} />);
+    expect(await within(status()).findByText("Slack connected · #infrared-runs")).toBeTruthy();
   });
 
   it("renders a failed run", () => {
     render(<RunView run={failedRun} source={sampleRunSource} />);
-    expect(screen.getByRole("region", { name: "checkout" }).textContent).toContain("Failed");
-    expect(screen.getByRole("region", { name: "Timeline" }).textContent).toContain(
-      "the engine could not price the baseline",
-    );
+    expect(status().textContent).toContain("Stopped");
+    expect(screen.getByRole("list", { name: "Steps" }).closest("svg")?.textContent).toContain("Failed at");
   });
 
   it("shows a polling error without losing the run", async () => {
@@ -228,7 +216,7 @@ describe("the run view", () => {
       await vi.advanceTimersByTimeAsync(2000);
     });
 
-    expect(screen.getByRole("alert").textContent).toContain("offline");
-    expect(screen.getByRole("region", { name: "demo-shop" })).toBeTruthy();
+    expect(within(status()).getByRole("alert").textContent).toContain("offline");
+    expect(screen.getByRole("list", { name: "Steps" })).toBeTruthy();
   });
 });

@@ -244,7 +244,7 @@ func TestAProjectHasOneActiveRun(t *testing.T) {
 
 func TestUnknownProjectsAreRefused(t *testing.T) {
 	h := newHarness(t, options{maxRevisions: 2})
-	for _, project := range []string{"nowhere", "../startup", "Startup", ""} {
+	for _, project := range []string{"nowhere", "../startup", "Startup"} {
 		if _, err := h.flow.Start(project, nil); !errors.Is(err, workflow.ErrUnknownProject) {
 			t.Errorf("project %q: %v", project, err)
 		}
