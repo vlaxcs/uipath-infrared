@@ -5,7 +5,7 @@ import { layoutActionId } from './layout-choice.js';
 import type { RehearsalSummary } from './rehearsal-summary.js';
 import type { PlanSummary } from './plan-summary.js';
 import { APPROVE_PLAN_ACTION } from './plan-approval.js';
-import { basename, clip, compactEur, eur, humanDate } from './format.js';
+import { basename, clip, compactEur, eur, humanDate, percent } from './format.js';
 import { planSentence, rehearsalSentence } from './summary-sentences.js';
 import type { DiagramRef } from './diagram.js';
 import { diagramBlocks } from './diagram.js';
@@ -230,7 +230,7 @@ function layoutLead(runContext: RunContext | undefined, offered: number, target:
 
 function targetPhrase(target: LayoutTarget | undefined): string {
   const parts: string[] = [];
-  if (target?.minAvailabilityPct !== undefined) parts.push(`at least ${target.minAvailabilityPct}% availability`);
+  if (target?.minAvailabilityPct !== undefined) parts.push(`at least ${percent(target.minAvailabilityPct)} availability`);
   if (target?.maxMonthlyRunEur !== undefined) parts.push(`a budget of ${eur(target.maxMonthlyRunEur)} a month`);
   return parts.length ? `You asked for ${parts.join(' and ')}.` : '';
 }
@@ -241,8 +241,8 @@ function recommendation(candidate: LayoutCandidate, target: LayoutTarget | undef
   if (candidate.availabilityPct !== undefined) {
     sentences.push(
       target?.minAvailabilityPct !== undefined
-        ? `It lands at ${candidate.availabilityPct}% availability, above your ${target.minAvailabilityPct}% target.`
-        : `It lands at ${candidate.availabilityPct}% availability.`
+        ? `It lands at ${percent(candidate.availabilityPct)} availability, above your ${percent(target.minAvailabilityPct)} target.`
+        : `It lands at ${percent(candidate.availabilityPct)} availability.`
     );
   }
   if (candidate.horizonEur !== undefined) {
@@ -261,7 +261,7 @@ function optionLine(candidate: LayoutCandidate, rich: boolean): string {
   }
   const facts: string[] = [];
   if (candidate.monthlyEur !== undefined) facts.push(`${eur(candidate.monthlyEur)} a month`);
-  if (candidate.availabilityPct !== undefined) facts.push(`${candidate.availabilityPct}% availability`);
+  if (candidate.availabilityPct !== undefined) facts.push(`${percent(candidate.availabilityPct)} availability`);
   if (candidate.recommended) return `${name}: ${facts.join(', ')}.`;
   return `${name} — ${facts.join(', ')}; not picked: ${lostReason(candidate)}.`;
 }

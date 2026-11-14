@@ -1,6 +1,6 @@
 import type { PlanSummary } from './plan-summary.js';
 import type { RehearsalSummary } from './rehearsal-summary.js';
-import { countPhrase, eur } from './format.js';
+import { countPhrase, eur, percent } from './format.js';
 
 export function rehearsalSentence(rehearsal: RehearsalSummary): string {
   const result = rehearsal.passed === undefined
@@ -9,8 +9,8 @@ export function rehearsalSentence(rehearsal: RehearsalSummary): string {
   const facts: string[] = [];
   if (rehearsal.measuredAvailabilityPct !== undefined) {
     facts.push(
-      `${rehearsal.measuredAvailabilityPct}% availability` +
-      (rehearsal.targetAvailabilityPct !== undefined ? ` against your ${rehearsal.targetAvailabilityPct}% target` : '')
+      `${percent(rehearsal.measuredAvailabilityPct)} availability` +
+      (rehearsal.targetAvailabilityPct !== undefined ? ` against your ${percent(rehearsal.targetAvailabilityPct)} target` : '')
     );
   }
   const latency = rehearsal.latency;
@@ -37,6 +37,6 @@ export function planSentence(plan: PlanSummary): string {
   if (plan.effortHours !== undefined) effort.push(`${plan.effortHours} hours of work`);
   if (plan.cutoverDowntimeHours !== undefined) effort.push(`up to ${plan.cutoverDowntimeHours} hours of downtime`);
   if (effort.length > 0) parts.push(`It takes ${effort.join(' with ')}.`);
-  if (plan.availabilityPct !== undefined) parts.push(`The result runs at ${plan.availabilityPct}% availability.`);
+  if (plan.availabilityPct !== undefined) parts.push(`The result runs at ${percent(plan.availabilityPct)} availability.`);
   return parts.length > 0 ? parts.join(' ') : 'The plan follows the rehearsal.';
 }

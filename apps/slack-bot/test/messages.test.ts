@@ -83,11 +83,12 @@ describe('Layout gate card', () => {
     expect(shown).toContain('Which architecture should we run');
     expect(shown).toContain('The estate for demo-shop is extracted');
     expect(shown).toContain('3 options pass the hard constraints');
+    expect(shown).toContain('You asked for at least 99.90% availability');
     expect(shown).toContain('We recommend *consolidate*.');
     expect(shown).toContain('*consolidate* — our pick');
     expect(shown).toContain('€74,365 a month');
     expect(shown).toContain('Over 36 months it costs €3.81M.');
-    expect(shown).toContain('99.95% availability, above your 99.9% target.');
+    expect(shown).toContain('99.95% availability, above your 99.90% target.');
     expect(shown).toContain('The work takes 794 hours.');
     expect(shown).toContain('It pays back in 1.38 months.');
     expect(shown).toContain('not picked: it carries more risk.');
@@ -120,7 +121,7 @@ describe('Plan gate card', () => {
     const shown = text(message);
     expect(shown).toContain('The rehearsal held — approve the plan?');
     expect(shown).toContain('99.92%');
-    expect(shown).toContain('against your 99.9% target');
+    expect(shown).toContain('against your 99.90% target');
     expect(shown).toContain('The rehearsal held:');
     expect(shown).toContain('stopped the primary database; the fallback took over');
     expect(shown).toContain('p95 latency');

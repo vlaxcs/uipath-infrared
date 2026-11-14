@@ -32,3 +32,7 @@ export function basename(path: string): string {
 export function countPhrase(count: number, singular: string, plural: string): string {
   return `${count} ${count === 1 ? singular : plural}`;
 }
+
+export function percent(value: number): string {
+  return `${(Math.floor(value * 100 + 1e-9) / 100).toFixed(2)}%`;
+}
