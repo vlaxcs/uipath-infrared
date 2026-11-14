@@ -66,7 +66,7 @@ A table of every run: id, project, started, status, winner, monthly cost before 
 - **GitHub organisation**: Andrei's GitHub panel from `apps/settings`: install the Infrared app on the organisation, pick all or some repositories, see the permissions, disconnect by typing the org name. Simulated: no real GitHub App yet.
 - **Cloud access**: Andrei's AWS panel from `apps/settings`: connect a read-only role (external ID, trust and permissions policies or a CloudFormation stack, the role ARN, verify), edit regions, rotate the external ID, revoke by typing the account ID. Simulated: no real STS call. Runs still reach Floci through the orchestrator's own credentials.
 - **Default focus**: one of the four focuses of Analyze, and the market when it is Zones. New analyses start from it. A profile saved in an older shape reads as the default (Cost reduction).
-- **On-prem**: wanted or not; headquarters with its free area, or a search area with a radius (`docs/onprem-site.md`).
+- **On-prem**: wanted or not; headquarters with its free area, or up to three search areas, each a point and a radius, picked on an OpenStreetMap map or in the fields (`docs/onprem-site.md`).
 
 ### Account
 - **Runs**: credits left.
