@@ -60,3 +60,20 @@ describe("Andrei's estate view, ported", () => {
     expect(container.classList.contains("estate-view")).toBe(false);
   });
 });
+
+describe("zooming the topology", () => {
+  it("zooms in and out within limits, and resets to 100%", () => {
+    const container = mount();
+    const level = () => container.querySelector("[data-topo-zoom-level]")!.textContent;
+    const click = (how: string) => (container.querySelector(`[data-topo-zoom="${how}"]`) as HTMLButtonElement).click();
+    click("in");
+    expect(level()).toBe("125%");
+    expect(container.querySelector("[data-topo-canvas]")!.classList.contains("is-zoomed")).toBe(true);
+    click("out");
+    click("out");
+    expect(level()).toBe("100%");
+    click("in");
+    click("reset");
+    expect(level()).toBe("100%");
+  });
+});

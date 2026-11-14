@@ -498,6 +498,23 @@
   width: 100%;
   height: 100%;
 }
+.estate-view .topo-canvas.is-zoomed { overflow: auto; }
+.estate-view .topo-zoom {
+  display: flex;
+  border: 0.0625rem solid var(--line);
+}
+.estate-view .topo-zoom button {
+  min-width: 2rem;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  border-left: 0.0625rem solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+.estate-view .topo-zoom button:first-child { border-left: 0; }
+.estate-view .topo-zoom button:hover { background: var(--surface-2); }
 .estate-view .topo-foot {
   display: flex;
   flex-wrap: wrap;

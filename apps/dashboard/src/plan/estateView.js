@@ -1061,7 +1061,27 @@ export function mountEstateView(container, dataset, options) {
     }
     topo.box = box.width + "x" + box.height;
     refs.topoCanvas.innerHTML = topologySvg();
+    applyZoom();
     updateTopology();
+  }
+
+  /* Zoom scales the topology inside its canvas, which then scrolls. */
+  var ZOOM_MIN = 1;
+  var ZOOM_MAX = 4;
+  var topoZoom = 1;
+  function applyZoom() {
+    var graph = refs.topoCanvas && refs.topoCanvas.querySelector(".topo-graph");
+    if (graph) {
+      graph.style.width = topoZoom === 1 ? "" : topoZoom * 100 + "%";
+      graph.style.height = topoZoom === 1 ? "" : topoZoom * 100 + "%";
+    }
+    if (refs.topoCanvas) refs.topoCanvas.classList.toggle("is-zoomed", topoZoom > 1);
+    var level = refs.topo && refs.topo.querySelector("[data-topo-zoom-level]");
+    if (level) level.textContent = Math.round(topoZoom * 100) + "%";
+  }
+  function zoomBy(factor) {
+    topoZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(topoZoom * factor * 100) / 100));
+    applyZoom();
   }
 
   function topologyHtml() {
@@ -1074,6 +1094,11 @@ export function mountEstateView(container, dataset, options) {
           '<button type="button" data-topo-play aria-label="Play the migration from A to B">' +
             '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2.5 1.5v7l6-3.5z"/></svg></button>' +
           '<button type="button" data-topo-jump="' + (states.length - 1) + '">B<span>target</span></button>' +
+        '</div>' +
+        '<div class="topo-zoom" role="group" aria-label="Zoom">' +
+          '<button type="button" data-topo-zoom="out" aria-label="Zoom out">&minus;</button>' +
+          '<button type="button" data-topo-zoom="reset" aria-label="Reset zoom" data-topo-zoom-level>100%</button>' +
+          '<button type="button" data-topo-zoom="in" aria-label="Zoom in">+</button>' +
         '</div>' +
       '</div>' +
       '<div class="topo-canvas" data-topo-canvas></div>' +
@@ -1282,12 +1307,25 @@ export function mountEstateView(container, dataset, options) {
   function bind() {
     app.addEventListener("click", onClick);
     app.addEventListener("keydown", onKeydown);
+    app.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("resize", onResize);
   }
 
+  /* Ctrl or Cmd with the wheel (and a trackpad pinch) zooms the topology. */
+  function onWheel(event) {
+    if (!(event.ctrlKey || event.metaKey) || !refs.topoCanvas || !refs.topoCanvas.contains(event.target)) return;
+    event.preventDefault();
+    zoomBy(event.deltaY < 0 ? 1.1 : 1 / 1.1);
+  }
+
   function onClick(event) {
-      var target = event.target.closest("[data-state-index],[data-step],[data-res],[data-dep],[data-close],[data-topo-jump],[data-topo-play]");
+      var target = event.target.closest("[data-state-index],[data-step],[data-res],[data-dep],[data-close],[data-topo-jump],[data-topo-play],[data-topo-zoom]");
       if (!target) return;
+      if (target.hasAttribute("data-topo-zoom")) {
+        var how = target.getAttribute("data-topo-zoom");
+        if (how === "reset") { topoZoom = 1; applyZoom(); } else zoomBy(how === "in" ? 1.25 : 0.8);
+        return;
+      }
       if (target.hasAttribute("data-topo-play")) {
         togglePlay();
         return;
@@ -1334,6 +1372,7 @@ export function mountEstateView(container, dataset, options) {
     stopPlay();
     if (resizeFrame) cancelAnimationFrame(resizeFrame);
     app.removeEventListener("click", onClick);
+    app.removeEventListener("wheel", onWheel);
     app.removeEventListener("keydown", onKeydown);
     window.removeEventListener("resize", onResize);
     app.innerHTML = "";

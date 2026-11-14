@@ -311,7 +311,7 @@ export function RunView({
                       onSelect={setSelectedCandidate}
                     />
                     {candidate ? <CandidateDetail candidate={candidate} /> : null}
-                    {candidate && evaluatedRevision !== null ? (
+                    {candidate && evaluatedRevision !== null && run.awaiting !== "layout" ? (
                       <PlanView
                         source={source}
                         runId={run.id}
@@ -357,7 +357,6 @@ function stepPlan(
   winner: unknown,
   picked: string | null,
 ): string | null {
-  if (step === "present") return typeof winner === "string" ? winner : null;
   if (step === "rehearse")
     return picked ?? (typeof winner === "string" ? winner : null);
   return null;
