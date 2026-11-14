@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { content, type Language } from "../content";
+import type { Language } from "../content";
 import { AnimatedMascot, type MascotState } from "../components/AnimatedMascot";
 import { Brand, LanguageSwitch } from "../components/Nav";
 import { startReveal } from "../lib/motion";
@@ -165,7 +165,7 @@ export function Header({ t, language, onLanguage }: { t: Pick<PitchCopy, "byDigi
   return (
     <header className="sticky top-0 z-50 border-b-2 border-line bg-canvas px-4 sm:px-8">
       <div className="mx-auto flex h-20 max-w-content items-center justify-between gap-2">
-        <Brand byDigi={t.byDigi} href={PRODUCT_PAGE} />
+        <Brand href={PRODUCT_PAGE} />
         <LanguageSwitch label={t.languageLabel} language={language} onLanguage={onLanguage} />
       </div>
     </header>
@@ -199,7 +199,7 @@ export function Pitch() {
             <div>
               <p className="type-eyebrow mb-6 text-accent">{t.hero.event}</p>
               <h1 id="pitch-titlu" className="type-h1 text-fg">
-                Netpotu
+                Infrared
               </h1>
               <p className="type-h3 mt-2 text-fg-muted">{t.byDigi}</p>
               <p className="type-h2 mt-8 max-w-[24ch] text-fg">
@@ -247,8 +247,8 @@ export function Pitch() {
             <CheckList items={t.solution.points} />
             <figure className="m-0 grid justify-items-center gap-3">
               <img
-                src={content.ro.hero.chatImage}
-                alt={content[language].hero.chatAlt}
+                src="/wa-chat-ro.webp"
+                alt={t.solution.chatAlt}
                 width={835}
                 height={1704}
                 loading="lazy"

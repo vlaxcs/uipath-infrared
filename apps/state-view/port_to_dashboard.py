@@ -144,6 +144,10 @@ def swap(old: str, new: str) -> None:
     js = js.replace(old, new, 1)
 
 
+# The dashboard never renders the Slack card: drop card mode and its page globals.
+js = re.sub(r"  /\* Card mode:.*?\n  var CARD = \(function parseCard\(\) \{.*?\n  \}\)\(\);\n", "  var CARD = null;\n", js, count=1, flags=re.S)
+js = re.sub(r"\n  function renderCard\(\) \{.*?\n  \}\n", "\n", js, count=1, flags=re.S)
+js = re.sub(r"\n  if \(CARD\) \{\n    renderCard\(\);\n    return;\n  \}\n", "\n", js, count=1)
 swap('''(function () {
   "use strict";
 
@@ -191,9 +195,9 @@ swap('''    try {
       window.history.replaceState(null, "", "#" + currentState().id);
     } catch (err) { /* file:// may refuse history updates */ }
 ''', "")
-swap('''      el.classList.toggle("is-other", !!focus && !related[id] && id !== focus);
-    });''', '''      el.classList.toggle("is-other", !!focus && !related[id] && id !== focus);
-      el.classList.toggle("is-rehearsal-failed", !!settings.failedComponent && id === settings.failedComponent && index === states.length - 1);
+swap('''      el.classList.toggle("is-other", !!focus && !related[node.cid] && node.cid !== focus);
+    });''', '''      el.classList.toggle("is-other", !!focus && !related[node.cid] && node.cid !== focus);
+      el.classList.toggle("is-rehearsal-failed", !!settings.failedComponent && node.cid === settings.failedComponent && !!node.present[index] && index === states.length - 1);
     });''')
 js = re.sub(r"  function setTheme\(next, persist\) \{.*?\n  \}\n\n  function initialTheme\(\) \{.*?\n  \}\n", "", js, flags=re.S)
 swap('''    document.addEventListener("click", function (event) {

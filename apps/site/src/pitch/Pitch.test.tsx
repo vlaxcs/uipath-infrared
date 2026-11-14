@@ -54,10 +54,10 @@ describe("pitch copy", () => {
 });
 
 describe("pitch page", () => {
-  it("opens in English with Netpotu as the title", () => {
+  it("opens in English with Infrared as the title", () => {
     render(<Pitch />);
     expect(document.documentElement.lang).toBe("en");
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Netpotu");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Infrared");
     expect(screen.getAllByText("by Digi").length).toBeGreaterThan(0);
   });
 

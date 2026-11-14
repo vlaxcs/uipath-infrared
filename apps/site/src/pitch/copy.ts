@@ -41,6 +41,7 @@ export type PitchCopy = {
     title: string;
     points: string[];
     chatNote: string;
+    chatAlt: string;
     providerLabel: string;
     provider: string[];
     herLabel: string;
@@ -93,7 +94,7 @@ const SURSE = {
 };
 
 const en: PitchCopy = {
-  title: "Netpotu | Pitch",
+  title: "Infrared | Pitch",
   todoLabel: "TODO",
   skipLink: "Skip to content",
   languageLabel: "Language",
@@ -157,6 +158,7 @@ const en: PitchCopy = {
       "The router checks every step.",
     ],
     chatNote: "The demo chat, in Romanian.",
+    chatAlt: "A WhatsApp chat with Infrared, in Romanian: what the Hikvision camera films can be seen by others on the Wi-Fi, and the first step is to open the camera's app. Below it, the buttons I'm done, Done, what's next? and Explain it simpler.",
     providerLabel: "For the provider",
     provider: [
       "Fewer support calls and visits.",
@@ -286,14 +288,14 @@ const en: PitchCopy = {
     ],
   },
   closing: {
-    title: "Netpotu tells her what to fix first, and checks that it worked.",
+    title: "Infrared tells her what to fix first, and checks that it worked.",
     back: "See the product page",
     disclaimer: "Hackathon project. Digi is an example, not involved. Not legal advice.",
   },
 };
 
 const ro: PitchCopy = {
-  title: "Netpotu | Pitch",
+  title: "Infrared | Pitch",
   todoLabel: "COMPLETEAZĂ",
   skipLink: "Sari la conținut",
   languageLabel: "Limba",
@@ -357,6 +359,7 @@ const ro: PitchCopy = {
       "Routerul verifică fiecare pas.",
     ],
     chatNote: "Conversația din demo.",
+    chatAlt: "Conversație pe WhatsApp cu Infrared: ce filmează camera Hikvision poate fi văzut de alții de pe Wi-Fi, iar primul pas este să deschizi aplicația camerei. Dedesubt, butoanele Am terminat, Gata, ce urmează? și Explică mai simplu.",
     providerLabel: "Pentru furnizor",
     provider: [
       "Mai puține apeluri și deplasări.",
@@ -486,7 +489,7 @@ const ro: PitchCopy = {
     ],
   },
   closing: {
-    title: "Netpotu îi spune ce să repare întâi și verifică dacă a mers.",
+    title: "Infrared îi spune ce să repare întâi și verifică dacă a mers.",
     back: "Vezi pagina produsului",
     disclaimer: "Proiect de hackathon. Digi e un exemplu, nu e implicat. Nu e consultanță juridică.",
   },

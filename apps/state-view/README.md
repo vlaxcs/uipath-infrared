@@ -1,6 +1,11 @@
 # Estate states
 
-A focused frontend for the infrastructure as it moves through a migration, from A (the current estate) to B (the target). A timeline carousel across the top steps through the plan's states; upcoming states stay shadowed until you reach them. Below it a schematic topology shows every resource and dependency: when a step removes a resource, its links visibly snap apart and fade, and the resource stays as a dashed ghost.
+A focused frontend for the infrastructure as it moves through a migration, from A (the current estate) to B (the target). A timeline carousel across the top steps through the plan's states; upcoming states stay shadowed until you reach them. Below it a schematic topology shows every resource and dependency, grouped into zones (one provider in one region or on-prem site):
+
+- **Delete**: the resource stays as a dashed ghost and its links snap apart. When the plan says where its work goes ("workloads fit on ng-shop-general"), a teal arrow points at the resource that takes over, and the ghost is tagged `→ ng-shop-general`.
+- **Move to another zone** (provider or region): the resource leaves a dashed outline tagged `→ Neon`, appears in the new zone's strip with the provider's logo, and a blue arrow draws from the old spot to the new one. Its dependencies re-form at the new spot; any that now cross zones turn amber, because they pay egress and latency.
+- **Move within a zone** (rds → aurora): the node stays put and the readout says "service swapped in place".
+- **Stop**: the resource stays, greyed and tagged `stopped`, with its links paused. It is a scream test, not a delete.
 
 It is a standalone prototype with simulated data. Nothing here talks to the orchestrator. It is built so its data shape can be handed to Robi's dashboard: each state is a full `Infra` snapshot using the same `Component`, `Edge` and `Stack` fields the dashboard already renders.
 
@@ -22,6 +27,24 @@ python3 -m unittest discover -s apps/state-view/builder -p 'test_*.py'
 
 Deep links use the state id, e.g. `state-view.html#state-11`.
 
+## Snapshots for Slack
+
+`snapshot.py` renders the estate a decision leads to as a PNG card (1200x675 at 2x, light theme, no controls), for any candidate in the result, not just the winner:
+
+```bash
+python3 apps/state-view/snapshot.py --layout consolidate --state target --out /tmp/consolidate.png
+    [--result PATH] [--infra PATH] [--chrome PATH] [--width 1200] [--height 675] [--scale 2] [--html-only]
+```
+
+- `--state` is `current`, `target` or a state index. A candidate with no actions (`do_nothing`) has one state, so its target is the current estate.
+- Defaults: `apps/state-view/data/result.demo-shop.json` and `contracts/mock/demo-shop.infra.json`, resolved from the repo, so it runs from any directory.
+- Chrome: `--chrome`, else `$CHROME_PATH`, else the macOS app, else `google-chrome`/`chromium`/`chromium-browser` on `PATH`. `--html-only` writes the card HTML instead and needs no Chrome.
+- On success it prints one JSON line, `{"path", "layout", "state", "title", "caption", "alt"}`, and exits 0. On failure it writes to stderr only and exits 2 (bad layout, state or path), 3 (no Chrome) or 4 (Chrome failed). One render takes about 0.6 s.
+
+The card is the same page in card mode: open any build with `#card&state=target` (or `current`, or an index). Each resource and link is marked against the current estate: unchanged, changed (amber), moved to another zone (blue, with an arrow from the old spot), added (green) or removed (red dashed ghost). A flag is a review note, not a change. Entry nodes fold into the compute column, labels use the condensed face at 22px, and the panels are split over two columns so the image stays legible at the 360–500 px width Slack shows. The page sets `window.__SNAPSHOT_READY__` once drawn.
+
+`builder/build_states.py --candidate <id>` (alias `--layout`; add `--infra`/`--result` for a run's own files, or `--estate --infra` for the estate today alone) writes the full state document for any candidate; `build.render_html(document, card=None)` is the inliner both use.
+
 ## Data
 
 The snapshots come from the Floci estate already checked in for the demo:
@@ -29,7 +52,9 @@ The snapshots come from the Floci estate already checked in for the demo:
 | Input | Path |
 |---|---|
 | Baseline estate | `contracts/mock/demo-shop.infra.json` |
-| Winning candidate | `apps/state-view/data/result.demo-shop.json` (sample `result.json`, candidate `consolidate`) |
+| Candidates | `apps/state-view/data/result.demo-shop.json` (sample `result.json`; default is the winner, `consolidate`) |
+| Catalog | `contracts/catalog.example.json` (`--catalog`): a move's option id gives the new provider (`neon-launch` → Neon), service and on-prem site |
+| Provider logos | `web/providers.js` (optional; Simple Icons marks, CC0). Without it, zones show monogram badges |
 | Generated states | `apps/state-view/data/states.json` |
 
 `builder/build_states.py` applies the winner's 21 actions in stage order and emits 22 states: the current estate, one state after each step, and the target. It also scales the actions' savings so the endpoints land exactly on the engine's figures: €133,308/month to €74,365/month.
@@ -50,10 +75,12 @@ The snapshots come from the Floci estate already checked in for the demo:
   "project": "demo-shop",
   "title": "Demo shop",
   "baseline": { "monthly_eur": 133308, "availability_pct": 99.2, "components": 38, "stacks": 4 },
-  "target":   { "monthly_eur": 74365, "availability_pct": 99.95, "components": 30, "stacks": 4, ... },
+  "target":   { "monthly_eur": 74365, "availability_pct": 99.95, "components": 31, "stacks": 4, ... },
   "stepCount": 21,
   "stages": [{ "id": "cleanup_orphans", "label": "Clean up", "stateIds": ["state-4"], ... }],
   "tiers": [{ "id": "compute", "label": "Compute" }],
+  "zones": [{ "id": "aws:eu-west-1", "provider": "aws", "region": "eu-west-1",
+              "label": "AWS · eu-west-1", "providerLabel": "AWS" }],   // home zone first
   "states": [{
     "id": "state-5",
     "index": 5,
@@ -74,6 +101,9 @@ The snapshots come from the Floci estate already checked in for the demo:
       "removed_total": 1
     },
     "changes": [{ "component": "efs-legacy", "kind": "resized", "action": "resize", "verb": "Resize", ... }],
+    // a cross-zone move adds "fromZone"/"toZone"; a delete or shared move that hands
+    // its work on adds "into"; stop is kind "stopped" and keeps the resource
+    // (status "stopped").
     "removed": [{ "id": "rds-orders-clone", "kind": "postgres", "stack": "shop", "tier": "data",
                   "typeLabel": "RDS", "monthlyEur": 2919, "action": "delete",
                   "atState": "state-4", "atIndex": 4 }],
@@ -83,12 +113,13 @@ The snapshots come from the Floci estate already checked in for the demo:
       "components": [{
         "id": "rds-orders", "kind": "postgres", "tier": "data", "stack": "shop",
         "status": "active", "quantity": 1, "monthlyEur": 3229,
-        "securityIssue": null, "typeLabel": "RDS",
+        "securityIssue": null, "typeLabel": "RDS", "zone": "aws:eu-west-1",
         "facts": [{ "label": "Size", "value": "32 vCPU · 256 GB" },
                   { "label": "Cost", "value": "€3,229/mo" }],
         "changed": "resized", "changedAction": "resize"
       }],
       "edges": [{ "from": "vmfleet-web", "to": "rds-orders", "kind": "data", "note": "..." }]
+      // an absorbed resource's edges move to its absorber, with "rehomedFrom"
     }
   }]
 }
@@ -115,9 +146,10 @@ The dashboard's current `TransitionToggle` only offers current and after. This p
 |---|---|
 | `builder/build_states.py`, `builder/test_build_states.py` | state derivation, tests, `data/states.json` |
 | `web/app.js`, `web/app.css` | timeline carousel, topology layout and link routing, resource detail |
-| `web/template.html`, `build.py` | shell and inlining |
+| `web/template.html`, `build.py` | shell and inlining (`render_html`) |
+| `snapshot.py`, `builder/test_snapshot.py` | PNG cards for Slack, layout and CLI tests |
 | `data/result.demo-shop.json` | sample result copied from the checked-in mock |
 
 ## Design notes
 
-A schematic, not a force-directed graph. Each stack is a panel with three columns (entry, compute, data and storage); node groups hang under their cluster as a tree. Links are orthogonal and run only in the channels between columns, one lane per source, with lanes ordered to minimise crossings, so no link crosses a label. Cluster to node-group links are inferred by the view (the infra model has none) and drawn in grey. The page fits one viewport: row spacing grows to fill the available height. The one loud moment is a link breaking; everything else stays quiet. Condensed display type, mono for identifiers and money, tabular numerals. One accent for the estate and one signal colour per change kind. Light and dark themes; keyboard stepping, focus rings and reduced motion are supported.
+Zones are full-width strips, home first; a stack keeps its home column in every zone, so a resource that moves zone travels straight down its column, and its cross-zone links run down the compute-to-data gap without crossing a label. A resource that changes zone has one node per zone it ever occupies (`<id>@<zone>`); stepping flips their status (live, leaving, moved-out, arriving, pending). A schematic, not a force-directed graph. Each stack is a panel with three columns (entry, compute, data and storage); node groups hang under their cluster as a tree. Links are orthogonal and run only in the channels between columns, one lane per source, with lanes ordered to minimise crossings, so no link crosses a label. Cluster to node-group links are inferred by the view (the infra model has none) and drawn in grey. The page fits one viewport: row spacing grows to fill the available height. The one loud moment is a link breaking; everything else stays quiet. Condensed display type, mono for identifiers and money, tabular numerals. One accent for the estate and one signal colour per change kind. Light and dark themes; keyboard stepping, focus rings and reduced motion are supported.
