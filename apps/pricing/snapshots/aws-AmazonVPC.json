@@ -1,0 +1,16 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "eip:idle": {
+      "amount": 0.005,
+      "currency": "USD",
+      "description": "$0.005 per Idle public IPv4 address per hour",
+      "reference": "MHVKGXCT3GPZ4RVC",
+      "unit": "Hrs"
+    }
+  },
+  "source": "aws-AmazonVPC",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonVPC/20261105181945/eu-west-1/index.csv",
+  "version": "20261105181945"
+}

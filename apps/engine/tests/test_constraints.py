@@ -35,7 +35,7 @@ def test_do_nothing_is_infeasible_on_residency(mock_infra, catalog, forecast):
 def test_do_nothing_is_infeasible_on_single_zone_rds(mock_infra, catalog, forecast):
     result = check(mock_infra, catalog, forecast)
     below = components(result, "min_availability_pct")
-    assert {"rds-orders", "rds-erp", "pg-lake", "cache-sessions"} <= set(below)
+    assert {"rds-orders", "rds-erp", "pg-lake"} <= set(below)
     rds = next(v for v in result.violations if v.component == "rds-orders" and v.constraint == "min_availability_pct")
     assert (rds.actual, rds.limit) == (99.5, 99.9)
     assert rds.distance == pytest.approx(4.0)

@@ -1,0 +1,16 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "shard-hour": {
+      "amount": 0.023,
+      "currency": "USD",
+      "description": "$0.023 per extended shard-hour in EU (Ireland)",
+      "reference": "DSK727HQAV732NNM",
+      "unit": "ShardHour"
+    }
+  },
+  "source": "aws-AmazonKinesis",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonKinesis/20261110161953/eu-west-1/index.csv",
+  "version": "20261110161953"
+}

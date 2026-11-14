@@ -1,6 +1,20 @@
 {
   "fetched_on": "2026-11-14",
   "prices": {
+    "alb:hours": {
+      "amount": 0.0252,
+      "currency": "USD",
+      "description": "$0.0252 per Application LoadBalancer-hour (or partial hour)",
+      "reference": "82M2EADKC2JW45JZ",
+      "unit": "Hrs"
+    },
+    "ebs:gp2": {
+      "amount": 0.11,
+      "currency": "USD",
+      "description": "$0.11 per GB-month of General Purpose SSD (gp2) provisioned storage - EU (Ireland)",
+      "reference": "GDX844Q9TQAG2YZ2",
+      "unit": "GB-Mo"
+    },
     "ebs:gp3": {
       "amount": 0.088,
       "currency": "USD",
@@ -8,11 +22,32 @@
       "reference": "TXACT7E3PV6ZX2NM",
       "unit": "GB-Mo"
     },
+    "linux:c5.9xlarge": {
+      "amount": 1.728,
+      "currency": "USD",
+      "description": "$1.728 per On Demand Linux c5.9xlarge Instance Hour",
+      "reference": "N32SVFGZJ9NSZMT2",
+      "unit": "Hrs"
+    },
     "linux:g5.2xlarge": {
       "amount": 1.35296,
       "currency": "USD",
       "description": "$1.35296 per On Demand Linux g5.2xlarge Instance Hour",
       "reference": "P2KE3JYU9KQ2RD7B",
+      "unit": "Hrs"
+    },
+    "linux:m5.4xlarge": {
+      "amount": 0.856,
+      "currency": "USD",
+      "description": "$0.856 per On Demand Linux m5.4xlarge Instance Hour",
+      "reference": "HUR96BZEUM9ZQAKA",
+      "unit": "Hrs"
+    },
+    "linux:m5.8xlarge": {
+      "amount": 1.712,
+      "currency": "USD",
+      "description": "$1.712 per On Demand Linux m5.8xlarge Instance Hour",
+      "reference": "WHW892VQX5VFH5XS",
       "unit": "Hrs"
     },
     "linux:m6i.2xlarge": {
@@ -41,6 +76,13 @@
       "currency": "USD",
       "description": "$0.214 per On Demand Linux m6i.xlarge Instance Hour",
       "reference": "AYYS5AHM8RP6N3F4",
+      "unit": "Hrs"
+    },
+    "linux:r5.2xlarge": {
+      "amount": 0.564,
+      "currency": "USD",
+      "description": "$0.564 per On Demand Linux r5.2xlarge Instance Hour",
+      "reference": "BZ4QR6ZNEKBJMWVA",
       "unit": "Hrs"
     },
     "linux:r6i.4xlarge": {

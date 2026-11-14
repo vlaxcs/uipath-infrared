@@ -1,6 +1,13 @@
 {
   "fetched_on": "2026-11-14",
   "prices": {
+    "aws-route53:hosted-zone": {
+      "amount": 0.5,
+      "currency": "USD",
+      "description": "AWS Route53 public hosted zone, USD per zone-month. Not in the AmazonRoute53 price list CSV anymore, only on the pricing page.",
+      "reference": "https://aws.amazon.com/route53/pricing/",
+      "unit": "HostedZone"
+    },
     "neon-scale:cu-hour": {
       "amount": 0.222,
       "currency": "USD",
@@ -68,5 +75,5 @@
   "source": "manual",
   "unverified": {},
   "url": "apps/pricing/config/manual.json",
-  "version": "97fa73febc33"
+  "version": "cc6e3084c23a"
 }

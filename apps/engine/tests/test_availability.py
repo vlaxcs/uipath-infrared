@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import pytest
 
 from engine.domain.availability import (
@@ -34,15 +36,20 @@ def test_a_multi_zone_service_keeps_its_sla_whatever_the_zone_count(mock_infra, 
 
 
 def test_a_kind_without_a_catalog_option_gets_the_default(mock_infra, catalog):
-    end_state = state(mock_infra, catalog)
+    as_cdn = replace(
+        mock_infra,
+        components=tuple(
+            replace(c, kind="cdn") if c.id == "cache-sessions" else c for c in mock_infra.components
+        ),
+    )
+    end_state = state(as_cdn, catalog)
     assert component_pct(end_state, catalog, "cache-sessions") == DEFAULT_SINGLE_ZONE_AVAILABILITY_PCT
-    assert component_pct(end_state, catalog, "alb-shop") == pytest.approx(99.9975)
 
 
 def test_a_path_is_the_product_of_its_components(mock_infra, catalog):
     availability = availability_of(state(mock_infra, catalog), mock_infra, catalog)
     shop = next(path for path in availability.paths if path.stack == "shop")
-    expected = 0.999975 * 0.995 * 0.9999 * 0.995 * 0.995 * 100
+    expected = 0.9999 * 0.999 * 0.9999 * 0.995 * 0.995 * 100
     assert shop.availability_pct == pytest.approx(expected)
     assert availability.availability_pct == min(path.availability_pct for path in availability.paths)
 
