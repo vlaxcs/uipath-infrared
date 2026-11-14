@@ -29,6 +29,7 @@ type fakeRuns struct {
 	loggedStep  run.Step
 	loggedAfter int64
 	saved       *profile.Profile
+	trial       *workflow.TrialProfile
 }
 
 func (f *fakeRuns) Onboarding() (onboarding.Setup, error) {
@@ -89,6 +90,39 @@ func TestALogRequestNeedsAStepWithALogAndAValidOffset(t *testing.T) {
 	for _, path := range []string{"/runs/x/logs", "/runs/x/logs?step=present", "/runs/x/logs?step=nope", "/runs/x/logs?step=extract&after=-1", "/runs/x/logs?step=extract&after=a"} {
 		if recorder := send(t, &fakeRuns{}, "GET", path, ""); recorder.Code != http.StatusBadRequest {
 			t.Errorf("%s answered %d", path, recorder.Code)
+		}
+	}
+}
+
+func (f *fakeRuns) Rehearse(id string, trial workflow.TrialProfile) (workflow.TrialStarted, error) {
+	f.trial = &trial
+	return workflow.TrialStarted{File: "rehearsal.1.trial-1.json", Candidate: "managed_services"}, f.err
+}
+
+func TestATrialRehearsalIsAcceptedAndNamesItsFile(t *testing.T) {
+	runs := &fakeRuns{}
+	recorder := send(t, runs, "POST", "/runs/run-1/rehearsals", `{"requests_per_second":80,"phase_seconds":20}`)
+	if recorder.Code != http.StatusAccepted || runs.trial == nil || runs.trial.RequestsPerSecond != 80 || runs.trial.PhaseSeconds != 20 {
+		t.Fatalf("%d %s", recorder.Code, recorder.Body)
+	}
+	if !strings.Contains(recorder.Body.String(), `"file":"rehearsal.1.trial-1.json"`) {
+		t.Fatalf("body %s", recorder.Body)
+	}
+}
+
+func TestATrialIsRefusedWithTheRightStatus(t *testing.T) {
+	cases := []struct {
+		err    error
+		status int
+	}{
+		{fmt.Errorf("%w: x", workflow.ErrNoLayout), http.StatusConflict},
+		{fmt.Errorf("%w: x", workflow.ErrTrialRunning), http.StatusConflict},
+		{fmt.Errorf("%w: x", workflow.ErrInvalidTrial), http.StatusBadRequest},
+		{fmt.Errorf("%w: run x", workflow.ErrNotFound), http.StatusNotFound},
+	}
+	for _, c := range cases {
+		if recorder := send(t, &fakeRuns{err: c.err}, "POST", "/runs/x/rehearsals", `{"requests_per_second":10,"phase_seconds":15}`); recorder.Code != c.status {
+			t.Errorf("%v answered %d, want %d", c.err, recorder.Code, c.status)
 		}
 	}
 }

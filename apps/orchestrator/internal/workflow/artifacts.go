@@ -11,7 +11,7 @@ import (
 
 const MaxArtifactBytes = 16 << 20
 
-var artifactName = regexp.MustCompile(`^(infra|findings|candidates\.\d+|feedback\.\d+|result\.\d+|rehearsal\.\d+|states\.\d+\.[a-z0-9][a-z0-9_-]*)\.json$`)
+var artifactName = regexp.MustCompile(`^(infra|findings|candidates\.\d+|feedback\.\d+|result\.\d+|rehearsal\.\d+|rehearsal\.\d+\.trial-\d+|states\.\d+\.[a-z0-9][a-z0-9_-]*)\.json$`)
 
 func artifactAllowed(name string) bool {
 	return artifactName.MatchString(name)

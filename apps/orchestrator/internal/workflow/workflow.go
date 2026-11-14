@@ -52,9 +52,10 @@ type Workflow struct {
 }
 
 type tracked struct {
-	mu  sync.Mutex
-	doc *run.Run
-	dir string
+	mu           sync.Mutex
+	doc          *run.Run
+	dir          string
+	trialRunning bool
 }
 
 func New(config Config, stages Stages, contracts Contracts, files Files, store Store, now func() time.Time) *Workflow {
