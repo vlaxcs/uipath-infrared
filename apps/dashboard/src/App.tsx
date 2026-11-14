@@ -1,25 +1,43 @@
-import { useState } from "react";
-import { sectionById, type SectionId } from "~/navigation/sections";
-import { sampleRuns } from "~/runs/sampleRun";
+import { sectionById } from "~/navigation/sections";
+import { useHashRoute } from "~/navigation/useHashRoute";
+import { ApprovalsPage } from "~/runs/ApprovalsPage";
+import { runSource } from "~/runs/runSource";
 import { RunsSection } from "~/runs/RunsSection";
+import type { RunSource } from "~/runs/source";
 import { StatusBadge } from "~/ui/StatusBadge";
 import { AppShell } from "~/shell/AppShell";
 import { SectionPlaceholder } from "~/shell/SectionPlaceholder";
 
-export function App() {
-  const [section, setSection] = useState<SectionId>("runs");
-  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
-  const activeSection = sectionById(section);
+type AppProps = {
+  source?: RunSource;
+};
+
+export function App({ source = runSource }: AppProps = {}) {
+  const route = useHashRoute();
+  const activeSection = sectionById(route.section);
 
   return (
     <AppShell
-      activeSection={section}
-      onSelectSection={setSection}
+      activeSection={route.section}
+      onSelectSection={route.selectSection}
       title={activeSection.label}
-      headerBadge={<StatusBadge label="Sample data" tone="neutral" />}
+      headerBadge={
+        <StatusBadge
+          label={source.mode === "live" ? "Live" : "Sample data"}
+          tone={source.mode === "live" ? "running" : "neutral"}
+        />
+      }
     >
-      {section === "runs" ? (
-        <RunsSection runs={sampleRuns} selectedRunId={selectedRunId} onSelectRun={setSelectedRunId} />
+      {route.section === "runs" ? (
+        <RunsSection
+          source={source}
+          runId={route.runId}
+          focusGate={route.focusGate}
+          onOpenRun={route.openRun}
+          onCloseRun={route.focusGate ? route.closeGate : route.closeRun}
+        />
+      ) : route.section === "approvals" ? (
+        <ApprovalsPage source={source} onReview={route.openGate} />
       ) : (
         <SectionPlaceholder section={activeSection} />
       )}
