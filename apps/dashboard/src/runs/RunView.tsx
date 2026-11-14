@@ -3,6 +3,7 @@ import type { RunSource } from "~/runs/source";
 import { deriveStepStates } from "~/runs/stepProgress";
 import type { HumanDecision, RunDetail, RunStep } from "~/runs/types";
 import { latestRevision, primaryArtifactPath, revisionsForStep } from "~/runs/artifactRefs";
+import { analysisOptions } from "~/runs/findings";
 import { layoutOptions, layoutOptionsFromResult } from "~/runs/xCandidates";
 import { nextPreview } from "~/runs/nextPreview";
 import { parseArtifact } from "~/runs/artifactParse";
@@ -20,15 +21,16 @@ import { NextStepPreview } from "~/runs/NextStepPreview";
 type RunViewProps = {
   run: RunDetail;
   source: RunSource;
+  initialStep?: RunStep | null;
   onReload?: () => void;
   onStartAgain?: () => void;
 };
 
-export function RunView({ run: initialRun, source, onReload, onStartAgain }: RunViewProps) {
+export function RunView({ run: initialRun, source, initialStep = null, onReload, onStartAgain }: RunViewProps) {
   const { run, error, mergeEvent } = useRunFeed(initialRun, source);
   const steps = deriveStepStates(run.events, run);
-  const [following, setFollowing] = useState(true);
-  const [selectedStep, setSelectedStep] = useState<RunStep | null>(null);
+  const [following, setFollowing] = useState(initialStep === null);
+  const [selectedStep, setSelectedStep] = useState<RunStep | null>(initialStep);
   const [revision, setRevision] = useState<number | null>(null);
 
   const pinStep = (step: RunStep) => {
@@ -75,6 +77,23 @@ export function RunView({ run: initialRun, source, onReload, onStartAgain }: Run
   }, [fallbackArtifact.status, fallbackArtifact.text]);
   const options = eventOptions.length > 0 ? eventOptions : fallbackOptions;
 
+  const findingsPath = run.awaiting === "layout" ? "findings.json" : null;
+  const findingsArtifact = useRunArtifact(source, run.id, findingsPath);
+  const findingsParsed = useMemo(() => {
+    if (findingsArtifact.status !== "ready" || findingsArtifact.text === undefined) return null;
+    return parseArtifact(findingsArtifact.text);
+  }, [findingsArtifact.status, findingsArtifact.text]);
+  const analyses = useMemo(
+    () => (findingsParsed?.ok ? analysisOptions(findingsParsed.value) : []),
+    [findingsParsed],
+  );
+  const analysesStatus =
+    findingsParsed && !findingsParsed.ok ? "error" : findingsArtifact.status;
+  const analysesError =
+    findingsParsed && !findingsParsed.ok
+      ? `The findings file is not valid JSON: ${findingsParsed.error}`
+      : findingsArtifact.error;
+
   const decision = useSubmitDecision(source, run.id, onReload);
   const submitDecision = async (humanDecision: HumanDecision) => {
     const appended = await decision.submit(humanDecision);
@@ -120,6 +139,10 @@ export function RunView({ run: initialRun, source, onReload, onStartAgain }: Run
             artifactPath={artifactPath}
             artifact={artifact}
             options={options}
+            analyses={analyses}
+            analysesStatus={findingsPath ? analysesStatus : "idle"}
+            analysesError={analysesError}
+            onRetryAnalyses={findingsArtifact.retry}
             onSubmitDecision={submitDecision}
             decisionBusy={decision.busy}
             decisionError={decision.error}

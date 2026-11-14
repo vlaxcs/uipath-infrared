@@ -1,6 +1,10 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { App } from "~/App";
+import { cutSampleRun } from "~/runs/fixtures";
+import { sampleRunSource } from "~/runs/sampleRunSource";
+import type { RunSource } from "~/runs/source";
+import type { RunDetail } from "~/runs/types";
 
 afterEach(() => {
   cleanup();
@@ -62,6 +66,35 @@ describe("the dashboard shell", () => {
     expect(await screen.findByRole("region", { name: "demo-shop" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
     expect(screen.queryByRole("table", { name: "Runs" })).toBeNull();
+  });
+
+  it("lists approvals and opens the run at its gate", async () => {
+    const waiting = { ...cutSampleRun(14), id: "run-approvals-0001" };
+    const source: RunSource = {
+      ...sampleRunSource,
+      mode: "live",
+      listRuns: async () => [waiting],
+      getRun: async (id: string) => {
+        if (id === waiting.id) return waiting as RunDetail;
+        throw new Error(`run ${id} not found`);
+      },
+    };
+
+    window.location.hash = "#/approvals";
+    render(<App source={source} />);
+
+    const table = await screen.findByRole("table", { name: "Approvals" });
+    fireEvent.click(within(table).getByRole("button", { name: "Review run-approvals-0001" }));
+
+    await waitFor(() => expect(window.location.hash).toBe("#/runs/run-approvals-0001/gate"));
+    expect(await screen.findByRole("heading", { level: 2, name: "Present" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /All approvals/ })).toBeTruthy();
+    expect(screen.getByText("Keep analyses")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: /All approvals/ }));
+
+    expect(await screen.findByRole("table", { name: "Approvals" })).toBeTruthy();
+    expect(window.location.hash).toBe("#/approvals");
   });
 
   it("switches to a future section and back", async () => {

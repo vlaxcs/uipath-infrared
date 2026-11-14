@@ -5,9 +5,48 @@ import result from "../../../../contracts/result.example.json";
 import { RunSourceError } from "~/runs/source";
 import type { RunArtifactInfo } from "~/runs/types";
 
+const findings = {
+  findings: [
+    {
+      id: "idle-gpu-nodes",
+      title: "The GPU node group is idle",
+      category: "delete_idle",
+      stack: "compute",
+      resources: ["ng-data-gpu"],
+      evidence: ["gpu_pct average 0.4", "p95 1.0 over 14 days", "no inbound edges"],
+      recommendation: "Delete the GPU node group; the general pool covers the remaining load.",
+      confidence: "medium",
+      risk: "low",
+    },
+    {
+      id: "orphan-volumes",
+      title: "Six EBS volumes are unattached",
+      category: "storage_tiering",
+      stack: "storage",
+      resources: ["ebs-orphans"],
+      evidence: ["6 unattached volumes", "zero IOPS for 14 days"],
+      recommendation: "Snapshot and delete the orphan volumes.",
+      confidence: "high",
+      risk: "low",
+    },
+    {
+      id: "erp-residency",
+      title: "The ERP database waits for the vendor",
+      category: "migrate",
+      stack: "data",
+      resources: ["rds-erp"],
+      evidence: ["hstore and pg_trgm are required by the ERP"],
+      recommendation: "Migrate after the vendor confirms managed-pg-serverless support.",
+      confidence: "low",
+      risk: "medium",
+      migration_notes: "Not part of this plan; keep the finding open.",
+    },
+  ],
+};
+
 const artifacts: Readonly<Record<string, unknown>> = {
   "infra.json": demoShop,
-  "findings.json": { findings: [] },
+  "findings.json": findings,
   "candidates.0.json": candidates,
   "candidates.1.json": candidates,
   "result.0.json": result,

@@ -31,12 +31,16 @@ The six steps form a connected pipeline graph. Selecting a node loads its artifa
 
 Sections are hash routes (`#/runs`, `#/graph`, …), so a run page survives a refresh and the browser's back button works without a server rewrite.
 
-The layout gate is decided in the Present pane: it lists the feasible `x_candidates` (highest rank preselected, infeasible layouts named) and submits `pick_layout`. The plan gate is decided in the Rehearse pane and submits `approve_plan`. Both need a reason and act as `cto` on the `dashboard` surface. A `409` means another surface decided first, so the page asks for a refresh instead of resubmitting; `422` reports an infeasible layout.
+The layout gate is decided in the Present pane. It can first **keep analyses**: the findings from investigate are listed with checkboxes and a reason, and keeping them posts `keep_analyses` without closing the gate. It then lists the feasible `x_candidates` (highest rank preselected, infeasible layouts named) and submits `pick_layout`, which starts the rehearsal. The plan gate is decided in the Rehearse pane and submits `approve_plan`. Every decision needs a reason and acts as `cto` on the `dashboard`. A `409` means another surface decided first, so the page asks for a refresh instead of resubmitting; `422` reports an infeasible layout.
+
+`result.json` does not define analyses yet, so v1 uses the investigate findings' ids as the analyses to keep. The orchestrator checks only that the submitted ids are non-empty and unique.
+
+The Approvals section (`#/approvals`) lists every run paused at a gate, newest first, with its gate and step. **Review** opens the run at `#/runs/<id>/gate` with the gated node already selected; "← All approvals" returns to the list. The gate focus is part of the route, so refresh and browser back behave.
 
 Step results come from `GET /runs/{id}/files/{path}`. When that endpoint is unavailable, the pane says so and keeps the path and the event data. Artifacts are fetched on demand for the selected step and revision, cached per run; the revision buttons switch between `candidates.<n>.json`, `result.<n>.json` and `rehearsal.<n>.json`.
 
-The view polls `GET /runs/{id}/events?after=` every two seconds while the run is live, stops at a terminal status, and refreshes the runs list when the step or status changes. `src/runs/httpRunSource.ts` implements the API; `src/runs/sampleRunSource.ts` serves the sample without advancing.
+The run page polls `GET /runs/{id}/events?after=` every two seconds while the run is live and stops at a terminal status; the runs and approvals lists poll every five seconds in live mode. `src/runs/httpRunSource.ts` implements the API; `src/runs/sampleRunSource.ts` serves the sample without advancing.
 
 ## Sample data
 
-`src/runs/sampleRun.ts` reads `contracts/run.example.json`; `src/runs/sampleArtifacts.ts` maps the run's artifact paths to `contracts/` examples so every step has a result to show. The sample is read-only: no start and no approvals. `src/runs/fixtures.ts` cuts the sample at each gate and provides a failed run for tests.
+`src/runs/sampleRun.ts` reads `contracts/run.example.json`; `src/runs/sampleArtifacts.ts` maps the run's artifact paths to `contracts/` examples so every step has a result to show, including three sample findings for the keep-analyses list. The sample is read-only: no start and no approvals; the Approvals page is empty until the orchestrator is connected. `src/runs/fixtures.ts` cuts the sample at each gate and provides a failed run for tests.

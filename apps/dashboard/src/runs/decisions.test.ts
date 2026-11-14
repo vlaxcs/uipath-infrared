@@ -1,7 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { approvePlanDecision, DASHBOARD_ACTOR, pickLayoutDecision } from "~/runs/decisions";
+import {
+  approvePlanDecision,
+  DASHBOARD_ACTOR,
+  keepAnalysesDecision,
+  pickLayoutDecision,
+} from "~/runs/decisions";
 
 describe("dashboard decisions", () => {
+  it("keeps analyses on the present step, trimmed and deduplicated", () => {
+    expect(keepAnalysesDecision([" F001 ", "F002", "F001", ""], "these carry forward")).toEqual({
+      step: "present",
+      status: "approved",
+      actor: DASHBOARD_ACTOR,
+      decision: { kind: "keep_analyses", reason: "these carry forward", analyses: ["F001", "F002"] },
+    });
+  });
+
   it("picks a layout on the present step", () => {
     expect(pickLayoutDecision("managed_services", "stays in the EU")).toEqual({
       step: "present",

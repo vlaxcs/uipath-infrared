@@ -1,4 +1,4 @@
-import type { ArtifactFeed } from "~/runs/useRunArtifact";
+import type { ArtifactFeed, ArtifactState } from "~/runs/useRunArtifact";
 import type {
   CandidatesArtifact,
   FindingsArtifact,
@@ -7,6 +7,7 @@ import type {
   ResultArtifact,
 } from "~/runs/artifactTypes";
 import { stepEvents, revisionLabel } from "~/runs/artifactRefs";
+import type { AnalysisOption } from "~/runs/findings";
 import type { HumanDecision, LayoutOption, RunDetail, RunEvent, RunStep, StepState } from "~/runs/types";
 import { stepStateMeta } from "~/runs/status";
 import { STEP_META } from "~/runs/stepMeta";
@@ -32,6 +33,10 @@ type StepResultPaneProps = {
   artifactPath: string | null;
   artifact: ArtifactFeed;
   options: readonly LayoutOption[];
+  analyses: readonly AnalysisOption[];
+  analysesStatus: ArtifactState["status"];
+  analysesError?: string;
+  onRetryAnalyses?: () => void;
   onSubmitDecision: (decision: HumanDecision) => Promise<RunEvent | null>;
   decisionBusy: boolean;
   decisionError: string | null;
@@ -48,6 +53,10 @@ export function StepResultPane({
   artifactPath,
   artifact,
   options,
+  analyses,
+  analysesStatus,
+  analysesError,
+  onRetryAnalyses,
   onSubmitDecision,
   decisionBusy,
   decisionError,
@@ -115,6 +124,10 @@ export function StepResultPane({
         <GateApproval
           gate={run.awaiting}
           options={options}
+          analyses={analyses}
+          analysesStatus={analysesStatus}
+          analysesError={analysesError}
+          onRetryAnalyses={onRetryAnalyses}
           onSubmit={onSubmitDecision}
           busy={decisionBusy}
           error={decisionError}

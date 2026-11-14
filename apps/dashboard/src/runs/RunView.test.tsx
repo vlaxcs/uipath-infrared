@@ -78,7 +78,8 @@ describe("the run view", () => {
     fireEvent.click(screen.getByRole("button", { name: "Next step" }));
 
     expect(screen.getByRole("heading", { level: 2, name: "Investigate" })).toBeTruthy();
-    expect(await screen.findByText("No findings recorded.")).toBeTruthy();
+    expect(await screen.findByText("The GPU node group is idle")).toBeTruthy();
+    expect(screen.getAllByText(/gpu_pct average 0\.4/).length).toBeGreaterThan(0);
     expect(within(steps).getByRole("button", { name: /Investigate/ }).getAttribute("aria-pressed")).toBe("true");
     expect(within(steps).getByRole("button", { name: /Extract/ }).getAttribute("aria-pressed")).toBe("false");
   });
@@ -114,6 +115,53 @@ describe("the run view", () => {
     );
     const timeline = screen.getByRole("region", { name: "Timeline" });
     expect(timeline.textContent).toContain("pick_layout");
+  });
+
+  it("keeps analyses at the layout gate without closing it", async () => {
+    const submitDecision = vi.fn().mockResolvedValue(eventAt(15));
+    render(<RunView run={cutSampleRun(14)} source={sourceWith({ submitDecision })} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Review the gate" }));
+
+    expect(await screen.findByRole("checkbox", { name: /The GPU node group is idle/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole("checkbox", { name: /The ERP database waits/ }));
+    fireEvent.change(screen.getByLabelText("Reason for keeping"), { target: { value: "these stand" } });
+    fireEvent.click(screen.getByRole("button", { name: "Keep selected analyses" }));
+
+    await waitFor(() => expect(submitDecision).toHaveBeenCalledTimes(1));
+    expect(submitDecision).toHaveBeenCalledWith("run-demo-shop-0001", {
+      step: "present",
+      status: "approved",
+      actor: { kind: "human", id: "cto", surface: "dashboard" },
+      decision: {
+        kind: "keep_analyses",
+        reason: "these stand",
+        analyses: ["idle-gpu-nodes", "orphan-volumes"],
+      },
+    });
+
+    expect(screen.getByRole("heading", { name: "A layout is waiting to be picked" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Pick layout" })).toBeTruthy();
+    const banner = screen.getByRole("region", { name: "A layout is waiting to be picked" });
+    expect(banner.textContent).toContain("keep_analyses");
+    expect(banner.textContent).toContain("idle-gpu-nodes");
+    expect(banner.textContent).toContain("orphan-volumes");
+  });
+
+  it("pins the gated step when the route asks for it", async () => {
+    render(<RunView run={cutSampleRun(14)} source={sampleRunSource} initialStep="present" />);
+
+    expect(screen.getByRole("heading", { level: 2, name: "Present" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Run overview" })).toBeNull();
+    expect(screen.getByText("Keep analyses")).toBeTruthy();
+  });
+
+  it("pins the rehearse step for the plan gate", () => {
+    render(<RunView run={cutSampleRun(20)} source={sampleRunSource} initialStep="rehearse" />);
+
+    expect(screen.getByRole("heading", { level: 2, name: "Rehearse" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Approve plan" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Run overview" })).toBeNull();
   });
 
   it("reviews the plan gate and submits approve_plan", async () => {

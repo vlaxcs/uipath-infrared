@@ -27,7 +27,7 @@ export type Finding = {
   confidence?: string;
   risk?: string;
   resources?: string[];
-  evidence?: string;
+  evidence?: string | string[];
   recommendation?: string;
   migration_notes?: string;
   [key: string]: unknown;

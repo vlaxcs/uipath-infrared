@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { gateStep } from "~/runs/approvals";
 import type { RunSource } from "~/runs/source";
 import { START_PROJECT } from "~/runs/runSource";
 import { useSelectedRun } from "~/runs/useSelectedRun";
@@ -7,11 +8,12 @@ import { RunView } from "~/runs/RunView";
 type RunPageProps = {
   source: RunSource;
   runId: string;
+  focusGate: boolean;
   onBack: () => void;
   onOpenRun: (id: string) => void;
 };
 
-export function RunPage({ source, runId, onBack, onOpenRun }: RunPageProps) {
+export function RunPage({ source, runId, focusGate, onBack, onOpenRun }: RunPageProps) {
   const { run, loading, error, reload } = useSelectedRun(source, runId);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export function RunPage({ source, runId, onBack, onOpenRun }: RunPageProps) {
           onClick={onBack}
           className="self-start rounded-control border border-border px-3 py-2 text-label hover:bg-surface-muted"
         >
-          ← All runs
+          {focusGate ? "← All approvals" : "← All runs"}
         </button>
         {run ? (
           <p className="text-label text-fg-muted">
@@ -76,7 +78,14 @@ export function RunPage({ source, runId, onBack, onOpenRun }: RunPageProps) {
           </button>
         </div>
       ) : run ? (
-        <RunView key={run.id} run={run} source={source} onReload={reload} onStartAgain={() => void startAgain()} />
+        <RunView
+          key={`${run.id}${focusGate ? ":gate" : ""}`}
+          run={run}
+          source={source}
+          initialStep={focusGate ? gateStep(run.awaiting) : null}
+          onReload={reload}
+          onStartAgain={() => void startAgain()}
+        />
       ) : (
         <p className="text-body text-fg-muted">Run not found.</p>
       )}

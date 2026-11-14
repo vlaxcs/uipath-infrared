@@ -1,12 +1,18 @@
 import { sectionById } from "~/navigation/sections";
 import { useHashRoute } from "~/navigation/useHashRoute";
+import { ApprovalsPage } from "~/runs/ApprovalsPage";
 import { runSource } from "~/runs/runSource";
 import { RunsSection } from "~/runs/RunsSection";
+import type { RunSource } from "~/runs/source";
 import { StatusBadge } from "~/ui/StatusBadge";
 import { AppShell } from "~/shell/AppShell";
 import { SectionPlaceholder } from "~/shell/SectionPlaceholder";
 
-export function App() {
+type AppProps = {
+  source?: RunSource;
+};
+
+export function App({ source = runSource }: AppProps = {}) {
   const route = useHashRoute();
   const activeSection = sectionById(route.section);
 
@@ -17,18 +23,21 @@ export function App() {
       title={activeSection.label}
       headerBadge={
         <StatusBadge
-          label={runSource.mode === "live" ? "Live" : "Sample data"}
-          tone={runSource.mode === "live" ? "running" : "neutral"}
+          label={source.mode === "live" ? "Live" : "Sample data"}
+          tone={source.mode === "live" ? "running" : "neutral"}
         />
       }
     >
       {route.section === "runs" ? (
         <RunsSection
-          source={runSource}
+          source={source}
           runId={route.runId}
+          focusGate={route.focusGate}
           onOpenRun={route.openRun}
-          onCloseRun={route.closeRun}
+          onCloseRun={route.focusGate ? route.closeGate : route.closeRun}
         />
+      ) : route.section === "approvals" ? (
+        <ApprovalsPage source={source} onReview={route.openGate} />
       ) : (
         <SectionPlaceholder section={activeSection} />
       )}

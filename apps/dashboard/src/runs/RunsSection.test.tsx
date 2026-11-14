@@ -12,13 +12,22 @@ function sourceWith(overrides: Partial<RunSource>): RunSource {
   return { ...sampleRunSource, ...overrides };
 }
 
-function Harness({ source, initialRunId = null }: { source: RunSource; initialRunId?: string | null }) {
+function Harness({
+  source,
+  initialRunId = null,
+  focusGate = false,
+}: {
+  source: RunSource;
+  initialRunId?: string | null;
+  focusGate?: boolean;
+}) {
   const [runId, setRunId] = useState<string | null>(initialRunId);
 
   return (
     <RunsSection
       source={source}
       runId={runId}
+      focusGate={focusGate}
       onOpenRun={setRunId}
       onCloseRun={() => setRunId(null)}
     />
@@ -52,6 +61,22 @@ describe("the runs section", () => {
 
     expect(await screen.findByRole("table", { name: "Runs" })).toBeTruthy();
     expect(screen.queryByRole("region", { name: "demo-shop" })).toBeNull();
+  });
+
+  it("opens a run with its gate already pinned", async () => {
+    const waiting = { ...cutSampleRun(14), id: "run-approvals-0001" };
+    render(
+      <Harness
+        source={sourceWith({ getRun: async () => waiting })}
+        initialRunId={waiting.id}
+        focusGate
+      />,
+    );
+
+    expect(await screen.findByRole("heading", { level: 2, name: "Present" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /All approvals/ })).toBeTruthy();
+    expect(screen.getByText("Keep analyses")).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Run overview" })).toBeNull();
   });
 
   it("opens the active run from the start panel", async () => {

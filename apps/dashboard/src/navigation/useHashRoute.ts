@@ -5,7 +5,9 @@ import type { SectionId } from "~/navigation/sections";
 export type HashRoute = Route & {
   selectSection: (section: SectionId) => void;
   openRun: (runId: string) => void;
+  openGate: (runId: string) => void;
   closeRun: () => void;
+  closeGate: () => void;
 };
 
 export function useHashRoute(): HashRoute {
@@ -25,8 +27,10 @@ export function useHashRoute(): HashRoute {
 
   return {
     ...route,
-    selectSection: (section) => navigate({ section, runId: null }),
-    openRun: (runId) => navigate({ section: "runs", runId }),
-    closeRun: () => navigate({ section: "runs", runId: null }),
+    selectSection: (section) => navigate({ section, runId: null, focusGate: false }),
+    openRun: (runId) => navigate({ section: "runs", runId, focusGate: false }),
+    openGate: (runId) => navigate({ section: "runs", runId, focusGate: true }),
+    closeRun: () => navigate({ section: "runs", runId: null, focusGate: false }),
+    closeGate: () => navigate({ section: "approvals", runId: null, focusGate: false }),
   };
 }
