@@ -14,9 +14,10 @@ const (
 var ErrInvalid = errors.New("invalid onboarding")
 
 type Answers struct {
-	Connection string   `json:"connection"`
-	Targets    []string `json:"targets"`
-	Onprem     Onprem   `json:"onprem"`
+	Connection string    `json:"connection"`
+	Targets    []string  `json:"targets"`
+	Onprem     Onprem    `json:"onprem"`
+	Criteria   *Criteria `json:"criteria,omitempty"`
 }
 
 type Onprem struct {
@@ -31,6 +32,7 @@ type Catalog struct {
 type Constraints struct {
 	Allowed   []string
 	Forbidden []string
+	Criteria  *Criteria
 }
 
 type Connection struct {
@@ -73,6 +75,11 @@ func Resolve(answers Answers, catalog Catalog, projectForbidden []string) (Const
 			return Constraints{}, invalid("%s is forbidden by the project", target)
 		}
 	}
+	if answers.Criteria != nil {
+		if err := CheckCriteria(*answers.Criteria); err != nil {
+			return Constraints{}, err
+		}
+	}
 	if answers.Onprem.Wanted {
 		if !catalog.Onprem {
 			return Constraints{}, invalid("on-prem is wanted, but the catalog has no on-prem option")
@@ -93,7 +100,7 @@ func Resolve(answers Answers, catalog Catalog, projectForbidden []string) (Const
 	} else {
 		forbidden = append(forbidden, OnpremProvider)
 	}
-	return Constraints{Allowed: sortedUnique(allowed), Forbidden: sortedUnique(forbidden)}, nil
+	return Constraints{Allowed: sortedUnique(allowed), Forbidden: sortedUnique(forbidden), Criteria: answers.Criteria}, nil
 }
 
 func Apply(forecast map[string]any, constraints Constraints) error {
@@ -103,6 +110,9 @@ func Apply(forecast map[string]any, constraints Constraints) error {
 	}
 	hard["allowed_providers"] = constraints.Allowed
 	hard["forbidden_providers"] = constraints.Forbidden
+	if constraints.Criteria != nil {
+		return applyCriteria(forecast, *constraints.Criteria)
+	}
 	return nil
 }
 

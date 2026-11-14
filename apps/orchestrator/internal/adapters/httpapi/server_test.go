@@ -10,6 +10,7 @@ import (
 
 	"infrared/orchestrator/internal/adapters/httpapi"
 	"infrared/orchestrator/internal/onboarding"
+	"infrared/orchestrator/internal/profile"
 	"infrared/orchestrator/internal/run"
 	"infrared/orchestrator/internal/workflow"
 )
@@ -27,6 +28,7 @@ type fakeRuns struct {
 	started     bool
 	loggedStep  run.Step
 	loggedAfter int64
+	saved       *profile.Profile
 }
 
 func (f *fakeRuns) Onboarding() (onboarding.Setup, error) {
@@ -87,6 +89,46 @@ func TestALogRequestNeedsAStepWithALogAndAValidOffset(t *testing.T) {
 	for _, path := range []string{"/runs/x/logs", "/runs/x/logs?step=present", "/runs/x/logs?step=nope", "/runs/x/logs?step=extract&after=-1", "/runs/x/logs?step=extract&after=a"} {
 		if recorder := send(t, &fakeRuns{}, "GET", path, ""); recorder.Code != http.StatusBadRequest {
 			t.Errorf("%s answered %d", path, recorder.Code)
+		}
+	}
+}
+
+func (f *fakeRuns) Profile() (profile.Profile, error) {
+	if f.saved != nil {
+		return *f.saved, nil
+	}
+	return profile.Default(), f.err
+}
+
+func (f *fakeRuns) SaveProfile(saved profile.Profile) error {
+	if err := profile.Check(saved); err != nil {
+		return err
+	}
+	f.saved = &saved
+	return nil
+}
+
+func TestTheProfileIsReadAndSaved(t *testing.T) {
+	runs := &fakeRuns{}
+	read := send(t, runs, "GET", "/profile", "")
+	if read.Code != http.StatusOK || !strings.Contains(read.Body.String(), `"min_availability_pct":99.9`) {
+		t.Fatalf("read %d %s", read.Code, read.Body)
+	}
+	body := `{"criteria":{"min_availability_pct":99.95,"min_zones":3,"weights":{"cost":0.2,"risk":0.7,"effort":0.1},"allowed_regions":["eu-*"]},"onprem":{"wanted":false}}`
+	if saved := send(t, runs, "PUT", "/profile", body); saved.Code != http.StatusOK || runs.saved == nil || runs.saved.Criteria.MinZones != 3 {
+		t.Fatalf("save %d %s", saved.Code, saved.Body)
+	}
+}
+
+func TestABadProfileIsRefusedWith400(t *testing.T) {
+	for _, body := range []string{
+		`{"criteria":{"min_availability_pct":50,"min_zones":2,"weights":{"cost":1,"risk":0,"effort":0},"allowed_regions":["eu-*"]},"onprem":{"wanted":false}}`,
+		`{"criteria":{},"onprem":{"wanted":false},"extra":1}`,
+		`not json`,
+	} {
+		runs := &fakeRuns{}
+		if recorder := send(t, runs, "PUT", "/profile", body); recorder.Code != http.StatusBadRequest || runs.saved != nil {
+			t.Errorf("%s: %d", body, recorder.Code)
 		}
 	}
 }

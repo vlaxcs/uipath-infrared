@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"infrared/orchestrator/internal/onboarding"
+	"infrared/orchestrator/internal/profile"
 	"infrared/orchestrator/internal/run"
 	"infrared/orchestrator/internal/workflow"
 )
@@ -27,6 +28,8 @@ type Runs interface {
 	ListFiles(id string) ([]run.Artifact, error)
 	ReadFile(id, name string) ([]byte, error)
 	ReadLog(id string, step run.Step, after int64) (workflow.LogChunk, error)
+	Profile() (profile.Profile, error)
+	SaveProfile(profile.Profile) error
 }
 
 func Handler(runs Runs, allowedOrigins ...string) http.Handler {
@@ -41,6 +44,8 @@ func Handler(runs Runs, allowedOrigins ...string) http.Handler {
 	mux.HandleFunc("GET /runs/{id}/files", api.files)
 	mux.HandleFunc("GET /runs/{id}/files/{name}", api.file)
 	mux.HandleFunc("GET /runs/{id}/logs", api.logs)
+	mux.HandleFunc("GET /profile", api.profile)
+	mux.HandleFunc("PUT /profile", api.saveProfile)
 	return withCORS(mux, allowedOrigins)
 }
 
@@ -163,6 +168,27 @@ func (a *api) logs(w http.ResponseWriter, r *http.Request) {
 	reply(w, http.StatusOK, chunk)
 }
 
+func (a *api) profile(w http.ResponseWriter, r *http.Request) {
+	saved, err := a.runs.Profile()
+	if err != nil {
+		failWith(w, err)
+		return
+	}
+	reply(w, http.StatusOK, saved)
+}
+
+func (a *api) saveProfile(w http.ResponseWriter, r *http.Request) {
+	var body profile.Profile
+	if !decode(w, r, &body) {
+		return
+	}
+	if err := a.runs.SaveProfile(body); err != nil {
+		failWith(w, err)
+		return
+	}
+	reply(w, http.StatusOK, body)
+}
+
 func decode(w http.ResponseWriter, r *http.Request, into any) bool {
 	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxBodyBytes))
 	decoder.DisallowUnknownFields()
@@ -189,7 +215,7 @@ func failWith(w http.ResponseWriter, err error) {
 		status = http.StatusNotFound
 	case errors.Is(err, workflow.ErrProjectBusy), errors.Is(err, run.ErrGateNotOpen):
 		status = http.StatusConflict
-	case errors.Is(err, run.ErrInvalidDecision), errors.Is(err, onboarding.ErrInvalid):
+	case errors.Is(err, run.ErrInvalidDecision), errors.Is(err, onboarding.ErrInvalid), errors.Is(err, profile.ErrInvalid):
 		status = http.StatusBadRequest
 	case errors.Is(err, workflow.ErrLayoutNotFeasible):
 		status = http.StatusUnprocessableEntity
