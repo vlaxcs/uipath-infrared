@@ -5,7 +5,7 @@ import { pitch2Copy } from "./copy.ts";
 import { Pitch2 } from "./Pitch2.tsx";
 
 describe("Pitch2", () => {
-  it("shows exactly the three sections, in order, then the bundled-with-the-router line last", () => {
+  it("shows exactly the three sections, in order, then the closing line last", () => {
     render(<Pitch2 />);
     const titles = screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
     expect(titles).toEqual([...pitch2Copy.en.sections.map((section) => section.title), pitch2Copy.en.closing]);
@@ -19,7 +19,7 @@ describe("Pitch2", () => {
 });
 
 describe("Pitch2 sublines", () => {
-  it("shows the provider and the customer line under the problem and under why us", () => {
+  it("shows every problem and why-us card", () => {
     render(<Pitch2 />);
     const [problem, , whyUs] = pitch2Copy.en.sections;
     for (const point of [...problem.points, ...whyUs.points]) {
@@ -30,20 +30,31 @@ describe("Pitch2 sublines", () => {
 });
 
 describe("Pitch2 shouting", () => {
-  it("paints the capitalised words green and shows TAP and SOLVE", () => {
+  it("paints the capitalised words in the hero, sections, and closing", () => {
     const { container } = render(<Pitch2 />);
     const green = [...container.querySelectorAll(".text-accent")].map((node) => node.textContent);
-    expect(green).toEqual(expect.arrayContaining(["ACTIONABLE", "TAP", "SOLVE"]));
-    expect(green).not.toContain("and");
+    expect(green).toEqual(
+      expect.arrayContaining([
+        "RECEIPTS",
+        "PRICE",
+        "PROVE",
+        "SIGN",
+        "REPORT",
+        "MOVE",
+        "ADVISES",
+      ]),
+    );
   });
 });
 
-describe("Pitch2 screenshots", () => {
-  it("shows the provider screenshot first and the customer one second, under how we solved it", () => {
-    render(<Pitch2 />);
-    const [provider, customer] = pitch2Copy.en.sections[1].shots!;
-    const images = screen.getAllByRole("img").filter((image) => image.tagName === "IMG" && image.getAttribute("src")?.startsWith("/pitch-"));
-    expect(images.map((image) => image.getAttribute("alt"))).toEqual([provider.alt, customer.alt]);
+describe("Pitch2 scenes", () => {
+  it("plays the Rive scenes above and the product scene in the closing", () => {
+    const { container } = render(<Pitch2 />);
+    const scenes = [...container.querySelectorAll("[data-animation]")].map((node) =>
+      node.getAttribute("data-animation"),
+    );
+    expect(scenes).toEqual(["scan", "reorganise", "grow", "scan"]);
+    expect(screen.getByRole("img", { name: pitch2Copy.en.sceneLabel })).toBeInTheDocument();
   });
 });
 

@@ -31,6 +31,7 @@ export function Band({
   label,
   tint = false,
   mascot,
+  titleClassName = "max-w-[24ch]",
   children,
 }: {
   id: string;
@@ -38,6 +39,7 @@ export function Band({
   label: string;
   tint?: boolean;
   mascot?: MascotState[];
+  titleClassName?: string;
   children: ReactNode;
 }) {
   const titleId = `${id}-titlu`;
@@ -47,7 +49,7 @@ export function Band({
         <div className="flex items-end justify-between gap-6">
           <div>
             <p className="type-eyebrow mb-4 text-accent">{label}</p>
-            <h2 id={titleId} data-reveal className="type-h2 max-w-[24ch] text-fg data-shown:animate-unveil">
+            <h2 id={titleId} data-reveal className={`type-h2 ${titleClassName} text-fg data-shown:animate-unveil`}>
               {title}
             </h2>
           </div>
