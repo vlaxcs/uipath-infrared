@@ -166,4 +166,10 @@
   --text-settings-body: 0.9375rem;
   --text-settings-small: 0.8125rem;
   --text-settings-figure: 2rem;
+  --text-insight-hero: clamp(3rem, 9vw, 6.5rem);
+
+  --motion-orbit: 90s;
+  --motion-breathe: 5s;
+  --motion-beacon: 1.8s;
+  --motion-draw: 1.1s;
 }

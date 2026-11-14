@@ -1,17 +1,23 @@
 import { Plus } from "lucide-react";
 import { CreditMark } from "~/credits/CreditMarks";
+import { InsightsHome } from "~/insights/InsightsHome";
+import type { InsightReader } from "~/insights/types";
 
 type HomePageProps = {
   extensionUrl: string | null;
   onAnalyze: () => void;
   onPrevious: () => void;
+  source: InsightReader;
+  runHref: (id: string) => string;
+  onOpenRun: (id: string) => void;
 };
 
 const PILL = "flex items-center gap-2 rounded-pill px-5 py-3 text-label font-semibold shadow-sm";
 
-export function HomePage({ extensionUrl, onAnalyze, onPrevious }: HomePageProps) {
+export function HomePage({ extensionUrl, onAnalyze, onPrevious, source, runHref, onOpenRun }: HomePageProps) {
   return (
     <div>
+      <InsightsHome source={source} runHref={runHref} onOpenRun={onOpenRun} />
       <div className="fixed inset-x-0 bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 p-4">
         <nav aria-label="Analyses" className="flex flex-wrap items-center gap-3">
           <button type="button" onClick={onAnalyze} aria-label="Analyze, costs 1 run" className={`${PILL} bg-credit text-on-credit`}>

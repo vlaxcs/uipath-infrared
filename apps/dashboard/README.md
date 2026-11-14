@@ -70,3 +70,11 @@ It shows the traffic profile, the injected failure, availability and latency bef
 The Candidates section reads `contracts/result.example.json` through `src/candidates/sampleResult.ts`. It shows the result context and baseline, every candidate ranked with cost, availability, risk, effort and why it lost, and the winner's change step by step grouped by layer. `contracts/result.example.nothing-feasible.json` is available as `nothingFeasibleResult` for the nothing-feasible state and tests. Engine results are not committed: the orchestrator's tests generate them with the real engine, and the live source will read `result.<n>.json` from the run.
 
 The data module is the single swap point for the future orchestrator API. Readers accept any 1.x schema; unknown actions, layers, flags and confidences are shown as text.
+
+## Home: Infrared at a glance
+
+The home page (`src/insights/`) is an interactive summary of every run, grouped by use case (project).
+
+- **Overview**: one orb per use case. Its size is the monthly spend today. The inner disc is the spend after the plan that was picked; a dashed ring means the plan costs more. Dots orbiting it are the runs, coloured by status. Hover a dot for its outcome, click it to open that run.
+- **Focus**: click an orb and it moves to the left. On the right, every run becomes a lane through the six steps. Revision loops arc back, gates are diamonds, and a Slack or dashboard badge marks who decided. The lane ends with the monthly delta, a rehearsal flask, or "stopped" (hover for the engine's reason). Under the lanes, the selected run's options are plotted by cost and availability, with an arrow from today to the picked layout. Escape or a click on the background goes back.
+- **Data**: live from the orchestrator when `VITE_ORCHESTRATOR_URL` is set (refreshed every 4 s). Without it, the page uses `src/insights/sample/runs.json`, 11 runs of the four mock projects captured from the real orchestrator and engine. In that capture, extract and the sandbox were the orchestrator's stubs and the agent was a rules-based stand-in with no model. The page shows a `sample` chip in that case.
