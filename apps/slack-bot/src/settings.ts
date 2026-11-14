@@ -13,6 +13,7 @@ export interface Settings {
   slackAppToken: string;
   slackSigningSecret: string;
   orchestratorUrl: string;
+  orchestratorServiceToken?: string;
   slackChannel: string;
   dashboardUrl?: string;
   diagrams: boolean;
@@ -37,6 +38,7 @@ export function loadSettings(env: NodeJS.ProcessEnv = process.env): Settings {
     slackAppToken: requireEnv(env, 'SLACK_APP_TOKEN'),
     slackSigningSecret: requireEnv(env, 'SLACK_SIGNING_SECRET'),
     orchestratorUrl: env.ORCHESTRATOR_URL || 'http://127.0.0.1:8080',
+    orchestratorServiceToken: env.ORCHESTRATOR_SERVICE_TOKEN || undefined,
     slackChannel: env.SLACK_CHANNEL || 'infrared-runs',
     diagrams: diagramsEnabled(env),
   };

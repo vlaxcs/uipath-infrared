@@ -1,3 +1,4 @@
+import { reportSignedOut } from "~/account/session";
 import { RunSourceError, type RunLogChunk, type RunSource, type TrialStarted } from "~/runs/source";
 import type {
   HumanDecision,
@@ -13,6 +14,7 @@ export function createHttpRunSource(baseUrl: string): RunSource {
   const request = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
     const response = await fetch(`${base}${path}`, {
       ...init,
+      credentials: "include",
       headers: init.body ? { "Content-Type": "application/json" } : undefined,
     });
     if (!response.ok) throw await errorFrom(response);
@@ -20,7 +22,7 @@ export function createHttpRunSource(baseUrl: string): RunSource {
   };
 
   const text = async (path: string, signal?: AbortSignal): Promise<string> => {
-    const response = await fetch(`${base}${path}`, { signal });
+    const response = await fetch(`${base}${path}`, { signal, credentials: "include" });
     if (!response.ok) throw await errorFrom(response);
     return response.text();
   };
@@ -59,6 +61,7 @@ export function createHttpRunSource(baseUrl: string): RunSource {
 }
 
 async function errorFrom(response: Response): Promise<RunSourceError> {
+  if (response.status === 401) reportSignedOut();
   let reason = `HTTP ${response.status}`;
   try {
     const body = (await response.json()) as { error?: unknown };

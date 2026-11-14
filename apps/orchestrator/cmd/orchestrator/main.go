@@ -30,6 +30,7 @@ func serve() error {
 	if err != nil {
 		return err
 	}
+	defer orchestrator.Close()
 	server := &http.Server{Addr: config.Addr, Handler: orchestrator.Handler, ReadHeaderTimeout: 10 * time.Second}
 
 	signals, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

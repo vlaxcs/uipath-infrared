@@ -29,6 +29,7 @@ func TestDemoPathEndToEnd(t *testing.T) {
 	stubs := filepath.Join(repo, "apps", "orchestrator", "testdata", "stubs")
 
 	t.Setenv("ORCHESTRATOR_ADDR", "127.0.0.1:0")
+	t.Setenv("ORCHESTRATOR_AUTH", "off")
 	t.Setenv("ORCHESTRATOR_RUNS_DIR", runsDir)
 	t.Setenv("ORCHESTRATOR_CONTRACTS_DIR", filepath.Join(repo, "contracts"))
 	t.Setenv("ORCHESTRATOR_PROJECTS_DIR", filepath.Join(repo, "contracts", "mock"))

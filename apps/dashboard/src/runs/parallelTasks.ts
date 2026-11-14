@@ -9,6 +9,7 @@ export type ParallelTask = {
   label: string;
   beside: RunStep;
   file: string;
+  candidate: string;
   state: ParallelTaskState;
 };
 
@@ -44,6 +45,14 @@ export function parallelTasks(
       : Number.isFinite(started) && now - started > PLAN_BUILD_LIMIT_MS
         ? "failed"
         : "running";
-    return [{ id: file, label: `Migration plan · ${fork.candidate}`, beside: fork.beside, file, state }];
+    return [{ id: file, label: `Migration plan · ${fork.candidate}`, beside: fork.beside, file, candidate: fork.candidate, state }];
   });
+}
+
+const TRIAL_FILE = /^rehearsal\.\d+\.trial-\d+\.json$/;
+
+export function trialCount(files: ReadonlySet<string>): number {
+  let count = 0;
+  for (const file of files) if (TRIAL_FILE.test(file)) count += 1;
+  return count;
 }

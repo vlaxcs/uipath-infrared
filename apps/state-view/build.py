@@ -33,6 +33,7 @@ def render_html(document: dict, card: dict | None = None) -> str:
     html = read(WEB / "template.html")
     replacements = {
         "/*__CSS__*/": read(WEB / "app.css"),
+        "/*__PROVIDERS__*/": read(WEB / "providers.js") if (WEB / "providers.js").exists() else "",
         "/*__JS__*/": read(WEB / "app.js"),
         "/*__DATA__*/null": _payload(document),
         "/*__CARD__*/null": _payload(card),

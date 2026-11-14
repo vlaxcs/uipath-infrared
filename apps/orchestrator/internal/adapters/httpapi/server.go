@@ -34,6 +34,10 @@ type Runs interface {
 }
 
 func Handler(runs Runs, allowedOrigins ...string) http.Handler {
+	return withCORS(routes(runs), allowedOrigins)
+}
+
+func routes(runs Runs) http.Handler {
 	api := &api{runs: runs}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /onboarding", api.onboarding)
@@ -48,7 +52,7 @@ func Handler(runs Runs, allowedOrigins ...string) http.Handler {
 	mux.HandleFunc("POST /runs/{id}/rehearsals", api.rehearse)
 	mux.HandleFunc("GET /profile", api.profile)
 	mux.HandleFunc("PUT /profile", api.saveProfile)
-	return withCORS(mux, allowedOrigins)
+	return mux
 }
 
 type api struct {

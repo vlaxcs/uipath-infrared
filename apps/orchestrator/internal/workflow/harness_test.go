@@ -2,6 +2,7 @@ package workflow_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -75,7 +76,8 @@ func defaultStage(name string) stage {
 		case "sandbox":
 			copyFile(filepath.Join(repo, "contracts", "rehearsal.example.json"), out)
 		case "states":
-			os.WriteFile(out, []byte(`{"dataset": {"candidate": "`+argument(invocation.Command, "--candidate")+`"}}`), 0o644)
+			catalog, _ := json.Marshal(argument(invocation.Command, "--catalog"))
+			os.WriteFile(out, []byte(`{"dataset": {"candidate": "`+argument(invocation.Command, "--candidate")+`", "catalog": `+string(catalog)+`}}`), 0o644)
 		}
 		return workflow.Outcome{}, nil
 	}

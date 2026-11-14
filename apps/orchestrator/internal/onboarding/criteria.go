@@ -31,6 +31,8 @@ var focusWeights = map[Focus]weights{
 const (
 	availabilityTargetPct = 99.95
 	availabilityZones     = 2
+	// A project's critical path multiplies its components' SLAs, so its target sits one step below the estate's.
+	projectAvailabilityPct = 99.9
 )
 
 // The catalog prices regions as eu-* and us-*, so a market narrows to its group.
@@ -48,6 +50,18 @@ func Markets() []string {
 	}
 	sort.Strings(codes)
 	return codes
+}
+
+func ProjectRules(criteria Criteria) map[string]any {
+	rules := map[string]any{"focus": string(criteria.Focus)}
+	switch criteria.Focus {
+	case FocusAvailability:
+		rules["min_availability_pct"] = projectAvailabilityPct
+	case FocusZone:
+		rules["market"] = criteria.Market
+		rules["allowed_regions"] = []string{marketRegions[criteria.Market]}
+	}
+	return rules
 }
 
 func CheckCriteria(criteria Criteria) error {

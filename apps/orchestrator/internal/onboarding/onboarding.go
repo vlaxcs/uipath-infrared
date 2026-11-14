@@ -1,6 +1,7 @@
 package onboarding
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -14,10 +15,33 @@ const (
 var ErrInvalid = errors.New("invalid onboarding")
 
 type Answers struct {
-	Connection string    `json:"connection"`
-	Targets    []string  `json:"targets"`
-	Onprem     Onprem    `json:"onprem"`
-	Criteria   *Criteria `json:"criteria,omitempty"`
+	Connection string      `json:"connection"`
+	Targets    []string    `json:"targets"`
+	Onprem     Onprem      `json:"onprem"`
+	Criteria   *Criteria   `json:"criteria,omitempty"`
+	FocusMode  string      `json:"focus_mode,omitempty"`
+	Apps       []AppAnswer `json:"applications,omitempty"`
+}
+
+const (
+	FocusPerPlan    = "plan"
+	FocusPerProject = "project"
+)
+
+type AppAnswer struct {
+	ID            string    `json:"id"`
+	UsersNow      int       `json:"users_now"`
+	UsersExpected int       `json:"users_expected"`
+	AtMonth       int       `json:"at_month"`
+	Criteria      *Criteria `json:"criteria,omitempty"`
+}
+
+type Application struct {
+	ID      string       `json:"id"`
+	Name    string       `json:"name"`
+	Summary string       `json:"summary"`
+	Stacks  []string     `json:"stacks"`
+	Users   ProjectUsers `json:"users"`
 }
 
 type Onprem struct {
@@ -33,6 +57,8 @@ type Constraints struct {
 	Allowed   []string
 	Forbidden []string
 	Criteria  *Criteria
+	FocusMode string
+	Apps      []AppAnswer
 }
 
 type Connection struct {
@@ -47,6 +73,7 @@ type Project struct {
 	Description        string          `json:"description"`
 	ForbiddenProviders []string        `json:"forbidden_providers"`
 	Profile            *ProjectProfile `json:"profile,omitempty"`
+	Applications       []Application   `json:"applications,omitempty"`
 }
 
 type ProjectProfile struct {
@@ -119,7 +146,25 @@ func Resolve(answers Answers, catalog Catalog, projectForbidden []string) (Const
 	} else {
 		forbidden = append(forbidden, OnpremProvider)
 	}
-	return Constraints{Allowed: sortedUnique(allowed), Forbidden: sortedUnique(forbidden), Criteria: answers.Criteria}, nil
+	if answers.FocusMode != "" && answers.FocusMode != FocusPerPlan && answers.FocusMode != FocusPerProject {
+		return Constraints{}, invalid("focus_mode must be plan or project")
+	}
+	seen := make(map[string]bool, len(answers.Apps))
+	for _, app := range answers.Apps {
+		if seen[app.ID] {
+			return Constraints{}, invalid("application %s is listed twice", app.ID)
+		}
+		seen[app.ID] = true
+		if app.UsersNow <= 0 || app.UsersExpected <= 0 || app.AtMonth < 1 {
+			return Constraints{}, invalid("%s: users now and expected must be above 0, and the month at least 1", app.ID)
+		}
+		if app.Criteria != nil {
+			if err := CheckCriteria(*app.Criteria); err != nil {
+				return Constraints{}, err
+			}
+		}
+	}
+	return Constraints{Allowed: sortedUnique(allowed), Forbidden: sortedUnique(forbidden), Criteria: answers.Criteria, FocusMode: answers.FocusMode, Apps: answers.Apps}, nil
 }
 
 func Apply(forecast map[string]any, constraints Constraints) error {
@@ -130,9 +175,93 @@ func Apply(forecast map[string]any, constraints Constraints) error {
 	hard["allowed_providers"] = constraints.Allowed
 	hard["forbidden_providers"] = constraints.Forbidden
 	if constraints.Criteria != nil {
-		return applyCriteria(forecast, *constraints.Criteria)
+		if err := applyCriteria(forecast, *constraints.Criteria); err != nil {
+			return err
+		}
+	}
+	return applyApps(forecast, constraints)
+}
+
+func applyApps(forecast map[string]any, constraints Constraints) error {
+	if len(constraints.Apps) == 0 {
+		return nil
+	}
+	listed, _ := forecast["projects"].([]any)
+	byID := make(map[string]map[string]any, len(listed))
+	for _, item := range listed {
+		if project, ok := item.(map[string]any); ok {
+			if id, _ := project["id"].(string); id != "" {
+				byID[id] = project
+			}
+		}
+	}
+	for _, app := range constraints.Apps {
+		project, ok := byID[app.ID]
+		if !ok {
+			return invalid("%s is not an application of this estate", app.ID)
+		}
+		users, _ := project["users"].(map[string]any)
+		if users == nil {
+			users = map[string]any{"metric": "users"}
+			project["users"] = users
+		}
+		low, high := spread(users)
+		users["current"] = app.UsersNow
+		users["expected"] = []any{map[string]any{
+			"month": app.AtMonth,
+			"low":   max(1, round(float64(app.UsersExpected)*low)),
+			"base":  app.UsersExpected,
+			"high":  max(1, round(float64(app.UsersExpected)*high)),
+		}}
+		if constraints.FocusMode == FocusPerProject && app.Criteria != nil {
+			project["focus"] = ProjectRules(*app.Criteria)
+		} else {
+			delete(project, "focus")
+		}
 	}
 	return nil
+}
+
+func spread(users map[string]any) (float64, float64) {
+	rows, _ := users["expected"].([]any)
+	var last map[string]any
+	lastMonth := -1.0
+	for _, item := range rows {
+		row, _ := item.(map[string]any)
+		if month, ok := number(row["month"]); ok && month > lastMonth {
+			last, lastMonth = row, month
+		}
+	}
+	base, _ := number(last["base"])
+	if base <= 0 {
+		return 1, 1
+	}
+	low, okLow := number(last["low"])
+	high, okHigh := number(last["high"])
+	if !okLow {
+		low = base
+	}
+	if !okHigh {
+		high = base
+	}
+	return low / base, high / base
+}
+
+func number(value any) (float64, bool) {
+	switch typed := value.(type) {
+	case float64:
+		return typed, true
+	case int:
+		return float64(typed), true
+	case json.Number:
+		parsed, err := typed.Float64()
+		return parsed, err == nil
+	}
+	return 0, false
+}
+
+func round(value float64) int {
+	return int(value + 0.5)
 }
 
 func ForbiddenIn(forecast map[string]any) []string {

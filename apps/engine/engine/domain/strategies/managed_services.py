@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 
+from engine.domain.availability import placement_availability
 from engine.domain.candidate import Action, ActionKind, Candidate
 from engine.domain.catalog import Catalog, Option
 from engine.domain.costing import cost_placement
 from engine.domain.end_state import EndState, Placement, apply_action, apply_candidate
-from engine.domain.forecast import Forecast, HardConstraints
+from engine.domain.forecast import Forecast, HardConstraints, ProjectGrowth
 from engine.domain.model import Infra, StayTogether
 from engine.domain.placement_size import unit_size
 from engine.domain.regions import region_matches
@@ -27,6 +28,7 @@ class Move:
     before_eur: float
     after_eur: float
     evidence: tuple
+    zones: int | None = None
 
     @property
     def saving_eur(self) -> float:
@@ -49,7 +51,10 @@ def managed_services(previous: Candidate, infra: Infra, catalog: Catalog, foreca
     groups = stay_together_groups(infra)
     assessments = {
         a.component: a
-        for a in (_assess(p, end_state, catalog, forecast.constraints, groups) for p in _movable(end_state, catalog))
+        for a in (
+            _assess(p, end_state, catalog, forecast.constraints, groups, forecast.project_of(p.component.stack))
+            for p in _movable(end_state, catalog)
+        )
     }
     chosen = {cid: a.cheapest() for cid, a in assessments.items()}
     chosen = {cid: m for cid, m in chosen.items() if m is not None and m.saving_eur > 0}
@@ -89,7 +94,9 @@ def _assess(
     catalog: Catalog,
     constraints: HardConstraints,
     groups: tuple[StayTogether, ...],
+    project: ProjectGrowth | None = None,
 ) -> Assessment:
+    floor = component_floor(project)
     component = placement.component
     before = cost_placement(placement, catalog).monthly_eur
     vcpu, memory_gb = unit_size(placement, catalog)
@@ -104,8 +111,16 @@ def _assess(
             continue
         choice = resolve_tier(option.pricing.tiers, None, vcpu, memory_gb, component.capacity_value("gpus"))
         tier = choice.tier.id if choice else None
+        zones = None
         after = apply_action(placement, _move_action(component.id, option, tier, ""), catalog)
-        if not _residency_ok(after, constraints):
+        if floor is not None and placement_availability(after, catalog).availability_pct < floor:
+            zones = max(2, placement.zones)
+            after = apply_action(placement, _move_action(component.id, option, tier, "", zones=zones), catalog)
+            reached = placement_availability(after, catalog).availability_pct
+            if reached < floor:
+                rejected.append(f"{option.id} reaches {reached:g}%, below the {floor:g}% {project.name} needs on its critical path")
+                continue
+        if not _residency_ok(after, constraints, project):
             rejected.append(f"{option.id} would put {component.data_classification} data in {after.region}")
             continue
         split = _region_group_split(after, end_state, groups)
@@ -117,7 +132,7 @@ def _assess(
             rejected.append(f"{option.id} cannot price it")
             continue
         evidence = cost.catalog.evidence if cost.catalog else ()
-        moves.append(Move(component.id, option, tier, before, cost.monthly_eur, evidence))
+        moves.append(Move(component.id, option, tier, before, cost.monthly_eur, evidence, zones))
     return Assessment(component.id, tuple(moves), tuple(rejected))
 
 
@@ -126,10 +141,21 @@ def _provider_allowed(provider: str, constraints: HardConstraints) -> bool:
     return (allowed is None or provider in allowed) and provider not in constraints.forbidden_providers
 
 
-def _residency_ok(placement: Placement, constraints: HardConstraints) -> bool:
+def component_floor(project: ProjectGrowth | None) -> float | None:
+    if project is None or project.min_availability_pct is None:
+        return None
+    return project.min_availability_pct + (100 - project.min_availability_pct) / 2
+
+
+def _residency_ok(placement: Placement, constraints: HardConstraints, project: ProjectGrowth | None = None) -> bool:
     residency = constraints.residency
     component = placement.component
-    if residency is None or not component.stateful or component.data_classification not in residency.applies_to:
+    if not component.stateful:
+        return True
+    if project is not None and project.allowed_regions:
+        classes = residency.applies_to if residency else frozenset({"pii", "confidential", "unknown"})
+        return component.data_classification not in classes or region_matches(placement.region, project.allowed_regions)
+    if residency is None or component.data_classification not in residency.applies_to:
         return True
     return region_matches(placement.region, residency.allowed_regions)
 
@@ -195,7 +221,9 @@ def _move_actions(
         reason += f", stays in {placement.region} with {', '.join(together)}"
     if assessment.rejected:
         reason += f"; rejected: {'; '.join(assessment.rejected)}"
-    actions = [_move_action(move.component, move.option, move.tier, reason, move.evidence)]
+    if move.zones:
+        reason += f", in {move.zones} zones for its availability target"
+    actions = [_move_action(move.component, move.option, move.tier, reason, move.evidence, move.zones)]
     if placement.component.features_used is None:
         actions.append(Action(
             move.component, ActionKind.FLAG,
@@ -205,5 +233,5 @@ def _move_actions(
     return tuple(actions)
 
 
-def _move_action(component: str, option: Option, tier: str | None, reason: str, evidence: tuple = ()) -> Action:
-    return Action(component, ActionKind.MOVE, reason, signal=MOVE_SIGNAL, evidence=evidence, tier=tier, option=option.id)
+def _move_action(component: str, option: Option, tier: str | None, reason: str, evidence: tuple = (), zones: int | None = None) -> Action:
+    return Action(component, ActionKind.MOVE, reason, signal=MOVE_SIGNAL, evidence=evidence, tier=tier, option=option.id, zones=zones)

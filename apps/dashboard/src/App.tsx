@@ -1,7 +1,10 @@
+import { useEffect, useEffectEvent, useState } from "react";
+import { onSignedOut, signOut } from "~/account/session";
 import { createHttpAccountSource, sampleAccountSource, type AccountSource } from "~/account/accountSource";
 import { useAccount } from "~/account/useAccount";
 import { HomePage } from "~/home/HomePage";
-import { useHashRoute } from "~/navigation/useHashRoute";
+import type { PageId } from "~/navigation/route";
+import { useRoute } from "~/navigation/useRoute";
 import { AccountPage } from "~/pages/AccountPage";
 import { AnalyzePage } from "~/pages/AnalyzePage";
 import { ConfigurationPage } from "~/pages/ConfigurationPage";
@@ -11,6 +14,7 @@ import { RunsSection } from "~/runs/RunsSection";
 import { settings } from "~/runs/settings";
 import type { RunSource } from "~/runs/source";
 import { Frame } from "~/shell/Frame";
+import { RefreshProvider } from "~/ui/refreshSignal";
 
 type AppProps = {
   source?: RunSource;
@@ -27,22 +31,38 @@ export function App({
   orchestratorUrl = settings.orchestratorUrl,
   extensionUrl = settings.extensionUrl,
 }: AppProps = {}) {
-  const route = useHashRoute();
+  const route = useRoute();
   const account = useAccount(accountSource);
+  const [refreshes, setRefreshes] = useState(0);
+  const openLogin = useEffectEvent(() => route.go("login"));
+
+  useEffect(() => onSignedOut(openLogin), []);
+
+  function enterSignedIn() {
+    window.location.assign(import.meta.env.BASE_URL);
+  }
+
+  function disconnect() {
+    if (orchestratorUrl) void signOut(orchestratorUrl);
+    route.go("login");
+  }
 
   if (route.page === "login") {
-    return <LoginPage orchestratorUrl={orchestratorUrl} onContinue={() => route.go("home")} />;
+    return <LoginPage orchestratorUrl={orchestratorUrl} onContinue={() => route.go("home")} onSignedIn={enterSignedIn} />;
   }
 
   return (
     <Frame
       showBack={route.page !== "home"}
+      title={pageTitle(route.page, route.runId)}
       account={account}
       onBack={route.back}
       onHome={() => route.go("home")}
       onNavigate={route.go}
-      onDisconnect={() => route.go("login")}
+      onDisconnect={disconnect}
+      onRefresh={() => setRefreshes((count) => count + 1)}
     >
+      <RefreshProvider value={refreshes}>
       {route.page === "home" ? (
         <HomePage extensionUrl={extensionUrl} onAnalyze={() => route.go("analyze")} onPrevious={() => route.go("runs")} />
       ) : route.page === "analyze" ? (
@@ -61,6 +81,15 @@ export function App({
       ) : (
         <AccountPage />
       )}
+      </RefreshProvider>
     </Frame>
   );
+}
+
+function pageTitle(page: PageId, runId: string | null): string | null {
+  if (page === "analyze") return "Run analysis";
+  if (page === "runs" && runId === null) return "Previous analysis";
+  if (page === "configuration") return "Configuration";
+  if (page === "account") return "Account";
+  return null;
 }

@@ -1,4 +1,4 @@
-from startup.build import security_group, world_open
+from startup.build import owned, security_group, world_open
 from startup.metrics import GB, WINDOW_HOURS, flat, shaped
 
 from projects import floci
@@ -40,8 +40,10 @@ def dev():
 
 def build():
     print("Building the fleet-telemetry estate (fleet- prefix)...")
-    prod()
-    dev()
+    with owned("fleet", "prod"):
+        prod()
+    with owned("fleet", "dev"):
+        dev()
     print("Fleet-telemetry estate built.")
 
 

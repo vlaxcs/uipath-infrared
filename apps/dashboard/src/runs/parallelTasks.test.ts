@@ -21,7 +21,7 @@ describe("the work that runs beside the pipeline", () => {
   it("builds the winner's migration plan beside Present once evaluate completes", () => {
     const tasks = parallelTasks({ events: [evaluated(1)] }, "managed", new Set(), start + 1000);
     expect(tasks).toEqual([
-      { id: "states.1.managed.json", label: "Migration plan · managed", beside: "present", file: "states.1.managed.json", state: "running" },
+      { id: "states.1.managed.json", label: "Migration plan · managed", beside: "present", file: "states.1.managed.json", candidate: "managed", state: "running" },
     ]);
   });
 

@@ -1,0 +1,339 @@
+{
+  "schema_version": "1.0",
+  "id": "northwind-2027-plan",
+  "description": "Northwind: ten applications in one estate, each scaling on its own users.",
+  "horizon_months": 36,
+  "currency": "EUR",
+  "scenarios": {
+    "low": {
+      "probability": 0.2,
+      "monthly_multiplier": {
+        "traffic": 1.005,
+        "data": 1.01
+      },
+      "note": "Market flat."
+    },
+    "base": {
+      "probability": 0.6,
+      "monthly_multiplier": {
+        "traffic": 1.02,
+        "data": 1.03
+      },
+      "note": "Roadmap delivered, ~27% traffic growth/year."
+    },
+    "high": {
+      "probability": 0.2,
+      "monthly_multiplier": {
+        "traffic": 1.04,
+        "data": 1.05
+      },
+      "note": "Marketplace launch lands well."
+    }
+  },
+  "hard_constraints": {
+    "data_residency": {
+      "allowed_regions": [
+        "eu-*",
+        "onprem-dc1"
+      ],
+      "applies_to": [
+        "pii",
+        "confidential",
+        "unknown"
+      ]
+    },
+    "budget": {
+      "max_monthly_run_cost_eur": 320000,
+      "max_one_off_migration_cost_eur": 300000
+    },
+    "min_availability_pct": 99.5,
+    "allowed_providers": [
+      "aws",
+      "supabase",
+      "neon",
+      "hetzner",
+      "fly",
+      "cloudflare",
+      "backblaze",
+      "runpod",
+      "onprem"
+    ],
+    "max_migration_effort_hours": 2600,
+    "max_cutover_downtime_hours": 4,
+    "security_gates": {
+      "forbid_public_datastores": true,
+      "require_encryption_at_rest": true,
+      "forbid_world_open_admin_ports": true,
+      "require_audit_logging": true,
+      "require_backups": true
+    }
+  },
+  "cto_settings": {
+    "ha_level": "multi_az",
+    "min_zones": 2,
+    "weights": {
+      "cost": 0.5,
+      "risk": 0.35,
+      "effort": 0.15
+    },
+    "tie_break": "lower_risk",
+    "strategies_enabled": [
+      "do_nothing",
+      "cleanup_orphans",
+      "rightsize_in_place",
+      "managed_services",
+      "consolidate",
+      "move_to_onprem"
+    ]
+  },
+  "business": {
+    "downtime_cost_per_hour_eur": 6500,
+    "downtime_cost_by_stack": {
+      "clinic-booking-dev": 0,
+      "clinic-booking-staging": 0,
+      "fleet-dev": 0,
+      "storefront-staging": 0,
+      "erp": 800
+    },
+    "engineer_hourly_eur": 85,
+    "discount_rate_annual": 0.08
+  },
+  "projects": [
+    {
+      "id": "storefront",
+      "name": "Storefront",
+      "stacks": [
+        "storefront-prod",
+        "storefront-staging"
+      ],
+      "users": {
+        "metric": "monthly_active_users",
+        "current": 1200000,
+        "expected": [
+          {
+            "month": 36,
+            "low": 2010400,
+            "base": 3427000,
+            "high": 6894600
+          }
+        ]
+      }
+    },
+    {
+      "id": "data-platform",
+      "name": "Data platform",
+      "stacks": [
+        "data-platform-prod"
+      ],
+      "users": {
+        "metric": "internal_users",
+        "current": 120,
+        "expected": [
+          {
+            "month": 36,
+            "low": 130,
+            "base": 160,
+            "high": 220
+          }
+        ]
+      }
+    },
+    {
+      "id": "erp",
+      "name": "ERP",
+      "stacks": [
+        "erp"
+      ],
+      "users": {
+        "metric": "internal_users",
+        "current": 380,
+        "expected": [
+          {
+            "month": 36,
+            "low": 380,
+            "base": 400,
+            "high": 430
+          }
+        ]
+      }
+    },
+    {
+      "id": "receipts",
+      "name": "Receipt scanner",
+      "stacks": [
+        "receipts-prod"
+      ],
+      "users": {
+        "metric": "monthly_active_users",
+        "current": 6500,
+        "expected": [
+          {
+            "month": 24,
+            "low": 8500,
+            "base": 13600,
+            "high": 21700
+          },
+          {
+            "month": 36,
+            "low": 9500,
+            "base": 17000,
+            "high": 30000
+          }
+        ]
+      }
+    },
+    {
+      "id": "clinic-booking",
+      "name": "Clinic booking",
+      "stacks": [
+        "clinic-booking-dev",
+        "clinic-booking-prod",
+        "clinic-booking-staging"
+      ],
+      "users": {
+        "metric": "monthly_active_users",
+        "current": 41000,
+        "expected": [
+          {
+            "month": 24,
+            "low": 70300,
+            "base": 112500,
+            "high": 178500
+          },
+          {
+            "month": 36,
+            "low": 80000,
+            "base": 140000,
+            "high": 230000
+          }
+        ]
+      }
+    },
+    {
+      "id": "fleet",
+      "name": "Fleet telemetry",
+      "stacks": [
+        "fleet-dev",
+        "fleet-prod"
+      ],
+      "users": {
+        "metric": "daily_active_users",
+        "current": 3200,
+        "expected": [
+          {
+            "month": 18,
+            "low": 6900,
+            "base": 10700,
+            "high": 16400
+          },
+          {
+            "month": 36,
+            "low": 8000,
+            "base": 15000,
+            "high": 26000
+          }
+        ]
+      }
+    },
+    {
+      "id": "payments",
+      "name": "Payments API",
+      "stacks": [
+        "payments-prod"
+      ],
+      "users": {
+        "metric": "monthly_active_users",
+        "current": 52000,
+        "expected": [
+          {
+            "month": 24,
+            "low": 90000,
+            "base": 150000,
+            "high": 240000
+          },
+          {
+            "month": 36,
+            "low": 100000,
+            "base": 190000,
+            "high": 320000
+          }
+        ]
+      }
+    },
+    {
+      "id": "hr-portal",
+      "name": "HR portal",
+      "stacks": [
+        "hr-portal-prod"
+      ],
+      "users": {
+        "metric": "internal_users",
+        "current": 900,
+        "expected": [
+          {
+            "month": 24,
+            "low": 1000,
+            "base": 1300,
+            "high": 1700
+          },
+          {
+            "month": 36,
+            "low": 1050,
+            "base": 1450,
+            "high": 1900
+          }
+        ]
+      }
+    },
+    {
+      "id": "support-assistant",
+      "name": "Support assistant",
+      "stacks": [
+        "support-assistant-prod"
+      ],
+      "users": {
+        "metric": "monthly_active_users",
+        "current": 15000,
+        "expected": [
+          {
+            "month": 12,
+            "low": 30000,
+            "base": 60000,
+            "high": 110000
+          },
+          {
+            "month": 36,
+            "low": 40000,
+            "base": 95000,
+            "high": 180000
+          }
+        ]
+      }
+    },
+    {
+      "id": "marketing-site",
+      "name": "Marketing site",
+      "stacks": [
+        "marketing-site-prod"
+      ],
+      "users": {
+        "metric": "monthly_visitors",
+        "current": 300000,
+        "expected": [
+          {
+            "month": 12,
+            "low": 330000,
+            "base": 450000,
+            "high": 650000
+          },
+          {
+            "month": 36,
+            "low": 360000,
+            "base": 560000,
+            "high": 900000
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { initialAnswers, startRequest } from "~/onboarding/answers";
+import { initialAnswers, onpremChanged, startRequest, withOnpremOnProfile } from "~/onboarding/answers";
 import { OrchestratorError, orchestratorOnboarding, type OnboardingSource } from "~/onboarding/api";
 import { OnboardingForm } from "~/onboarding/OnboardingForm";
 import { holderOf } from "~/onboarding/projectHolder";
 import type { RunSummary } from "~/runs/types";
+import { useOnRefresh } from "~/ui/refreshSignal";
 import { StartedRun } from "~/onboarding/StartedRun";
 import { DEFAULT_PROFILE } from "~/onboarding/criteria";
 import type { Answers, OnboardingSetup, Profile, StartedRun as Started } from "~/onboarding/types";
@@ -28,6 +29,9 @@ export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun
   const [attempt, setAttempt] = useState(0);
   const [runs, setRuns] = useState<RunSummary[]>([]);
   const [runsAttempt, setRunsAttempt] = useState(0);
+  const [asking, setAsking] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  useOnRefresh(() => setRunsAttempt((count) => count + 1));
 
   useEffect(() => {
     let current = true;
@@ -60,8 +64,9 @@ export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun
     };
   }, [source, attempt]);
 
-  const start = useCallback(() => {
+  const launch = useCallback(() => {
     if (!answers) return;
+    setAsking(false);
     setStarting(true);
     setError(null);
     source
@@ -72,6 +77,34 @@ export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun
       })
       .finally(() => setStarting(false));
   }, [answers, source]);
+
+  const start = useCallback(() => {
+    if (!answers || loaded.state !== "ready") return;
+    if (onpremChanged(loaded.profile, answers)) {
+      setAsking(true);
+      return;
+    }
+    launch();
+  }, [answers, loaded, launch]);
+
+  const saveAndStart = useCallback(() => {
+    if (!answers || loaded.state !== "ready") return;
+    setSavingProfile(true);
+    setError(null);
+    source
+      .saveProfile(withOnpremOnProfile(loaded.profile, answers))
+      .then(
+        (profile) => {
+          setLoaded({ ...loaded, profile });
+          launch();
+        },
+        (failure: unknown) => {
+          setAsking(false);
+          setError(reasonOf(failure));
+        },
+      )
+      .finally(() => setSavingProfile(false));
+  }, [answers, loaded, launch, source]);
 
   if (loaded.state === "loading") {
     return (
@@ -118,6 +151,8 @@ export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun
       error={error}
       holder={answers.project ? holderOf(runs, answers.project) : null}
       onOpenRun={onFollowRun}
+      profile={loaded.profile}
+      saveChoice={asking ? { saving: savingProfile, onSave: saveAndStart, onSkip: launch, onBack: () => setAsking(false) } : null}
     />
   ) : null;
 }

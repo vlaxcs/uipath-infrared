@@ -71,10 +71,12 @@ class DiffTest(unittest.TestCase):
     def test_target_diff_against_current(self):
         dataset = build_states.build_dataset(candidate_id="consolidate")
         diff = snapshot.diff_against_current(dataset, len(dataset["states"]) - 1)
-        self.assertEqual(len(diff["removed"]), 8)
+        self.assertEqual(len(diff["removed"]), 7)
         self.assertEqual(diff["added"], [])
         self.assertIn("rds-orders", diff["changed"])
         self.assertNotIn("ddb-orders", diff["changed"])  # flagged only
+        self.assertEqual(diff["moved"], ["rds-erp", "s3-legacy-reports"])
+        self.assertNotIn("rds-erp", diff["changed"])
         total = sum(len(v) for k, v in diff.items() if k != "removed")
         self.assertEqual(total, len(ids(dataset["states"][-1])))
 
@@ -113,7 +115,7 @@ class CliTest(unittest.TestCase):
             self.assertEqual(payload["layout"], "consolidate")
             self.assertEqual(payload["state"], "target")
             self.assertIn("21 changes", payload["title"])
-            self.assertEqual(payload["caption"], "€133,308/mo → €74,365/mo · 8 changed · 0 added · 8 removed")
+            self.assertEqual(payload["caption"], "€133,308/mo → €74,365/mo · 7 changed · 2 moved · 0 added · 7 removed")
             self.assertTrue(payload["alt"].endswith("."))
             html = out.read_text(encoding="utf-8")
             self.assertIn('window.ESTATE_CARD = {"state":"target"}', html)

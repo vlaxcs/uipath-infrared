@@ -39,6 +39,18 @@ describe('HTTP orchestrator', () => {
     });
   });
 
+  it('sends the service token on reads and on decisions when it has one', async () => {
+    const fetch = stubFetch(200, []);
+    const orchestrator = new HttpOrchestrator('http://orch', 'service-token');
+    await orchestrator.listRuns();
+    await orchestrator.submitDecision('run-1', planApprovalFromSlack('a'));
+    const calls = fetch.mock.calls as unknown as [string, RequestInit][];
+    expect(new Headers(calls[0][1].headers).get('Authorization')).toBe('Bearer service-token');
+    const decision = new Headers(calls[1][1].headers);
+    expect(decision.get('Authorization')).toBe('Bearer service-token');
+    expect(decision.get('Content-Type')).toBe('application/json');
+  });
+
   it('fails with the status when the orchestrator refuses', async () => {
     stubFetch(409, { error: 'gate plan is not open' });
     await expect(new HttpOrchestrator('http://orch').submitDecision('run-1', planApprovalFromSlack('a'))).rejects.toThrow('409');
