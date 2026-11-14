@@ -1,11 +1,12 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from typing import Mapping
 
 from engine.domain.action_savings import ActionOutcome, action_outcomes
 from engine.domain.baseline import Baseline
 from engine.domain.candidate import ActionKind, Candidate
 from engine.domain.catalog import Catalog
 from engine.domain.constraints import CandidateFigures, ConstraintCheck, check_constraints
-from engine.domain.costing import ComponentCost, cost_placement
+from engine.domain.costing import ONPREM_SOURCE, ComponentCost, cost_placement
 from engine.domain.egress import new_boundary_egress
 from engine.domain.end_state import EndState, apply_candidate
 from engine.domain.forecast import Forecast
@@ -72,6 +73,18 @@ class Evaluation:
         return self.projection.monthly_now_eur + self.ops_eur_month
 
     @property
+    def upfront_hardware_eur(self) -> float:
+        return self.onprem.upfront_hardware_eur if self.onprem else 0.0
+
+    @property
+    def capex_amortised_eur_month(self) -> float:
+        return self.onprem.allocated.capex_amortised_eur_month if self.onprem else 0.0
+
+    @property
+    def monthly_now_cash_eur(self) -> float:
+        return self.monthly_now_total_eur - self.capex_amortised_eur_month
+
+    @property
     def expected_total_eur(self) -> float:
         return self.total_for(None)
 
@@ -93,13 +106,12 @@ def evaluate_candidate(
 ) -> Evaluation:
     business = forecast.business
     end_state = apply_candidate(infra, catalog, candidate)
-    costs = tuple(cost_placement(p, catalog) for p in end_state.placements.values())
+    onprem = platform_cost(end_state, catalog, forecast)
+    onprem_eur = onprem.component_eur_month if onprem else {}
+    costs = tuple(_with_onprem(cost_placement(p, catalog), onprem_eur) for p in end_state.placements.values())
     egress = new_boundary_egress(end_state, infra, catalog)
     split = total_split(growth_split(c, end_state.placements[c.component]) for c in costs)
     split[Growth.TRAFFIC] += egress.monthly_eur
-    onprem = platform_cost(end_state, catalog, business)
-    if onprem is not None:
-        split[Growth.FIXED] += onprem.allocated_monthly_eur
     projection = project(split, forecast)
     migration = migration_of(
         end_state, catalog, business,
@@ -109,13 +121,14 @@ def evaluate_candidate(
     remediation = tuple(a for a in candidate.actions if a.kind == ActionKind.REMEDIATE)
     remediation_hours = remediation_effort_hours(remediation)
     remediation_eur = remediation_hours * business.engineer_hourly_eur
-    migration_eur = migration.eur + remediation_eur
+    migration_eur = migration.eur + remediation_eur + (onprem.setup_eur if onprem else 0.0)
     effort_hours = migration.hours + remediation_hours
     check = check_constraints(end_state, infra, catalog, forecast, CandidateFigures(
         run_eur_month_at_horizon_base=projection.at_horizon_by_scenario["base"],
         migration_eur=migration_eur,
         effort_hours=effort_hours,
         cutover_hours=migration.cutover_hours,
+        upfront_hardware_eur=onprem.upfront_hardware_eur if onprem else 0.0,
     ))
     ops = ops_monthly_eur(end_state, catalog, business)
     outage = expected_outage_loss_eur_year(check.availability, business)
@@ -127,7 +140,7 @@ def evaluate_candidate(
         costs=costs,
         projection=projection,
         migration=migration,
-        outcomes=action_outcomes(candidate, baseline.end_state, catalog),
+        outcomes=action_outcomes(candidate, baseline.end_state, catalog, onprem_eur),
         check=check,
         ops_eur_month=ops,
         outage_eur_year=outage,
@@ -142,6 +155,12 @@ def evaluate_candidate(
         confidence=confidence_of(_evidence(candidate, baseline)),
         flags=_flags(candidate, costs, catalog, baseline, egress.unpriced_edges),
     )
+
+
+def _with_onprem(cost: ComponentCost, onprem_eur: Mapping[str, float]) -> ComponentCost:
+    if cost.source != ONPREM_SOURCE or cost.component not in onprem_eur:
+        return cost
+    return replace(cost, monthly_eur=onprem_eur[cost.component])
 
 
 def baseline_evidence(baseline: Baseline) -> tuple[Evidence, ...]:

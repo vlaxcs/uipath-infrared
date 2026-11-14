@@ -82,6 +82,11 @@ class Platform:
     colocation_eur_month: float
     disks: Mapping[str, float]
     staff: Mapping[str, float]
+    maintenance_pct_of_capex_year: float = 0.0
+    network_eur_month: float = 0.0
+    licences_eur_month: float = 0.0
+    setup_one_off_eur: float = 0.0
+    contingency_pct: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -191,4 +196,9 @@ def _platform(raw: Mapping[str, Any]) -> Platform:
         colocation_eur_month=raw.get("colocation_eur_month", 0.0),
         disks=dict(raw.get("disks", {})),
         staff=dict(raw.get("staff", {})),
+        maintenance_pct_of_capex_year=raw.get("maintenance_pct_of_capex_year", 0.0),
+        network_eur_month=raw.get("network_eur_month", 0.0),
+        licences_eur_month=raw.get("licences_eur_month", 0.0),
+        setup_one_off_eur=raw.get("setup_one_off_eur", 0.0),
+        contingency_pct=raw.get("contingency_pct", 0.0),
     )

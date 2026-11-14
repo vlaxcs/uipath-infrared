@@ -7,6 +7,7 @@ from engine.domain.pricing import Price, catalog_price
 from engine.domain.provenance import Provenance
 
 ONPREM_ALLOCATED = "onprem_allocated"
+ONPREM_SOURCE = "onprem"
 
 
 @dataclass(frozen=True)
@@ -31,7 +32,7 @@ def cost_placement(placement: Placement, catalog: Catalog) -> ComponentCost:
     if placement.unchanged and price is not None and price.complete:
         return ComponentCost(component.id, price.monthly_eur, "catalog", reported, price)
     if price is not None and ONPREM_ALLOCATED in price.gaps:
-        return ComponentCost(component.id, 0.0, "onprem", reported, price)
+        return ComponentCost(component.id, 0.0, ONPREM_SOURCE, reported, price)
     if price is not None and price.complete:
         return ComponentCost(component.id, price.monthly_eur, "catalog", reported, price)
     if price is not None and price.lines:
