@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "project": "fleet-telemetry",
+  "name": "Fleet telemetry",
+  "summary": "GPS tracking for courier vans: every van sends its position every few seconds, dispatchers watch a live map and get alerts when a delivery runs late or a van leaves its zone.",
+  "owner": "Telemetry team (5 engineers)",
+  "business": {
+    "model": "b2b_saas",
+    "customers": "Courier and delivery companies pay per van; dispatchers and drivers use it.",
+    "markets": [
+      "Romania",
+      "Hungary",
+      "Czechia"
+    ],
+    "critical_flows": [
+      "A van's position shows on the live map within two seconds",
+      "Late-delivery alert reaches the dispatcher"
+    ]
+  },
+  "forecast_id": "fleet-telemetry-2027-plan",
+  "environments": [
+    {
+      "name": "prod",
+      "stacks": [
+        "prod"
+      ],
+      "purpose": "Ingest pipeline, live map API and customer accounts.",
+      "always_on": true,
+      "data": "production",
+      "users": "dispatchers and drivers"
+    },
+    {
+      "name": "dev",
+      "stacks": [
+        "dev"
+      ],
+      "purpose": "A dev stream fed by a trace replay box; no staging, releases go from dev to prod.",
+      "always_on": true,
+      "data": "copy_of_production",
+      "users": "engineers"
+    }
+  ],
+  "users": {
+    "metric": "daily_active_users",
+    "definition": "Dispatchers signed in to the map plus drivers with the app open, per day.",
+    "current": {
+      "value": 3200,
+      "as_of": "2026-11-01",
+      "provenance": "synthetic",
+      "source": "hand-written mock"
+    },
+    "peak_concurrent": 2100,
+    "note": "About 6,000 vans send positions today; vans are devices, not users.",
+    "expected": [
+      {
+        "month": 4,
+        "low": 6000,
+        "base": 6600,
+        "high": 7300,
+        "note": "Two courier networks onboard"
+      },
+      {
+        "month": 6,
+        "low": 6100,
+        "base": 7100,
+        "high": 8200
+      },
+      {
+        "month": 12,
+        "low": 6500,
+        "base": 8700,
+        "high": 11600
+      },
+      {
+        "month": 18,
+        "low": 6900,
+        "base": 10700,
+        "high": 16400
+      }
+    ]
+  }
+}

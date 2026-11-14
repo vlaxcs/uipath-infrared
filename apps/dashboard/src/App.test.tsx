@@ -8,7 +8,13 @@ import type { RunDetail } from "~/runs/types";
 
 vi.mock("~/onboarding/api", async (original) => ({
   ...(await original<typeof import("~/onboarding/api")>()),
-  orchestratorOnboarding: { load: () => new Promise(() => {}), start: () => new Promise(() => {}) },
+  orchestratorOnboarding: {
+    load: () => new Promise(() => {}),
+    start: () => new Promise(() => {}),
+    loadProfile: () => new Promise(() => {}),
+    saveProfile: () => new Promise(() => {}),
+    listRuns: () => new Promise(() => {}),
+  },
 }));
 
 afterEach(() => {
@@ -16,75 +22,117 @@ afterEach(() => {
   window.location.hash = "";
 });
 
-describe("the dashboard shell", () => {
-  it("shows the brand and every section", async () => {
+describe("the platform frame", () => {
+  it("opens on home with Analyze, Previous analysis and the extension, and no sidebar", () => {
+    render(<App extensionUrl="https://chromewebstore.google.com/detail/infrared" />);
+    expect(screen.getByRole("button", { name: "Infrared home" })).toBeTruthy();
+    const analyses = screen.getByRole("navigation", { name: "Analyses" });
+    expect(within(analyses).getAllByRole("button").map((button) => button.textContent)).toEqual(["Analyze1x", "Previous analysis"]);
+    expect(within(analyses).getByRole("button", { name: "Analyze, costs 1 run" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Browser extension" }).getAttribute("href")).toBe(
+      "https://chromewebstore.google.com/detail/infrared",
+    );
+    expect(screen.queryByRole("navigation", { name: "Primary" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
+  });
+
+  it("shows the extension button disabled when it has no URL", () => {
+    render(<App extensionUrl={null} />);
+    const button = screen.getByRole("button", { name: "Browser extension" }) as HTMLButtonElement;
+    expect(button.disabled).toBe(true);
+    expect(button.title).toBe("Not published yet");
+  });
+
+  it("opens a new analysis with a fade, and Back returns home", async () => {
     render(<App />);
-    expect(screen.getByText("Infrared")).toBeTruthy();
-    const nav = screen.getByRole("navigation", { name: "Primary" });
-    for (const label of ["New run", "Runs", "Graph", "Candidates", "Rehearsal", "Approvals"]) {
-      expect(nav.textContent).toContain(label);
+    fireEvent.click(screen.getByRole("button", { name: "Analyze, costs 1 run" }));
+    expect(window.location.hash).toBe("#/analyze");
+    expect(screen.getByRole("heading", { level: 1, name: "New analysis" }).closest("section")?.className).toContain("animate-panel-in");
+
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    await waitFor(() => expect(screen.getByRole("navigation", { name: "Analyses" })).toBeTruthy());
+  });
+
+  it("opens Configuration and Account from the account menu", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Configuration" }));
+    expect(window.location.hash).toBe("#/configuration");
+    expect(screen.getByRole("heading", { level: 1, name: "Configuration" })).toBeTruthy();
+    for (const section of ["GitHub organisation", "Cloud access"]) {
+      expect(screen.getByRole("heading", { level: 2, name: section })).toBeTruthy();
     }
-    expect(screen.getByText("Sample data")).toBeTruthy();
-    expect(await screen.findByRole("table", { name: "Runs" })).toBeTruthy();
+    expect(screen.getByText("Loading the defaults")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Account" }));
+    expect(window.location.hash).toBe("#/account");
+    expect(screen.getByRole("heading", { level: 2, name: "Subscription" })).toBeTruthy();
   });
 
-  it("opens New run from the menu at #/start, without the data badge", async () => {
-    render(<App />);
-    await screen.findByRole("table", { name: "Runs" });
-
-    fireEvent.click(screen.getByRole("button", { name: "New run" }));
-    expect(screen.getByRole("heading", { level: 1, name: "New run" })).toBeTruthy();
-    expect(screen.getByRole("status").textContent).toContain("Loading the platform");
-    expect(window.location.hash).toBe("#/start");
-    expect(screen.queryByText("Sample data")).toBeNull();
+  it("disconnects to the sign-in page, which signs in with GitHub on the orchestrator", () => {
+    render(<App orchestratorUrl="http://127.0.0.1:8090" />);
+    fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Disconnect" }));
+    expect(window.location.hash).toBe("#/login");
+    expect(screen.getByRole("link", { name: "Sign in with GitHub" }).getAttribute("href")).toBe("http://127.0.0.1:8090/auth/github");
+    expect(screen.queryByRole("button", { name: "Account menu" })).toBeNull();
   });
 
-  it("opens a run on its own page and returns to the list", async () => {
+  it("shows the runs left as Nx and the plan beside the avatar", async () => {
+    render(<App accountSource={{ load: async () => ({ login: "vlaxcs", avatarUrl: null, credits: 1, plan: "run_pack" }) }} />);
+    const balance = await screen.findByRole("img", { name: "1 run left" });
+    expect(balance.textContent).toBe("1x");
+    expect(screen.getByText("Run pack")).toBeTruthy();
+  });
+
+  it("shows no balance when the orchestrator has no account to give", async () => {
+    const load = vi.fn(async () => null);
+    render(<App accountSource={{ load }} />);
+    await waitFor(() => expect(load).toHaveBeenCalled());
+    expect(screen.queryByRole("img", { name: /runs? left/ })).toBeNull();
+    expect(screen.getByRole("button", { name: "Account menu" })).toBeTruthy();
+  });
+
+  it("continues with sample data when there is no orchestrator", () => {
+    window.location.hash = "#/login";
+    render(<App orchestratorUrl={null} />);
+    fireEvent.click(screen.getByRole("button", { name: "Continue with sample data" }));
+    expect(window.location.hash).toBe("#/");
+  });
+});
+
+describe("previous analyses", () => {
+  it("lists the runs and opens one on its own page", async () => {
     render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Previous analysis" }));
     const table = await screen.findByRole("table", { name: "Runs" });
     expect(table.textContent).toContain("demo-shop");
 
     fireEvent.click(within(table).getByRole("button", { name: /run-demo-shop-0001/ }));
-
     const summary = await screen.findByRole("region", { name: "demo-shop" });
     expect(summary.textContent).toContain("Completed");
-    expect(summary.textContent).toContain("rehearse");
-    expect(summary.textContent).toContain("1 / 2");
-    expect(summary.textContent).toContain("forecast.json");
-    expect(summary.textContent).toContain("catalog.json");
-    expect(screen.queryByRole("table", { name: "Runs" })).toBeNull();
     expect(window.location.hash).toBe("#/runs/run-demo-shop-0001");
 
     const timeline = screen.getByRole("region", { name: "Timeline" });
-    expect(timeline.textContent).toContain("keep_analyses");
-    expect(timeline.textContent).toContain("the GPU and orphan findings stand; the ERP one waits for the vendor");
     expect(timeline.textContent).toContain("pick_layout");
-    expect(timeline.textContent).toContain("managed_services");
     expect(timeline.textContent).toContain("approve_plan");
-    expect(timeline.textContent).toContain("cto (dashboard)");
-    expect(timeline.textContent).toContain("cto (slack)");
-    expect(timeline.textContent).toContain("result.0.json");
-    expect(timeline.textContent).toContain("result.1.json");
-    expect(timeline.textContent).toContain("rehearsal.json");
-    expect(screen.queryByText("A layout is waiting to be picked")).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: /All runs/ }));
-
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
     expect(await screen.findByRole("table", { name: "Runs" })).toBeTruthy();
-    expect(screen.queryByRole("region", { name: "demo-shop" })).toBeNull();
+  });
+
+  it("opens a run directly from the URL, and Back goes to the list", async () => {
+    window.location.hash = "#/runs/run-demo-shop-0001";
+    render(<App />);
+    expect(await screen.findByRole("region", { name: "demo-shop" })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    expect(await screen.findByRole("table", { name: "Runs" })).toBeTruthy();
     expect(window.location.hash).toBe("#/runs");
   });
 
-  it("opens a run directly from the URL", async () => {
-    window.location.hash = "#/runs/run-demo-shop-0001";
-    render(<App />);
-
-    expect(await screen.findByRole("region", { name: "demo-shop" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
-    expect(screen.queryByRole("table", { name: "Runs" })).toBeNull();
-  });
-
-  it("lists approvals and opens the run at its gate", async () => {
+  it("opens a run at its gate", async () => {
     const waiting = { ...cutSampleRun(14), id: "run-approvals-0001" };
     const source: RunSource = {
       ...sampleRunSource,
@@ -95,75 +143,9 @@ describe("the dashboard shell", () => {
         throw new Error(`run ${id} not found`);
       },
     };
-
-    window.location.hash = "#/approvals";
+    window.location.hash = "#/runs/run-approvals-0001/gate";
     render(<App source={source} />);
-
-    const table = await screen.findByRole("table", { name: "Approvals" });
-    fireEvent.click(within(table).getByRole("button", { name: "Review run-approvals-0001" }));
-
-    await waitFor(() => expect(window.location.hash).toBe("#/runs/run-approvals-0001/gate"));
     expect(await screen.findByRole("heading", { level: 2, name: "Present" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /All approvals/ })).toBeTruthy();
     expect(screen.getByText("Keep analyses")).toBeTruthy();
-
-    fireEvent.click(screen.getByRole("button", { name: /All approvals/ }));
-
-    expect(await screen.findByRole("table", { name: "Approvals" })).toBeTruthy();
-    expect(window.location.hash).toBe("#/approvals");
   });
-
-  it("renders the start-up dependency graph", () => {
-    render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Graph" }));
-
-    expect(screen.getByRole("heading", { level: 1, name: "Graph" })).toBeTruthy();
-    expect(screen.getByRole("group", { name: "Dependency graph" })).toBeTruthy();
-    expect(screen.getByText("10 components · 9 dependencies")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /web-server/ })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /app-db/ })).toBeTruthy();
-    expect(screen.queryByText("Not built yet")).toBeNull();
-  });
-
-  it("shows the candidates and the winner's change, and returns to Runs", async () => {
-    render(<App />);
-    await screen.findByRole("table", { name: "Runs" });
-
-    fireEvent.click(screen.getByRole("button", { name: "Candidates" }));
-    expect(screen.getByRole("heading", { level: 1, name: "Candidates" })).toBeTruthy();
-    expect(window.location.hash).toBe("#/candidates");
-    expect(screen.queryByText("Not built yet")).toBeNull();
-    const detail = screen.getByRole("region", { name: "consolidate" });
-    expect(detail.textContent).toContain("Winner");
-    expect(detail.textContent).toContain("The change, step by step");
-    expect(detail.textContent).toContain("Security remediation");
-
-    fireEvent.click(screen.getByRole("button", { name: "Runs" }));
-    expect(screen.getByRole("heading", { level: 1, name: "Runs" })).toBeTruthy();
-    expect(await screen.findByRole("table", { name: "Runs" })).toBeTruthy();
-    expect(window.location.hash).toBe("#/runs");
-  });
-
-  it("renders the passed rehearsal and the derived fallback", () => {
-    render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Rehearsal" }));
-
-    expect(screen.getByRole("heading", { level: 1, name: "Rehearsal" })).toBeTruthy();
-    expect(screen.queryByText("Not built yet")).toBeNull();
-
-    const verdict = screen.getByRole("region", { name: "Verdict" });
-    expect(verdict.textContent).toContain("Passed");
-    expect(verdict.textContent).toContain("99.94%");
-    expect(verdict.textContent).toContain("99.9%");
-    expect(verdict.textContent).toContain("Proceed");
-
-    expect(screen.getByRole("table", { name: "Component health" })).toBeTruthy();
-
-    const fallback = screen.getByRole("region", { name: "The fallback" });
-    expect(fallback.textContent).toContain("Held");
-    expect(fallback.textContent).toContain(
-      "The load balancer routed traffic around the failed instance.",
-    );
-  });
-
 });

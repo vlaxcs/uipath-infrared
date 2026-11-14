@@ -8,6 +8,285 @@
     "unit": "HostedZone",
     "url": "https://aws.amazon.com/route53/pricing/"
   },
+  "azure-blob:hot-lrs-gb": {
+    "amount": 0.0196,
+    "currency": "USD",
+    "note": "Azure Blob Storage Hot LRS, first 50 TB, West Europe, USD per GB-month.",
+    "quote": "\"tierMinimumUnits\":0.0,\"retailPrice\":0.0196,\"unitPrice\":0.0196,\"armRegionName\":\"westeurope\",\"location\":\"EU West\",\"effectiveStartDate\":\"2017-02-03T00:00:00Z\",\"meterId\":\"10e5ee74-8fd6-4972-909f-65a83f92f0ce\"",
+    "read_on": "2026-11-14",
+    "unit": "GB-Mo",
+    "url": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Storage'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Blob%20Storage'%20and%20skuName%20eq%20'Hot%20LRS'%20and%20meterName%20eq%20'Hot%20LRS%20Data%20Stored'"
+  },
+  "azure-net:egress-gb": {
+    "amount": 0.08,
+    "currency": "USD",
+    "note": "Azure internet egress from West Europe after the first 100 GB, USD per GB.",
+    "quote": "\"tierMinimumUnits\":100.0,\"retailPrice\":0.08,\"unitPrice\":0.08,\"armRegionName\":\"westeurope\",\"location\":\"EU West\",\"effectiveStartDate\":\"2022-03-01T00:00:00Z\",\"meterId\":\"6bd64e8e-5cb9-49d3-893d-800c9b28dca3\"",
+    "read_on": "2026-11-14",
+    "unit": "GB",
+    "url": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Bandwidth'%20and%20armRegionName%20eq%20'westeurope'%20and%20meterName%20eq%20'Standard%20Data%20Transfer%20Out'%20and%20productName%20eq%20'Bandwidth%20-%20Routing%20Preference%3A%20Internet'"
+  },
+  "azure-pg:16-vcore": {
+    "amount": 1.696,
+    "currency": "USD",
+    "note": "Azure Database for PostgreSQL Flexible Server, General Purpose Ddsv5 16-vcore, West Europe, USD per hour, 4 GiB per vCore.",
+    "quote": "\"tierMinimumUnits\":0.0,\"retailPrice\":1.696,\"unitPrice\":1.696,\"armRegionName\":\"westeurope\",\"location\":\"EU West\",\"effectiveStartDate\":\"2023-03-01T00:00:00Z\",\"meterId\":\"1f8d16e9-b4b6-5926-b2d6-9534ae6f2fe5\"",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Azure%20Database%20for%20PostgreSQL'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Azure%20Database%20for%20PostgreSQL%20Flexible%20Server%20General%20Purpose%20Ddsv5%20Series%20Compute'"
+  },
+  "azure-pg:2-vcore": {
+    "amount": 0.212,
+    "currency": "USD",
+    "note": "Azure Database for PostgreSQL Flexible Server, General Purpose Ddsv5 2-vcore, West Europe, USD per hour, 4 GiB per vCore.",
+    "quote": "\"tierMinimumUnits\":0.0,\"retailPrice\":0.212,\"unitPrice\":0.212,\"armRegionName\":\"westeurope\",\"location\":\"EU West\",\"effectiveStartDate\":\"2023-03-01T00:00:00Z\",\"meterId\":\"ea089c83-8390-5aa1-ba63-de098e2b8475\"",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Azure%20Database%20for%20PostgreSQL'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Azure%20Database%20for%20PostgreSQL%20Flexible%20Server%20General%20Purpose%20Ddsv5%20Series%20Compute'"
+  },
+  "azure-pg:32-vcore": {
+    "amount": 3.392,
+    "currency": "USD",
+    "note": "Azure Database for PostgreSQL Flexible Server, General Purpose Ddsv5 32-vcore, West Europe, USD per hour, 4 GiB per vCore.",
+    "quote": "\"tierMinimumUnits\":0.0,\"retailPrice\":3.392,\"unitPrice\":3.392,\"armRegionName\":\"westeurope\",\"location\":\"EU West\",\"effectiveStartDate\":\"2023-03-01T00:00:00Z\",\"meterId\":\"b492895e-8094-5eaa-abb8-e6d853287faa\"",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Azure%20Database%20for%20PostgreSQL'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Azure%20Database%20for%20PostgreSQL%20Flexible%20Server%20General%20Purpose%20Ddsv5%20Series%20Compute'"
+  },
+  "azure-pg:4-vcore": {
+    "amount": 0.424,
+    "currency": "USD",
+    "note": "Azure Database for PostgreSQL Flexible Server, General Purpose Ddsv5 4-vcore, West Europe, USD per hour, 4 GiB per vCore.",
+    "quote": "\"tierMinimumUnits\":0.0,\"retailPrice\":0.424,\"unitPrice\":0.424,\"armRegionName\":\"westeurope\",\"location\":\"EU West\",\"effectiveStartDate\":\"2023-03-01T00:00:00Z\",\"meterId\":\"183009e7-9adb-59b8-93ba-2bbdb93064af\"",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Azure%20Database%20for%20PostgreSQL'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Azure%20Database%20for%20PostgreSQL%20Flexible%20Server%20General%20Purpose%20Ddsv5%20Series%20Compute'"
+  },
+  "azure-pg:8-vcore": {
+    "amount": 0.848,
+    "currency": "USD",
+    "note": "Azure Database for PostgreSQL Flexible Server, General Purpose Ddsv5 8-vcore, West Europe, USD per hour, 4 GiB per vCore.",
+    "quote": "\"tierMinimumUnits\":0.0,\"retailPrice\":0.848,\"unitPrice\":0.848,\"armRegionName\":\"westeurope\",\"location\":\"EU West\",\"effectiveStartDate\":\"2023-03-01T00:00:00Z\",\"meterId\":\"c1c3af49-af72-55b5-9864-f179999bb1b0\"",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Azure%20Database%20for%20PostgreSQL'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Azure%20Database%20for%20PostgreSQL%20Flexible%20Server%20General%20Purpose%20Ddsv5%20Series%20Compute'"
+  },
+  "azure-pg:storage-gb": {
+    "amount": 0.1369,
+    "currency": "USD",
+    "note": "Azure PostgreSQL Flexible Server storage, West Europe, USD per GB-month.",
+    "quote": "\"tierMinimumUnits\":0.0,\"retailPrice\":0.1369,\"unitPrice\":0.1369,\"armRegionName\":\"westeurope\",\"location\":\"EU West\",\"effectiveStartDate\":\"2021-06-01T00:00:00Z\",\"meterId\":\"36845e2a-736f-5a9d-af4e-b2dc7547a06f\"",
+    "read_on": "2026-11-14",
+    "unit": "GB-Mo",
+    "url": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Azure%20Database%20for%20PostgreSQL'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Azure%20Database%20for%20PostgreSQL%20Flex%20Server%20Storage'%20and%20meterName%20eq%20'Storage%20Data%20Stored'"
+  },
+  "azure-vm:d16s-v5": {
+    "amount": 0.92,
+    "currency": "USD",
+    "note": "Azure D16S-V5 Linux pay-as-you-go, West Europe, USD per hour, Azure Retail Prices API.",
+    "quote": "\"tierMinimumUnits\":0.0,\"retailPrice\":0.92,\"unitPrice\":0.92,\"armRegionName\":\"westeurope\",\"location\":\"EU West\",\"effectiveStartDate\":\"2021-11-01T00:00:00Z\",\"meterId\":\"39605047-4e21-53d3-bed5-e5ce5f8dcce2\"",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Virtual%20Machines'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Virtual%20Machines%20Dsv5%20Series'%20and%20priceType%20eq%20'Consumption'"
+  },
+  "azure-vm:d2s-v5": {
+    "amount": 0.115,
+    "currency": "USD",
+    "note": "Azure D2S-V5 Linux pay-as-you-go, West Europe, USD per hour, Azure Retail Prices API.",
+    "quote": "\"tierMinimumUnits\":0.0,\"retailPrice\":0.115,\"unitPrice\":0.115,\"armRegionName\":\"westeurope\",\"location\":\"EU West\",\"effectiveStartDate\":\"2021-11-01T00:00:00Z\",\"meterId\":\"0561adcb-1c48-542e-9e0c-10dea22fc392\"",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Virtual%20Machines'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Virtual%20Machines%20Dsv5%20Series'%20and%20priceType%20eq%20'Consumption'"
+  },
+  "azure-vm:d32s-v5": {
+    "amount": 1.84,
+    "currency": "USD",
+    "note": "Azure D32S-V5 Linux pay-as-you-go, West Europe, USD per hour, Azure Retail Prices API.",
+    "quote": "\"tierMinimumUnits\":0.0,\"retailPrice\":1.84,\"unitPrice\":1.84,\"armRegionName\":\"westeurope\",\"location\":\"EU West\",\"effectiveStartDate\":\"2021-11-01T00:00:00Z\",\"meterId\":\"4c9105f0-0fae-5bba-88c9-f2c736f78eb9\"",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Virtual%20Machines'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Virtual%20Machines%20Dsv5%20Series'%20and%20priceType%20eq%20'Consumption'"
+  },
+  "azure-vm:d4s-v5": {
+    "amount": 0.23,
+    "currency": "USD",
+    "note": "Azure D4S-V5 Linux pay-as-you-go, West Europe, USD per hour, Azure Retail Prices API.",
+    "quote": "\"tierMinimumUnits\":0.0,\"retailPrice\":0.23,\"unitPrice\":0.23,\"armRegionName\":\"westeurope\",\"location\":\"EU West\",\"effectiveStartDate\":\"2021-11-01T00:00:00Z\",\"meterId\":\"1ab41620-5ffa-51b3-ac16-6416f9f747a9\"",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Virtual%20Machines'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Virtual%20Machines%20Dsv5%20Series'%20and%20priceType%20eq%20'Consumption'"
+  },
+  "azure-vm:d8s-v5": {
+    "amount": 0.46,
+    "currency": "USD",
+    "note": "Azure D8S-V5 Linux pay-as-you-go, West Europe, USD per hour, Azure Retail Prices API.",
+    "quote": "\"tierMinimumUnits\":0.0,\"retailPrice\":0.46,\"unitPrice\":0.46,\"armRegionName\":\"westeurope\",\"location\":\"EU West\",\"effectiveStartDate\":\"2021-11-01T00:00:00Z\",\"meterId\":\"695fe110-a2c2-57c2-85f1-6c74bdc9e971\"",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Virtual%20Machines'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Virtual%20Machines%20Dsv5%20Series'%20and%20priceType%20eq%20'Consumption'"
+  },
+  "b2:storage-tb": {
+    "amount": 6.95,
+    "currency": "USD",
+    "note": "Backblaze B2 pay-as-you-go storage, USD per TB-month.",
+    "quote": "Starts at $ 6.95 / TB / mo",
+    "read_on": "2026-11-14",
+    "unit": "TB-Mo",
+    "url": "https://www.backblaze.com/cloud-storage/pricing"
+  },
+  "fly:egress-gb": {
+    "amount": 0.02,
+    "currency": "USD",
+    "note": "Fly.io internet egress from North America and Europe, USD per GB.",
+    "quote": "Outbound data to the internet $0.02/GB in North America and Europe",
+    "read_on": "2026-11-14",
+    "unit": "GB",
+    "url": "https://fly.io/docs/about/pricing/"
+  },
+  "fly:performance-1x-2gb": {
+    "amount": 33.0,
+    "currency": "USD",
+    "note": "Fly.io Machine performance-1x with 2 GB, always on, USD per month. Larger presets scale linearly per CPU (performance-2x with 4 GB is listed at USD 66.00).",
+    "quote": "Started Machine, performance-1x with 2GB RAM $33.00/month",
+    "read_on": "2026-11-14",
+    "unit": "Mo",
+    "url": "https://fly.io/docs/about/pricing/"
+  },
+  "fly:performance-2x-4gb": {
+    "amount": 66.0,
+    "currency": "USD",
+    "note": "Fly.io Machine performance-2x with 4 GB, always on, USD per month.",
+    "quote": "Started Machine, performance-2x with 4GB RAM $66.00/month",
+    "read_on": "2026-11-14",
+    "unit": "Mo",
+    "url": "https://fly.io/docs/about/pricing/"
+  },
+  "fly:shared-cpu-2x-2gb": {
+    "amount": 13.39,
+    "currency": "USD",
+    "note": "Fly.io Machine shared-cpu-2x with 2 GB, always on, USD per month.",
+    "quote": "Started Machine, shared-cpu-2x with 2GB RAM $13.39/month",
+    "read_on": "2026-11-14",
+    "unit": "Mo",
+    "url": "https://fly.io/docs/about/pricing/"
+  },
+  "gcp-gcs:standard-gib-hour": {
+    "amount": 2.7397e-05,
+    "currency": "USD",
+    "note": "Cloud Storage Standard, Iowa (us-central1), USD per GiB-hour.",
+    "quote": "Standard storage Nearline storage Coldline storage Archive storage Rapid Cache storage $0.000027397 / 1 gibibyte hour",
+    "read_on": "2026-11-14",
+    "unit": "GiB-Hrs",
+    "url": "https://cloud.google.com/storage/pricing"
+  },
+  "gcp-net:egress-gib": {
+    "amount": 0.12,
+    "currency": "USD",
+    "note": "Premium Tier internet egress from Iowa, first TiB, USD per GiB.",
+    "quote": "TO Europe (per GiB in USD) 0 gibibyte to 1 gibibyte $0.00 (Free) / 1 gibibyte, per 1 month / account 1 gibibyte to 1,024 gibibyte $0.12",
+    "read_on": "2026-11-14",
+    "unit": "GiB",
+    "url": "https://cloud.google.com/vpc/network-pricing"
+  },
+  "gcp-sql:memory-gib-hour": {
+    "amount": 0.007,
+    "currency": "USD",
+    "note": "Cloud SQL Enterprise memory, Iowa (us-central1), USD per GiB-hour; the catalog counts a GiB as a GB.",
+    "quote": "Memory $0.007 / 1 gibibyte hour",
+    "read_on": "2026-11-14",
+    "unit": "GiB-Hrs",
+    "url": "https://cloud.google.com/sql/pricing"
+  },
+  "gcp-sql:ssd-gib-hour": {
+    "amount": 0.000232877,
+    "currency": "USD",
+    "note": "Cloud SQL SSD storage, zonal, Iowa (us-central1), USD per GiB-hour.",
+    "quote": "SSD storage capacity $0.000232877 / 1 gibibyte hour",
+    "read_on": "2026-11-14",
+    "unit": "GiB-Hrs",
+    "url": "https://cloud.google.com/sql/pricing"
+  },
+  "gcp-sql:vcpu-hour": {
+    "amount": 0.0413,
+    "currency": "USD",
+    "note": "Cloud SQL Enterprise, dedicated core, Iowa (us-central1), USD per vCPU-hour. The page shows other regions only through a script.",
+    "quote": "vCPUs $0.0413 / 1 hour",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://cloud.google.com/sql/pricing"
+  },
+  "hetzner-object:egress-tb": {
+    "amount": 1.0,
+    "currency": "EUR",
+    "note": "Hetzner Object Storage egress beyond the included 1 TB, EUR per TB.",
+    "quote": "Egress traffic: \u20ac 1.0000 per hour, excl. VAT per TB",
+    "read_on": "2026-11-14",
+    "unit": "TB",
+    "url": "https://www.hetzner.com/storage/object-storage"
+  },
+  "hetzner-object:storage-tb-hour": {
+    "amount": 0.0087,
+    "currency": "EUR",
+    "note": "Hetzner Object Storage beyond the included 1 TB, EUR per TB-hour. The EUR 6.49 base fee is not modelled.",
+    "quote": "Storage: \u20ac 0.0087 per hour, excl. VAT per TB-hour",
+    "read_on": "2026-11-14",
+    "unit": "TB-Hrs",
+    "url": "https://www.hetzner.com/storage/object-storage"
+  },
+  "hetzner:ccx13": {
+    "amount": 36.99,
+    "currency": "EUR",
+    "note": "Hetzner Cloud CCX13, dedicated vCPU, EUR per month excluding VAT, with 80 GB NVMe and 20 TB traffic.",
+    "quote": "CCX13 2 AMD 8 GB 80 GB NVMe from /month \u20ac 36.99 per month",
+    "read_on": "2026-11-14",
+    "unit": "Mo",
+    "url": "https://www.hetzner.com/cloud/general-purpose"
+  },
+  "hetzner:ccx23": {
+    "amount": 73.49,
+    "currency": "EUR",
+    "note": "Hetzner Cloud CCX23, dedicated vCPU, EUR per month excluding VAT, with 160 GB NVMe and 20 TB traffic.",
+    "quote": "CCX23 4 AMD 16 GB 160 GB NVMe from /month \u20ac 73.49 per month",
+    "read_on": "2026-11-14",
+    "unit": "Mo",
+    "url": "https://www.hetzner.com/cloud/general-purpose"
+  },
+  "hetzner:ccx33": {
+    "amount": 117.99,
+    "currency": "EUR",
+    "note": "Hetzner Cloud CCX33, dedicated vCPU, EUR per month excluding VAT, with 240 GB NVMe and 20 TB traffic.",
+    "quote": "CCX33 8 AMD 32 GB 240 GB NVMe from /month \u20ac 117.99 per month",
+    "read_on": "2026-11-14",
+    "unit": "Mo",
+    "url": "https://www.hetzner.com/cloud/general-purpose"
+  },
+  "hetzner:ccx43": {
+    "amount": 234.99,
+    "currency": "EUR",
+    "note": "Hetzner Cloud CCX43, dedicated vCPU, EUR per month excluding VAT, with 360 GB NVMe and 20 TB traffic.",
+    "quote": "CCX43 16 AMD 64 GB 360 GB NVMe from /month \u20ac 234.99 per month",
+    "read_on": "2026-11-14",
+    "unit": "Mo",
+    "url": "https://www.hetzner.com/cloud/general-purpose"
+  },
+  "hetzner:ccx53": {
+    "amount": 453.49,
+    "currency": "EUR",
+    "note": "Hetzner Cloud CCX53, dedicated vCPU, EUR per month excluding VAT, with 600 GB NVMe and 20 TB traffic.",
+    "quote": "CCX53 32 AMD 128 GB 600 GB NVMe from /month \u20ac 453.49 per month",
+    "read_on": "2026-11-14",
+    "unit": "Mo",
+    "url": "https://www.hetzner.com/cloud/general-purpose"
+  },
+  "hetzner:traffic-tb": {
+    "amount": 1.0,
+    "currency": "EUR",
+    "note": "Hetzner Cloud traffic beyond the included 20 TB, EUR per TB.",
+    "quote": "For each additional TB at EU-Central locations we charge \u20ac 1.00",
+    "read_on": "2026-11-14",
+    "unit": "TB",
+    "url": "https://www.hetzner.com/cloud/general-purpose"
+  },
   "neon-launch:cu-hour": {
     "amount": 0.106,
     "currency": "USD",
@@ -43,6 +322,78 @@
     "read_on": "2026-11-14",
     "unit": "GB",
     "url": "https://neon.com/docs/introduction/plans"
+  },
+  "r2:egress-gb": {
+    "amount": 0.0,
+    "currency": "USD",
+    "note": "Cloudflare R2 charges nothing for egress to the internet.",
+    "quote": "Egress (data transfer to Internet) Free",
+    "read_on": "2026-11-14",
+    "unit": "GB",
+    "url": "https://developers.cloudflare.com/r2/pricing/"
+  },
+  "r2:storage-gb": {
+    "amount": 0.015,
+    "currency": "USD",
+    "note": "Cloudflare R2 Standard storage, USD per GB-month.",
+    "quote": "Storage $0.015 / GB-month",
+    "read_on": "2026-11-14",
+    "unit": "GB-Mo",
+    "url": "https://developers.cloudflare.com/r2/pricing/"
+  },
+  "runpod:a100-pcie": {
+    "amount": 2.09,
+    "currency": "USD",
+    "note": "RunPod A100 PCIe pod (80 GB VRAM), the per-hour price the pricing page shows by default, USD.",
+    "quote": "A100 PCIe 80 GB VRAM 117 GB RAM 8 vCPUs $ 2.09 /hr",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://www.runpod.io/pricing"
+  },
+  "runpod:a40": {
+    "amount": 0.59,
+    "currency": "USD",
+    "note": "RunPod A40 pod (48 GB VRAM), the per-hour price the pricing page shows by default, USD.",
+    "quote": "A40 48 GB VRAM 50 GB RAM 9 vCPUs $ 0.59 /hr",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://www.runpod.io/pricing"
+  },
+  "runpod:h100-pcie": {
+    "amount": 2.89,
+    "currency": "USD",
+    "note": "RunPod H100 PCIe pod (80 GB VRAM), the per-hour price the pricing page shows by default, USD.",
+    "quote": "H100 PCIe 80 GB VRAM 188 GB RAM 16 vCPUs $ 2.89 /hr",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://www.runpod.io/pricing"
+  },
+  "runpod:l4": {
+    "amount": 0.69,
+    "currency": "USD",
+    "note": "RunPod L4 pod (24 GB VRAM), the per-hour price the pricing page shows by default, USD.",
+    "quote": "L4 24 GB VRAM 50 GB RAM 12 vCPUs $ 0.69 /hr",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://www.runpod.io/pricing"
+  },
+  "runpod:l40s": {
+    "amount": 1.09,
+    "currency": "USD",
+    "note": "RunPod L40S pod (48 GB VRAM), the per-hour price the pricing page shows by default, USD.",
+    "quote": "L40S 48 GB VRAM 94 GB RAM 16 vCPUs $ 1.09 /hr",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://www.runpod.io/pricing"
+  },
+  "runpod:rtx-a5000": {
+    "amount": 0.27,
+    "currency": "USD",
+    "note": "RunPod RTX A5000 pod (24 GB VRAM), the per-hour price the pricing page shows by default, USD.",
+    "quote": "RTX A5000 24 GB VRAM 25 GB RAM 9 vCPUs $ 0.27 /hr",
+    "read_on": "2026-11-14",
+    "unit": "Hrs",
+    "url": "https://www.runpod.io/pricing"
   },
   "supabase:compute-2xl": {
     "amount": 0.562,

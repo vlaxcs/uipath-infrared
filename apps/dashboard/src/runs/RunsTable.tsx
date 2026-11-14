@@ -3,6 +3,8 @@ import type { RunSummary } from "~/runs/types";
 import { formatEUR, formatTimestamp } from "~/runs/format";
 import { runStatusLabel, runStatusMeta } from "~/runs/status";
 import { StatusBadge } from "~/ui/StatusBadge";
+import { Fragment } from "react";
+import { isLive, RunProgressBar } from "~/runs/RunProgressBar";
 
 type RunsTableProps = {
   runs: readonly RunSummary[];
@@ -41,13 +43,19 @@ export function RunsTable({ runs, costs, onOpenRun }: RunsTableProps) {
             const status = runStatusMeta[run.status];
             const cost = costs[run.id];
 
+            const live = isLive(run);
+
             return (
+              <Fragment key={run.id}>
               <tr
-                key={run.id}
                 onClick={() => onOpenRun(run.id)}
-                className="cursor-pointer border-b border-border bg-surface last:border-0 hover:bg-surface-muted"
+                className={
+                  live
+                    ? "cursor-pointer bg-surface-muted"
+                    : "cursor-pointer border-b border-border bg-surface last:border-0 hover:bg-surface-muted"
+                }
               >
-                <td className="px-4 py-3">
+                <td className={live ? "border-l-4 border-credit px-4 py-3" : "border-l-4 border-transparent px-4 py-3"}>
                   <button
                     type="button"
                     onClick={(event) => {
@@ -80,6 +88,14 @@ export function RunsTable({ runs, costs, onOpenRun }: RunsTableProps) {
                   {formatTimestamp(run.updated_at)}
                 </td>
               </tr>
+              {live ? (
+                <tr onClick={() => onOpenRun(run.id)} className="cursor-pointer border-b border-border bg-surface-muted last:border-0">
+                  <td colSpan={6} className="border-l-4 border-credit px-4 pb-3">
+                    <RunProgressBar run={run} />
+                  </td>
+                </tr>
+              ) : null}
+              </Fragment>
             );
           })}
         </tbody>

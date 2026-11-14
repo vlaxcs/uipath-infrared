@@ -190,7 +190,7 @@
         },
         "stack": { "$ref": "#/$defs/id", "description": "Optional reference to stacks[].id." },
         "parent": { "$ref": "#/$defs/id", "description": "Containment, e.g. node_group -> kubernetes_cluster." },
-        "provider": { "enum": ["aws", "gcp", "azure", "onprem", "managed_pg", "other"] },
+        "provider": { "enum": ["aws", "gcp", "azure", "onprem", "supabase", "neon", "hetzner", "fly", "cloudflare", "backblaze", "runpod", "managed_pg", "other"] },
         "service": { "type": "string", "description": "Provider service, e.g. rds, aurora-postgresql, eks-managed-nodegroup, ecs-fargate, dynamodb, s3." },
         "sku": { "type": "string", "description": "Provider size/class, e.g. db.r5.8xlarge, m5.8xlarge, '4vcpu/16GB'. Free text; the engine uses `capacity` for sizing, not this." },
         "quantity": { "type": "integer", "minimum": 0, "description": "Number of identical units this component stands for (12 nodes, 3 NAT gateways, 8 tasks). `usage` is per unit; `cost.monthly_eur` and `capacity` x quantity are totals/per-unit as documented on each field." },

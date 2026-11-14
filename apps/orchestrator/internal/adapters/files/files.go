@@ -78,6 +78,27 @@ func (Local) Read(dir, name string, limit int64) ([]byte, error) {
 	return os.ReadFile(path)
 }
 
+func (Local) ReadFrom(path string, offset, limit int64) ([]byte, int64, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil {
+		return nil, 0, err
+	}
+	if offset >= info.Size() {
+		return nil, info.Size(), nil
+	}
+	buffer := make([]byte, min(limit, info.Size()-offset))
+	read, err := file.ReadAt(buffer, offset)
+	if err != nil && !errors.Is(err, io.EOF) {
+		return nil, 0, err
+	}
+	return buffer[:read], info.Size(), nil
+}
+
 func (Local) CheckObject(path string) error {
 	var object map[string]json.RawMessage
 	if err := readJSON(path, &object); err != nil {
@@ -90,6 +111,7 @@ func (Local) CheckObject(path string) error {
 }
 
 type resultDocument struct {
+	Winner     string `json:"winner"`
 	Candidates []struct {
 		ID              string   `json:"id"`
 		Source          string   `json:"source"`
@@ -111,7 +133,7 @@ func (Local) ReadResult(path string) (run.Result, error) {
 	if err := readJSON(path, &document); err != nil {
 		return run.Result{}, err
 	}
-	result := run.Result{Candidates: make([]run.CandidateOutcome, 0, len(document.Candidates))}
+	result := run.Result{Winner: document.Winner, Candidates: make([]run.CandidateOutcome, 0, len(document.Candidates))}
 	for _, candidate := range document.Candidates {
 		constraints := make([]string, 0, len(candidate.Violations))
 		for _, violation := range candidate.Violations {
@@ -239,5 +261,56 @@ func (Local) ReadProject(path string) (onboarding.Project, error) {
 	if forbidden == nil {
 		forbidden = []string{}
 	}
-	return onboarding.Project{Description: document.Description, ForbiddenProviders: forbidden}, nil
+	profile, err := readProjectProfile(strings.TrimSuffix(path, ".forecast.json") + ".project.json")
+	if err != nil {
+		return onboarding.Project{}, err
+	}
+	return onboarding.Project{Description: document.Description, ForbiddenProviders: forbidden, Profile: profile}, nil
+}
+
+func readProjectProfile(path string) (*onboarding.ProjectProfile, error) {
+	var document struct {
+		Name     string `json:"name"`
+		Summary  string `json:"summary"`
+		Business struct {
+			Markets []string `json:"markets"`
+		} `json:"business"`
+		Environments []struct {
+			Name string `json:"name"`
+		} `json:"environments"`
+		Users *struct {
+			Metric  string `json:"metric"`
+			Current struct {
+				Value int `json:"value"`
+			} `json:"current"`
+			Expected []struct {
+				Month int `json:"month"`
+				Base  int `json:"base"`
+			} `json:"expected"`
+		} `json:"users"`
+	}
+	err := readJSON(path, &document)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", filepath.Base(path), err)
+	}
+	profile := &onboarding.ProjectProfile{Name: document.Name, Summary: document.Summary, Markets: document.Business.Markets, Environments: []string{}}
+	if profile.Markets == nil {
+		profile.Markets = []string{}
+	}
+	for _, environment := range document.Environments {
+		profile.Environments = append(profile.Environments, environment.Name)
+	}
+	if users := document.Users; users != nil {
+		summary := &onboarding.ProjectUsers{Metric: users.Metric, Current: users.Current.Value}
+		for _, point := range users.Expected {
+			if point.Month >= summary.AtMonth {
+				summary.AtMonth, summary.Expected = point.Month, point.Base
+			}
+		}
+		profile.Users = summary
+	}
+	return profile, nil
 }

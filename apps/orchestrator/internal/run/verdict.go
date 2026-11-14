@@ -17,6 +17,7 @@ type CandidateOutcome struct {
 }
 
 type Result struct {
+	Winner     string
 	Candidates []CandidateOutcome
 }
 

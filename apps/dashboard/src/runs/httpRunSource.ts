@@ -1,4 +1,4 @@
-import { RunSourceError, type RunSource } from "~/runs/source";
+import { RunSourceError, type RunLogChunk, type RunSource, type TrialStarted } from "~/runs/source";
 import type {
   HumanDecision,
   RunArtifactInfo,
@@ -47,6 +47,14 @@ export function createHttpRunSource(baseUrl: string): RunSource {
       request<RunArtifactInfo[]>(`/runs/${encodeURIComponent(id)}/files`, { signal }),
     readArtifact: (id, path, signal) =>
       text(`/runs/${encodeURIComponent(id)}/files/${encodeURIComponent(path)}`, signal),
+    readLog: (id, step, after, signal) =>
+      request<RunLogChunk>(`/runs/${encodeURIComponent(id)}/logs?step=${step}&after=${after}`, { signal }),
+    rehearse: (id, trial, signal) =>
+      request<TrialStarted>(`/runs/${encodeURIComponent(id)}/rehearsals`, {
+        method: "POST",
+        body: JSON.stringify(trial),
+        signal,
+      }),
   };
 }
 

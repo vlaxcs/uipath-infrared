@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"infrared/orchestrator/internal/onboarding"
+	"infrared/orchestrator/internal/profile"
 	"infrared/orchestrator/internal/run"
 	"infrared/orchestrator/internal/workflow"
 )
@@ -26,6 +27,10 @@ type Runs interface {
 	Decide(id string, event run.Event) (run.Event, error)
 	ListFiles(id string) ([]run.Artifact, error)
 	ReadFile(id, name string) ([]byte, error)
+	ReadLog(id string, step run.Step, after int64) (workflow.LogChunk, error)
+	Profile() (profile.Profile, error)
+	SaveProfile(profile.Profile) error
+	Rehearse(id string, trial workflow.TrialProfile) (workflow.TrialStarted, error)
 }
 
 func Handler(runs Runs, allowedOrigins ...string) http.Handler {
@@ -39,6 +44,10 @@ func Handler(runs Runs, allowedOrigins ...string) http.Handler {
 	mux.HandleFunc("POST /runs/{id}/decisions", api.decide)
 	mux.HandleFunc("GET /runs/{id}/files", api.files)
 	mux.HandleFunc("GET /runs/{id}/files/{name}", api.file)
+	mux.HandleFunc("GET /runs/{id}/logs", api.logs)
+	mux.HandleFunc("POST /runs/{id}/rehearsals", api.rehearse)
+	mux.HandleFunc("GET /profile", api.profile)
+	mux.HandleFunc("PUT /profile", api.saveProfile)
 	return withCORS(mux, allowedOrigins)
 }
 
@@ -140,6 +149,61 @@ func (a *api) file(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(data)
 }
 
+var logSteps = map[run.Step]bool{run.Extract: true, run.Investigate: true, run.Propose: true, run.Evaluate: true, run.Rehearse: true}
+
+func (a *api) logs(w http.ResponseWriter, r *http.Request) {
+	step := run.Step(r.URL.Query().Get("step"))
+	if !logSteps[step] {
+		fail(w, http.StatusBadRequest, "step must be extract, investigate, propose, evaluate or rehearse")
+		return
+	}
+	after, err := boundedInt(r.URL.Query().Get("after"), 0, 0, int(^uint(0)>>1))
+	if err != nil {
+		fail(w, http.StatusBadRequest, "after must be a non-negative integer")
+		return
+	}
+	chunk, err := a.runs.ReadLog(r.PathValue("id"), step, int64(after))
+	if err != nil {
+		failWith(w, err)
+		return
+	}
+	reply(w, http.StatusOK, chunk)
+}
+
+func (a *api) rehearse(w http.ResponseWriter, r *http.Request) {
+	var trial workflow.TrialProfile
+	if !decode(w, r, &trial) {
+		return
+	}
+	started, err := a.runs.Rehearse(r.PathValue("id"), trial)
+	if err != nil {
+		failWith(w, err)
+		return
+	}
+	reply(w, http.StatusAccepted, started)
+}
+
+func (a *api) profile(w http.ResponseWriter, r *http.Request) {
+	saved, err := a.runs.Profile()
+	if err != nil {
+		failWith(w, err)
+		return
+	}
+	reply(w, http.StatusOK, saved)
+}
+
+func (a *api) saveProfile(w http.ResponseWriter, r *http.Request) {
+	var body profile.Profile
+	if !decode(w, r, &body) {
+		return
+	}
+	if err := a.runs.SaveProfile(body); err != nil {
+		failWith(w, err)
+		return
+	}
+	reply(w, http.StatusOK, body)
+}
+
 func decode(w http.ResponseWriter, r *http.Request, into any) bool {
 	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxBodyBytes))
 	decoder.DisallowUnknownFields()
@@ -164,9 +228,9 @@ func failWith(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, workflow.ErrNotFound), errors.Is(err, workflow.ErrUnknownProject):
 		status = http.StatusNotFound
-	case errors.Is(err, workflow.ErrProjectBusy), errors.Is(err, run.ErrGateNotOpen):
+	case errors.Is(err, workflow.ErrProjectBusy), errors.Is(err, run.ErrGateNotOpen), errors.Is(err, workflow.ErrNoLayout), errors.Is(err, workflow.ErrTrialRunning):
 		status = http.StatusConflict
-	case errors.Is(err, run.ErrInvalidDecision), errors.Is(err, onboarding.ErrInvalid):
+	case errors.Is(err, run.ErrInvalidDecision), errors.Is(err, onboarding.ErrInvalid), errors.Is(err, profile.ErrInvalid), errors.Is(err, workflow.ErrInvalidTrial):
 		status = http.StatusBadRequest
 	case errors.Is(err, workflow.ErrLayoutNotFeasible):
 		status = http.StatusUnprocessableEntity

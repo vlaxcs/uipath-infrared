@@ -1,5 +1,6 @@
+import { DEFAULT_PROFILE } from "~/onboarding/criteria";
 import { providerLabel } from "~/onboarding/providers";
-import type { Answers, Choice, OnboardingSetup, Project, StartRequest } from "~/onboarding/types";
+import type { Answers, Choice, OnboardingSetup, Profile, Project, StartRequest } from "~/onboarding/types";
 
 const ONPREM = "onprem";
 export const FORBIDDEN_HINT = "Forbidden by the project";
@@ -13,13 +14,15 @@ function defaultTargets(setup: OnboardingSetup, project: Project | undefined): s
   return setup.providers.filter((provider) => !project?.forbidden_providers.includes(provider));
 }
 
-export function initialAnswers(setup: OnboardingSetup): Answers {
+export function initialAnswers(setup: OnboardingSetup, profile: Profile = DEFAULT_PROFILE): Answers {
   const project = setup.projects[0];
+  const onpremForbidden = project?.forbidden_providers.includes(ONPREM) ?? false;
   return {
     connection: setup.connections[0]?.id ?? "",
     project: project?.id ?? "",
     targets: defaultTargets(setup, project),
-    onprem: false,
+    onprem: setup.onprem && !onpremForbidden && profile.onprem.wanted,
+    criteria: profile.criteria,
   };
 }
 
@@ -67,6 +70,11 @@ export function canStart(setup: OnboardingSetup, answers: Answers): boolean {
 export function startRequest(answers: Answers): StartRequest {
   return {
     project: answers.project,
-    onboarding: { connection: answers.connection, targets: answers.targets, onprem: { wanted: answers.onprem } },
+    onboarding: {
+      connection: answers.connection,
+      targets: answers.targets,
+      onprem: { wanted: answers.onprem },
+      criteria: answers.criteria,
+    },
   };
 }

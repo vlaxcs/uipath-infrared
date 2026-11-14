@@ -12,6 +12,7 @@ import {
 } from "~/onboarding/answers";
 import { providerLabel } from "~/onboarding/providers";
 import type { OnboardingSetup } from "~/onboarding/types";
+import { DEFAULT_CRITERIA } from "~/onboarding/criteria";
 
 const setup: OnboardingSetup = {
   connections: [{ id: "floci", label: "AWS (demo estate)" }],
@@ -25,7 +26,13 @@ const setup: OnboardingSetup = {
 
 describe("the onboarding answers", () => {
   it("start with the first connection and project, every provider ticked and on-prem off", () => {
-    expect(initialAnswers(setup)).toEqual({ connection: "floci", project: "startup", targets: ["aws", "gcp", "managed_pg"], onprem: false });
+    expect(initialAnswers(setup)).toEqual({
+      connection: "floci",
+      project: "startup",
+      targets: ["aws", "gcp", "managed_pg"],
+      onprem: false,
+      criteria: DEFAULT_CRITERIA,
+    });
   });
 
   it("drop what the newly picked project forbids", () => {
@@ -63,14 +70,23 @@ describe("the onboarding answers", () => {
   });
 
   it("become the body POST /runs takes", () => {
-    expect(startRequest({ connection: "floci", project: "startup", targets: ["aws"], onprem: true })).toEqual({
+    expect(startRequest({ connection: "floci", project: "startup", targets: ["aws"], onprem: true, criteria: DEFAULT_CRITERIA })).toEqual({
       project: "startup",
-      onboarding: { connection: "floci", targets: ["aws"], onprem: { wanted: true } },
+      onboarding: { connection: "floci", targets: ["aws"], onprem: { wanted: true }, criteria: DEFAULT_CRITERIA },
     });
   });
 
+  it("start from the saved profile: its criteria, and on-prem when it is wanted and allowed", () => {
+    const profile = { criteria: { focus: "zone" as const, market: "fr" }, onprem: { wanted: true } };
+    const answers = initialAnswers(setup, profile);
+    expect(answers.criteria).toEqual({ focus: "zone", market: "fr" });
+    expect(answers.onprem).toBe(setup.onprem);
+    expect(initialAnswers({ ...setup, onprem: false }, profile).onprem).toBe(false);
+  });
+
   it("label known providers and show unknown ones as they are", () => {
-    expect(providerLabel("other")).toBe("Other providers (Hetzner, Fly.io, R2 and more)");
-    expect(providerLabel("hetzner")).toBe("hetzner");
+    expect(providerLabel("hetzner")).toBe("Hetzner");
+    expect(providerLabel("supabase")).toBe("Supabase");
+    expect(providerLabel("ovh")).toBe("ovh");
   });
 });

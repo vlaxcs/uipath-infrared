@@ -9,11 +9,10 @@ type RunPageProps = {
   source: RunSource;
   runId: string;
   focusGate: boolean;
-  onBack: () => void;
   onOpenRun: (id: string) => void;
 };
 
-export function RunPage({ source, runId, focusGate, onBack, onOpenRun }: RunPageProps) {
+export function RunPage({ source, runId, focusGate, onOpenRun }: RunPageProps) {
   const { run, loading, error, reload } = useSelectedRun(source, runId);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
@@ -33,14 +32,7 @@ export function RunPage({ source, runId, focusGate, onBack, onOpenRun }: RunPage
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="self-start rounded-control border border-border px-3 py-2 text-label hover:bg-surface-muted"
-        >
-          {focusGate ? "← All approvals" : "← All runs"}
-        </button>
+      <div className="flex flex-wrap items-center justify-end gap-3">
         {run ? (
           <p className="text-label text-fg-muted">
             {run.project} · <span className="font-mono text-caption">{run.id}</span>

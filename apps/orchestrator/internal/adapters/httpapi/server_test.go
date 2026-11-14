@@ -10,6 +10,7 @@ import (
 
 	"infrared/orchestrator/internal/adapters/httpapi"
 	"infrared/orchestrator/internal/onboarding"
+	"infrared/orchestrator/internal/profile"
 	"infrared/orchestrator/internal/run"
 	"infrared/orchestrator/internal/workflow"
 )
@@ -25,6 +26,10 @@ type fakeRuns struct {
 	fileErr     error
 	answers     *onboarding.Answers
 	started     bool
+	loggedStep  run.Step
+	loggedAfter int64
+	saved       *profile.Profile
+	trial       *workflow.TrialProfile
 }
 
 func (f *fakeRuns) Onboarding() (onboarding.Setup, error) {
@@ -61,6 +66,105 @@ func (f *fakeRuns) ListFiles(id string) ([]run.Artifact, error) {
 		return []run.Artifact{}, f.fileErr
 	}
 	return f.artifacts, f.fileErr
+}
+
+func (f *fakeRuns) ReadLog(id string, step run.Step, after int64) (workflow.LogChunk, error) {
+	f.loggedStep, f.loggedAfter = step, after
+	return workflow.LogChunk{Path: "logs/3-investigate.log", Text: "reading ec2\n", Next: after + 12, Running: true}, f.err
+}
+
+func TestALogChunkIsReadForAStepFromAnOffset(t *testing.T) {
+	runs := &fakeRuns{}
+	recorder := send(t, runs, "GET", "/runs/run-startup-0001/logs?step=investigate&after=30", "")
+	if recorder.Code != http.StatusOK || runs.loggedStep != run.Investigate || runs.loggedAfter != 30 {
+		t.Fatalf("%d, step %q after %d: %s", recorder.Code, runs.loggedStep, runs.loggedAfter, recorder.Body)
+	}
+	var chunk workflow.LogChunk
+	json.Unmarshal(recorder.Body.Bytes(), &chunk)
+	if chunk.Text != "reading ec2\n" || chunk.Next != 42 || !chunk.Running {
+		t.Fatalf("chunk %+v", chunk)
+	}
+}
+
+func TestALogRequestNeedsAStepWithALogAndAValidOffset(t *testing.T) {
+	for _, path := range []string{"/runs/x/logs", "/runs/x/logs?step=present", "/runs/x/logs?step=nope", "/runs/x/logs?step=extract&after=-1", "/runs/x/logs?step=extract&after=a"} {
+		if recorder := send(t, &fakeRuns{}, "GET", path, ""); recorder.Code != http.StatusBadRequest {
+			t.Errorf("%s answered %d", path, recorder.Code)
+		}
+	}
+}
+
+func (f *fakeRuns) Rehearse(id string, trial workflow.TrialProfile) (workflow.TrialStarted, error) {
+	f.trial = &trial
+	return workflow.TrialStarted{File: "rehearsal.1.trial-1.json", Candidate: "managed_services"}, f.err
+}
+
+func TestATrialRehearsalIsAcceptedAndNamesItsFile(t *testing.T) {
+	runs := &fakeRuns{}
+	recorder := send(t, runs, "POST", "/runs/run-1/rehearsals", `{"requests_per_second":80,"phase_seconds":20}`)
+	if recorder.Code != http.StatusAccepted || runs.trial == nil || runs.trial.RequestsPerSecond != 80 || runs.trial.PhaseSeconds != 20 {
+		t.Fatalf("%d %s", recorder.Code, recorder.Body)
+	}
+	if !strings.Contains(recorder.Body.String(), `"file":"rehearsal.1.trial-1.json"`) {
+		t.Fatalf("body %s", recorder.Body)
+	}
+}
+
+func TestATrialIsRefusedWithTheRightStatus(t *testing.T) {
+	cases := []struct {
+		err    error
+		status int
+	}{
+		{fmt.Errorf("%w: x", workflow.ErrNoLayout), http.StatusConflict},
+		{fmt.Errorf("%w: x", workflow.ErrTrialRunning), http.StatusConflict},
+		{fmt.Errorf("%w: x", workflow.ErrInvalidTrial), http.StatusBadRequest},
+		{fmt.Errorf("%w: run x", workflow.ErrNotFound), http.StatusNotFound},
+	}
+	for _, c := range cases {
+		if recorder := send(t, &fakeRuns{err: c.err}, "POST", "/runs/x/rehearsals", `{"requests_per_second":10,"phase_seconds":15}`); recorder.Code != c.status {
+			t.Errorf("%v answered %d, want %d", c.err, recorder.Code, c.status)
+		}
+	}
+}
+
+func (f *fakeRuns) Profile() (profile.Profile, error) {
+	if f.saved != nil {
+		return *f.saved, nil
+	}
+	return profile.Default(), f.err
+}
+
+func (f *fakeRuns) SaveProfile(saved profile.Profile) error {
+	if err := profile.Check(saved); err != nil {
+		return err
+	}
+	f.saved = &saved
+	return nil
+}
+
+func TestTheProfileIsReadAndSaved(t *testing.T) {
+	runs := &fakeRuns{}
+	read := send(t, runs, "GET", "/profile", "")
+	if read.Code != http.StatusOK || !strings.Contains(read.Body.String(), `"focus":"cost"`) {
+		t.Fatalf("read %d %s", read.Code, read.Body)
+	}
+	body := `{"criteria":{"focus":"zone","market":"fr"},"onprem":{"wanted":false}}`
+	if saved := send(t, runs, "PUT", "/profile", body); saved.Code != http.StatusOK || runs.saved == nil || runs.saved.Criteria.Market != "fr" {
+		t.Fatalf("save %d %s", saved.Code, saved.Body)
+	}
+}
+
+func TestABadProfileIsRefusedWith400(t *testing.T) {
+	for _, body := range []string{
+		`{"criteria":{"focus":"speed"},"onprem":{"wanted":false}}`,
+		`{"criteria":{},"onprem":{"wanted":false},"extra":1}`,
+		`not json`,
+	} {
+		runs := &fakeRuns{}
+		if recorder := send(t, runs, "PUT", "/profile", body); recorder.Code != http.StatusBadRequest || runs.saved != nil {
+			t.Errorf("%s: %d", body, recorder.Code)
+		}
+	}
 }
 
 func (f *fakeRuns) ReadFile(id, name string) ([]byte, error) {

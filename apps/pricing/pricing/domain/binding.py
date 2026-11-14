@@ -12,6 +12,7 @@ class Binding:
     unit: str
     per: str
     multiplier: float = 1.0
+    part: str = ""
 
     @property
     def name(self) -> str:

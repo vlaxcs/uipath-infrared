@@ -1,63 +1,66 @@
-import { CandidatesSection } from "~/candidates/CandidatesSection";
-import { sampleResult } from "~/candidates/sampleResult";
-import { GraphSection } from "~/graph/GraphSection";
-import { sampleGraphModel } from "~/graph/sampleGraph";
-import { sectionById } from "~/navigation/sections";
+import { createHttpAccountSource, sampleAccountSource, type AccountSource } from "~/account/accountSource";
+import { useAccount } from "~/account/useAccount";
+import { HomePage } from "~/home/HomePage";
 import { useHashRoute } from "~/navigation/useHashRoute";
-import { OnboardingSection } from "~/onboarding/OnboardingSection";
-import { RehearsalSection } from "~/rehearsal/RehearsalSection";
-import { sampleRehearsal } from "~/rehearsal/sampleRehearsal";
-import { ApprovalsPage } from "~/runs/ApprovalsPage";
+import { AccountPage } from "~/pages/AccountPage";
+import { AnalyzePage } from "~/pages/AnalyzePage";
+import { ConfigurationPage } from "~/pages/ConfigurationPage";
+import { LoginPage } from "~/pages/LoginPage";
 import { runSource } from "~/runs/runSource";
 import { RunsSection } from "~/runs/RunsSection";
+import { settings } from "~/runs/settings";
 import type { RunSource } from "~/runs/source";
-import { StatusBadge } from "~/ui/StatusBadge";
-import { AppShell } from "~/shell/AppShell";
-import { SectionPlaceholder } from "~/shell/SectionPlaceholder";
+import { Frame } from "~/shell/Frame";
 
 type AppProps = {
   source?: RunSource;
+  accountSource?: AccountSource;
+  orchestratorUrl?: string | null;
+  extensionUrl?: string | null;
 };
 
-export function App({ source = runSource }: AppProps = {}) {
+const defaultAccountSource = settings.orchestratorUrl ? createHttpAccountSource(settings.orchestratorUrl) : sampleAccountSource;
+
+export function App({
+  source = runSource,
+  accountSource = defaultAccountSource,
+  orchestratorUrl = settings.orchestratorUrl,
+  extensionUrl = settings.extensionUrl,
+}: AppProps = {}) {
   const route = useHashRoute();
-  const activeSection = sectionById(route.section);
+  const account = useAccount(accountSource);
+
+  if (route.page === "login") {
+    return <LoginPage orchestratorUrl={orchestratorUrl} onContinue={() => route.go("home")} />;
+  }
 
   return (
-    <AppShell
-      activeSection={route.section}
-      onSelectSection={route.selectSection}
-      title={activeSection.label}
-      headerBadge={
-        route.section === "start" ? undefined : (
-          <StatusBadge
-            label={source.mode === "live" ? "Live" : "Sample data"}
-            tone={source.mode === "live" ? "running" : "neutral"}
-          />
-        )
-      }
+    <Frame
+      showBack={route.page !== "home"}
+      account={account}
+      onBack={route.back}
+      onHome={() => route.go("home")}
+      onNavigate={route.go}
+      onDisconnect={() => route.go("login")}
     >
-      {route.section === "start" ? (
-        <OnboardingSection onFollowRun={route.openRun} />
-      ) : route.section === "runs" ? (
-        <RunsSection
-          source={source}
-          runId={route.runId}
-          focusGate={route.focusGate}
-          onOpenRun={route.openRun}
-          onCloseRun={route.focusGate ? route.closeGate : route.closeRun}
-        />
-      ) : route.section === "approvals" ? (
-        <ApprovalsPage source={source} onReview={route.openGate} />
-      ) : route.section === "graph" ? (
-        <GraphSection model={sampleGraphModel} />
-      ) : route.section === "rehearsal" ? (
-        <RehearsalSection rehearsal={sampleRehearsal} />
-      ) : route.section === "candidates" ? (
-        <CandidatesSection result={sampleResult} />
+      {route.page === "home" ? (
+        <HomePage extensionUrl={extensionUrl} onAnalyze={() => route.go("analyze")} onPrevious={() => route.go("runs")} />
+      ) : route.page === "analyze" ? (
+        <AnalyzePage onFollowRun={route.openRun} />
+      ) : route.page === "runs" ? (
+        <div className="w-full">
+          <RunsSection
+            source={source}
+            runId={route.runId}
+            focusGate={route.focusGate}
+            onOpenRun={route.openRun}
+          />
+        </div>
+      ) : route.page === "configuration" ? (
+        <ConfigurationPage />
       ) : (
-        <SectionPlaceholder section={activeSection} />
+        <AccountPage />
       )}
-    </AppShell>
+    </Frame>
   );
 }

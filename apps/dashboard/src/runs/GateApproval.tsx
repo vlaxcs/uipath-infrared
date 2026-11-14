@@ -36,18 +36,14 @@ export function GateApproval({
   const feasible = feasibleLayouts(options);
   const [layout, setLayout] = useState(() => feasible[0]?.id ?? "");
   const [reason, setReason] = useState("");
-  const [kept, setKept] = useState<string[]>(() => analyses.map((analysis) => analysis.id));
+  const [dropped, setDropped] = useState<ReadonlySet<string>>(() => new Set());
   const [keepReason, setKeepReason] = useState("");
   const [keepNotice, setKeepNotice] = useState<string | null>(null);
-  const analysisSignature = analyses.map((analysis) => analysis.id).join("\n");
+  const kept = analyses.map((analysis) => analysis.id).filter((id) => !dropped.has(id));
 
   useEffect(() => {
     setLayout((current) => current || feasible[0]?.id || "");
   }, [feasible]);
-
-  useEffect(() => {
-    setKept(analyses.map((analysis) => analysis.id));
-  }, [analysisSignature]);
 
   const submitDecision = async (event: FormEvent) => {
     event.preventDefault();
@@ -69,9 +65,12 @@ export function GateApproval({
   };
 
   const toggleAnalysis = (id: string) => {
-    setKept((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
-    );
+    setDropped((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const suggestion =

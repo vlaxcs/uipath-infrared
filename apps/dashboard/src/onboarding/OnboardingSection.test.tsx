@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { OrchestratorError, type OnboardingSource } from "~/onboarding/api";
 import { OnboardingSection } from "~/onboarding/OnboardingSection";
 import type { OnboardingSetup } from "~/onboarding/types";
+import { DEFAULT_CRITERIA, DEFAULT_PROFILE } from "~/onboarding/criteria";
 
 afterEach(cleanup);
 
@@ -20,6 +21,9 @@ function source(overrides: Partial<OnboardingSource> = {}): OnboardingSource {
   return {
     load: vi.fn(async () => setup),
     start: vi.fn(async () => ({ id: "run-startup-0001", project: "startup" })),
+    loadProfile: vi.fn(async () => DEFAULT_PROFILE),
+    saveProfile: vi.fn(async (profile) => profile),
+    listRuns: vi.fn(async () => []),
     ...overrides,
   };
 }
@@ -32,12 +36,35 @@ async function shown(fake: OnboardingSource, onFollowRun = vi.fn()) {
 const box = (name: string) => screen.getByRole("checkbox", { name }) as HTMLInputElement;
 
 describe("onboarding", () => {
-  it("shows the four sections in order, with the controls in that order", async () => {
+  it("shows the sections in order, with the controls in that order", async () => {
     await shown(source());
     const legends = [...document.querySelectorAll("legend")].map((legend) => legend.textContent);
-    expect(legends).toEqual(["1. Connect the infrastructure", "2. Pick the project", "3. Where it may move", "4. On-prem"]);
+    expect(legends).toEqual(["1. Connect the infrastructure", "2. Pick the project", "3. Focus", "4. Where it may move", "5. On-prem"]);
     const controls = [...document.querySelectorAll("input, button")].map((element) => (element as HTMLInputElement).value || element.textContent);
-    expect(controls).toEqual(["floci", "startup", "strict", "aws", "managed_pg", "onprem", "Start the run"]);
+    expect(controls).toEqual(["floci", "startup", "strict", "availability", "zone", "performance", "cost", "aws", "managed_pg", "on", "Start the run"]);
+  });
+
+  it("runs with one focus, and a market when the focus is Zones", async () => {
+    const fake = source();
+    await shown(fake);
+    expect((screen.getByRole("radio", { name: /Cost reduction/ }) as HTMLInputElement).checked).toBe(true);
+    fireEvent.click(screen.getByRole("radio", { name: /Zones/ }));
+    fireEvent.change(screen.getByLabelText("Market"), { target: { value: "us" } });
+    expect(screen.getByText("us-*")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Start the run" }));
+    await waitFor(() => expect(fake.start).toHaveBeenCalled());
+    expect(vi.mocked(fake.start).mock.calls[0][0].onboarding.criteria).toEqual({ focus: "zone", market: "us" });
+  });
+
+  it("says whether the infrastructure answers", async () => {
+    const connected = { ...setup, connections: [{ id: "floci", label: "AWS (demo estate)", endpoint: "http://localhost:4566", reachable: true }] };
+    await shown(source({ load: vi.fn(async () => connected) }));
+    expect(screen.getByText("Connected")).toBeTruthy();
+    expect(screen.getByText("http://localhost:4566")).toBeTruthy();
+    cleanup();
+    const down = { ...setup, connections: [{ id: "floci", label: "AWS (demo estate)", endpoint: "http://localhost:4566", reachable: false }] };
+    await shown(source({ load: vi.fn(async () => down) }));
+    expect(screen.getByText("Not reachable")).toBeTruthy();
   });
 
   it("starts the run with every target ticked and on-prem off by default", async () => {
@@ -47,7 +74,7 @@ describe("onboarding", () => {
     await screen.findByRole("heading", { name: "The run started" });
     expect(fake.start).toHaveBeenCalledWith({
       project: "startup",
-      onboarding: { connection: "floci", targets: ["aws", "managed_pg"], onprem: { wanted: false } },
+      onboarding: { connection: "floci", targets: ["aws", "managed_pg"], onprem: { wanted: false }, criteria: DEFAULT_CRITERIA },
     });
     expect(screen.getByText("run-startup-0001")).toBeTruthy();
   });
@@ -61,7 +88,7 @@ describe("onboarding", () => {
     await waitFor(() => expect(fake.start).toHaveBeenCalled());
     expect(fake.start).toHaveBeenCalledWith({
       project: "startup",
-      onboarding: { connection: "floci", targets: ["aws"], onprem: { wanted: true } },
+      onboarding: { connection: "floci", targets: ["aws"], onprem: { wanted: true }, criteria: DEFAULT_CRITERIA },
     });
   });
 
@@ -83,7 +110,7 @@ describe("onboarding", () => {
 
   it("hides on-prem when the catalog has no on-prem option", async () => {
     await shown(source({ load: vi.fn(async () => ({ ...setup, onprem: false })) }));
-    expect(screen.queryByText("4. On-prem")).toBeNull();
+    expect(screen.queryByText("5. On-prem")).toBeNull();
   });
 
   it("says there are no projects and keeps Start disabled", async () => {
@@ -111,6 +138,37 @@ describe("onboarding", () => {
     fireEvent.click(screen.getByRole("button", { name: "Start the run" }));
     expect((await screen.findByRole("alert")).textContent).toBe("project busy: startup is run-startup-0002");
     expect(box("Managed Postgres").checked).toBe(false);
+    expect((screen.getByRole("button", { name: "Start the run" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("says which run holds the project and why, and opens it", async () => {
+    const holder = {
+      id: "run-startup-0004",
+      project: "startup",
+      status: "awaiting_approval" as const,
+      step: "present" as const,
+      awaiting: "layout" as const,
+      revision: 1,
+      max_revisions: 2,
+      started_at: "2026-11-14T06:00:00Z",
+      updated_at: "2026-11-14T06:55:00Z",
+    };
+    const onFollowRun = vi.fn();
+    await shown(source({ listRuns: vi.fn(async () => [holder]) }), onFollowRun);
+    const status = await screen.findByText(/is held by/);
+    expect(status.textContent).toContain("run-startup-0004, waiting for the layout decision since");
+    expect((screen.getByRole("button", { name: "Start the run" }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Open run-startup-0004" }));
+    expect(onFollowRun).toHaveBeenCalledWith("run-startup-0004");
+
+    fireEvent.click(screen.getByRole("radio", { name: "strict" }));
+    expect(screen.queryByText(/is held by/)).toBeNull();
+  });
+
+  it("ignores finished runs of the project", async () => {
+    const finished = { id: "run-startup-0001", project: "startup", status: "completed" as const, step: "rehearse" as const, revision: 1, max_revisions: 2, started_at: "", updated_at: "" };
+    await shown(source({ listRuns: vi.fn(async () => [finished]) }));
+    await waitFor(() => expect(screen.queryByText(/is held by/)).toBeNull());
     expect((screen.getByRole("button", { name: "Start the run" }) as HTMLButtonElement).disabled).toBe(false);
   });
 

@@ -98,7 +98,7 @@ A decision's body is the contract's `approved` event without the fields the orch
 
 `status` must be `approved`, `actor.kind` `human` with a non-empty `id` and a `surface` of `dashboard` or `slack`, the decision one of the three gate decisions with a non-empty `reason`, `analyses` only on `keep_analyses` and `layout` only on `pick_layout`. `step` must be the step of the gate: `present` for `layout`, `rehearse` for `plan`.
 
-**Browsers.** The dashboard runs on another origin (Vite's dev server), so it needs CORS. Only the origins in `ORCHESTRATOR_ALLOWED_ORIGINS` get `Access-Control-Allow-Origin`, echoed back exactly, with `Vary: Origin`; a preflight from one of them answers `204` with `GET, POST` and `Content-Type`, and a preflight from any other origin answers `403`. With the variable unset, no CORS headers are sent and the API stays same-origin. Never `*`: there is no authentication, so an open CORS policy would let any page open in the CTO's browser approve a plan on `localhost`.
+**Browsers.** The dashboard runs on another origin (Vite's dev server), so it needs CORS. Only the origins in `ORCHESTRATOR_ALLOWED_ORIGINS` get `Access-Control-Allow-Origin`, echoed back exactly, with `Vary: Origin`; a preflight from one of them answers `204` with `GET, POST, PUT` and `Content-Type`, and a preflight from any other origin answers `403`. With the variable unset, no CORS headers are sent and the API stays same-origin. Never `*`: there is no authentication, so an open CORS policy would let any page open in the CTO's browser approve a plan on `localhost`.
 
 Reads come from memory: the orchestrator holds every run, so a run, its events after a `seq`, and the run list need no disk read. Events after a `seq` are a slice of the log, since `seq` is gapless.
 
@@ -117,6 +117,7 @@ Read once at startup by the orchestrator's settings package from the environment
 | `ORCHESTRATOR_EXTRACT_CMD`, `ORCHESTRATOR_AGENT_CMD`, `ORCHESTRATOR_ENGINE_CMD`, `ORCHESTRATOR_SANDBOX_CMD` | the command prefix of each stage |
 | `ORCHESTRATOR_CONTRACTS_DIR` | the `contracts/` directory, for the schemas |
 | `ORCHESTRATOR_MAX_REVISIONS` | optional, default 2 |
+| `ORCHESTRATOR_STATES_CMD` | optional: the plan view's state builder (`docs/run-plan-view.md`); unset, no states are built |
 | `ORCHESTRATOR_ALLOWED_ORIGINS` | optional, comma-separated: the browser origins allowed to call the API, e.g. the dashboard's `http://127.0.0.1:5173`. Unset, no CORS |
 
 ## 7. The flow test

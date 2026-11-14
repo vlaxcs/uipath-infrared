@@ -24,7 +24,7 @@ def resolve_tier(
     if vcpu is None or memory_gb is None or not tiers:
         return None
     need_gpus = gpus or 0
-    pool = [t for t in tiers if t.gpus > 0] if need_gpus else list(tiers)
+    pool = [t for t in tiers if (t.gpus > 0) == bool(need_gpus)]
     if not pool:
         return None
     size = f"{vcpu:g} vCPU / {memory_gb:g} GB" + (f" / {need_gpus:g} GPU" if need_gpus else "")

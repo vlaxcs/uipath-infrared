@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "project": "startup",
+  "name": "Receipt scanner",
+  "summary": "A web app where freelancers and small accounting firms upload receipts and invoices; a worker reads the fields and files them for the monthly VAT return.",
+  "owner": "Two founders and one contractor",
+  "business": {
+    "model": "b2b_saas",
+    "customers": "Freelancers and accounting firms with up to 20 staff, on a monthly plan.",
+    "markets": [
+      "Romania",
+      "Bulgaria"
+    ],
+    "critical_flows": [
+      "Upload a receipt and see it read within a minute",
+      "Export the month's VAT file"
+    ]
+  },
+  "forecast_id": "startup-2027-plan",
+  "environments": [
+    {
+      "name": "prod",
+      "stacks": [
+        "main"
+      ],
+      "purpose": "The only environment: releases are tested on production behind a feature flag.",
+      "always_on": true,
+      "data": "production",
+      "users": "customers"
+    }
+  ],
+  "users": {
+    "metric": "monthly_active_users",
+    "definition": "Accounts that uploaded or exported at least once in 30 days.",
+    "current": {
+      "value": 6500,
+      "as_of": "2026-11-01",
+      "provenance": "synthetic",
+      "source": "hand-written mock"
+    },
+    "peak_concurrent": 420,
+    "expected": [
+      {
+        "month": 6,
+        "low": 8500,
+        "base": 9500,
+        "high": 10700,
+        "note": "After the marketing campaign"
+      },
+      {
+        "month": 12,
+        "low": 8500,
+        "base": 10700,
+        "high": 13500
+      },
+      {
+        "month": 24,
+        "low": 8500,
+        "base": 13600,
+        "high": 21700
+      }
+    ]
+  }
+}

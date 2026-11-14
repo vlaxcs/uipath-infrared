@@ -18,4 +18,8 @@ export const sampleRunSource: RunSource = {
   },
   listFiles: async () => sampleArtifactInfos(),
   readArtifact: async (_id, path) => sampleArtifactText(path),
+  readLog: async () => ({ text: "", next: 0, running: false }),
+  rehearse: async () => {
+    throw new RunSourceError("Trials need VITE_ORCHESTRATOR_URL");
+  },
 };

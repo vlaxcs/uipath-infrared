@@ -2,7 +2,7 @@ from datetime import date
 from pathlib import Path
 
 from pricing.adapters.aws_price_list import read_offer, source_id
-from pricing.adapters.config_files import load_manual, load_sources
+from pricing.adapters.config_files import load_manual, load_slas, load_sources
 from pricing.adapters.ecb_rates import SOURCE as FX_SOURCE
 from pricing.adapters.ecb_rates import read_usd_rate
 from pricing.adapters.fetcher import Fetcher
@@ -10,6 +10,8 @@ from pricing.adapters.snapshot_store import SnapshotStore
 from pricing.application.manual_check import SOURCE as MANUAL_SOURCE
 from pricing.application.manual_check import check_manual
 from pricing.application.paths import Paths
+from pricing.application.sla_check import check_slas
+from pricing.domain.sla import SLA_SOURCE
 
 
 def refresh(paths: Paths, fetcher: Fetcher, today: date, only: frozenset[str] | None = None) -> tuple[Path, ...]:
@@ -24,6 +26,9 @@ def refresh(paths: Paths, fetcher: Fetcher, today: date, only: frozenset[str] | 
     if _wanted(MANUAL_SOURCE, only):
         entries, version = load_manual(paths.config)
         written.append(store.write(check_manual(entries, version, fetcher, today)))
+    if _wanted(SLA_SOURCE, only):
+        entries, version = load_slas(paths.config)
+        written.append(store.write_sla(check_slas(entries, version, fetcher, today)))
     return tuple(written)
 
 

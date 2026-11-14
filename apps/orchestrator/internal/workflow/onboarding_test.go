@@ -2,6 +2,7 @@ package workflow_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -105,7 +106,7 @@ func TestTheSetupListsTheCatalogsProvidersAndEveryProject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !slices.Equal(setup.Providers, []string{"aws", "managed_pg"}) || !setup.Onprem {
+	if !slices.Equal(setup.Providers, []string{"aws", "azure", "backblaze", "cloudflare", "fly", "gcp", "hetzner", "neon", "runpod", "supabase"}) || !setup.Onprem {
 		t.Fatalf("providers %v, onprem %v", setup.Providers, setup.Onprem)
 	}
 	ids := []string{}
@@ -117,6 +118,66 @@ func TestTheSetupListsTheCatalogsProvidersAndEveryProject(t *testing.T) {
 	}
 	if !slices.Equal(ids, []string{"alpha", "zeta"}) {
 		t.Fatalf("projects %v", ids)
+	}
+}
+
+func TestTheSetupSaysWhetherFlociAnswersAndListsTheMarkets(t *testing.T) {
+	for _, reachable := range []bool{true, false} {
+		asked := ""
+		h := newHarness(t, options{maxRevisions: 2, flociURL: "http://localhost:4566", probe: func(_ context.Context, url string) bool {
+			asked = url
+			return reachable
+		}})
+		setup, err := h.flow.Onboarding()
+		if err != nil {
+			t.Fatal(err)
+		}
+		floci := setup.Connections[0]
+		if asked != "http://localhost:4566" || floci.Endpoint != asked || floci.Reachable == nil || *floci.Reachable != reachable {
+			t.Fatalf("reachable %v: asked %q, connection %+v", reachable, asked, floci)
+		}
+		if !slices.Contains(setup.Markets, "fr") || !slices.Contains(setup.Markets, "us") {
+			t.Fatalf("markets %v", setup.Markets)
+		}
+	}
+}
+
+func TestWithoutAFlociURLTheConnectionIsNotProbed(t *testing.T) {
+	h := newHarness(t, options{maxRevisions: 2, probe: func(context.Context, string) bool {
+		t.Fatal("probed without a URL")
+		return false
+	}})
+	setup, _ := h.flow.Onboarding()
+	if setup.Connections[0].Reachable != nil {
+		t.Fatalf("connection %+v", setup.Connections[0])
+	}
+}
+
+func TestEachProjectCarriesItsProfileWhenOneSitsBesideTheForecast(t *testing.T) {
+	setup, err := newHarness(t, options{maxRevisions: 2}).flow.Onboarding()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var clinic *onboarding.Project
+	for index := range setup.Projects {
+		if setup.Projects[index].ID == "clinic-booking" {
+			clinic = &setup.Projects[index]
+		}
+	}
+	if clinic == nil || clinic.Profile == nil {
+		t.Fatalf("clinic-booking has no profile: %+v", clinic)
+	}
+	profile := clinic.Profile
+	if profile.Name != "Clinic booking" || !slices.Equal(profile.Environments, []string{"prod", "staging", "dev"}) || !slices.Equal(profile.Markets, []string{"Romania"}) {
+		t.Fatalf("profile %+v", profile)
+	}
+	if users := profile.Users; users == nil || users.Current != 41000 || users.Expected != 112500 || users.AtMonth != 24 {
+		t.Fatalf("users %+v", profile.Users)
+	}
+
+	bare, err := newHarness(t, options{maxRevisions: 2, projectsDir: projectsNamed(t, "alpha")}).flow.Onboarding()
+	if err != nil || bare.Projects[0].Profile != nil {
+		t.Fatalf("a project without a profile file got %+v (%v)", bare.Projects[0].Profile, err)
 	}
 }
 

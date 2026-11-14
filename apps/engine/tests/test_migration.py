@@ -20,7 +20,7 @@ def test_nothing_changed_means_no_migration(mock_infra, catalog, forecast):
 
 
 def test_cross_provider_move_pays_effort_side_by_side_month_and_data_transfer(mock_infra, catalog, forecast):
-    migration = migrate(mock_infra, catalog, forecast, Action("rds-erp", ActionKind.MOVE, "probe", option="managed-pg-serverless"))
+    migration = migrate(mock_infra, catalog, forecast, Action("rds-erp", ActionKind.MOVE, "probe", option="neon-launch"))
     step = migration.steps[0]
     assert step.hours == pytest.approx(50 + 4 * 310 / 100)
     assert step.eur == pytest.approx(step.hours * 85 + 1342 + (310 - 100) * 0.085)
@@ -61,7 +61,7 @@ def test_deleting_or_stopping_needs_no_migration(mock_infra, catalog, forecast):
 def test_risk_is_the_mean_risk_weighted_by_the_new_monthly_cost(mock_infra, catalog, forecast):
     migration = migrate(
         mock_infra, catalog, forecast,
-        Action("rds-erp", ActionKind.MOVE, "probe", option="managed-pg-serverless"),
+        Action("rds-erp", ActionKind.MOVE, "probe", option="neon-launch"),
         Action("rds-orders", ActionKind.RESIZE, "probe", tier="db.m5.2xlarge"),
     )
     assert migration.risk == pytest.approx((0.45 * 500 + 0.09 * 1500) / 2000)

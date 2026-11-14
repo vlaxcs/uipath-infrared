@@ -15,7 +15,7 @@
           "action": "move",
           "reason": "single-zone stateful database",
           "signal": "single_zone_stateful",
-          "to": { "option": "managed-pg-serverless", "region": "eu-west-1", "tier": "c4", "zones": 2 }
+          "to": { "option": "neon-launch", "region": "eu-west-1", "tier": "c4", "zones": 2 }
         }
       ]
     }

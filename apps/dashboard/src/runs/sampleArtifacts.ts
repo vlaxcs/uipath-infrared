@@ -36,7 +36,7 @@ const findings = {
       stack: "data",
       resources: ["rds-erp"],
       evidence: ["hstore and pg_trgm are required by the ERP"],
-      recommendation: "Migrate after the vendor confirms managed-pg-serverless support.",
+      recommendation: "Migrate after the vendor confirms neon-launch support.",
       confidence: "low",
       risk: "medium",
       migration_notes: "Not part of this plan; keep the finding open.",

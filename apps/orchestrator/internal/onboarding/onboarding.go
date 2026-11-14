@@ -14,9 +14,10 @@ const (
 var ErrInvalid = errors.New("invalid onboarding")
 
 type Answers struct {
-	Connection string   `json:"connection"`
-	Targets    []string `json:"targets"`
-	Onprem     Onprem   `json:"onprem"`
+	Connection string    `json:"connection"`
+	Targets    []string  `json:"targets"`
+	Onprem     Onprem    `json:"onprem"`
+	Criteria   *Criteria `json:"criteria,omitempty"`
 }
 
 type Onprem struct {
@@ -31,17 +32,36 @@ type Catalog struct {
 type Constraints struct {
 	Allowed   []string
 	Forbidden []string
+	Criteria  *Criteria
 }
 
 type Connection struct {
-	ID    string `json:"id"`
-	Label string `json:"label"`
+	ID        string `json:"id"`
+	Label     string `json:"label"`
+	Endpoint  string `json:"endpoint,omitempty"`
+	Reachable *bool  `json:"reachable,omitempty"`
 }
 
 type Project struct {
-	ID                 string   `json:"id"`
-	Description        string   `json:"description"`
-	ForbiddenProviders []string `json:"forbidden_providers"`
+	ID                 string          `json:"id"`
+	Description        string          `json:"description"`
+	ForbiddenProviders []string        `json:"forbidden_providers"`
+	Profile            *ProjectProfile `json:"profile,omitempty"`
+}
+
+type ProjectProfile struct {
+	Name         string        `json:"name"`
+	Summary      string        `json:"summary"`
+	Markets      []string      `json:"markets"`
+	Environments []string      `json:"environments"`
+	Users        *ProjectUsers `json:"users,omitempty"`
+}
+
+type ProjectUsers struct {
+	Metric   string `json:"metric"`
+	Current  int    `json:"current"`
+	Expected int    `json:"expected"`
+	AtMonth  int    `json:"at_month"`
 }
 
 type Setup struct {
@@ -49,6 +69,7 @@ type Setup struct {
 	Providers   []string     `json:"providers"`
 	Onprem      bool         `json:"onprem"`
 	Projects    []Project    `json:"projects"`
+	Markets     []string     `json:"markets"`
 }
 
 var Connections = []Connection{{ID: Floci, Label: "AWS (demo estate)"}}
@@ -73,6 +94,11 @@ func Resolve(answers Answers, catalog Catalog, projectForbidden []string) (Const
 			return Constraints{}, invalid("%s is forbidden by the project", target)
 		}
 	}
+	if answers.Criteria != nil {
+		if err := CheckCriteria(*answers.Criteria); err != nil {
+			return Constraints{}, err
+		}
+	}
 	if answers.Onprem.Wanted {
 		if !catalog.Onprem {
 			return Constraints{}, invalid("on-prem is wanted, but the catalog has no on-prem option")
@@ -93,7 +119,7 @@ func Resolve(answers Answers, catalog Catalog, projectForbidden []string) (Const
 	} else {
 		forbidden = append(forbidden, OnpremProvider)
 	}
-	return Constraints{Allowed: sortedUnique(allowed), Forbidden: sortedUnique(forbidden)}, nil
+	return Constraints{Allowed: sortedUnique(allowed), Forbidden: sortedUnique(forbidden), Criteria: answers.Criteria}, nil
 }
 
 func Apply(forecast map[string]any, constraints Constraints) error {
@@ -103,6 +129,9 @@ func Apply(forecast map[string]any, constraints Constraints) error {
 	}
 	hard["allowed_providers"] = constraints.Allowed
 	hard["forbidden_providers"] = constraints.Forbidden
+	if constraints.Criteria != nil {
+		return applyCriteria(forecast, *constraints.Criteria)
+	}
 	return nil
 }
 

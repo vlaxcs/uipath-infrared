@@ -38,6 +38,7 @@ type Files interface {
 	WriteJSON(path string, value any) error
 	List(dir string) ([]run.Artifact, error)
 	Read(dir, name string, limit int64) ([]byte, error)
+	ReadFrom(path string, offset, limit int64) ([]byte, int64, error)
 	ReadObject(path string) (map[string]any, error)
 	ReadCatalogOffer(path string) (onboarding.Catalog, error)
 	ReadProject(path string) (onboarding.Project, error)

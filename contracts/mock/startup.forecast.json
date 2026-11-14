@@ -16,7 +16,7 @@
     "data_residency": { "allowed_regions": ["eu-*"], "applies_to": ["pii", "confidential", "unknown"] },
     "budget": { "max_monthly_run_cost_eur": 12000, "max_one_off_migration_cost_eur": 9000 },
     "min_availability_pct": 99.4,
-    "allowed_providers": ["aws", "managed_pg"],
+    "allowed_providers": ["aws", "supabase", "neon", "hetzner", "fly", "cloudflare", "backblaze"],
     "max_migration_effort_hours": 200,
     "max_cutover_downtime_hours": 2,
     "security_gates": {

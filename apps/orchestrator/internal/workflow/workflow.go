@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -52,9 +53,10 @@ type Workflow struct {
 }
 
 type tracked struct {
-	mu  sync.Mutex
-	doc *run.Run
-	dir string
+	mu           sync.Mutex
+	doc          *run.Run
+	dir          string
+	trialRunning bool
 }
 
 func New(config Config, stages Stages, contracts Contracts, files Files, store Store, now func() time.Time) *Workflow {
@@ -109,7 +111,32 @@ func (w *Workflow) Onboarding() (onboarding.Setup, error) {
 		projects = append(projects, project)
 	}
 	sort.Slice(projects, func(i, j int) bool { return projects[i].ID < projects[j].ID })
-	return onboarding.Setup{Connections: onboarding.Connections, Providers: offer.Providers, Onprem: offer.Onprem, Projects: projects}, nil
+	return onboarding.Setup{
+		Connections: w.connections(),
+		Providers:   offer.Providers,
+		Onprem:      offer.Onprem,
+		Projects:    projects,
+		Markets:     onboarding.Markets(),
+	}, nil
+}
+
+func (w *Workflow) connections() []onboarding.Connection {
+	connections := slices.Clone(onboarding.Connections)
+	if w.config.FlociURL == "" {
+		return connections
+	}
+	probe := w.config.Probe
+	if probe == nil {
+		probe = answers
+	}
+	reachable := probe(w.ctx, w.config.FlociURL)
+	for index := range connections {
+		if connections[index].ID == onboarding.Floci {
+			connections[index].Endpoint = w.config.FlociURL
+			connections[index].Reachable = &reachable
+		}
+	}
+	return connections
 }
 
 func (w *Workflow) Start(project string, answers *onboarding.Answers) (run.Run, error) {
@@ -217,6 +244,7 @@ func (w *Workflow) Decide(id string, event run.Event) (run.Event, error) {
 			return appended, nil
 		}
 		w.launch(func() { w.fromRehearse(entry) })
+		w.launch(func() { w.buildPickedStates(entry, event.Decision.Layout) })
 	case run.ApprovePlan:
 		w.release(entry.doc)
 	}

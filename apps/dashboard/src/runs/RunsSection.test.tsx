@@ -29,7 +29,6 @@ function Harness({
       runId={runId}
       focusGate={focusGate}
       onOpenRun={setRunId}
-      onCloseRun={() => setRunId(null)}
     />
   );
 }
@@ -56,11 +55,6 @@ describe("the runs section", () => {
     expect(summary.textContent).toContain("Completed");
     expect(screen.queryByRole("table", { name: "Runs" })).toBeNull();
     expect(screen.getByRole("heading", { name: "Run overview" })).toBeTruthy();
-
-    fireEvent.click(screen.getByRole("button", { name: /All runs/ }));
-
-    expect(await screen.findByRole("table", { name: "Runs" })).toBeTruthy();
-    expect(screen.queryByRole("region", { name: "demo-shop" })).toBeNull();
   });
 
   it("opens a run with its gate already pinned", async () => {
@@ -74,7 +68,6 @@ describe("the runs section", () => {
     );
 
     expect(await screen.findByRole("heading", { level: 2, name: "Present" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /All approvals/ })).toBeTruthy();
     expect(screen.getByText("Keep analyses")).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Run overview" })).toBeNull();
   });
@@ -117,7 +110,6 @@ describe("the runs section", () => {
 
     await waitFor(() => expect(startRun).toHaveBeenCalledWith("startup"));
     expect(await screen.findByRole("region", { name: "demo-shop" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /All runs/ })).toBeTruthy();
   });
 
   it("shows a live list error and retries", async () => {

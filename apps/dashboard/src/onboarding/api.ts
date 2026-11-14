@@ -1,10 +1,14 @@
-import type { OnboardingSetup, StartRequest, StartedRun } from "~/onboarding/types";
+import type { OnboardingSetup, Profile, StartRequest, StartedRun } from "~/onboarding/types";
+import type { RunSummary } from "~/runs/types";
 
 export class OrchestratorError extends Error {}
 
 export type OnboardingSource = {
   load(): Promise<OnboardingSetup>;
   start(request: StartRequest): Promise<StartedRun>;
+  loadProfile(): Promise<Profile>;
+  saveProfile(profile: Profile): Promise<Profile>;
+  listRuns(): Promise<RunSummary[]>;
 };
 
 const UNREACHABLE = "The platform is unreachable. Check that the orchestrator is running, then try again.";
@@ -38,5 +42,13 @@ export const orchestratorOnboarding: OnboardingSource = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(request),
+    }),
+  loadProfile: () => call<Profile>("/profile"),
+  listRuns: () => call<RunSummary[]>("/runs?limit=50"),
+  saveProfile: (profile) =>
+    call<Profile>("/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profile),
     }),
 };

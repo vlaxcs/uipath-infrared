@@ -28,6 +28,15 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def summary(command: str, document: dict, out: Path) -> str:
+    if command != "evaluate":
+        return f"engine: baseline EUR {document.get('monthly_eur')}/month; wrote {out}"
+    candidates = document.get("candidates") or []
+    feasible = sum(1 for candidate in candidates if candidate.get("feasible"))
+    winner = f"winner {document['winner']}" if document.get("winner") else "no winner"
+    return f"engine: {len(candidates)} candidates, {feasible} feasible, {winner}; wrote {out}"
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
@@ -41,6 +50,7 @@ def main(argv: list[str] | None = None) -> int:
     text = dumps_deterministic(document)
     if args.out:
         args.out.write_text(text, encoding="utf-8")
+        print(summary(args.command, document, args.out), file=sys.stderr)
     else:
         sys.stdout.write(text)
     return 0

@@ -76,7 +76,7 @@ def test_a_group_with_a_member_that_cannot_move_stays_together(layers, component
 
 
 def test_onprem_outside_the_allow_list_moves_nothing(mock_infra, catalog, forecast):
-    constraints = replace(forecast.constraints, allowed_providers=frozenset({"aws", "managed_pg"}))
+    constraints = replace(forecast.constraints, allowed_providers=frozenset({"aws", "supabase", "neon"}))
     previous, candidate = layered(mock_infra, catalog, replace(forecast, constraints=constraints))
     own_actions = candidate.own_actions(previous)
     assert not [a for a in own_actions if a.kind == ActionKind.MOVE]

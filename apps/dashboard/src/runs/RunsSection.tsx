@@ -7,17 +7,15 @@ type RunsSectionProps = {
   runId: string | null;
   focusGate: boolean;
   onOpenRun: (id: string) => void;
-  onCloseRun: () => void;
 };
 
-export function RunsSection({ source, runId, focusGate, onOpenRun, onCloseRun }: RunsSectionProps) {
+export function RunsSection({ source, runId, focusGate, onOpenRun }: RunsSectionProps) {
   if (runId) {
     return (
       <RunPage
         source={source}
         runId={runId}
         focusGate={focusGate}
-        onBack={onCloseRun}
         onOpenRun={onOpenRun}
       />
     );
