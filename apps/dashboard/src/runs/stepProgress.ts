@@ -1,8 +1,8 @@
-import type { EventStatus, Run, RunEvent, RunStep, StepState } from "~/runs/types";
+import type { EventStatus, RunEvent, RunStep, RunSummary, StepState } from "~/runs/types";
 
 export const RUN_STEPS: readonly RunStep[] = ["extract", "investigate", "propose", "evaluate", "present", "rehearse"];
 
-export function deriveStepStates(events: readonly RunEvent[], run: Run): Record<RunStep, StepState> {
+export function deriveStepStates(events: readonly RunEvent[], run: RunSummary): Record<RunStep, StepState> {
   const ordered = [...events].sort((a, b) => a.seq - b.seq);
   const states = {} as Record<RunStep, StepState>;
 

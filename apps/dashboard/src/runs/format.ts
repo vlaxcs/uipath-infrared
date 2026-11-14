@@ -20,3 +20,22 @@ export function formatTime(timestamp: string): string {
 export function shortHash(hash: string): string {
   return hash.slice(0, 12);
 }
+
+export function formatEUR(value?: number | null): string {
+  if (value === undefined || value === null) return "Not reported";
+  return new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+export function formatPercent(value?: number | null): string {
+  if (value === undefined || value === null) return "Not reported";
+  return `${Number(value.toFixed(2))}%`;
+}
+
+export function formatRisk(value?: number | null): string {
+  if (value === undefined || value === null) return "Not reported";
+  return value.toFixed(2);
+}

@@ -1,10 +1,10 @@
-import type { Run } from "~/runs/types";
+import type { RunSummary } from "~/runs/types";
 import { formatTimestamp } from "~/runs/format";
 import { runStatusLabel, runStatusMeta } from "~/runs/status";
 import { StatusBadge } from "~/ui/StatusBadge";
 
 type RunsListProps = {
-  runs: readonly Run[];
+  runs: readonly RunSummary[];
   selectedRunId: string | null;
   onSelectRun: (id: string) => void;
 };

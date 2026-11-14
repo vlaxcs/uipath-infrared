@@ -11,7 +11,7 @@ export type RunFile = {
   sha256: string;
 };
 
-export type Run = {
+export type RunSummary = {
   id: string;
   project: string;
   status: RunStatus;
@@ -22,6 +22,9 @@ export type Run = {
   updated_at: string;
   finished_at?: string;
   awaiting?: Gate;
+};
+
+export type Run = RunSummary & {
   inputs: {
     forecast: RunFile;
     catalog: RunFile;
@@ -42,6 +45,15 @@ export type RunOutput = {
   file: RunFile;
 };
 
+export type LayoutOption = {
+  id: string;
+  feasible: boolean;
+  rank?: number;
+  monthly_eur?: number;
+  availability_pct?: number;
+  risk?: number;
+};
+
 export type RunEvent = {
   seq: number;
   at: string;
@@ -52,9 +64,22 @@ export type RunEvent = {
   gate?: Gate;
   decision?: RunDecision;
   output?: RunOutput;
+  x_candidates?: LayoutOption[];
 };
 
 export type RunDetail = Run & {
   schema_version: string;
   events: RunEvent[];
+};
+
+export type HumanDecision = {
+  step: RunStep;
+  status: "approved";
+  actor: { kind: "human"; id: string; surface: Surface };
+  decision: RunDecision;
+};
+
+export type RunArtifactInfo = {
+  path: string;
+  size: number;
 };

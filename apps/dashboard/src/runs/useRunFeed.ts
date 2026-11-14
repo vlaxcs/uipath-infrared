@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { RunSource } from "~/runs/source";
 import { deriveRunSummary, isTerminal } from "~/runs/summary";
 import type { RunDetail, RunEvent } from "~/runs/types";
@@ -6,6 +6,7 @@ import type { RunDetail, RunEvent } from "~/runs/types";
 export type RunFeed = {
   run: RunDetail;
   error: string | null;
+  mergeEvent: (event: RunEvent) => void;
 };
 
 export function useRunFeed(run: RunDetail, source: RunSource, intervalMs = 2000): RunFeed {
@@ -63,9 +64,17 @@ export function useRunFeed(run: RunDetail, source: RunSource, intervalMs = 2000)
       controller?.abort();
       if (timer !== undefined) window.clearTimeout(timer);
     };
-  }, [run.id, source, intervalMs]);
+  }, [run.id, run.updated_at, source, intervalMs]);
 
   const summary = deriveRunSummary(events);
+
+  const mergeEvent = useCallback((event: RunEvent) => {
+    const current = eventsRef.current;
+    if (event.seq <= highestSeq(current)) return;
+    const merged = sortBySeq([...current, event]);
+    eventsRef.current = merged;
+    setEvents(merged);
+  }, []);
 
   return {
     run: {
@@ -80,6 +89,7 @@ export function useRunFeed(run: RunDetail, source: RunSource, intervalMs = 2000)
       events,
     },
     error,
+    mergeEvent,
   };
 }
 

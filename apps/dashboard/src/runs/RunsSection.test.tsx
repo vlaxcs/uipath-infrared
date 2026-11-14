@@ -1,55 +1,84 @@
-import { useState } from "react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
-import { failedRun } from "~/runs/fixtures";
-import { sampleRun, sampleRuns } from "~/runs/sampleRun";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cutSampleRun } from "~/runs/fixtures";
 import { sampleRunSource } from "~/runs/sampleRunSource";
+import type { RunSource } from "~/runs/source";
 import { RunsSection } from "~/runs/RunsSection";
-import type { RunDetail } from "~/runs/types";
 
 afterEach(cleanup);
 
-function Harness({ runs }: { runs: readonly RunDetail[] }) {
-  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
-  const selectedRun = runs.find((run) => run.id === selectedRunId) ?? null;
-
-  return (
-    <RunsSection
-      runs={runs}
-      selectedRun={selectedRun}
-      selectedRunId={selectedRunId}
-      onSelectRun={setSelectedRunId}
-      source={sampleRunSource}
-    />
-  );
+function sourceWith(overrides: Partial<RunSource>): RunSource {
+  return { ...sampleRunSource, ...overrides };
 }
 
 describe("the runs section", () => {
-  it("says when there are no runs", () => {
-    render(
-      <RunsSection
-        runs={[]}
-        selectedRun={null}
-        selectedRunId={null}
-        onSelectRun={() => {}}
-        source={sampleRunSource}
-      />,
-    );
-    expect(screen.getByText("No runs yet")).toBeTruthy();
+  it("says when there are no runs", async () => {
+    render(<RunsSection source={sourceWith({ listRuns: async () => [] })} />);
+    expect(await screen.findByText("No runs yet")).toBeTruthy();
   });
 
-  it("asks for a selection when runs exist", () => {
-    render(<Harness runs={sampleRuns} />);
+  it("lists the sample run and opens it on selection", async () => {
+    render(<RunsSection source={sampleRunSource} />);
+
+    expect(await screen.findByRole("list", { name: "Runs" })).toBeTruthy();
     expect(screen.getByText("Select a run")).toBeTruthy();
-  });
-
-  it("switches the summary between runs", () => {
-    render(<Harness runs={[sampleRun, failedRun]} />);
-
-    fireEvent.click(screen.getByRole("button", { name: /run-demo-shop-0002/ }));
-    expect(screen.getByRole("region", { name: "checkout" }).textContent).toContain("Failed");
 
     fireEvent.click(screen.getByRole("button", { name: /run-demo-shop-0001/ }));
-    expect(screen.getByRole("region", { name: "demo-shop" }).textContent).toContain("Completed");
+
+    const summary = await screen.findByRole("region", { name: "demo-shop" });
+    expect(summary.textContent).toContain("Completed");
+  });
+
+  it("selects the newest active run automatically", async () => {
+    const active = cutSampleRun(14);
+    render(
+      <RunsSection
+        source={sourceWith({
+          listRuns: async () => [active],
+          getRun: async () => active,
+        })}
+      />,
+    );
+
+    expect(await screen.findByRole("region", { name: "demo-shop" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "A layout is waiting to be picked" })).toBeTruthy();
+  });
+
+  it("starts a live run and follows it", async () => {
+    const started = cutSampleRun(14);
+    const startRun = vi.fn().mockResolvedValue(started);
+    render(
+      <RunsSection
+        source={sourceWith({
+          mode: "live",
+          listRuns: async () => [],
+          getRun: async () => started,
+          startRun,
+        })}
+      />,
+    );
+
+    expect(await screen.findByText("No runs yet")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Start run" }));
+
+    await waitFor(() => expect(startRun).toHaveBeenCalledWith("startup"));
+    expect(await screen.findByRole("region", { name: "demo-shop" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Start run" })).toBeNull();
+  });
+
+  it("shows a live list error and retries", async () => {
+    const listRuns = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("orchestrator is offline"))
+      .mockResolvedValueOnce([]);
+    render(<RunsSection source={sourceWith({ mode: "live", listRuns })} />);
+
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain("orchestrator is offline");
+
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    expect(await screen.findByText("No runs yet")).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });

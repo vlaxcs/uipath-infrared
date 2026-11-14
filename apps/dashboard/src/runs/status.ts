@@ -2,9 +2,9 @@ import type {
   DecisionKind,
   EventStatus,
   Gate,
-  Run,
   RunActor,
   RunStatus,
+  RunSummary,
   StepState,
 } from "~/runs/types";
 import type { StatusTone } from "~/ui/StatusBadge";
@@ -59,7 +59,7 @@ export const stepStateMeta: Record<StepState, { label: string; tone: StatusTone 
   failed: { label: "Failed", tone: "failed" },
 };
 
-export function runStatusLabel(run: Run): string {
+export function runStatusLabel(run: RunSummary): string {
   if (run.status === "awaiting_approval" && run.awaiting) {
     return run.awaiting === "layout" ? "Awaiting layout" : "Awaiting plan";
   }

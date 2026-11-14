@@ -2,7 +2,7 @@ import type { RunDetail } from "~/runs/types";
 import { formatActor, gateMeta } from "~/runs/status";
 import { StatusBadge } from "~/ui/StatusBadge";
 
-export function AwaitingBanner({ run }: { run: RunDetail }) {
+export function AwaitingBanner({ run, onReview }: { run: RunDetail; onReview?: () => void }) {
   if (!run.awaiting) return null;
 
   const gate = gateMeta[run.awaiting];
@@ -38,6 +38,15 @@ export function AwaitingBanner({ run }: { run: RunDetail }) {
         <p className="text-caption text-fg-subtle">
           Layout: <span className="font-mono">{lastDecision.decision.layout}</span>
         </p>
+      ) : null}
+      {onReview ? (
+        <button
+          type="button"
+          onClick={onReview}
+          className="self-start rounded-control border border-border bg-surface px-3 py-2 text-label hover:bg-surface-muted"
+        >
+          Review the gate
+        </button>
       ) : null}
     </section>
   );

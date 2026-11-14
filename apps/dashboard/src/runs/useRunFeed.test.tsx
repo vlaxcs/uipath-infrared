@@ -3,6 +3,7 @@ import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cutSampleRun } from "~/runs/fixtures";
 import { sampleRun } from "~/runs/sampleRun";
+import { sampleRunSource } from "~/runs/sampleRunSource";
 import type { RunSource } from "~/runs/source";
 import type { RunEvent } from "~/runs/types";
 import { useRunFeed } from "~/runs/useRunFeed";
@@ -21,6 +22,7 @@ function scriptedSource(...batches: RunEvent[][]): { calls: number[]; source: Ru
   return {
     calls,
     source: {
+      ...sampleRunSource,
       eventsAfter: async (_runId, after) => {
         calls.push(after);
         return queue.shift() ?? [];
@@ -96,7 +98,7 @@ describe("the run feed", () => {
   it("keeps the events and retries when polling fails", async () => {
     vi.useFakeTimers();
     const eventsAfter = vi.fn().mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce([]);
-    const source: RunSource = { eventsAfter };
+    const source: RunSource = { ...sampleRunSource, eventsAfter };
     const { result } = renderHook(() => useRunFeed(cutSampleRun(14), source, 2000));
 
     await act(async () => {
@@ -115,6 +117,7 @@ describe("the run feed", () => {
     vi.useFakeTimers();
     let signal: AbortSignal | undefined;
     const source: RunSource = {
+      ...sampleRunSource,
       eventsAfter: (_runId, _after, requestSignal) => {
         signal = requestSignal;
         return new Promise<RunEvent[]>(() => {});

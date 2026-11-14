@@ -5,22 +5,24 @@ import { App } from "~/App";
 afterEach(cleanup);
 
 describe("the dashboard shell", () => {
-  it("shows the brand and every section", () => {
+  it("shows the brand and every section", async () => {
     render(<App />);
     expect(screen.getByText("Infrared")).toBeTruthy();
     const nav = screen.getByRole("navigation", { name: "Primary" });
     for (const label of ["Runs", "Graph", "Candidates", "Rehearsal", "Approvals"]) {
       expect(nav.textContent).toContain(label);
     }
+    expect(screen.getByText("Sample data")).toBeTruthy();
+    expect(await screen.findByRole("list", { name: "Runs" })).toBeTruthy();
   });
 
-  it("lists the sample run and shows its timeline when selected", () => {
+  it("lists the sample run and shows its timeline when selected", async () => {
     render(<App />);
-    expect(screen.getByRole("list", { name: "Runs" }).textContent).toContain("demo-shop");
+    expect((await screen.findByRole("list", { name: "Runs" })).textContent).toContain("demo-shop");
 
     fireEvent.click(screen.getByRole("button", { name: /run-demo-shop-0001/ }));
 
-    const summary = screen.getByRole("region", { name: "demo-shop" });
+    const summary = await screen.findByRole("region", { name: "demo-shop" });
     expect(summary.textContent).toContain("Completed");
     expect(summary.textContent).toContain("rehearse");
     expect(summary.textContent).toContain("1 / 2");
@@ -41,14 +43,16 @@ describe("the dashboard shell", () => {
     expect(screen.queryByText("A layout is waiting to be picked")).toBeNull();
   });
 
-  it("switches to a future section and back", () => {
+  it("switches to a future section and back", async () => {
     render(<App />);
+    await screen.findByRole("list", { name: "Runs" });
+
     fireEvent.click(screen.getByRole("button", { name: "Graph" }));
     expect(screen.getByRole("heading", { level: 1, name: "Graph" })).toBeTruthy();
     expect(screen.getByText("Not built yet")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Runs" }));
     expect(screen.getByRole("heading", { level: 1, name: "Runs" })).toBeTruthy();
-    expect(screen.getByRole("list", { name: "Runs" })).toBeTruthy();
+    expect(await screen.findByRole("list", { name: "Runs" })).toBeTruthy();
   });
 });
