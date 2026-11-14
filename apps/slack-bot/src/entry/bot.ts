@@ -21,5 +21,5 @@ export function createBot(settings: Settings, orchestrator: Orchestrator) {
   app.action(APPROVE_PLAN_ACTION, approvePlanAction(orchestrator));
   app.view(PLAN_APPROVAL_VIEW, submitPlanApproval(new PlanApprover(orchestrator)));
   app.action(new RegExp(`^${PICK_LAYOUT_ACTION}_`), pickLayoutAction(new LayoutPicker(orchestrator)));
-  return { app, slack: new BoltSlackClient(app) };
+  return { app, slack: new BoltSlackClient(app, { dashboardUrl: settings.dashboardUrl }) };
 }

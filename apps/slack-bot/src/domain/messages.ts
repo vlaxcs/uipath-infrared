@@ -6,6 +6,14 @@ import type { RehearsalSummary } from './rehearsal-summary.js';
 import type { PlanSummary } from './plan-summary.js';
 import { APPROVE_PLAN_ACTION } from './plan-approval.js';
 import { clip, compactEur, eur } from './format.js';
+import type { DiagramRef } from './diagram.js';
+import { diagramBlocks } from './diagram.js';
+
+const MAX_BLOCKS = 50;
+
+type SlotMode = 'full' | 'image' | 'none';
+
+const SLOT_MODES: SlotMode[] = ['full', 'image', 'none'];
 
 export interface BlockKitMessage {
   blocks: any[];
@@ -42,7 +50,8 @@ export function formatLayoutGate(
   event: RunEvent,
   candidates: LayoutCandidate[] = [],
   target?: LayoutTarget,
-  runContext?: RunContext
+  runContext?: RunContext,
+  diagrams?: Map<string, DiagramRef>
 ): BlockKitMessage {
   const offered = candidates.filter(candidate => candidate.feasible);
   const excluded = candidates.filter(candidate => !candidate.feasible);
@@ -67,6 +76,33 @@ export function formatLayoutGate(
     candidate.risk !== undefined || candidate.effortHours !== undefined || candidate.paybackMonths !== undefined ||
     candidate.actions !== undefined
   );
+  let blocks: any[] = [];
+  for (const mode of SLOT_MODES) {
+    blocks = layoutBlocks(runId, event, offered, excluded, target, runContext, lead, rich, slotFor(diagrams, runContext, mode));
+    if (blocks.length <= MAX_BLOCKS) break;
+  }
+  return { text: 'Which architecture should we run?', blocks };
+}
+
+function slotFor(diagrams: Map<string, DiagramRef> | undefined, runContext: RunContext | undefined, mode: SlotMode) {
+  return (candidate: LayoutCandidate): any[] => {
+    if (mode === 'none') return [];
+    const blocks = diagramBlocks(diagrams?.get(candidate.id), runContext?.dashboardUrl, clip(candidate.id, 200));
+    return mode === 'image' ? blocks.slice(0, 1) : blocks;
+  };
+}
+
+function layoutBlocks(
+  runId: string,
+  event: RunEvent,
+  offered: LayoutCandidate[],
+  excluded: LayoutCandidate[],
+  target: LayoutTarget | undefined,
+  runContext: RunContext | undefined,
+  lead: string,
+  rich: boolean,
+  slot: (candidate: LayoutCandidate) => any[]
+): any[] {
   const blocks: any[] = [header('Which architecture should we run?'), context(lead)];
   offered.forEach((candidate, index) => {
     if (index > 0) blocks.push(divider());
@@ -74,6 +110,7 @@ export function formatLayoutGate(
     const fields = candidateFields(candidate, target, rich);
     if (fields.length > 0) blocks.push(fieldsBlock(fields));
     if (!candidate.recommended && rich) blocks.push(section(`Not picked: ${lostReason(candidate)}`));
+    blocks.push(...slot(candidate));
     const elements: any[] = [layoutButton(runId, event, candidate)];
     if (index === 0 && runContext?.dashboardUrl) elements.push(dashboardButton(runContext.dashboardUrl));
     blocks.push(actions(elements));
@@ -88,7 +125,7 @@ export function formatLayoutGate(
     blocks.push(divider(), section('*Not viable*'), section(lines.join('\n')));
   }
   blocks.push(context(eventContext(event)));
-  return { text: 'Which architecture should we run?', blocks };
+  return blocks;
 }
 
 export function formatPlanGate(
@@ -96,7 +133,8 @@ export function formatPlanGate(
   event: RunEvent,
   rehearsal?: RehearsalSummary,
   plan?: PlanSummary,
-  runContext?: RunContext
+  runContext?: RunContext,
+  diagram?: DiagramRef
 ): BlockKitMessage {
   const missed = rehearsal?.passed === false;
   const value: PlanActionValue = { run_id: runId, seq: event.seq };
@@ -114,6 +152,7 @@ export function formatPlanGate(
     blocks.push(section(`*First changes*\n${lines.length > 0 ? lines.join('\n') : '—'}`));
   }
   if (!rehearsal && !plan) blocks.push(section('Approving the plan completes the run.'));
+  blocks.push(...diagramBlocks(diagram, runContext?.dashboardUrl, 'plan'));
   const elements: any[] = [{
     type: 'button',
     text: { type: 'plain_text', text: 'Approve plan' },
@@ -126,7 +165,7 @@ export function formatPlanGate(
   return { text: missed ? 'The rehearsal missed the forecast' : 'Rehearsal held — approve the plan', blocks };
 }
 
-export function formatLayoutProgress(pick: RunEvent, frame: number): BlockKitMessage {
+export function formatLayoutProgress(pick: RunEvent, frame: number, diagram?: DiagramRef, runContext?: RunContext): BlockKitMessage {
   const step = Math.max(1, Math.min(frame + 1, 8));
   const bar = '▰'.repeat(step) + '▱'.repeat(8 - step);
   return {
@@ -134,43 +173,47 @@ export function formatLayoutProgress(pick: RunEvent, frame: number): BlockKitMes
     blocks: [
       header('Architecture picked'),
       section(`*${describeEvent(pick)}*`),
+      ...diagramBlocks(diagram, runContext?.dashboardUrl, 'layout'),
       section('Rehearsal running on Floci. The result and the plan follow here.'),
       context(bar),
     ],
   };
 }
 
-export function formatLayoutDone(pick: RunEvent, rehearsal?: RehearsalSummary): BlockKitMessage {
+export function formatLayoutDone(pick: RunEvent, rehearsal?: RehearsalSummary, diagram?: DiagramRef, runContext?: RunContext): BlockKitMessage {
   return {
     text: 'Rehearsal complete',
     blocks: [
       header('Rehearsal complete'),
       section(`*${describeEvent(pick)}*`),
       fieldsBlock(rehearsalFields(rehearsal ?? {})),
+      ...diagramBlocks(diagram, runContext?.dashboardUrl, 'layout'),
       context('The plan follows in the channel.'),
     ],
   };
 }
 
-export function formatLayoutStopped(pick: RunEvent, reason?: string): BlockKitMessage {
+export function formatLayoutStopped(pick: RunEvent, reason?: string, diagram?: DiagramRef, runContext?: RunContext): BlockKitMessage {
   return {
     text: 'Rehearsal stopped',
     blocks: [
       header('Rehearsal stopped'),
       section(`*${describeEvent(pick)}*`),
       section(reason ?? 'The rehearsal stopped before a measurement.'),
+      ...diagramBlocks(diagram, runContext?.dashboardUrl, 'layout'),
       context('The run stopped; see the failure card.'),
     ],
   };
 }
 
-export function formatGateClosed(closing: RunEvent, rehearsal?: RehearsalSummary): BlockKitMessage {
+export function formatGateClosed(closing: RunEvent, rehearsal?: RehearsalSummary, diagram?: DiagramRef, runContext?: RunContext): BlockKitMessage {
   const kind = closing.decision?.kind;
   const title = kind === 'approve_plan' ? 'Plan approved' : kind === 'pick_layout' ? 'Architecture picked' : 'Gate closed';
   const headline = describeEvent(closing);
   const blocks: any[] = [header(title), section(`*${headline}*`)];
   if (kind === 'pick_layout') blocks.push(section('Next: the rehearsal runs on Floci. Its result and the plan follow here.'));
   if (kind === 'approve_plan') blocks.push(section('The run is complete.'));
+  if (kind === 'pick_layout' || kind === 'approve_plan') blocks.push(...diagramBlocks(diagram, runContext?.dashboardUrl, kind));
   if (rehearsal) {
     blocks.push(divider(), section('*Rehearsal*'));
     const fields = rehearsalFields(rehearsal);

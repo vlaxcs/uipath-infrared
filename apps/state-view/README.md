@@ -1,0 +1,142 @@
+# Estate states
+
+A focused frontend for the infrastructure as it moves through a migration, from A (the current estate) to B (the target). A timeline carousel across the top steps through the plan's states; upcoming states stay shadowed until you reach them. Below it a schematic topology shows every resource and dependency: when a step removes a resource, its links visibly snap apart and fade, and the resource stays as a dashed ghost.
+
+It is a standalone prototype with simulated data. Nothing here talks to the orchestrator. It is built so its data shape can be handed to Robi's dashboard: each state is a full `Infra` snapshot using the same `Component`, `Edge` and `Stack` fields the dashboard already renders.
+
+## Run
+
+```bash
+python3 apps/state-view/builder/build_states.py
+python3 apps/state-view/build.py
+open apps/state-view/dist/state-view.html
+```
+
+Tests:
+
+```bash
+python3 -m unittest discover -s apps/state-view/builder -p 'test_*.py'
+```
+
+`build.py` inlines the CSS, JavaScript and generated JSON into one self-contained HTML file; it works from `file://`. No network, no libraries, no build step.
+
+Deep links use the state id, e.g. `state-view.html#state-11`.
+
+## Snapshots for Slack
+
+`snapshot.py` renders the estate a decision leads to as a PNG card (1200x675 at 2x, light theme, no controls), for any candidate in the result, not just the winner:
+
+```bash
+python3 apps/state-view/snapshot.py --layout consolidate --state target --out /tmp/consolidate.png
+    [--result PATH] [--infra PATH] [--chrome PATH] [--width 1200] [--height 675] [--scale 2] [--html-only]
+```
+
+- `--state` is `current`, `target` or a state index. A candidate with no actions (`do_nothing`) has one state, so its target is the current estate.
+- Defaults: `apps/state-view/data/result.demo-shop.json` and `contracts/mock/demo-shop.infra.json`, resolved from the repo, so it runs from any directory.
+- Chrome: `--chrome`, else `$CHROME_PATH`, else the macOS app, else `google-chrome`/`chromium`/`chromium-browser` on `PATH`. `--html-only` writes the card HTML instead and needs no Chrome.
+- On success it prints one JSON line, `{"path", "layout", "state", "title", "caption", "alt"}`, and exits 0. On failure it writes to stderr only and exits 2 (bad layout, state or path), 3 (no Chrome) or 4 (Chrome failed). One render takes about 0.6 s.
+
+The card is the same page in card mode: open any build with `#card&state=target` (or `current`, or an index). Each resource and link is marked against the current estate: unchanged, changed (amber), added (green) or removed (red dashed ghost). A flag is a review note, not a change. Entry nodes fold into the compute column, labels use the condensed face at 22px, and the panels are split over two columns so the image stays legible at the 360–500 px width Slack shows. The page sets `window.__SNAPSHOT_READY__` once drawn.
+
+`builder/build_states.py --layout <id>` writes the full state document for any candidate; `build.render_html(document, card=None)` is the inliner both use.
+
+## Data
+
+The snapshots come from the Floci estate already checked in for the demo:
+
+| Input | Path |
+|---|---|
+| Baseline estate | `contracts/mock/demo-shop.infra.json` |
+| Candidates | `apps/state-view/data/result.demo-shop.json` (sample `result.json`; default is the winner, `consolidate`) |
+| Generated states | `apps/state-view/data/states.json` |
+
+`builder/build_states.py` applies the winner's 21 actions in stage order and emits 22 states: the current estate, one state after each step, and the target. It also scales the actions' savings so the endpoints land exactly on the engine's figures: €133,308/month to €74,365/month.
+
+### Honesty notes
+
+- Every total is a sample plan. The `Sample plan` chip stays visible.
+- Baseline and target costs come from the result file. Intermediate monthly costs are modelled from the action savings and are tagged `modelled` in the UI.
+- Availability is reported only for the current estate (observed) and the target (engine estimate). In between it is `null` and shown as not measured until rehearsal.
+- Per-resource costs are baseline list prices. On the last step the engine's saving for `ng-shop-cpu` is smaller than that resource's list cost, so resource costs do not sum exactly to the state total. The footnote in the UI says so.
+- A plan can leave an issue open. `rds-analytics` is remediated for encryption but stays publicly exposed, and the resource detail keeps showing `public`.
+
+## Generated document: `data/states.json`
+
+```jsonc
+{
+  "schema_version": "1.0",
+  "project": "demo-shop",
+  "title": "Demo shop",
+  "baseline": { "monthly_eur": 133308, "availability_pct": 99.2, "components": 38, "stacks": 4 },
+  "target":   { "monthly_eur": 74365, "availability_pct": 99.95, "components": 30, "stacks": 4, ... },
+  "stepCount": 21,
+  "stages": [{ "id": "cleanup_orphans", "label": "Clean up", "stateIds": ["state-4"], ... }],
+  "tiers": [{ "id": "compute", "label": "Compute" }],
+  "states": [{
+    "id": "state-5",
+    "index": 5,
+    "step": 5,
+    "label": "After resize efs-legacy",
+    "shortLabel": "Resize efs-legacy",
+    "stageId": "cleanup_orphans",
+    "reason": "512 MiB/s provisioned, 0.4% used",
+    "cost_source": "modelled",           // observed | modelled | engine
+    "summary": {
+      "monthly_eur": 128042,
+      "delta_eur": -2837,
+      "cumulative_saving_eur": 5266,
+      "availability_pct": null,
+      "availability_source": null,       // observed | engine | null
+      "components": 37,
+      "changed": 1,
+      "removed_total": 1
+    },
+    "changes": [{ "component": "efs-legacy", "kind": "resized", "action": "resize", "verb": "Resize", ... }],
+    "removed": [{ "id": "rds-orders-clone", "kind": "postgres", "stack": "shop", "tier": "data",
+                  "typeLabel": "RDS", "monthlyEur": 2919, "action": "delete",
+                  "atState": "state-4", "atIndex": 4 }],
+    "infra": {
+      "project": "demo-shop",
+      "stacks": [{ "id": "shop", "name": "Web shop", "environment": "prod" }],
+      "components": [{
+        "id": "rds-orders", "kind": "postgres", "tier": "data", "stack": "shop",
+        "status": "active", "quantity": 1, "monthlyEur": 3229,
+        "securityIssue": null, "typeLabel": "RDS",
+        "facts": [{ "label": "Size", "value": "32 vCPU · 256 GB" },
+                  { "label": "Cost", "value": "€3,229/mo" }],
+        "changed": "resized", "changedAction": "resize"
+      }],
+      "edges": [{ "from": "vmfleet-web", "to": "rds-orders", "kind": "data", "note": "..." }]
+    }
+  }]
+}
+```
+
+## Mapping to Robi's dashboard
+
+The component and state shapes were chosen to match `apps/dashboard/src/graph/types.ts` (on `andrei/dashboard-transitions`):
+
+| This document | Dashboard model | Notes |
+|---|---|---|
+| `states[i].infra.components` | `Component[]` | Same fields; `tier`, `provider`, `region`, `service`, `sku`, `changed` are extras. |
+| `states[i].infra.edges` | `Edge[]` | Dangling endpoints are removed per state. |
+| `states[i].infra.stacks` | `Stack[]` | Adds `environment`. |
+| `states[i].changes[]` | `Change` / `Action` | `kind` uses the dashboard's `ChangeKind`; `action`/`from`/`to`/`reason` match. |
+| `states[i].summary` | `Summary` | Same money and count fields, plus availability source. |
+| `states[i].removed[]` | ghosts | Snapshot of removed resources for the dashed rows. |
+
+The dashboard's current `TransitionToggle` only offers current and after. This piece makes the middle of that transition navigable: feed it the run's state snapshots and each timeline node can map to a run step. The renderer is dependency-free so the topology can be lifted into `GraphSection` or a new run-step view without changing the data contract.
+
+## Files
+
+| Path | Owns |
+|---|---|
+| `builder/build_states.py`, `builder/test_build_states.py` | state derivation, tests, `data/states.json` |
+| `web/app.js`, `web/app.css` | timeline carousel, topology layout and link routing, resource detail |
+| `web/template.html`, `build.py` | shell and inlining (`render_html`) |
+| `snapshot.py`, `builder/test_snapshot.py` | PNG cards for Slack, layout and CLI tests |
+| `data/result.demo-shop.json` | sample result copied from the checked-in mock |
+
+## Design notes
+
+A schematic, not a force-directed graph. Each stack is a panel with three columns (entry, compute, data and storage); node groups hang under their cluster as a tree. Links are orthogonal and run only in the channels between columns, one lane per source, with lanes ordered to minimise crossings, so no link crosses a label. Cluster to node-group links are inferred by the view (the infra model has none) and drawn in grey. The page fits one viewport: row spacing grows to fill the available height. The one loud moment is a link breaking; everything else stays quiet. Condensed display type, mono for identifiers and money, tabular numerals. One accent for the estate and one signal colour per change kind. Light and dark themes; keyboard stepping, focus rings and reduced motion are supported.

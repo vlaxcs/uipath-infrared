@@ -13,12 +13,32 @@ Posts a run's decisions into Slack and lets a person pick the architecture and a
 - When an extension object exists but one of its values is missing, the row stays and shows `—` rather than disappearing, so the card layout is stable while the interface is being wired. When the whole extension is absent, the card falls back to a plain version.
 - A configured `DASHBOARD_URL` adds a **Details** button to the cards.
 
+## Diagrams
+
+Each decision card has a slot for a picture of the infrastructure graph, showing the state that decision leads to:
+
+| Card | Diagram |
+| --- | --- |
+| Layout card | one image per offered candidate, under its fields and above its button: that candidate's `target` state |
+| Progress / Rehearsal complete / Rehearsal stopped (the layout card updated in place) | the picked layout's `target` |
+| Plan card | the plan's layout (`x_plan.layout`, else the picked layout), `target` |
+| Plan approved and Architecture picked | the same image as the card it replaces |
+
+The bot renders the PNG with `apps/state-view/snapshot.py` (`python3 snapshot.py --layout L --state S --out out/diagrams/L-S.png`; it prints one JSON line `{"path","layout","state","title","caption","alt"}`), uploads it to Slack without a channel, so the file stays private to the bot, and shows it through an `image` block with `slack_file.id` plus a context line with the caption. Each (layout, state) is rendered and uploaded once per process, before the card is posted; the in-place updates and the closed gate reuse the same file id. All candidates of the layout card render in parallel.
+
+- `DIAGRAMS`: `on` (default) or `off`.
+- `PYTHON`: the interpreter, default `python3`.
+- `STATE_VIEW_SNAPSHOT`: the snapshot script, default `../state-view/snapshot.py`, resolved from this package's directory.
+- The upload needs the **`files:write`** scope; without it the bot logs `the Slack app needs the files:write scope` and shows the placeholder.
+
+**Fallback.** When there is no diagram (diagrams off, the snapshot is missing, fails or takes more than 20 s, or the upload fails), the slot stays as a context line, `Diagram unavailable — open Details for the graph` (`Diagram unavailable` without `DASHBOARD_URL`), so the card keeps its shape. Slack sometimes rejects a just-uploaded file with `invalid_blocks`; the bot retries twice with a short backoff, then sends the same card with the placeholder in place of the image. A run never stops because of a diagram. A layout card that would exceed Slack's 50 blocks drops the captions, then the diagram slots.
+
 ## Layers
 
 - `src/entry/`: Bolt wiring, the layout action, the Approve plan action (opens the modal), the modal submission, `main.ts` (orchestrator) and `sample.ts` (sample run).
-- `src/application/`: the run tracker (polls the log, posts and updates the gate cards), the layout picker, the plan approver, and the ports.
+- `src/application/`: the run tracker (polls the log, posts and updates the gate cards), the diagram publisher (renders and uploads once per layout), the layout picker, the plan approver, and the ports.
 - `src/domain/`: the run contract types, the run summary, layout-candidate and rehearsal/plan summary parsing, the approval modal view, and the Block Kit messages.
-- `src/adapters/`: Slack (Bolt and a fake), the HTTP orchestrator, the sample orchestrator, the run file.
+- `src/adapters/`: Slack (Bolt and a fake), the state-view diagram renderer, the HTTP orchestrator, the sample orchestrator, the run file.
 
 ## Assumed orchestrator API (for Vlad to confirm)
 
@@ -121,9 +141,9 @@ Only `x_candidates[].id` and `x_plan.layout` are useful on their own; every othe
 Read from the repo-root `.env` only, through `src/settings.ts`. The bot stops at startup naming the first missing variable, and never prints a value.
 
 - Required: `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, `SLACK_SIGNING_SECRET`.
-- Optional: `ORCHESTRATOR_URL` (default `http://127.0.0.1:8080`), `SLACK_CHANNEL` (default `infrared-runs`), `DASHBOARD_URL` (adds the Details buttons; omitted when unset).
+- Optional: `ORCHESTRATOR_URL` (default `http://127.0.0.1:8080`), `SLACK_CHANNEL` (default `infrared-runs`), `DASHBOARD_URL` (adds the Details buttons; omitted when unset), `DIAGRAMS`, `PYTHON`, `STATE_VIEW_SNAPSHOT` (see Diagrams).
 
-The Slack app uses Socket Mode with interactivity on, and the `chat:write` scope. The bot must be a member of the channel it posts to: invite it with `/invite @<bot name>` in that channel.
+The Slack app uses Socket Mode with interactivity on, and the `chat:write` and `files:write` scopes. The bot must be a member of the channel it posts to: invite it with `/invite @<bot name>` in that channel.
 
 ## Running
 

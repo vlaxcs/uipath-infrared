@@ -36,3 +36,11 @@ describe('Settings', () => {
     expect(settings.dashboardUrl).toBe('https://infrared.local/runs/42');
   });
 });
+
+describe('Diagram setting', () => {
+  it('turns diagrams on by default and off with DIAGRAMS=off', () => {
+    vi.spyOn(process, 'exit').mockImplementation(() => { throw new Error('exit'); });
+    expect(loadSettings(complete).diagrams).toBe(true);
+    expect(loadSettings({ ...complete, DIAGRAMS: 'off' }).diagrams).toBe(false);
+  });
+});

@@ -3,7 +3,8 @@ import { FakeSlackClient } from '../adapters/slack.js';
 import { SampleOrchestrator } from '../adapters/sample-orchestrator.js';
 import { readEvents, readRun, writeRun } from '../adapters/run-file.js';
 import { RunTracker } from '../application/run-tracker.js';
-import { loadSettings } from '../settings.js';
+import { createDiagramRenderer } from '../adapters/state-view-diagrams.js';
+import { diagramsEnabled, loadSettings } from '../settings.js';
 import { createBot } from './bot.js';
 import { wait } from './wait.js';
 
@@ -20,7 +21,7 @@ const dryRun = process.argv.includes('--dry-run') || process.argv.includes('--pr
 
   if (dryRun) {
     const slack = new FakeSlackClient();
-    await new RunTracker(slack, orchestrator, 'infrared-runs', wait, 0).replay(run);
+    await new RunTracker(slack, orchestrator, 'infrared-runs', wait, 0, undefined, createDiagramRenderer(diagramsEnabled())).replay(run);
     console.log(JSON.stringify(slack.finalMessages(), null, 2));
     return;
   }
@@ -29,7 +30,7 @@ const dryRun = process.argv.includes('--dry-run') || process.argv.includes('--pr
   const { app, slack } = createBot(settings, orchestrator);
   await app.start();
   console.log(`Posting sample run ${run.id} to #${settings.slackChannel}; pick the architecture, then approve the plan`);
-  const summary = await new RunTracker(slack, orchestrator, settings.slackChannel, wait, PACE_MS, settings.dashboardUrl).track(run.id);
+  const summary = await new RunTracker(slack, orchestrator, settings.slackChannel, wait, PACE_MS, settings.dashboardUrl, createDiagramRenderer(settings.diagrams)).track(run.id);
   await writeRun(FINISHED, orchestrator.document());
   console.log(`Sample run ${summary.status}; the run document is in ${FINISHED}`);
   await app.stop();
