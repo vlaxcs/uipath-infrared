@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"infrared/orchestrator/internal/run"
 )
@@ -33,6 +35,43 @@ func (Local) Copy(source, destination string) error {
 		return err
 	}
 	return os.WriteFile(destination, data, 0o644)
+}
+
+func (Local) List(dir string) ([]run.Artifact, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	artifacts := make([]run.Artifact, 0, len(entries))
+	for _, entry := range entries {
+		info, err := entry.Info()
+		if err != nil {
+			return nil, err
+		}
+		if !info.Mode().IsRegular() {
+			continue
+		}
+		artifacts = append(artifacts, run.Artifact{Path: entry.Name(), Size: info.Size()})
+	}
+	return artifacts, nil
+}
+
+func (Local) Read(dir, name string, limit int64) ([]byte, error) {
+	if name == "" || name == "." || name == ".." || filepath.Base(name) != name || strings.ContainsAny(name, `/\`) {
+		return nil, fs.ErrNotExist
+	}
+	path := filepath.Join(dir, name)
+	info, err := os.Lstat(path)
+	if err != nil {
+		return nil, err
+	}
+	if !info.Mode().IsRegular() {
+		return nil, fs.ErrNotExist
+	}
+	if info.Size() > limit {
+		return nil, run.ErrArtifactTooLarge
+	}
+	return os.ReadFile(path)
 }
 
 func (Local) CheckObject(path string) error {

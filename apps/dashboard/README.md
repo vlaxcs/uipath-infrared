@@ -44,3 +44,17 @@ The run page polls `GET /runs/{id}/events?after=` every two seconds while the ru
 ## Sample data
 
 `src/runs/sampleRun.ts` reads `contracts/run.example.json`; `src/runs/sampleArtifacts.ts` maps the run's artifact paths to `contracts/` examples so every step has a result to show, including three sample findings for the keep-analyses list. The sample is read-only: no start and no approvals; the Approvals page is empty until the orchestrator is connected. `src/runs/fixtures.ts` cuts the sample at each gate and provides a failed run for tests.
+
+## Dependency graph
+
+The Graph section renders the start-up mock's infrastructure graph from `contracts/mock/startup.infra.json` (10 components, 9 edges) through `src/graph/sampleGraph.ts`, the only graph module that imports contracts.
+
+The layout in `src/graph/layout.ts` is deterministic: a seeded force simulation in a fixed 1000×700 world, so tests do not depend on DOM measurement. Nodes are coloured by stack and shaped by category; idle and orphan nodes get a status halo. The view filters by stack, connection kind and status, dims non-matches for search, and lets you select a node to see its facts and inbound/outbound connections (also navigable). Zoom, pan and fit are available.
+
+There is no orchestrator graph source yet; a future source can replace the sample without changing the view.
+
+## Rehearsal
+
+The Rehearsal section renders `rehearsal.json` through `src/rehearsal/sampleRehearsal.ts`, the only rehearsal module that imports data files. The default is `contracts/rehearsal.example.json` (the passed demo path); `apps/sandbox/sample/rehearsal.json` is exported as `failedRehearsal` for the failed/revise state and tests.
+
+It shows the traffic profile, the injected failure, availability and latency before/during/after with each measurement's provenance and basis, per-component health, and the pass/fail verdict with the orchestrator's decision. `rehearsal.json` has no fallback field, so the fallback summary is derived from component results, phase measurements, the verdict and `x_measurement_notes`, and is labelled as derived. Missing measurements show "Not measured"; no value is zero-filled. Readers accept any 1.x schema and humanise unknown vocabulary.

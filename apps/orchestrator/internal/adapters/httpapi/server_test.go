@@ -19,6 +19,9 @@ type fakeRuns struct {
 	listedFor   string
 	eventsAfter int
 	decided     run.Event
+	artifacts   []run.Artifact
+	artifact    []byte
+	fileErr     error
 }
 
 func (f *fakeRuns) Start(project string) (run.Run, error) {
@@ -45,6 +48,20 @@ func (f *fakeRuns) Decide(id string, event run.Event) (run.Event, error) {
 	return event, f.err
 }
 
+func (f *fakeRuns) ListFiles(id string) ([]run.Artifact, error) {
+	if f.artifacts == nil {
+		return []run.Artifact{}, f.fileErr
+	}
+	return f.artifacts, f.fileErr
+}
+
+func (f *fakeRuns) ReadFile(id, name string) ([]byte, error) {
+	if f.artifact == nil {
+		return []byte(`{"components":[]}`), f.fileErr
+	}
+	return f.artifact, f.fileErr
+}
+
 func send(t *testing.T, runs *fakeRuns, method, path, body string) *httptest.ResponseRecorder {
 	t.Helper()
 	recorder := httptest.NewRecorder()
@@ -64,6 +81,8 @@ func TestRoutesAnswerWithTheirStatus(t *testing.T) {
 		{"GET", "/runs/run-startup-0001", "", http.StatusOK},
 		{"GET", "/runs/run-startup-0001/events?after=3", "", http.StatusOK},
 		{"POST", "/runs/run-startup-0001/decisions", approval, http.StatusCreated},
+		{"GET", "/runs/run-startup-0001/files", "", http.StatusOK},
+		{"GET", "/runs/run-startup-0001/files/infra.json", "", http.StatusOK},
 		{"DELETE", "/runs/run-startup-0001", "", http.StatusMethodNotAllowed},
 	}
 	for _, c := range cases {
@@ -81,6 +100,50 @@ func TestEmptyEventListsAreAnArray(t *testing.T) {
 	recorder := send(t, &fakeRuns{}, "GET", "/runs/run-startup-0001/events?after=0", "")
 	if strings.TrimSpace(recorder.Body.String()) != "[]" {
 		t.Fatalf("body %q, want []", recorder.Body)
+	}
+}
+
+func TestArtifactFilesAreListedAndServed(t *testing.T) {
+	runs := &fakeRuns{
+		artifacts: []run.Artifact{{Path: "infra.json", Size: 17}},
+		artifact:  []byte(`{"components":[]}`),
+	}
+	list := send(t, runs, "GET", "/runs/run-startup-0001/files", "")
+	if list.Code != http.StatusOK || strings.TrimSpace(list.Body.String()) != `[{"path":"infra.json","size":17}]` {
+		t.Fatalf("list = %d %s", list.Code, list.Body)
+	}
+
+	file := send(t, runs, "GET", "/runs/run-startup-0001/files/infra.json", "")
+	if file.Code != http.StatusOK || file.Body.String() != `{"components":[]}` {
+		t.Fatalf("file = %d %s", file.Code, file.Body)
+	}
+	if file.Header().Get("Content-Type") != "application/json" {
+		t.Fatalf("file content-type %q", file.Header().Get("Content-Type"))
+	}
+}
+
+func TestEmptyArtifactListsAreAnArray(t *testing.T) {
+	recorder := send(t, &fakeRuns{}, "GET", "/runs/run-startup-0001/files", "")
+	if strings.TrimSpace(recorder.Body.String()) != "[]" {
+		t.Fatalf("body %q, want []", recorder.Body)
+	}
+}
+
+func TestArtifactErrorsMapToStatuses(t *testing.T) {
+	cases := []struct {
+		err    error
+		status int
+	}{
+		{fmt.Errorf("%w: artifact", workflow.ErrNotFound), http.StatusNotFound},
+		{run.ErrArtifactTooLarge, http.StatusRequestEntityTooLarge},
+	}
+	for _, c := range cases {
+		recorder := send(t, &fakeRuns{fileErr: c.err}, "GET", "/runs/run-startup-0001/files/infra.json", "")
+		var body map[string]string
+		json.Unmarshal(recorder.Body.Bytes(), &body)
+		if recorder.Code != c.status || body["error"] != c.err.Error() {
+			t.Errorf("%v answered %d %v, want %d with the reason", c.err, recorder.Code, body, c.status)
+		}
 	}
 }
 

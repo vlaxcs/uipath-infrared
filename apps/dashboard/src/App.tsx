@@ -1,5 +1,9 @@
+import { GraphSection } from "~/graph/GraphSection";
+import { sampleGraphModel } from "~/graph/sampleGraph";
 import { sectionById } from "~/navigation/sections";
 import { useHashRoute } from "~/navigation/useHashRoute";
+import { RehearsalSection } from "~/rehearsal/RehearsalSection";
+import { sampleRehearsal } from "~/rehearsal/sampleRehearsal";
 import { ApprovalsPage } from "~/runs/ApprovalsPage";
 import { runSource } from "~/runs/runSource";
 import { RunsSection } from "~/runs/RunsSection";
@@ -38,6 +42,10 @@ export function App({ source = runSource }: AppProps = {}) {
         />
       ) : route.section === "approvals" ? (
         <ApprovalsPage source={source} onReview={route.openGate} />
+      ) : route.section === "graph" ? (
+        <GraphSection model={sampleGraphModel} />
+      ) : route.section === "rehearsal" ? (
+        <RehearsalSection rehearsal={sampleRehearsal} />
       ) : (
         <SectionPlaceholder section={activeSection} />
       )}

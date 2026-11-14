@@ -35,6 +35,8 @@ type Files interface {
 	ReadCandidatesRevision(path string) (int, error)
 	ReadRehearsalReason(path string) (string, error)
 	WriteJSON(path string, value any) error
+	List(dir string) ([]run.Artifact, error)
+	Read(dir, name string, limit int64) ([]byte, error)
 }
 
 type Store interface {

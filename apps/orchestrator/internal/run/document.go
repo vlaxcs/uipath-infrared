@@ -1,6 +1,10 @@
 package run
 
+import "errors"
+
 const SchemaVersion = "1.0"
+
+var ErrArtifactTooLarge = errors.New("artifact is over the size limit")
 
 type Step string
 
@@ -53,6 +57,11 @@ const (
 type File struct {
 	Path   string `json:"path"`
 	Sha256 string `json:"sha256"`
+}
+
+type Artifact struct {
+	Path string `json:"path"`
+	Size int64  `json:"size"`
 }
 
 type Inputs struct {

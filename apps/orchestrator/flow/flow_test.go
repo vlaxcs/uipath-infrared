@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -56,6 +57,19 @@ func TestDemoPathEndToEnd(t *testing.T) {
 	client.call("POST", "/runs", map[string]string{"project": "startup"}, http.StatusCreated, &started)
 
 	layoutGate := client.waitFor(started.ID, func(e run.Event) bool { return e.Gate == run.LayoutGate })
+
+	var artifacts []run.Artifact
+	client.call("GET", "/runs/"+started.ID+"/files", nil, http.StatusOK, &artifacts)
+	if !slices.ContainsFunc(artifacts, func(artifact run.Artifact) bool { return artifact.Path == "infra.json" }) {
+		t.Fatalf("the artifact list is missing infra.json: %+v", artifacts)
+	}
+	var infra map[string]any
+	client.call("GET", "/runs/"+started.ID+"/files/infra.json", nil, http.StatusOK, &infra)
+	if components, ok := infra["components"].([]any); !ok || len(components) == 0 {
+		t.Fatalf("infra.json carries no components: %+v", infra)
+	}
+	client.call("GET", "/runs/"+started.ID+"/files/run.json", nil, http.StatusNotFound, nil)
+
 	evaluations := client.decisionsOn(started.ID, run.Evaluate)
 	if len(evaluations) != 2 || evaluations[0].Kind != run.Revise || evaluations[1].Kind != run.Proceed {
 		t.Fatalf("evaluate decisions = %+v, want one revise then one proceed", evaluations)
