@@ -27,7 +27,7 @@ The technical design for building Infrared, as described in `docs/prd.md`. This 
 | Extractor | reads the estate through read-only APIs, writes `infra.json` | Python | exists (#3) |
 | Agent | investigates, records qualitative findings, proposes candidate plans | Python, Claude Agent SDK | exists, read-only (#3) |
 | Engine | prices, checks constraints, scores and ranks candidates; writes `result.json` | Python | designed (#2), not built |
-| Pricing | collects prices offline into dated snapshots (AWS Price List, ECB rates, checked vendor quotes) and builds `catalog.json` from them | Python | new |
+| Pricing | collects prices and SLA commitments offline into dated snapshots (AWS Price List, ECB rates, checked vendor pages) and builds `catalog.json` from them | Python | new |
 | Sandbox | builds the proposed infrastructure in Floci, simulates traffic and failures | Python | new |
 | Orchestrator | runs the workflow, holds run state, gates approvals, exposes the API | Go | built, steps 1 to 6 (`docs/orchestrator.md`) |
 | Dashboard | runs, the dependency graph, candidates, the step-by-step change, approvals | web (TypeScript) | prototype graph exists (#3) |
@@ -137,7 +137,7 @@ The sandbox runs after the CTO picks a layout, not before: it rehearses only wha
 | --- | --- | --- |
 | `infra.schema.json` | extractor | exists (#3), v1.0 |
 | `forecast.schema.json` | orchestrator (from the roadmap) | exists (#3), v1.0 |
-| `catalog.schema.json` | engine | exists (#3), v1.0, illustrative prices |
+| `catalog.schema.json` | engine | exists (#3), v1.0, illustrative prices and SLAs |
 | `result.schema.json` | engine | to write, from the sketch in #2 section 6 |
 | `run.schema.json`: run state and events (step, status, decision, reason, timestamps) | orchestrator | exists, v1.0, with `run.example.json` |
 | `candidates.schema.json`: the agent's proposals, input to `engine evaluate --candidates` | agent | exists, v1.0, with `candidates.example.json` |

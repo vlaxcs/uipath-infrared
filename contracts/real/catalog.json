@@ -1,11 +1,21 @@
 {
   "schema_version": "1.0",
   "illustrative": true,
-  "disclaimer": "84 prices come from dated snapshots listed in x_price_sources; 1 stay illustrative, listed in x_unsourced. SLAs and migration figures are not prices and stay as written.",
+  "disclaimer": "84 prices come from dated snapshots listed in x_price_sources; 1 still illustrative, listed in x_unsourced. 29 SLA commitments come from dated vendor pages listed in x_sla_sources; 8 remain estimates, listed in x_sla_unsourced. Migration figures and feature lists stay estimates.",
   "currency": "EUR",
   "hours_per_month": 730,
   "x_unsourced_reasons": {
     "platform/onprem-dc1": "on-prem hardware is quoted per site, so there is no public price list to snapshot"
+  },
+  "x_sla_unsourced_reasons": {
+    "aws-eip/availability_pct": "the EC2 SLA covers Elastic IPs only when purchased with instances; an unassociated EIP has no separate commitment",
+    "aws-firehose/availability_pct": "Firehose is not an included service in the Kinesis SLA; no public uptime commitment found",
+    "managed-pg-platform/multi_az_availability_pct": "Supabase publishes one platform uptime commitment; the multi-AZ figure remains a catalog estimate",
+    "managed-pg-serverless/availability_pct": "Neon publishes an SLA for Business and Scale only; Launch has no uptime commitment",
+    "onprem-k8s-nodes/availability_pct": "on-prem availability is a site planning estimate, not a vendor SLA",
+    "onprem-object-storage/availability_pct": "on-prem availability is a site planning estimate, not a vendor SLA",
+    "onprem-postgres/availability_pct": "on-prem availability is a site planning estimate, not a vendor SLA",
+    "platform/onprem-dc1/availability_pct": "on-prem availability is a site planning estimate, not a vendor SLA"
   },
   "options": [
     {
@@ -161,7 +171,7 @@
         "multi_az_multiplier": 1.0
       },
       "sla": {
-        "availability_pct": 99.5,
+        "availability_pct": 99.9,
         "failure_domain_scope": "single_zone",
         "failure_domains": 1,
         "multi_az_availability_pct": 99.99
@@ -488,7 +498,7 @@
         "multi_az_multiplier": 1.0
       },
       "sla": {
-        "availability_pct": 99.9,
+        "availability_pct": 99.99,
         "failure_domain_scope": "multi_zone",
         "failure_domains": 2
       },
@@ -593,7 +603,7 @@
         "free_egress_gb": 100
       },
       "sla": {
-        "availability_pct": 99.99,
+        "availability_pct": 99.9,
         "failure_domain_scope": "multi_zone",
         "failure_domains": 3
       },
@@ -795,7 +805,8 @@
       "sla": {
         "availability_pct": 99.5,
         "failure_domain_scope": "single_zone",
-        "failure_domains": 1
+        "failure_domains": 1,
+        "multi_az_availability_pct": 99.99
       },
       "features_supported": [
         "autoscaling",
@@ -873,7 +884,8 @@
       "sla": {
         "availability_pct": 99.9,
         "failure_domain_scope": "single_zone",
-        "failure_domains": 1
+        "failure_domains": 1,
+        "multi_az_availability_pct": 99.99
       },
       "features_supported": [
         "encryption",
@@ -1009,9 +1021,10 @@
         ]
       },
       "sla": {
-        "availability_pct": 99.9,
+        "availability_pct": 99.5,
         "failure_domain_scope": "single_zone",
-        "failure_domains": 1
+        "failure_domains": 1,
+        "multi_az_availability_pct": 99.9
       },
       "features_supported": [],
       "migration": {
@@ -1049,9 +1062,10 @@
         ]
       },
       "sla": {
-        "availability_pct": 99.9,
+        "availability_pct": 99.5,
         "failure_domain_scope": "single_zone",
-        "failure_domains": 1
+        "failure_domains": 1,
+        "multi_az_availability_pct": 99.99
       },
       "features_supported": [
         "cluster_mode",
@@ -1084,7 +1098,7 @@
         ]
       },
       "sla": {
-        "availability_pct": 99.99,
+        "availability_pct": 99.9,
         "failure_domain_scope": "multi_zone",
         "failure_domains": 3
       },
@@ -1120,7 +1134,7 @@
         ]
       },
       "sla": {
-        "availability_pct": 99.99,
+        "availability_pct": 99.95,
         "failure_domain_scope": "multi_zone",
         "failure_domains": 3
       },
@@ -1218,7 +1232,7 @@
         ]
       },
       "sla": {
-        "availability_pct": 99.99,
+        "availability_pct": 99.9,
         "failure_domain_scope": "multi_zone",
         "failure_domains": 3
       },
@@ -1250,7 +1264,7 @@
         ]
       },
       "sla": {
-        "availability_pct": 99.99,
+        "availability_pct": 99.9,
         "failure_domain_scope": "multi_zone",
         "failure_domains": 3
       },
@@ -2377,6 +2391,318 @@
   "x_unsourced": {
     "platform/onprem-dc1": "on-prem hardware is quoted per site, so there is no public price list to snapshot"
   },
+  "x_sla_sources": {
+    "aws-alb/availability_pct": {
+      "value": 99.99,
+      "url": "https://aws.amazon.com/elasticloadbalancing/sla/",
+      "quote": "Less than 99.99% but greater than or equal to 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "Multi-AZ Load Balancer SLA."
+    },
+    "aws-aurora-postgres/availability_pct": {
+      "value": 99.9,
+      "url": "https://aws.amazon.com/aurora/sla/",
+      "quote": "Less than 99.9% but equal to or greater than 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "Aurora Single-AZ SLA."
+    },
+    "aws-aurora-postgres/multi_az_availability_pct": {
+      "value": 99.99,
+      "url": "https://aws.amazon.com/aurora/sla/",
+      "quote": "Less than 99.99% but equal to or greater than 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "Aurora Multi-AZ SLA."
+    },
+    "aws-dynamodb-ondemand/availability_pct": {
+      "value": 99.99,
+      "url": "https://aws.amazon.com/dynamodb/sla/",
+      "quote": "at least 99.99% if the Standard SLA applies",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "DynamoDB Standard SLA; Global Tables 99.999% is not used."
+    },
+    "aws-dynamodb-provisioned/availability_pct": {
+      "value": 99.99,
+      "url": "https://aws.amazon.com/dynamodb/sla/",
+      "quote": "at least 99.99% if the Standard SLA applies",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "DynamoDB Standard SLA; Global Tables 99.999% is not used."
+    },
+    "aws-ebs/availability_pct": {
+      "value": 99.9,
+      "url": "https://aws.amazon.com/ebs/sla/",
+      "quote": "Less than 99.9% but equal to or greater than 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "EBS Volume-Level SLA."
+    },
+    "aws-ebs/multi_az_availability_pct": {
+      "value": 99.99,
+      "url": "https://aws.amazon.com/ebs/sla/",
+      "quote": "Less than 99.99% but equal to or greater than 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "EBS Region-Level SLA."
+    },
+    "aws-ec2-general/availability_pct": {
+      "value": 99.5,
+      "url": "https://aws.amazon.com/compute/sla/",
+      "quote": "Instance-Level Uptime Percentage of at least 99.5%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "EC2 Instance-Level SLA."
+    },
+    "aws-ec2-general/multi_az_availability_pct": {
+      "value": 99.99,
+      "url": "https://aws.amazon.com/compute/sla/",
+      "quote": "Monthly Uptime Percentage of at least 99.99%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "EC2 Region-Level SLA."
+    },
+    "aws-ecr/availability_pct": {
+      "value": 99.9,
+      "url": "https://aws.amazon.com/ecr/sla/",
+      "quote": "Monthly Uptime Percentage for each AWS region, during any monthly billing cycle, of at least 99.9%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "ECR regional SLA."
+    },
+    "aws-efs/availability_pct": {
+      "value": 99.99,
+      "url": "https://aws.amazon.com/efs/sla/",
+      "quote": "Less than 99.99% but greater than or equal to 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "EFS Standard and Standard-IA SLA; One Zone is 99.9%."
+    },
+    "aws-eks-nodes/availability_pct": {
+      "value": 99.99,
+      "url": "https://aws.amazon.com/compute/sla/",
+      "quote": "Monthly Uptime Percentage of at least 99.99%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "EC2 Region-Level SLA for instances spread across AZs."
+    },
+    "aws-eks/availability_pct": {
+      "value": 99.95,
+      "url": "https://aws.amazon.com/eks/sla/",
+      "quote": "Monthly Uptime Percentage of at least 99.95%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "EKS Standard Control Plane SLA; provisioned control plane is 99.99%."
+    },
+    "aws-elasticache-memcached/availability_pct": {
+      "value": 99.5,
+      "url": "https://aws.amazon.com/elasticache/sla/",
+      "quote": "Less than 99.5% but equal to or greater than 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "ElastiCache Single-AZ SLA."
+    },
+    "aws-elasticache-memcached/multi_az_availability_pct": {
+      "value": 99.9,
+      "url": "https://aws.amazon.com/elasticache/sla/",
+      "quote": "Less than 99.9% but equal to or greater than 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "ElastiCache Cross-AZ SLA for Memcached."
+    },
+    "aws-elasticache-redis/availability_pct": {
+      "value": 99.5,
+      "url": "https://aws.amazon.com/elasticache/sla/",
+      "quote": "Less than 99.5% but equal to or greater than 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "ElastiCache Single-AZ SLA."
+    },
+    "aws-elasticache-redis/multi_az_availability_pct": {
+      "value": 99.99,
+      "url": "https://aws.amazon.com/elasticache/sla/",
+      "quote": "Less than 99.99% but equal to or greater than 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "ElastiCache Serverless and Multi-AZ SLA."
+    },
+    "aws-fargate/availability_pct": {
+      "value": 99.99,
+      "url": "https://aws.amazon.com/ecs/sla/",
+      "quote": "Less than 99.99% but equal to or greater than 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "Multi-AZ Included Container Service SLA; a single task is 99.5%."
+    },
+    "aws-kinesis/availability_pct": {
+      "value": 99.9,
+      "url": "https://aws.amazon.com/kinesis/sla/",
+      "quote": "Monthly Uptime Percentage of at least 99.9%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "Kinesis Data Streams SLA; Firehose is not an included service."
+    },
+    "aws-lambda/availability_pct": {
+      "value": 99.95,
+      "url": "https://aws.amazon.com/lambda/sla/",
+      "quote": "Monthly Uptime Percentage for each AWS region, during any monthly billing cycle, of at least 99.95%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "Lambda regional SLA."
+    },
+    "aws-nat-gateway/availability_pct": {
+      "value": 99.9,
+      "url": "https://aws.amazon.com/vpc/sla/",
+      "quote": "Monthly Uptime Percentage of at least 99.9%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "VPC NAT Gateway SLA."
+    },
+    "aws-rds-postgres/availability_pct": {
+      "value": 99.5,
+      "url": "https://aws.amazon.com/rds/sla/",
+      "quote": "Less than 99.5% but equal to or greater than 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "RDS Single-DB Instance SLA."
+    },
+    "aws-rds-postgres/multi_az_availability_pct": {
+      "value": 99.95,
+      "url": "https://aws.amazon.com/rds/sla/",
+      "quote": "Less than 99.95% but equal to or greater than 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "RDS Multi-AZ DB Instance and Multi-AZ DB Cluster SLA."
+    },
+    "aws-route53/availability_pct": {
+      "value": 100.0,
+      "url": "https://aws.amazon.com/route53/sla/",
+      "quote": "Less than 100% but greater than or equal to 99.99%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "Hosted Zone commitment is 100%; service credits start below 100%."
+    },
+    "aws-s3/availability_pct": {
+      "value": 99.9,
+      "url": "https://aws.amazon.com/s3/sla/",
+      "quote": "Less than 99.9% but greater than or equal to 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "S3 Standard request SLA."
+    },
+    "aws-sns/availability_pct": {
+      "value": 99.9,
+      "url": "https://aws.amazon.com/messaging/sla/",
+      "quote": "Monthly Uptime Percentage for each AWS region, during any monthly billing cycle, of at least 99.9%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "Amazon Messaging (SQS, SNS) SLA."
+    },
+    "aws-sqs/availability_pct": {
+      "value": 99.9,
+      "url": "https://aws.amazon.com/messaging/sla/",
+      "quote": "Monthly Uptime Percentage for each AWS region, during any monthly billing cycle, of at least 99.9%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "Amazon Messaging (SQS, SNS) SLA."
+    },
+    "managed-pg-branching/availability_pct": {
+      "value": 99.95,
+      "url": "https://neon.com/sla",
+      "quote": "Less than 99.95% but greater than or equal to 99.0%",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "Neon SLA applies to Business and Scale plans."
+    },
+    "managed-pg-platform/availability_pct": {
+      "value": 99.9,
+      "url": "https://supabase.com/sla",
+      "quote": "Supabase will provide Actual Availability for at least ninety-nine and nine tenths percent (99.9%)",
+      "read_on": "2026-11-14",
+      "fetched_on": "2026-11-14",
+      "note": "Supabase Enterprise Uptime Commitment."
+    }
+  },
+  "x_sla_unsourced": {
+    "aws-eip/availability_pct": "the EC2 SLA covers Elastic IPs only when purchased with instances; an unassociated EIP has no separate commitment",
+    "aws-firehose/availability_pct": "Firehose is not an included service in the Kinesis SLA; no public uptime commitment found",
+    "managed-pg-platform/multi_az_availability_pct": "Supabase publishes one platform uptime commitment; the multi-AZ figure remains a catalog estimate",
+    "managed-pg-serverless/availability_pct": "Neon publishes an SLA for Business and Scale only; Launch has no uptime commitment",
+    "onprem-k8s-nodes/availability_pct": "on-prem availability is a site planning estimate, not a vendor SLA",
+    "onprem-object-storage/availability_pct": "on-prem availability is a site planning estimate, not a vendor SLA",
+    "onprem-postgres/availability_pct": "on-prem availability is a site planning estimate, not a vendor SLA",
+    "platform/onprem-dc1/availability_pct": "on-prem availability is a site planning estimate, not a vendor SLA"
+  },
+  "x_migration_estimates": {
+    "note": "Migration effort, cutover downtime and risk figures are handwritten estimates; there is no public vendor data for them.",
+    "options": [
+      "aws-alb",
+      "aws-aurora-postgres",
+      "aws-dynamodb-ondemand",
+      "aws-dynamodb-provisioned",
+      "aws-ebs",
+      "aws-ec2-general",
+      "aws-ecr",
+      "aws-efs",
+      "aws-eip",
+      "aws-eks",
+      "aws-eks-nodes",
+      "aws-elasticache-memcached",
+      "aws-elasticache-redis",
+      "aws-fargate",
+      "aws-firehose",
+      "aws-kinesis",
+      "aws-lambda",
+      "aws-nat-gateway",
+      "aws-rds-postgres",
+      "aws-route53",
+      "aws-s3",
+      "aws-sns",
+      "aws-sqs",
+      "managed-pg-branching",
+      "managed-pg-platform",
+      "managed-pg-serverless",
+      "onprem-k8s-nodes",
+      "onprem-object-storage",
+      "onprem-postgres"
+    ]
+  },
+  "x_features_estimates": {
+    "note": "features_supported lists remain handwritten; they are not checked against every vendor's feature list.",
+    "options": [
+      "aws-alb",
+      "aws-aurora-postgres",
+      "aws-dynamodb-ondemand",
+      "aws-dynamodb-provisioned",
+      "aws-ebs",
+      "aws-ec2-general",
+      "aws-ecr",
+      "aws-efs",
+      "aws-eip",
+      "aws-eks",
+      "aws-eks-nodes",
+      "aws-elasticache-memcached",
+      "aws-elasticache-redis",
+      "aws-fargate",
+      "aws-firehose",
+      "aws-kinesis",
+      "aws-lambda",
+      "aws-nat-gateway",
+      "aws-rds-postgres",
+      "aws-route53",
+      "aws-s3",
+      "aws-sns",
+      "aws-sqs",
+      "managed-pg-branching",
+      "managed-pg-platform",
+      "managed-pg-serverless",
+      "onprem-k8s-nodes",
+      "onprem-object-storage",
+      "onprem-postgres"
+    ]
+  },
   "x_snapshots": {
     "aws-AWSDataTransfer": {
       "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSDataTransfer/20261111191941/eu-west-1/index.csv",
@@ -2461,6 +2787,11 @@
     "manual": {
       "url": "apps/pricing/config/manual.json",
       "version": "df2c7829c9a5",
+      "fetched_on": "2026-11-14"
+    },
+    "sla": {
+      "url": "apps/pricing/config/slas.json",
+      "version": "63c8da9911cb",
       "fetched_on": "2026-11-14"
     }
   },

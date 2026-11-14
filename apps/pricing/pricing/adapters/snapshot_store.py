@@ -8,6 +8,7 @@ from pricing.adapters.json_io import read_json, write_json
 from pricing.domain.errors import PricingError
 from pricing.domain.fx import FxRate
 from pricing.domain.price import Price
+from pricing.domain.sla import SLA_SOURCE, SlaEntry, SlaSnapshot
 from pricing.domain.snapshot import Snapshot
 
 
@@ -35,8 +36,58 @@ class SnapshotStore:
         })
         return path
 
+    def write_sla(self, snapshot: SlaSnapshot) -> Path:
+        path = self._path(snapshot.source)
+        write_json(path, {
+            "source": snapshot.source,
+            "url": snapshot.url,
+            "version": snapshot.version,
+            "fetched_on": snapshot.fetched_on.isoformat(),
+            "slas": {
+                key: {
+                    "url": entry.url,
+                    "value": entry.value,
+                    "read_on": entry.read_on.isoformat(),
+                    "quote": entry.quote,
+                    "note": entry.note,
+                }
+                for key, entry in snapshot.entries.items()
+            },
+            "unverified": dict(snapshot.unverified),
+        })
+        return path
+
     def snapshots(self) -> tuple[Snapshot, ...]:
-        return tuple(_snapshot(read_json(p)) for p in sorted(self.directory.glob("*.json")) if p.stem != FX_SOURCE)
+        return tuple(
+            _snapshot(read_json(p))
+            for p in sorted(self.directory.glob("*.json"))
+            if p.stem not in (FX_SOURCE, SLA_SOURCE)
+        )
+
+    def sla(self) -> SlaSnapshot:
+        path = self._path(SLA_SOURCE)
+        if not path.exists():
+            raise PricingError(f"no SLA snapshot at {path}; run refresh first")
+        raw = read_json(path)
+        entries = {
+            key: SlaEntry(
+                key=key,
+                url=entry["url"],
+                value=float(entry["value"]),
+                read_on=date.fromisoformat(entry["read_on"]),
+                quote=entry["quote"],
+                note=entry.get("note", ""),
+            )
+            for key, entry in raw["slas"].items()
+        }
+        return SlaSnapshot(
+            source=raw["source"],
+            url=raw["url"],
+            version=raw["version"],
+            fetched_on=date.fromisoformat(raw["fetched_on"]),
+            entries=entries,
+            unverified=dict(raw.get("unverified", {})),
+        )
 
     def fx(self) -> FxRate:
         path = self._path(FX_SOURCE)

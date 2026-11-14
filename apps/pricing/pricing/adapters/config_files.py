@@ -8,11 +8,13 @@ from pricing.domain.binding import Binding
 from pricing.domain.manual_entry import ManualEntry
 from pricing.domain.price import Price
 from pricing.domain.selector import Selector
+from pricing.domain.sla import SlaEntry
 from pricing.domain.sources_config import SourcesConfig
 
 SOURCES_FILE = "sources.json"
 BINDINGS_FILE = "bindings.json"
 MANUAL_FILE = "manual.json"
+SLAS_FILE = "slas.json"
 
 
 def load_sources(config_dir: Path) -> SourcesConfig:
@@ -39,6 +41,25 @@ def load_manual(config_dir: Path) -> tuple[tuple[ManualEntry, ...], str]:
             price=Price(entry["amount"], entry["currency"], entry["unit"], entry["url"], entry.get("note", "")),
             read_on=date.fromisoformat(entry["read_on"]),
             quote=entry["quote"],
+        )
+        for key, entry in sorted(raw.items())
+    )
+    return entries, hashlib.sha256(path.read_bytes()).hexdigest()[:12]
+
+
+def load_slas(config_dir: Path) -> tuple[tuple[SlaEntry, ...], str]:
+    path = config_dir / SLAS_FILE
+    if not path.exists():
+        return (), ""
+    raw: dict[str, Any] = read_json(path)
+    entries = tuple(
+        SlaEntry(
+            key=key,
+            url=entry["url"],
+            value=float(entry["value"]),
+            read_on=date.fromisoformat(entry["read_on"]),
+            quote=entry["quote"],
+            note=entry.get("note", ""),
         )
         for key, entry in sorted(raw.items())
     )
