@@ -1,0 +1,1512 @@
+{
+  "schema_version": "1.0",
+  "inputs": {
+    "infra": "demo-shop",
+    "forecast": "demo-shop-2027-plan-relaxed-budget",
+    "catalog_illustrative": true,
+    "horizon_months": 36,
+    "currency": "EUR"
+  },
+  "baseline": {
+    "monthly_eur": 133308,
+    "availability_pct": 99.2,
+    "violations": [
+      {
+        "constraint": "min_availability_pct",
+        "component": "rds-orders",
+        "detail": "single-AZ database on the critical path",
+        "actual": 99.2,
+        "limit": 99.9,
+        "distance": 7.0
+      },
+      {
+        "constraint": "data_residency",
+        "component": "s3-legacy-reports",
+        "detail": "us-east-1, pii",
+        "actual": "us-east-1",
+        "limit": "eu-*, onprem-dc1",
+        "distance": 1
+      },
+      {
+        "constraint": "security.forbid_public_datastores",
+        "component": "rds-orders",
+        "detail": "publicly accessible",
+        "actual": null,
+        "limit": null,
+        "distance": 1
+      },
+      {
+        "constraint": "security.forbid_public_datastores",
+        "component": "s3-uploads",
+        "detail": "public bucket",
+        "actual": null,
+        "limit": null,
+        "distance": 1
+      },
+      {
+        "constraint": "security.forbid_world_open_admin_ports",
+        "component": "vm-bastion",
+        "detail": "ports 22 and 3389 open to the world",
+        "actual": null,
+        "limit": null,
+        "distance": 1
+      },
+      {
+        "constraint": "security.require_audit_logging",
+        "component": null,
+        "detail": "no audit logging on the account",
+        "actual": null,
+        "limit": null,
+        "distance": 1
+      },
+      {
+        "constraint": "security.require_backups",
+        "component": "rds-orders",
+        "detail": "backup retention 0 days",
+        "actual": 0,
+        "limit": 1,
+        "distance": 1
+      },
+      {
+        "constraint": "security.require_encryption_at_rest",
+        "component": "rds-analytics",
+        "detail": "storage not encrypted",
+        "actual": null,
+        "limit": null,
+        "distance": 1
+      }
+    ],
+    "confidence": "medium",
+    "confidence_reason": "cost.monthly_eur is estimated",
+    "flags": [
+      "egress_unpriced"
+    ]
+  },
+  "candidates": [
+    {
+      "id": "consolidate",
+      "source": "engine",
+      "builds_on": "managed_services",
+      "feasible": true,
+      "violations": [],
+      "violation_distance": 0,
+      "actions": [
+        {
+          "component": "rds-orders",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "public_datastore",
+          "reason": "publicly accessible, unencrypted, backup retention 0 days",
+          "saving_eur_month": -310,
+          "effort_hours": 16,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "rds-analytics",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "unencrypted",
+          "reason": "storage not encrypted, backup retention 1 day",
+          "saving_eur_month": -180,
+          "effort_hours": 12,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "s3-uploads",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "public_datastore",
+          "reason": "public bucket, no default encryption",
+          "saving_eur_month": 0,
+          "effort_hours": 4,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "rds-orders-clone",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "orphan",
+          "reason": "status orphan, 0.4 connections, no inbound edges",
+          "saving_eur_month": 2919,
+          "effort_hours": 4,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "efs-legacy",
+          "action": "resize",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "512 MiB/s provisioned, 0.4% used",
+          "from": "provisioned 512 MiB/s",
+          "to": "bursting",
+          "saving_eur_month": 2837,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "cache-legacy-mc",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "0 connections, hit rate 0",
+          "saving_eur_month": 1504,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "vm-dev-jump",
+          "action": "stop",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "cpu avg 1%",
+          "saving_eur_month": 769,
+          "effort_hours": 1,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "vm-bastion",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "cpu avg 0.6%, ports 22 and 3389 open to the world",
+          "saving_eur_month": 562,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "ebs-orphans",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "orphan",
+          "reason": "6 unattached volumes, zero IOPS",
+          "saving_eur_month": 552,
+          "effort_hours": 1,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "nat-dev",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "0.4 GB out in 14 d across 3 gateways",
+          "saving_eur_month": 91,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "ng-data-gpu",
+          "action": "delete",
+          "layer": "rightsize_in_place",
+          "signal": "idle",
+          "reason": "gpu_pct avg 0.4, p95 1.0 over 14 d",
+          "saving_eur_month": 32882,
+          "effort_hours": 8,
+          "confidence": "low",
+          "confidence_reason": "gpu_pct is synthetic"
+        },
+        {
+          "component": "ng-shop-staging",
+          "action": "resize",
+          "layer": "rightsize_in_place",
+          "signal": "oversized",
+          "reason": "cpu avg 2%, p95 6%",
+          "from": "12 x m5.8xlarge",
+          "to": "3 x m5.2xlarge",
+          "saving_eur_month": 9903,
+          "effort_hours": 16,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-orders",
+          "action": "resize",
+          "layer": "rightsize_in_place",
+          "signal": "oversized",
+          "reason": "cpu avg 8%, p95 22%",
+          "from": "db.r5.8xlarge",
+          "to": "db.r5.4xlarge",
+          "saving_eur_month": 1460,
+          "effort_hours": 12,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-analytics",
+          "action": "resize",
+          "layer": "rightsize_in_place",
+          "signal": "undersized",
+          "reason": "cpu avg 88%, p95 97%",
+          "from": "db.m5.4xlarge",
+          "to": "db.m5.8xlarge",
+          "saving_eur_month": -1086,
+          "effort_hours": 12,
+          "confidence": "low",
+          "confidence_reason": "cpu_pct is synthetic"
+        },
+        {
+          "component": "ddb-orders",
+          "action": "flag",
+          "layer": "rightsize_in_place",
+          "signal": "hot_partition",
+          "reason": "partition key `status`, throttled at under 10% of provisioned RCU; more capacity does not fix it",
+          "saving_eur_month": 0,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "s3-legacy-reports",
+          "action": "move",
+          "layer": "managed_services",
+          "signal": "residency",
+          "reason": "pii stored in us-east-1",
+          "from": "aws-s3 us-east-1",
+          "to": "aws-s3 eu-west-1",
+          "saving_eur_month": 0,
+          "effort_hours": 24,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "rds-orders",
+          "action": "move",
+          "layer": "managed_services",
+          "signal": "single_az",
+          "reason": "1 zone, 99.5% against a 99.9% floor",
+          "from": "aws-rds-postgres, 1 zone",
+          "to": "aws-aurora-postgres, 2 zones",
+          "saving_eur_month": -1100,
+          "effort_hours": 180,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-analytics",
+          "action": "move",
+          "layer": "managed_services",
+          "signal": "single_az",
+          "reason": "1 zone; pg_partman and logical_replication rule out managed-pg-serverless",
+          "from": "aws-rds-postgres, 1 zone",
+          "to": "aws-aurora-postgres, 2 zones",
+          "saving_eur_month": -700,
+          "effort_hours": 140,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-erp",
+          "action": "move",
+          "layer": "managed_services",
+          "signal": "managed_fit",
+          "reason": "cpu avg 4%, features hstore and pg_trgm supported",
+          "from": "aws-rds-postgres db.r4",
+          "to": "managed-pg-serverless",
+          "saving_eur_month": 540,
+          "effort_hours": 76,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "ng-shop-cpu",
+          "action": "delete",
+          "layer": "consolidate",
+          "signal": "oversized",
+          "reason": "cpu p95 24%, workloads fit on ng-shop-general",
+          "saving_eur_month": 6200,
+          "effort_hours": 120,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "pg-lake",
+          "action": "move",
+          "layer": "consolidate",
+          "signal": "oversized",
+          "reason": "2 x r5.4xlarge at 3% cpu; folded into the rds-analytics cluster",
+          "from": "aws-rds-postgres x2",
+          "to": "aws-aurora-postgres (shared)",
+          "saving_eur_month": 2100,
+          "effort_hours": 160,
+          "confidence": "low",
+          "confidence_reason": "cpu_pct is synthetic"
+        }
+      ],
+      "cost": {
+        "run_eur_month_now": 74365,
+        "run_eur_month_at_horizon": {
+          "low": 89238,
+          "base": 156166,
+          "high": 267714
+        },
+        "horizon_by_scenario": {
+          "low": 2528410,
+          "base": 3718250,
+          "high": 5354280
+        },
+        "horizon_run_eur": 3807488,
+        "migration_eur": 81490,
+        "ops_eur_month": 2900,
+        "expected_outage_loss_eur_year": 28470,
+        "expected_total_eur": 4078788,
+        "security_remediation": {
+          "effort_hours": 32,
+          "one_off_eur": 2720,
+          "run_delta_eur_month": 490
+        }
+      },
+      "availability_pct": 99.95,
+      "risk": 0.31,
+      "effort_hours": 794,
+      "cutover_downtime_hours": 3,
+      "payback_months": 1.38,
+      "score": 0.317,
+      "pareto": true,
+      "rank": 1,
+      "rank_by_scenario": {
+        "low": 1,
+        "base": 1,
+        "high": 1
+      },
+      "lost_because": null,
+      "confidence": "low",
+      "confidence_reason": "gpu_pct is synthetic",
+      "flags": [
+        "egress_unpriced",
+        "usage_synthetic"
+      ]
+    },
+    {
+      "id": "managed_services",
+      "source": "engine",
+      "builds_on": "rightsize_in_place",
+      "feasible": true,
+      "violations": [],
+      "violation_distance": 0,
+      "actions": [
+        {
+          "component": "rds-orders",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "public_datastore",
+          "reason": "publicly accessible, unencrypted, backup retention 0 days",
+          "saving_eur_month": -310,
+          "effort_hours": 16,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "rds-analytics",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "unencrypted",
+          "reason": "storage not encrypted, backup retention 1 day",
+          "saving_eur_month": -180,
+          "effort_hours": 12,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "s3-uploads",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "public_datastore",
+          "reason": "public bucket, no default encryption",
+          "saving_eur_month": 0,
+          "effort_hours": 4,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "rds-orders-clone",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "orphan",
+          "reason": "status orphan, 0.4 connections, no inbound edges",
+          "saving_eur_month": 2919,
+          "effort_hours": 4,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "efs-legacy",
+          "action": "resize",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "512 MiB/s provisioned, 0.4% used",
+          "from": "provisioned 512 MiB/s",
+          "to": "bursting",
+          "saving_eur_month": 2837,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "cache-legacy-mc",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "0 connections, hit rate 0",
+          "saving_eur_month": 1504,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "vm-dev-jump",
+          "action": "stop",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "cpu avg 1%",
+          "saving_eur_month": 769,
+          "effort_hours": 1,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "vm-bastion",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "cpu avg 0.6%, ports 22 and 3389 open to the world",
+          "saving_eur_month": 562,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "ebs-orphans",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "orphan",
+          "reason": "6 unattached volumes, zero IOPS",
+          "saving_eur_month": 552,
+          "effort_hours": 1,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "nat-dev",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "0.4 GB out in 14 d across 3 gateways",
+          "saving_eur_month": 91,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "ng-data-gpu",
+          "action": "delete",
+          "layer": "rightsize_in_place",
+          "signal": "idle",
+          "reason": "gpu_pct avg 0.4, p95 1.0 over 14 d",
+          "saving_eur_month": 32882,
+          "effort_hours": 8,
+          "confidence": "low",
+          "confidence_reason": "gpu_pct is synthetic"
+        },
+        {
+          "component": "ng-shop-staging",
+          "action": "resize",
+          "layer": "rightsize_in_place",
+          "signal": "oversized",
+          "reason": "cpu avg 2%, p95 6%",
+          "from": "12 x m5.8xlarge",
+          "to": "3 x m5.2xlarge",
+          "saving_eur_month": 9903,
+          "effort_hours": 16,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-orders",
+          "action": "resize",
+          "layer": "rightsize_in_place",
+          "signal": "oversized",
+          "reason": "cpu avg 8%, p95 22%",
+          "from": "db.r5.8xlarge",
+          "to": "db.r5.4xlarge",
+          "saving_eur_month": 1460,
+          "effort_hours": 12,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-analytics",
+          "action": "resize",
+          "layer": "rightsize_in_place",
+          "signal": "undersized",
+          "reason": "cpu avg 88%, p95 97%",
+          "from": "db.m5.4xlarge",
+          "to": "db.m5.8xlarge",
+          "saving_eur_month": -1086,
+          "effort_hours": 12,
+          "confidence": "low",
+          "confidence_reason": "cpu_pct is synthetic"
+        },
+        {
+          "component": "ddb-orders",
+          "action": "flag",
+          "layer": "rightsize_in_place",
+          "signal": "hot_partition",
+          "reason": "partition key `status`, throttled at under 10% of provisioned RCU; more capacity does not fix it",
+          "saving_eur_month": 0,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "s3-legacy-reports",
+          "action": "move",
+          "layer": "managed_services",
+          "signal": "residency",
+          "reason": "pii stored in us-east-1",
+          "from": "aws-s3 us-east-1",
+          "to": "aws-s3 eu-west-1",
+          "saving_eur_month": 0,
+          "effort_hours": 24,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "rds-orders",
+          "action": "move",
+          "layer": "managed_services",
+          "signal": "single_az",
+          "reason": "1 zone, 99.5% against a 99.9% floor",
+          "from": "aws-rds-postgres, 1 zone",
+          "to": "aws-aurora-postgres, 2 zones",
+          "saving_eur_month": -1100,
+          "effort_hours": 180,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-analytics",
+          "action": "move",
+          "layer": "managed_services",
+          "signal": "single_az",
+          "reason": "1 zone; pg_partman and logical_replication rule out managed-pg-serverless",
+          "from": "aws-rds-postgres, 1 zone",
+          "to": "aws-aurora-postgres, 2 zones",
+          "saving_eur_month": -700,
+          "effort_hours": 140,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-erp",
+          "action": "move",
+          "layer": "managed_services",
+          "signal": "managed_fit",
+          "reason": "cpu avg 4%, features hstore and pg_trgm supported",
+          "from": "aws-rds-postgres db.r4",
+          "to": "managed-pg-serverless",
+          "saving_eur_month": 540,
+          "effort_hours": 76,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        }
+      ],
+      "cost": {
+        "run_eur_month_now": 82665,
+        "run_eur_month_at_horizon": {
+          "low": 99198,
+          "base": 173596,
+          "high": 297594
+        },
+        "horizon_by_scenario": {
+          "low": 2810610,
+          "base": 4133250,
+          "high": 5951880
+        },
+        "horizon_run_eur": 4232448,
+        "migration_eur": 52690,
+        "ops_eur_month": 3100,
+        "expected_outage_loss_eur_year": 28470,
+        "expected_total_eur": 4482148,
+        "security_remediation": {
+          "effort_hours": 32,
+          "one_off_eur": 2720,
+          "run_delta_eur_month": 490
+        }
+      },
+      "availability_pct": 99.95,
+      "risk": 0.18,
+      "effort_hours": 514,
+      "cutover_downtime_hours": 2,
+      "payback_months": 1.04,
+      "score": 0.5,
+      "pareto": true,
+      "rank": 2,
+      "rank_by_scenario": {
+        "low": 2,
+        "base": 2,
+        "high": 2
+      },
+      "lost_because": {
+        "reason": "cost",
+        "detail": "expected total EUR 4,482,148 over 36 months against EUR 4,078,788 for consolidate"
+      },
+      "confidence": "low",
+      "confidence_reason": "gpu_pct is synthetic",
+      "flags": [
+        "egress_unpriced",
+        "usage_synthetic"
+      ]
+    },
+    {
+      "id": "move_to_onprem",
+      "source": "engine",
+      "builds_on": "rightsize_in_place",
+      "feasible": true,
+      "violations": [],
+      "violation_distance": 0,
+      "actions": [
+        {
+          "component": "rds-orders",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "public_datastore",
+          "reason": "publicly accessible, unencrypted, backup retention 0 days",
+          "saving_eur_month": -310,
+          "effort_hours": 16,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "rds-analytics",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "unencrypted",
+          "reason": "storage not encrypted, backup retention 1 day",
+          "saving_eur_month": -180,
+          "effort_hours": 12,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "s3-uploads",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "public_datastore",
+          "reason": "public bucket, no default encryption",
+          "saving_eur_month": 0,
+          "effort_hours": 4,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "rds-orders-clone",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "orphan",
+          "reason": "status orphan, 0.4 connections, no inbound edges",
+          "saving_eur_month": 2919,
+          "effort_hours": 4,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "efs-legacy",
+          "action": "resize",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "512 MiB/s provisioned, 0.4% used",
+          "from": "provisioned 512 MiB/s",
+          "to": "bursting",
+          "saving_eur_month": 2837,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "cache-legacy-mc",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "0 connections, hit rate 0",
+          "saving_eur_month": 1504,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "vm-dev-jump",
+          "action": "stop",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "cpu avg 1%",
+          "saving_eur_month": 769,
+          "effort_hours": 1,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "vm-bastion",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "cpu avg 0.6%, ports 22 and 3389 open to the world",
+          "saving_eur_month": 562,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "ebs-orphans",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "orphan",
+          "reason": "6 unattached volumes, zero IOPS",
+          "saving_eur_month": 552,
+          "effort_hours": 1,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "nat-dev",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "0.4 GB out in 14 d across 3 gateways",
+          "saving_eur_month": 91,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "ng-data-gpu",
+          "action": "delete",
+          "layer": "rightsize_in_place",
+          "signal": "idle",
+          "reason": "gpu_pct avg 0.4, p95 1.0 over 14 d",
+          "saving_eur_month": 32882,
+          "effort_hours": 8,
+          "confidence": "low",
+          "confidence_reason": "gpu_pct is synthetic"
+        },
+        {
+          "component": "ng-shop-staging",
+          "action": "resize",
+          "layer": "rightsize_in_place",
+          "signal": "oversized",
+          "reason": "cpu avg 2%, p95 6%",
+          "from": "12 x m5.8xlarge",
+          "to": "3 x m5.2xlarge",
+          "saving_eur_month": 9903,
+          "effort_hours": 16,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-orders",
+          "action": "resize",
+          "layer": "rightsize_in_place",
+          "signal": "oversized",
+          "reason": "cpu avg 8%, p95 22%",
+          "from": "db.r5.8xlarge",
+          "to": "db.r5.4xlarge",
+          "saving_eur_month": 1460,
+          "effort_hours": 12,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-analytics",
+          "action": "resize",
+          "layer": "rightsize_in_place",
+          "signal": "undersized",
+          "reason": "cpu avg 88%, p95 97%",
+          "from": "db.m5.4xlarge",
+          "to": "db.m5.8xlarge",
+          "saving_eur_month": -1086,
+          "effort_hours": 12,
+          "confidence": "low",
+          "confidence_reason": "cpu_pct is synthetic"
+        },
+        {
+          "component": "ddb-orders",
+          "action": "flag",
+          "layer": "rightsize_in_place",
+          "signal": "hot_partition",
+          "reason": "partition key `status`, throttled at under 10% of provisioned RCU; more capacity does not fix it",
+          "saving_eur_month": 0,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "s3-legacy-reports",
+          "action": "move",
+          "layer": "move_to_onprem",
+          "signal": "residency",
+          "reason": "pii stored in us-east-1",
+          "from": "aws-s3 us-east-1",
+          "to": "onprem-object-storage onprem-dc1",
+          "saving_eur_month": 0,
+          "effort_hours": 40,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "ng-shop-general",
+          "action": "move",
+          "layer": "move_to_onprem",
+          "signal": "steady_load",
+          "reason": "cpu p95 31%, autoscaling off",
+          "from": "aws-eks-nodes",
+          "to": "onprem-k8s-nodes",
+          "saving_eur_month": 14200,
+          "effort_hours": 360,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-orders",
+          "action": "move",
+          "layer": "move_to_onprem",
+          "signal": "single_az",
+          "reason": "1 zone, 99.5% against a 99.9% floor",
+          "from": "aws-rds-postgres, 1 zone",
+          "to": "onprem-postgres, 2 nodes",
+          "saving_eur_month": 600,
+          "effort_hours": 260,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-analytics",
+          "action": "move",
+          "layer": "move_to_onprem",
+          "signal": "single_az",
+          "reason": "1 zone",
+          "from": "aws-rds-postgres, 1 zone",
+          "to": "onprem-postgres, 2 nodes",
+          "saving_eur_month": 200,
+          "effort_hours": 160,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        }
+      ],
+      "cost": {
+        "run_eur_month_now": 66405,
+        "run_eur_month_at_horizon": {
+          "low": 79686,
+          "base": 139450,
+          "high": 239058
+        },
+        "horizon_by_scenario": {
+          "low": 2257770,
+          "base": 3320250,
+          "high": 4781160
+        },
+        "horizon_run_eur": 3399936,
+        "migration_eur": 101690,
+        "ops_eur_month": 9200,
+        "expected_outage_loss_eur_year": 56940,
+        "expected_total_eur": 4003646,
+        "security_remediation": {
+          "effort_hours": 32,
+          "one_off_eur": 2720,
+          "run_delta_eur_month": 490
+        },
+        "onprem_platform": {
+          "platform": "onprem-dc1",
+          "platforms_needed": 1,
+          "capacity_share": 0.62,
+          "capex_eur": 310000,
+          "capex_amortised_eur_month": 3204,
+          "power_cooling_eur_month": 1150,
+          "colocation_eur_month": 1400,
+          "disk_replacement_eur_month": 95,
+          "staff_eur_month": 3570
+        }
+      },
+      "availability_pct": 99.9,
+      "risk": 0.52,
+      "effort_hours": 914,
+      "cutover_downtime_hours": 4,
+      "payback_months": 1.52,
+      "score": 0.5,
+      "pareto": true,
+      "rank": 3,
+      "rank_by_scenario": {
+        "low": 3,
+        "base": 3,
+        "high": 3
+      },
+      "lost_because": {
+        "reason": "risk",
+        "detail": "risk 0.52 against 0.31 for consolidate"
+      },
+      "confidence": "low",
+      "confidence_reason": "gpu_pct is synthetic",
+      "flags": [
+        "egress_unpriced",
+        "usage_synthetic"
+      ]
+    },
+    {
+      "id": "rightsize_in_place",
+      "source": "engine",
+      "builds_on": "cleanup_orphans",
+      "feasible": false,
+      "violations": [
+        {
+          "constraint": "min_availability_pct",
+          "component": "rds-orders",
+          "detail": "single-AZ database on the critical path",
+          "actual": 99.2,
+          "limit": 99.9,
+          "distance": 7.0
+        },
+        {
+          "constraint": "data_residency",
+          "component": "s3-legacy-reports",
+          "detail": "us-east-1, pii",
+          "actual": "us-east-1",
+          "limit": "eu-*, onprem-dc1",
+          "distance": 1
+        }
+      ],
+      "violation_distance": 8.0,
+      "actions": [
+        {
+          "component": "rds-orders",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "public_datastore",
+          "reason": "publicly accessible, unencrypted, backup retention 0 days",
+          "saving_eur_month": -310,
+          "effort_hours": 16,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "rds-analytics",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "unencrypted",
+          "reason": "storage not encrypted, backup retention 1 day",
+          "saving_eur_month": -180,
+          "effort_hours": 12,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "s3-uploads",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "public_datastore",
+          "reason": "public bucket, no default encryption",
+          "saving_eur_month": 0,
+          "effort_hours": 4,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "rds-orders-clone",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "orphan",
+          "reason": "status orphan, 0.4 connections, no inbound edges",
+          "saving_eur_month": 2919,
+          "effort_hours": 4,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "efs-legacy",
+          "action": "resize",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "512 MiB/s provisioned, 0.4% used",
+          "from": "provisioned 512 MiB/s",
+          "to": "bursting",
+          "saving_eur_month": 2837,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "cache-legacy-mc",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "0 connections, hit rate 0",
+          "saving_eur_month": 1504,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "vm-dev-jump",
+          "action": "stop",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "cpu avg 1%",
+          "saving_eur_month": 769,
+          "effort_hours": 1,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "vm-bastion",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "cpu avg 0.6%, ports 22 and 3389 open to the world",
+          "saving_eur_month": 562,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "ebs-orphans",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "orphan",
+          "reason": "6 unattached volumes, zero IOPS",
+          "saving_eur_month": 552,
+          "effort_hours": 1,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "nat-dev",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "0.4 GB out in 14 d across 3 gateways",
+          "saving_eur_month": 91,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "ng-data-gpu",
+          "action": "delete",
+          "layer": "rightsize_in_place",
+          "signal": "idle",
+          "reason": "gpu_pct avg 0.4, p95 1.0 over 14 d",
+          "saving_eur_month": 32882,
+          "effort_hours": 8,
+          "confidence": "low",
+          "confidence_reason": "gpu_pct is synthetic"
+        },
+        {
+          "component": "ng-shop-staging",
+          "action": "resize",
+          "layer": "rightsize_in_place",
+          "signal": "oversized",
+          "reason": "cpu avg 2%, p95 6%",
+          "from": "12 x m5.8xlarge",
+          "to": "3 x m5.2xlarge",
+          "saving_eur_month": 9903,
+          "effort_hours": 16,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-orders",
+          "action": "resize",
+          "layer": "rightsize_in_place",
+          "signal": "oversized",
+          "reason": "cpu avg 8%, p95 22%",
+          "from": "db.r5.8xlarge",
+          "to": "db.r5.4xlarge",
+          "saving_eur_month": 1460,
+          "effort_hours": 12,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "rds-analytics",
+          "action": "resize",
+          "layer": "rightsize_in_place",
+          "signal": "undersized",
+          "reason": "cpu avg 88%, p95 97%",
+          "from": "db.m5.4xlarge",
+          "to": "db.m5.8xlarge",
+          "saving_eur_month": -1086,
+          "effort_hours": 12,
+          "confidence": "low",
+          "confidence_reason": "cpu_pct is synthetic"
+        },
+        {
+          "component": "ddb-orders",
+          "action": "flag",
+          "layer": "rightsize_in_place",
+          "signal": "hot_partition",
+          "reason": "partition key `status`, throttled at under 10% of provisioned RCU; more capacity does not fix it",
+          "saving_eur_month": 0,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        }
+      ],
+      "cost": {
+        "run_eur_month_now": 81405,
+        "run_eur_month_at_horizon": {
+          "low": 97686,
+          "base": 170950,
+          "high": 293058
+        },
+        "horizon_by_scenario": {
+          "low": 2767770,
+          "base": 4070250,
+          "high": 5861160
+        },
+        "horizon_run_eur": 4167936,
+        "migration_eur": 7990,
+        "ops_eur_month": 3900,
+        "expected_outage_loss_eur_year": 455520,
+        "expected_total_eur": 5682886,
+        "security_remediation": {
+          "effort_hours": 32,
+          "one_off_eur": 2720,
+          "run_delta_eur_month": 490
+        }
+      },
+      "availability_pct": 99.2,
+      "risk": 0,
+      "effort_hours": 94,
+      "cutover_downtime_hours": 0.5,
+      "payback_months": 0.15,
+      "score": null,
+      "pareto": false,
+      "rank": null,
+      "rank_by_scenario": null,
+      "lost_because": {
+        "reason": "constraint",
+        "detail": "min_availability_pct on rds-orders: single-AZ database on the critical path (+1 more)"
+      },
+      "confidence": "low",
+      "confidence_reason": "gpu_pct is synthetic",
+      "flags": [
+        "egress_unpriced",
+        "usage_synthetic"
+      ]
+    },
+    {
+      "id": "cleanup_orphans",
+      "source": "engine",
+      "builds_on": "do_nothing",
+      "feasible": false,
+      "violations": [
+        {
+          "constraint": "min_availability_pct",
+          "component": "rds-orders",
+          "detail": "single-AZ database on the critical path",
+          "actual": 99.2,
+          "limit": 99.9,
+          "distance": 7.0
+        },
+        {
+          "constraint": "data_residency",
+          "component": "s3-legacy-reports",
+          "detail": "us-east-1, pii",
+          "actual": "us-east-1",
+          "limit": "eu-*, onprem-dc1",
+          "distance": 1
+        },
+        {
+          "constraint": "budget",
+          "component": null,
+          "detail": "base scenario, month 36",
+          "actual": 261584,
+          "limit": 200000,
+          "distance": 0.308
+        }
+      ],
+      "violation_distance": 8.308,
+      "actions": [
+        {
+          "component": "rds-orders",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "public_datastore",
+          "reason": "publicly accessible, unencrypted, backup retention 0 days",
+          "saving_eur_month": -310,
+          "effort_hours": 16,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "rds-analytics",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "unencrypted",
+          "reason": "storage not encrypted, backup retention 1 day",
+          "saving_eur_month": -180,
+          "effort_hours": 12,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "s3-uploads",
+          "action": "remediate",
+          "layer": "security_remediation",
+          "signal": "public_datastore",
+          "reason": "public bucket, no default encryption",
+          "saving_eur_month": 0,
+          "effort_hours": 4,
+          "confidence": "high",
+          "confidence_reason": "based on configuration facts only"
+        },
+        {
+          "component": "rds-orders-clone",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "orphan",
+          "reason": "status orphan, 0.4 connections, no inbound edges",
+          "saving_eur_month": 2919,
+          "effort_hours": 4,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "efs-legacy",
+          "action": "resize",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "512 MiB/s provisioned, 0.4% used",
+          "from": "provisioned 512 MiB/s",
+          "to": "bursting",
+          "saving_eur_month": 2837,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "cache-legacy-mc",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "0 connections, hit rate 0",
+          "saving_eur_month": 1504,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "vm-dev-jump",
+          "action": "stop",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "cpu avg 1%",
+          "saving_eur_month": 769,
+          "effort_hours": 1,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "vm-bastion",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "cpu avg 0.6%, ports 22 and 3389 open to the world",
+          "saving_eur_month": 562,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "ebs-orphans",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "orphan",
+          "reason": "6 unattached volumes, zero IOPS",
+          "saving_eur_month": 552,
+          "effort_hours": 1,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        },
+        {
+          "component": "nat-dev",
+          "action": "delete",
+          "layer": "cleanup_orphans",
+          "signal": "idle",
+          "reason": "0.4 GB out in 14 d across 3 gateways",
+          "saving_eur_month": 91,
+          "effort_hours": 2,
+          "confidence": "medium",
+          "confidence_reason": "cost.monthly_eur is estimated"
+        }
+      ],
+      "cost": {
+        "run_eur_month_now": 124564,
+        "run_eur_month_at_horizon": {
+          "low": 149477,
+          "base": 261584,
+          "high": 448430
+        },
+        "horizon_by_scenario": {
+          "low": 4235176,
+          "base": 6228200,
+          "high": 8968608
+        },
+        "horizon_run_eur": 6377677,
+        "migration_eur": 3910,
+        "ops_eur_month": 3900,
+        "expected_outage_loss_eur_year": 455520,
+        "expected_total_eur": 7888547,
+        "security_remediation": {
+          "effort_hours": 32,
+          "one_off_eur": 2720,
+          "run_delta_eur_month": 490
+        }
+      },
+      "availability_pct": 99.2,
+      "risk": 0,
+      "effort_hours": 46,
+      "cutover_downtime_hours": 0,
+      "payback_months": 0.45,
+      "score": null,
+      "pareto": false,
+      "rank": null,
+      "rank_by_scenario": null,
+      "lost_because": {
+        "reason": "constraint",
+        "detail": "min_availability_pct on rds-orders: single-AZ database on the critical path (+2 more)"
+      },
+      "confidence": "medium",
+      "confidence_reason": "cost.monthly_eur is estimated",
+      "flags": [
+        "egress_unpriced"
+      ]
+    },
+    {
+      "id": "do_nothing",
+      "source": "engine",
+      "builds_on": null,
+      "feasible": false,
+      "violations": [
+        {
+          "constraint": "min_availability_pct",
+          "component": "rds-orders",
+          "detail": "single-AZ database on the critical path",
+          "actual": 99.2,
+          "limit": 99.9,
+          "distance": 7.0
+        },
+        {
+          "constraint": "data_residency",
+          "component": "s3-legacy-reports",
+          "detail": "us-east-1, pii",
+          "actual": "us-east-1",
+          "limit": "eu-*, onprem-dc1",
+          "distance": 1
+        },
+        {
+          "constraint": "security.forbid_public_datastores",
+          "component": "rds-orders",
+          "detail": "publicly accessible",
+          "actual": null,
+          "limit": null,
+          "distance": 1
+        },
+        {
+          "constraint": "security.forbid_public_datastores",
+          "component": "s3-uploads",
+          "detail": "public bucket",
+          "actual": null,
+          "limit": null,
+          "distance": 1
+        },
+        {
+          "constraint": "security.forbid_world_open_admin_ports",
+          "component": "vm-bastion",
+          "detail": "ports 22 and 3389 open to the world",
+          "actual": null,
+          "limit": null,
+          "distance": 1
+        },
+        {
+          "constraint": "security.require_audit_logging",
+          "component": null,
+          "detail": "no audit logging on the account",
+          "actual": null,
+          "limit": null,
+          "distance": 1
+        },
+        {
+          "constraint": "security.require_backups",
+          "component": "rds-orders",
+          "detail": "backup retention 0 days",
+          "actual": 0,
+          "limit": 1,
+          "distance": 1
+        },
+        {
+          "constraint": "security.require_encryption_at_rest",
+          "component": "rds-analytics",
+          "detail": "storage not encrypted",
+          "actual": null,
+          "limit": null,
+          "distance": 1
+        },
+        {
+          "constraint": "budget",
+          "component": null,
+          "detail": "base scenario, month 36",
+          "actual": 279947,
+          "limit": 200000,
+          "distance": 0.4
+        }
+      ],
+      "violation_distance": 14.4,
+      "actions": [],
+      "cost": {
+        "run_eur_month_now": 133308,
+        "run_eur_month_at_horizon": {
+          "low": 159970,
+          "base": 279947,
+          "high": 479909
+        },
+        "horizon_by_scenario": {
+          "low": 4532472,
+          "base": 6665400,
+          "high": 9598176
+        },
+        "horizon_run_eur": 6825370,
+        "migration_eur": 0,
+        "ops_eur_month": 4200,
+        "expected_outage_loss_eur_year": 455520,
+        "expected_total_eur": 8343130
+      },
+      "availability_pct": 99.2,
+      "risk": 0,
+      "effort_hours": 0,
+      "cutover_downtime_hours": 0,
+      "payback_months": null,
+      "score": null,
+      "pareto": false,
+      "rank": null,
+      "rank_by_scenario": null,
+      "lost_because": {
+        "reason": "constraint",
+        "detail": "min_availability_pct on rds-orders: single-AZ database on the critical path (+8 more)"
+      },
+      "confidence": "medium",
+      "confidence_reason": "cost.monthly_eur is estimated",
+      "flags": [
+        "egress_unpriced"
+      ]
+    }
+  ],
+  "winner": "consolidate",
+  "closest_if_none_feasible": null,
+  "flags": [
+    "catalog_illustrative",
+    "sample_values"
+  ]
+}
