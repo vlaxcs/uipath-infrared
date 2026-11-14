@@ -127,3 +127,29 @@ def test_the_build_leaves_the_skeleton_untouched_and_repeats_exactly():
     second = build_catalog(document, bindings, {}, snapshots(), FX)
     assert first.document == second.document
     assert document["options"][0]["pricing"]["tiers"][0]["monthly_eur"] == 62
+
+
+def part(target, price, unit, name, per="hour", multiplier=1.0):
+    return Binding("aws-ec2", target, price, unit, per, multiplier, name)
+
+
+def test_parts_on_one_target_add_up_to_its_price():
+    bindings = (
+        part("tier:t3.large", "aws-AmazonEC2/linux:t3.large", "Hrs", "vcpu", multiplier=2.0),
+        part("tier:t3.large", "aws-AmazonEC2/linux:t3.large", "Hrs", "memory", multiplier=8.0),
+    )
+    built = build_catalog(skeleton(), bindings, {}, snapshots(), FX)
+    assert built.document["options"][0]["pricing"]["tiers"][0]["monthly_eur"] == pytest.approx(0.1 / 1.25 * 730 * 10, rel=1e-5)
+    source = built.document["x_price_sources"]["aws-ec2/tier:t3.large"]
+    assert set(source["parts"]) == {"vcpu", "memory"}
+    assert "aws-ec2/tier:t3.large" in built.sourced
+
+
+def test_a_target_with_one_unverified_part_keeps_the_skeleton_value():
+    bindings = (
+        part("tier:t3.large", "aws-AmazonEC2/linux:t3.large", "Hrs", "vcpu", multiplier=2.0),
+        part("tier:t3.large", "manual/vendor:gb", "GB", "memory", per="unit"),
+    )
+    built = build_catalog(skeleton(), bindings, {}, snapshots({"vendor:gb": "quote gone"}), FX)
+    assert built.document["options"][0]["pricing"]["tiers"][0]["monthly_eur"] == 62
+    assert built.document["x_unsourced"]["aws-ec2/tier:t3.large"] == "quote gone"

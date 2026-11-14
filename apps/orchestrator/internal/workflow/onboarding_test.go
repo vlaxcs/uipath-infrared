@@ -106,7 +106,7 @@ func TestTheSetupListsTheCatalogsProvidersAndEveryProject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !slices.Equal(setup.Providers, []string{"aws", "managed_pg"}) || !setup.Onprem {
+	if !slices.Equal(setup.Providers, []string{"aws", "azure", "backblaze", "cloudflare", "fly", "gcp", "hetzner", "neon", "runpod", "supabase"}) || !setup.Onprem {
 		t.Fatalf("providers %v, onprem %v", setup.Providers, setup.Onprem)
 	}
 	ids := []string{}

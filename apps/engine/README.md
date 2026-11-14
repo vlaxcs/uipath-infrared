@@ -117,7 +117,7 @@ Strategies plug in through `engine/application/strategies.py`: a builder `(previ
 - A stay-together group with `provider` or `zone` scope moves as one unit: every live member moves to the same provider, choosing the provider that saves the most in total, or none of them moves.
 - A component that does not move but had targets gets one `flag` action (signal `move_rejected`) listing every rejected target and why. A move lists the targets it rejected in its reason.
 - When `features_used` is unknown (real extractions), the move is allowed and a `flag` action with signal `verify_extensions` asks for a check before moving.
-- On `demo-shop`: `rds-erp` moves to `managed-pg-serverless` and stays in `eu-west-1` with `erp-core`; `pg-lake` moves to `managed-pg-branching`; `rds-orders` and `rds-analytics` stay, because `rds-analytics` has no managed target with its extensions and `orders-replication` moves as one unit.
+- On `demo-shop`: `rds-erp` moves to `neon-launch` and stays in `eu-west-1` with `erp-core`; `pg-lake` moves to `neon-scale`; `rds-orders` and `rds-analytics` stay, because `rds-analytics` has no managed target with its extensions and `orders-replication` moves as one unit.
 
 ## On-prem rules
 

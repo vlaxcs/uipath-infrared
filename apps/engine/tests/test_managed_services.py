@@ -42,16 +42,16 @@ def test_it_builds_on_rightsize_in_place(layers):
 ])
 def test_serverless_is_rejected_where_features_are_missing(layers, component, missing):
     reasons = " ".join(a.reason for a in own(layers, component))
-    assert f"managed-pg-serverless lacks {missing}" in reasons
-    assert not any(a.kind == ActionKind.MOVE and a.option == "managed-pg-serverless" for a in own(layers, component))
+    assert f"neon-launch lacks {missing}" in reasons
+    assert not any(a.kind == ActionKind.MOVE and a.option == "neon-launch" for a in own(layers, component))
 
 
 def test_rds_erp_moves_to_the_managed_provider_and_stays_with_erp_core(layers, mock_infra, catalog):
     [move] = own(layers, "rds-erp", ActionKind.MOVE)
-    assert move.option == "managed-pg-serverless"
+    assert move.option == "neon-launch"
     assert "erp-core" in move.reason
     placement = apply_candidate(mock_infra, catalog, layers[1]).placements["rds-erp"]
-    assert (placement.provider, placement.region) == ("managed_pg", "eu-west-1")
+    assert (placement.provider, placement.region) == ("neon", "eu-west-1")
 
 
 def test_a_provider_scoped_group_moves_together_or_not_at_all(layers):
@@ -64,7 +64,7 @@ def test_a_provider_scoped_group_moves_together_or_not_at_all(layers):
 
 def test_a_move_keeps_the_size_rightsizing_chose(layers):
     [move] = own(layers, "pg-lake", ActionKind.MOVE)
-    assert (move.option, move.tier) == ("managed-pg-branching", "cu-16")
+    assert (move.option, move.tier) == ("neon-scale", "cu-16")
 
 
 def test_unknown_extensions_allow_the_move_but_flag_it(mock_infra, catalog, forecast):
@@ -81,7 +81,7 @@ def test_a_provider_outside_the_allow_list_is_never_a_target(mock_infra, catalog
     previous, candidate = layered(mock_infra, catalog, replace(forecast, constraints=constraints))
     own_actions = candidate.own_actions(previous)
     assert not [a for a in own_actions if a.kind == ActionKind.MOVE]
-    assert any("provider managed_pg is not allowed" in a.reason for a in own_actions)
+    assert any("provider neon is not allowed" in a.reason or "provider supabase is not allowed" in a.reason for a in own_actions)
 
 
 def test_residency_blocks_moves_that_keep_data_outside_the_allowed_regions(real_infra, catalog, forecast):

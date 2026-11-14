@@ -23432,7 +23432,7 @@
         "shortLabel": "Move rds-analytics",
         "stageId": "managed_services",
         "step": 18,
-        "reason": "1 zone; pg_partman and logical_replication rule out managed-pg-serverless",
+        "reason": "1 zone; pg_partman and logical_replication rule out neon-launch",
         "cost_source": "modelled",
         "availability_pct": null,
         "availability_source": null,
@@ -23452,7 +23452,7 @@
             "kind": "moved",
             "action": "move",
             "verb": "Move",
-            "reason": "1 zone; pg_partman and logical_replication rule out managed-pg-serverless",
+            "reason": "1 zone; pg_partman and logical_replication rule out neon-launch",
             "from": "aws-rds-postgres, 1 zone",
             "to": "aws-aurora-postgres, 2 zones",
             "saving_eur": -700,
@@ -24316,7 +24316,7 @@
               "facts": [
                 {
                   "label": "Placement",
-                  "value": "managed-pg-serverless"
+                  "value": "neon-launch"
                 },
                 {
                   "label": "Cost",
@@ -24325,7 +24325,7 @@
               ],
               "provider": "aws",
               "region": "eu-west-1",
-              "service": "managed-pg-serverless",
+              "service": "neon-launch",
               "sku": "db.r4.4xlarge",
               "changed": "moved",
               "changedAction": "move"
@@ -24634,7 +24634,7 @@
             "verb": "Move",
             "reason": "cpu avg 4%, features hstore and pg_trgm supported",
             "from": "aws-rds-postgres db.r4",
-            "to": "managed-pg-serverless",
+            "to": "neon-launch",
             "saving_eur": 540,
             "effort_hours": 76
           }
@@ -25468,7 +25468,7 @@
               "facts": [
                 {
                   "label": "Placement",
-                  "value": "managed-pg-serverless"
+                  "value": "neon-launch"
                 },
                 {
                   "label": "Cost",
@@ -25477,7 +25477,7 @@
               ],
               "provider": "aws",
               "region": "eu-west-1",
-              "service": "managed-pg-serverless",
+              "service": "neon-launch",
               "sku": "db.r4.4xlarge",
               "changed": null,
               "changedAction": null
@@ -26632,7 +26632,7 @@
               "facts": [
                 {
                   "label": "Placement",
-                  "value": "managed-pg-serverless"
+                  "value": "neon-launch"
                 },
                 {
                   "label": "Cost",
@@ -26641,7 +26641,7 @@
               ],
               "provider": "aws",
               "region": "eu-west-1",
-              "service": "managed-pg-serverless",
+              "service": "neon-launch",
               "sku": "db.r4.4xlarge",
               "changed": null,
               "changedAction": null

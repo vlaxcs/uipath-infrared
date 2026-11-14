@@ -28,7 +28,7 @@
       "properties": {
         "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
         "kind": { "enum": ["postgres", "nosql", "cache", "stream", "queue", "object_storage", "block_storage", "file_system", "container", "kubernetes_cluster", "node_group", "virtual_machine", "function", "load_balancer", "nat", "cdn", "dns", "other"], "description": "Must equal infra component kinds." },
-        "provider": { "enum": ["aws", "gcp", "azure", "onprem", "managed_pg", "other"] },
+        "provider": { "enum": ["aws", "gcp", "azure", "onprem", "supabase", "neon", "hetzner", "fly", "cloudflare", "backblaze", "runpod", "managed_pg", "other"] },
         "service": { "type": "string" },
         "description": { "type": "string" },
         "regions": { "type": "array", "items": { "type": "string" }, "description": "Regions the option can run in; prefix wildcards allowed (eu-*). Used for data residency." },

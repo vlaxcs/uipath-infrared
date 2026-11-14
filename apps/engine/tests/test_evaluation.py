@@ -60,7 +60,7 @@ def test_confidence_is_never_better_than_the_estimated_baseline(do_nothing):
 
 
 def test_a_move_with_unknown_extensions_is_flagged_and_riskier(mock_infra, catalog, forecast, baseline):
-    move = Action("rds-erp", ActionKind.MOVE, "cheaper elsewhere", option="managed-pg-serverless")
+    move = Action("rds-erp", ActionKind.MOVE, "cheaper elsewhere", option="neon-launch")
     check = Action("rds-erp", ActionKind.FLAG, "features_used unknown", signal="verify_extensions")
     plain = evaluate_candidate(Candidate("managed_services", (move,)), ("managed_services",), mock_infra, catalog, forecast, baseline)
     flagged = evaluate_candidate(Candidate("managed_services", (move, check)), ("managed_services",) * 2, mock_infra, catalog, forecast, baseline)

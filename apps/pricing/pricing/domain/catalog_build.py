@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Mapping
 
 from pricing.domain.binding import PER_HOUR, Binding
-from pricing.domain.catalog_targets import PLATFORM, money_targets, set_target
+from pricing.domain.catalog_targets import PLATFORM, get_target, money_targets, set_target
 from pricing.domain.errors import BuildError
 from pricing.domain.fx import FxRate
 from pricing.domain.price import Price
@@ -38,13 +38,19 @@ def build_catalog(
     sources: dict[str, dict[str, Any]] = {}
     skipped: dict[str, str] = {}
     problems: list[str] = []
-    for binding in sorted(bindings, key=lambda b: b.name):
+    totals: dict[str, float] = {}
+    for binding in sorted(bindings, key=lambda b: (b.name, b.part)):
         if binding.price in unverified:
             skipped[binding.name] = unverified[binding.price]
             continue
-        problem = _apply(binding, options, prices, fx, document["hours_per_month"], sources)
+        problem = _apply(binding, options, prices, fx, document["hours_per_month"], sources, totals)
         if problem:
             problems.append(f"{binding.name}: {problem}")
+    for name in sorted(set(skipped) & set(sources)):
+        option_id, _, target = name.partition("/")
+        original = next(o for o in skeleton["options"] if o["id"] == option_id)
+        set_target(options[option_id], target, get_target(original, target))
+        del sources[name]
     for option_id, text in descriptions.items():
         if option_id not in options:
             problems.append(f"description for unknown option {option_id}")
@@ -144,6 +150,7 @@ def _apply(
     fx: FxRate,
     hours_per_month: float,
     sources: dict[str, dict[str, Any]],
+    totals: dict[str, float],
 ) -> str | None:
     option = options.get(binding.option)
     if option is None:
@@ -156,11 +163,13 @@ def _apply(
         return f"{binding.price} is per {price.unit}, the binding expects {binding.unit}"
     hours = hours_per_month if binding.per == PER_HOUR else 1.0
     eur = significant(fx.to_eur(price.amount, price.currency) * binding.multiplier * hours)
+    if binding.part:
+        totals[binding.name] = totals.get(binding.name, 0.0) + eur
     try:
-        set_target(option, binding.target, eur)
+        set_target(option, binding.target, significant(totals[binding.name]) if binding.part else eur)
     except BuildError as error:
         return str(error)
-    sources[binding.name] = {
+    record = {
         "price": binding.price,
         "amount": price.amount,
         "currency": price.currency,
@@ -172,6 +181,12 @@ def _apply(
         "source_version": snapshot.version,
         "fetched_on": snapshot.fetched_on.isoformat(),
     }
+    if binding.part:
+        entry = sources.setdefault(binding.name, {"eur": 0.0, "parts": {}})
+        entry["parts"][binding.part] = record
+        entry["eur"] = significant(totals[binding.name])
+    else:
+        sources[binding.name] = record
     return None
 
 

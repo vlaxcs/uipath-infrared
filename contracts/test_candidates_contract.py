@@ -145,12 +145,12 @@ class AgainstTheInfraAndCatalog(Rejected):
     def test_option_runs_in_the_region(self):
         doc = sample()
         action(doc, MOVE)["to"]["region"] = "ap-south-1"
-        self.assertRejected(doc, "option managed-pg-serverless does not run in ap-south-1")
+        self.assertRejected(doc, "option neon-launch does not run in ap-south-1")
 
     def test_option_has_the_tier(self):
         doc = sample()
         action(doc, MOVE)["to"]["tier"] = "db.m5.large"
-        self.assertRejected(doc, "option managed-pg-serverless has no tier db.m5.large")
+        self.assertRejected(doc, "option neon-launch has no tier db.m5.large")
 
     def test_tier_without_option_is_offered_for_the_kind(self):
         doc = sample()

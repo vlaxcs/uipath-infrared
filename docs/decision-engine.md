@@ -74,7 +74,7 @@ The strategies are **cumulative layers**, so each one shows what it adds on top 
 | `do_nothing` | nothing (the baseline, always present) |
 | `cleanup_orphans` | delete orphans, stop idle components |
 | `rightsize_in_place` | resize to fit p95, grow undersized components, autoscale static pools, multi-AZ for stateful prod |
-| `managed_services` | move each component to the cheapest feasible catalog option at a different provider (`managed_pg` and so on) |
+| `managed_services` | move each component to the cheapest feasible catalog option at a different provider (Supabase, Neon, Hetzner and so on) |
 | `consolidate` | merge duplicates (NAT gateways, duplicate databases, overlapping clusters) |
 | `move_to_onprem` | move to `onprem-*` options, with the platform cost allocated (section 3) |
 
@@ -164,7 +164,7 @@ Each step can be demoed on its own. Tests come from `contracts/mock/demo-shop.ex
 | b | `do_nothing` + constraint checks | infeasible: `s3-legacy-reports` residency, single-AZ RDS under 99.9% |
 | c | `cleanup_orphans` | about EUR 9.2k/month from `rds-orders-clone`, `ebs-orphans`, `nat-dev`, `vm-dev-jump`, `vm-bastion`, `cache-legacy-mc`, `efs-legacy`; high confidence |
 | d | `rightsize_in_place` | `ng-data-gpu` and `ng-shop-staging` cut; **`rds-analytics` grows**; `ddb-orders` flagged as a design problem with no capacity added |
-| e | `managed_services` + feature check | `managed-pg-serverless` rejected for `rds-analytics` (`pg_partman`, `logical_replication`), `rds-orders`, `pg-lake`; `rds-erp` allowed but kept with `erp-core` |
+| e | `managed_services` + feature check | `neon-launch` rejected for `rds-analytics` (`pg_partman`, `logical_replication`), `rds-orders`, `pg-lake`; `rds-erp` allowed but kept with `erp-core` |
 | f | `move_to_onprem` | the full platform cost shown (capex, cooling, disks, staff) |
 | g | scoring, Pareto, payback, robustness, nothing-feasible fallback | deterministic winner; every loser has a reason |
 | h | run on `real/floci-estate.infra.json` | no crash; the flags from "Gaps in real data" appear |

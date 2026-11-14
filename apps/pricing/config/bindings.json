@@ -298,7 +298,7 @@
     },
     {
       "multiplier": 1.0,
-      "option": "managed-pg-platform",
+      "option": "supabase-postgres",
       "per": "hour",
       "price": "manual/supabase:compute-large",
       "target": "tier:p-l",
@@ -306,7 +306,7 @@
     },
     {
       "multiplier": 1.0,
-      "option": "managed-pg-platform",
+      "option": "supabase-postgres",
       "per": "hour",
       "price": "manual/supabase:compute-xl",
       "target": "tier:p-xl",
@@ -314,7 +314,7 @@
     },
     {
       "multiplier": 1.0,
-      "option": "managed-pg-platform",
+      "option": "supabase-postgres",
       "per": "hour",
       "price": "manual/supabase:compute-2xl",
       "target": "tier:p-2xl",
@@ -322,7 +322,7 @@
     },
     {
       "multiplier": 1.0,
-      "option": "managed-pg-platform",
+      "option": "supabase-postgres",
       "per": "hour",
       "price": "manual/supabase:compute-4xl",
       "target": "tier:p-4xl",
@@ -330,7 +330,7 @@
     },
     {
       "multiplier": 1.0,
-      "option": "managed-pg-platform",
+      "option": "supabase-postgres",
       "per": "hour",
       "price": "manual/supabase:compute-8xl",
       "target": "tier:p-8xl",
@@ -338,7 +338,7 @@
     },
     {
       "multiplier": 1.0,
-      "option": "managed-pg-platform",
+      "option": "supabase-postgres",
       "per": "unit",
       "price": "manual/supabase:disk-gb",
       "target": "per_unit:storage_gb_month",
@@ -346,7 +346,7 @@
     },
     {
       "multiplier": 1.0,
-      "option": "managed-pg-platform",
+      "option": "supabase-postgres",
       "per": "unit",
       "price": "manual/supabase:egress-gb",
       "target": "pricing:egress_per_gb_eur",
@@ -354,7 +354,7 @@
     },
     {
       "multiplier": 2.0,
-      "option": "managed-pg-branching",
+      "option": "neon-scale",
       "per": "hour",
       "price": "manual/neon-scale:cu-hour",
       "target": "tier:cu-2",
@@ -362,7 +362,7 @@
     },
     {
       "multiplier": 4.0,
-      "option": "managed-pg-branching",
+      "option": "neon-scale",
       "per": "hour",
       "price": "manual/neon-scale:cu-hour",
       "target": "tier:cu-4",
@@ -370,7 +370,7 @@
     },
     {
       "multiplier": 8.0,
-      "option": "managed-pg-branching",
+      "option": "neon-scale",
       "per": "hour",
       "price": "manual/neon-scale:cu-hour",
       "target": "tier:cu-8",
@@ -378,7 +378,7 @@
     },
     {
       "multiplier": 16.0,
-      "option": "managed-pg-branching",
+      "option": "neon-scale",
       "per": "hour",
       "price": "manual/neon-scale:cu-hour",
       "target": "tier:cu-16",
@@ -386,7 +386,7 @@
     },
     {
       "multiplier": 1.0,
-      "option": "managed-pg-branching",
+      "option": "neon-scale",
       "per": "unit",
       "price": "manual/neon:storage-gb",
       "target": "per_unit:storage_gb_month",
@@ -394,7 +394,7 @@
     },
     {
       "multiplier": 1.0,
-      "option": "managed-pg-branching",
+      "option": "neon-scale",
       "per": "unit",
       "price": "manual/neon:transfer-gb",
       "target": "pricing:egress_per_gb_eur",
@@ -402,7 +402,7 @@
     },
     {
       "multiplier": 2.0,
-      "option": "managed-pg-serverless",
+      "option": "neon-launch",
       "per": "hour",
       "price": "manual/neon-launch:cu-hour",
       "target": "tier:c2",
@@ -410,7 +410,7 @@
     },
     {
       "multiplier": 4.0,
-      "option": "managed-pg-serverless",
+      "option": "neon-launch",
       "per": "hour",
       "price": "manual/neon-launch:cu-hour",
       "target": "tier:c4",
@@ -418,7 +418,7 @@
     },
     {
       "multiplier": 8.0,
-      "option": "managed-pg-serverless",
+      "option": "neon-launch",
       "per": "hour",
       "price": "manual/neon-launch:cu-hour",
       "target": "tier:c8",
@@ -426,7 +426,7 @@
     },
     {
       "multiplier": 16.0,
-      "option": "managed-pg-serverless",
+      "option": "neon-launch",
       "per": "hour",
       "price": "manual/neon-launch:cu-hour",
       "target": "tier:c16",
@@ -434,7 +434,7 @@
     },
     {
       "multiplier": 1.0,
-      "option": "managed-pg-serverless",
+      "option": "neon-launch",
       "per": "unit",
       "price": "manual/neon:storage-gb",
       "target": "per_unit:storage_gb_month",
@@ -442,7 +442,7 @@
     },
     {
       "multiplier": 1.0,
-      "option": "managed-pg-serverless",
+      "option": "neon-launch",
       "per": "unit",
       "price": "manual/neon:transfer-gb",
       "target": "pricing:egress_per_gb_eur",
@@ -671,14 +671,440 @@
       "price": "aws-AmazonKinesisFirehose/delivery:bytes",
       "target": "per_unit:ingested_gb_month",
       "unit": "GB"
+    },
+    {
+      "multiplier": 2.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:vcpu-hour",
+      "target": "tier:db-custom-2-8",
+      "unit": "Hrs",
+      "part": "vcpu"
+    },
+    {
+      "multiplier": 8.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:memory-gib-hour",
+      "target": "tier:db-custom-2-8",
+      "unit": "GiB-Hrs",
+      "part": "memory"
+    },
+    {
+      "multiplier": 4.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:vcpu-hour",
+      "target": "tier:db-custom-4-16",
+      "unit": "Hrs",
+      "part": "vcpu"
+    },
+    {
+      "multiplier": 16.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:memory-gib-hour",
+      "target": "tier:db-custom-4-16",
+      "unit": "GiB-Hrs",
+      "part": "memory"
+    },
+    {
+      "multiplier": 8.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:vcpu-hour",
+      "target": "tier:db-custom-8-32",
+      "unit": "Hrs",
+      "part": "vcpu"
+    },
+    {
+      "multiplier": 32.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:memory-gib-hour",
+      "target": "tier:db-custom-8-32",
+      "unit": "GiB-Hrs",
+      "part": "memory"
+    },
+    {
+      "multiplier": 16.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:vcpu-hour",
+      "target": "tier:db-custom-16-64",
+      "unit": "Hrs",
+      "part": "vcpu"
+    },
+    {
+      "multiplier": 64.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:memory-gib-hour",
+      "target": "tier:db-custom-16-64",
+      "unit": "GiB-Hrs",
+      "part": "memory"
+    },
+    {
+      "multiplier": 32.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:vcpu-hour",
+      "target": "tier:db-custom-32-128",
+      "unit": "Hrs",
+      "part": "vcpu"
+    },
+    {
+      "multiplier": 128.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:memory-gib-hour",
+      "target": "tier:db-custom-32-128",
+      "unit": "GiB-Hrs",
+      "part": "memory"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "hour",
+      "price": "manual/gcp-sql:ssd-gib-hour",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GiB-Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "gcp-cloudsql-postgres",
+      "per": "unit",
+      "price": "manual/gcp-net:egress-gib",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GiB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "gcp-gcs",
+      "per": "hour",
+      "price": "manual/gcp-gcs:standard-gib-hour",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GiB-Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "gcp-gcs",
+      "per": "unit",
+      "price": "manual/gcp-net:egress-gib",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GiB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-vm-dsv5",
+      "per": "hour",
+      "price": "manual/azure-vm:d2s-v5",
+      "target": "tier:d2s_v5",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-vm-dsv5",
+      "per": "hour",
+      "price": "manual/azure-vm:d4s-v5",
+      "target": "tier:d4s_v5",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-vm-dsv5",
+      "per": "hour",
+      "price": "manual/azure-vm:d8s-v5",
+      "target": "tier:d8s_v5",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-vm-dsv5",
+      "per": "hour",
+      "price": "manual/azure-vm:d16s-v5",
+      "target": "tier:d16s_v5",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-vm-dsv5",
+      "per": "hour",
+      "price": "manual/azure-vm:d32s-v5",
+      "target": "tier:d32s_v5",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-vm-dsv5",
+      "per": "unit",
+      "price": "manual/azure-net:egress-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "hour",
+      "price": "manual/azure-pg:2-vcore",
+      "target": "tier:gp-ddsv5-2-vcore",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "hour",
+      "price": "manual/azure-pg:4-vcore",
+      "target": "tier:gp-ddsv5-4-vcore",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "hour",
+      "price": "manual/azure-pg:8-vcore",
+      "target": "tier:gp-ddsv5-8-vcore",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "hour",
+      "price": "manual/azure-pg:16-vcore",
+      "target": "tier:gp-ddsv5-16-vcore",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "hour",
+      "price": "manual/azure-pg:32-vcore",
+      "target": "tier:gp-ddsv5-32-vcore",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "unit",
+      "price": "manual/azure-pg:storage-gb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-pg-flexible",
+      "per": "unit",
+      "price": "manual/azure-net:egress-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-blob-hot",
+      "per": "unit",
+      "price": "manual/azure-blob:hot-lrs-gb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "azure-blob-hot",
+      "per": "unit",
+      "price": "manual/azure-net:egress-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "hetzner-cloud-ccx",
+      "per": "unit",
+      "price": "manual/hetzner:ccx13",
+      "target": "tier:ccx13",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "hetzner-cloud-ccx",
+      "per": "unit",
+      "price": "manual/hetzner:ccx23",
+      "target": "tier:ccx23",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "hetzner-cloud-ccx",
+      "per": "unit",
+      "price": "manual/hetzner:ccx33",
+      "target": "tier:ccx33",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "hetzner-cloud-ccx",
+      "per": "unit",
+      "price": "manual/hetzner:ccx43",
+      "target": "tier:ccx43",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "hetzner-cloud-ccx",
+      "per": "unit",
+      "price": "manual/hetzner:ccx53",
+      "target": "tier:ccx53",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 0.001,
+      "option": "hetzner-cloud-ccx",
+      "per": "unit",
+      "price": "manual/hetzner:traffic-tb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "TB"
+    },
+    {
+      "multiplier": 0.001,
+      "option": "hetzner-object-storage",
+      "per": "hour",
+      "price": "manual/hetzner-object:storage-tb-hour",
+      "target": "per_unit:storage_gb_month",
+      "unit": "TB-Hrs"
+    },
+    {
+      "multiplier": 0.001,
+      "option": "hetzner-object-storage",
+      "per": "unit",
+      "price": "manual/hetzner-object:egress-tb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "TB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "cloudflare-r2",
+      "per": "unit",
+      "price": "manual/r2:storage-gb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "GB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "cloudflare-r2",
+      "per": "unit",
+      "price": "manual/r2:egress-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 0.001,
+      "option": "backblaze-b2",
+      "per": "unit",
+      "price": "manual/b2:storage-tb",
+      "target": "per_unit:storage_gb_month",
+      "unit": "TB-Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "fly-machines",
+      "per": "unit",
+      "price": "manual/fly:shared-cpu-2x-2gb",
+      "target": "tier:shared-cpu-2x-2gb",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "fly-machines",
+      "per": "unit",
+      "price": "manual/fly:performance-1x-2gb",
+      "target": "tier:performance-1x-2gb",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "fly-machines",
+      "per": "unit",
+      "price": "manual/fly:performance-2x-4gb",
+      "target": "tier:performance-2x-4gb",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 4.0,
+      "option": "fly-machines",
+      "per": "unit",
+      "price": "manual/fly:performance-1x-2gb",
+      "target": "tier:performance-4x-8gb",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 8.0,
+      "option": "fly-machines",
+      "per": "unit",
+      "price": "manual/fly:performance-1x-2gb",
+      "target": "tier:performance-8x-16gb",
+      "unit": "Mo"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "fly-machines",
+      "per": "unit",
+      "price": "manual/fly:egress-gb",
+      "target": "pricing:egress_per_gb_eur",
+      "unit": "GB"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "runpod-gpu",
+      "per": "hour",
+      "price": "manual/runpod:rtx-a5000",
+      "target": "tier:rtx-a5000",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "runpod-gpu",
+      "per": "hour",
+      "price": "manual/runpod:a40",
+      "target": "tier:a40",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "runpod-gpu",
+      "per": "hour",
+      "price": "manual/runpod:l4",
+      "target": "tier:l4",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "runpod-gpu",
+      "per": "hour",
+      "price": "manual/runpod:l40s",
+      "target": "tier:l40s",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "runpod-gpu",
+      "per": "hour",
+      "price": "manual/runpod:a100-pcie",
+      "target": "tier:a100-pcie",
+      "unit": "Hrs"
+    },
+    {
+      "multiplier": 1.0,
+      "option": "runpod-gpu",
+      "per": "hour",
+      "price": "manual/runpod:h100-pcie",
+      "target": "tier:h100-pcie",
+      "unit": "Hrs"
     }
   ],
   "descriptions": {
     "aws-ecr": "Priced from the AWS Price List for image storage in eu-west-1; the estate does not report repository sizes, so ECR components stay unpriced.",
     "aws-firehose": "Priced from the AWS Price List per GB ingested (tier 1, batch); the estate does not report Firehose volume, so Firehose components stay unpriced.",
     "aws-sns": "Priced from the AWS Price List for API requests after the first million; the free tier and delivery attempts to HTTP/SQS are not modelled.",
-    "managed-pg-branching": "Priced from Neon's Scale plan: CU-hours, storage and public transfer; see x_price_sources. Tiers are priced running all month (730 h); scale to zero costs less. 1 CU = 4 GB RAM per Neon's plans page; 1 vCPU per CU is the skeleton's assumption. Features are the skeleton's and were not checked against Neon's extension list.",
-    "managed-pg-platform": "Priced from Supabase's dedicated compute sizes (Large to 8XL), its disk price and its Pro egress price; see x_price_sources. The Pro plan's monthly base fee is not included. Features are the skeleton's and were not checked against Supabase's extension list.",
-    "managed-pg-serverless": "Priced from Neon's Launch plan: CU-hours, storage and public transfer; see x_price_sources. Tiers are priced running all month (730 h); scale to zero costs less. 1 CU = 4 GB RAM per Neon's plans page; 1 vCPU per CU is the skeleton's assumption. Features are the skeleton's and were not checked against Neon's extension list."
+    "neon-scale": "Priced from Neon's Scale plan: CU-hours, storage and public transfer; see x_price_sources. Tiers are priced running all month (730 h); scale to zero costs less. 1 CU = 4 GB RAM per Neon's plans page; 1 vCPU per CU is the skeleton's assumption. Features are the skeleton's and were not checked against Neon's extension list.",
+    "supabase-postgres": "Priced from Supabase's dedicated compute sizes (Large to 8XL), its disk price and its Pro egress price; see x_price_sources. The Pro plan's monthly base fee is not included. Features are the skeleton's and were not checked against Supabase's extension list.",
+    "neon-launch": "Priced from Neon's Launch plan: CU-hours, storage and public transfer; see x_price_sources. Tiers are priced running all month (730 h); scale to zero costs less. 1 CU = 4 GB RAM per Neon's plans page; 1 vCPU per CU is the skeleton's assumption. Features are the skeleton's and were not checked against Neon's extension list."
   }
 }

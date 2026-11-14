@@ -85,7 +85,8 @@ describe("the onboarding answers", () => {
   });
 
   it("label known providers and show unknown ones as they are", () => {
-    expect(providerLabel("other")).toBe("Other providers (Hetzner, Fly.io, R2 and more)");
-    expect(providerLabel("hetzner")).toBe("hetzner");
+    expect(providerLabel("hetzner")).toBe("Hetzner");
+    expect(providerLabel("supabase")).toBe("Supabase");
+    expect(providerLabel("ovh")).toBe("ovh");
   });
 });

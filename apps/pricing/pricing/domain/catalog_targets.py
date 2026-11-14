@@ -17,6 +17,18 @@ def money_targets(option: Mapping[str, Any]) -> tuple[str, ...]:
     return tuple(targets)
 
 
+def get_target(option: Mapping[str, Any], target: str) -> float:
+    kind, _, name = target.partition(":")
+    pricing = option.get("pricing", {})
+    if kind == TIER:
+        return _one(pricing.get("tiers", []), "id", name)["monthly_eur"]
+    if kind == PER_UNIT:
+        return _one(pricing.get("per_unit", []), "driver", name)["eur_per_unit"]
+    if kind == PRICING_FIELD and name in MONEY_FIELDS:
+        return pricing[name]
+    raise BuildError(f"unknown target {target}")
+
+
 def set_target(option: dict[str, Any], target: str, eur: float) -> None:
     kind, _, name = target.partition(":")
     pricing = option.get("pricing", {})

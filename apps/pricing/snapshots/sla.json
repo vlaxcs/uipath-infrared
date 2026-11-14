@@ -190,14 +190,14 @@
       "url": "https://aws.amazon.com/messaging/sla/",
       "value": 99.9
     },
-    "managed-pg-branching/availability_pct": {
+    "neon-scale/availability_pct": {
       "note": "Neon SLA applies to Business and Scale plans.",
       "quote": "Less than 99.95% but greater than or equal to 99.0%",
       "read_on": "2026-11-14",
       "url": "https://neon.com/sla",
       "value": 99.95
     },
-    "managed-pg-platform/availability_pct": {
+    "supabase-postgres/availability_pct": {
       "note": "Supabase Enterprise Uptime Commitment.",
       "quote": "Supabase will provide Actual Availability for at least ninety-nine and nine tenths percent (99.9%)",
       "read_on": "2026-11-14",

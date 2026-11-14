@@ -188,14 +188,14 @@
     "quote": "Monthly Uptime Percentage for each AWS region, during any monthly billing cycle, of at least 99.9%",
     "note": "Amazon Messaging (SQS, SNS) SLA."
   },
-  "managed-pg-branching/availability_pct": {
+  "neon-scale/availability_pct": {
     "url": "https://neon.com/sla",
     "value": 99.95,
     "read_on": "2026-11-14",
     "quote": "Less than 99.95% but greater than or equal to 99.0%",
     "note": "Neon SLA applies to Business and Scale plans."
   },
-  "managed-pg-platform/availability_pct": {
+  "supabase-postgres/availability_pct": {
     "url": "https://supabase.com/sla",
     "value": 99.9,
     "read_on": "2026-11-14",

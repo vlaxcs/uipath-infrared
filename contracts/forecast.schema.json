@@ -62,8 +62,8 @@
           }
         },
         "min_availability_pct": { "type": "number", "minimum": 90, "maximum": 100, "description": "Combined availability of the critical path." },
-        "allowed_providers": { "type": "array", "items": { "enum": ["aws", "gcp", "azure", "onprem", "managed_pg", "other"] } },
-        "forbidden_providers": { "type": "array", "items": { "enum": ["aws", "gcp", "azure", "onprem", "managed_pg", "other"] } },
+        "allowed_providers": { "type": "array", "items": { "enum": ["aws", "gcp", "azure", "onprem", "supabase", "neon", "hetzner", "fly", "cloudflare", "backblaze", "runpod", "managed_pg", "other"] } },
+        "forbidden_providers": { "type": "array", "items": { "enum": ["aws", "gcp", "azure", "onprem", "supabase", "neon", "hetzner", "fly", "cloudflare", "backblaze", "runpod", "managed_pg", "other"] } },
         "max_migration_effort_hours": { "type": "number", "minimum": 0 },
         "max_cutover_downtime_hours": { "type": "number", "minimum": 0 },
         "security_gates": {

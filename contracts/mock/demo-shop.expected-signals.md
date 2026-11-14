@@ -53,9 +53,9 @@ No encryption at rest: almost everything stateful except `ddb-orders`. No backup
 - **Provider allow-list** `aws, managed_pg, onprem`; **99.9% availability** is not met by single-AZ RDS at 99.5%.
 
 ## Migration blockers (catalog feature check)
-- `rds-analytics` uses `pg_partman` and `logical_replication`: **`managed-pg-serverless` lacks both**, so moving it there must be rejected with that reason. `aws-rds-postgres`, `aws-aurora-postgres` and `onprem-postgres` support them.
-- `rds-orders` uses `logical_replication`: also blocked from `managed-pg-serverless`.
-- `pg-lake` uses `pgvector`, `pg_partman`: blocked from `managed-pg-serverless` (pg_partman).
+- `rds-analytics` uses `pg_partman` and `logical_replication`: **`neon-launch` lacks both**, so moving it there must be rejected with that reason. `aws-rds-postgres`, `aws-aurora-postgres` and `onprem-postgres` support them.
+- `rds-orders` uses `logical_replication`: also blocked from `neon-launch`.
+- `pg-lake` uses `pgvector`, `pg_partman`: blocked from `neon-launch` (pg_partman).
 - `rds-erp` (`hstore`, `pg_trgm`): the only Postgres the managed provider can take without feature loss. A cheap-looking win that is still constrained by the `erp-core` stay-together group (moving it alone makes `svc-orders-api` / `svc-invoice-worker` pay egress and latency).
 
 ## Stay-together and egress

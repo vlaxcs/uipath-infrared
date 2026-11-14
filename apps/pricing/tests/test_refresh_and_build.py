@@ -26,7 +26,7 @@ def configure(tmp_path: Path, quote: str) -> Paths:
     }))
     (config / "bindings.json").write_text(json.dumps({"bindings": [
         {"option": "aws-ec2-general", "target": "tier:t3.large", "price": "aws-AmazonEC2/linux:t3.large", "unit": "Hrs", "per": "hour"},
-        {"option": "managed-pg-platform", "target": "per_unit:storage_gb_month", "price": "manual/vendor:disk", "unit": "GB-Mo", "per": "unit"},
+        {"option": "supabase-postgres", "target": "per_unit:storage_gb_month", "price": "manual/vendor:disk", "unit": "GB-Mo", "per": "unit"},
     ]}))
     (config / "manual.json").write_text(json.dumps({"vendor:disk": {
         "amount": 0.125, "currency": "USD", "unit": "GB-Mo", "url": VENDOR, "read_on": "2026-11-14", "quote": quote,
@@ -64,7 +64,7 @@ def test_refresh_stores_snapshots_and_build_needs_no_network(tmp_path):
     assert sorted(p.name for p in written) == ["aws-AmazonEC2.json", "ecb-fx.json", "manual.json", "sla.json"]
     built, text = build(paths)
     assert tier(built.document, "aws-ec2-general", "t3.large")["monthly_eur"] == pytest.approx(0.1 / 1.25 * 730)
-    assert "managed-pg-platform/per_unit:storage_gb_month" in built.sourced
+    assert "supabase-postgres/per_unit:storage_gb_month" in built.sourced
     assert text == build(paths)[1]
 
 
@@ -104,7 +104,7 @@ def test_a_vanished_quote_keeps_the_skeleton_price(tmp_path):
     paths = configure(tmp_path, "then $ 0.150 per GB")
     refresh(paths, fetcher(), TODAY)
     built, _ = build(paths)
-    assert "managed-pg-platform/per_unit:storage_gb_month" in built.unsourced
+    assert "supabase-postgres/per_unit:storage_gb_month" in built.unsourced
 
 
 def test_build_without_snapshots_fails_clearly(tmp_path):
