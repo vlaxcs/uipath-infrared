@@ -138,3 +138,32 @@
     --color-graph-edge: #9aa4b2;
   }
 }
+
+:root {
+  --color-sunken: var(--color-surface-muted);
+  --color-line: var(--color-border);
+  --color-line-strong: var(--color-border-strong);
+  --color-accent-lip: color-mix(in srgb, var(--color-accent) 78%, var(--color-fg));
+  --color-accent-soft: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface));
+  --color-success: var(--color-status-completed);
+  --color-success-soft: color-mix(in srgb, var(--color-status-completed) 14%, var(--color-surface));
+  --color-warn: var(--color-status-awaiting);
+  --color-warn-soft: color-mix(in srgb, var(--color-status-awaiting) 14%, var(--color-surface));
+  --color-danger: var(--color-status-failed);
+  --color-danger-lip: color-mix(in srgb, var(--color-status-failed) 78%, var(--color-fg));
+  --color-danger-soft: color-mix(in srgb, var(--color-status-failed) 14%, var(--color-surface));
+  --color-info: var(--color-status-running);
+  --color-info-soft: color-mix(in srgb, var(--color-status-running) 14%, var(--color-surface));
+  --color-scrim: color-mix(in srgb, var(--color-fg) 45%, transparent);
+
+  --radius-item: 0.5rem;
+  --radius-well: 0.75rem;
+  --shadow-lip: 0 2px 0 var(--color-border);
+  --shadow-float: 0 30px 50px -20px color-mix(in srgb, var(--color-fg) 30%, transparent);
+
+  --text-settings-title: 1.75rem;
+  --text-settings-heading: 1.25rem;
+  --text-settings-body: 0.9375rem;
+  --text-settings-small: 0.8125rem;
+  --text-settings-figure: 2rem;
+}

@@ -2,7 +2,8 @@ import { useEffect, useId, useState, type FormEvent } from "react";
 import { OrchestratorError, orchestratorOnboarding, type OnboardingSource } from "~/onboarding/api";
 import { CriteriaFields } from "~/onboarding/CriteriaFields";
 import type { Profile, ProfileSite } from "~/onboarding/types";
-import { Fact, PageHeader, PageSection } from "~/pages/PageSection";
+import { AccountSettings, AccountSettingsPanel, type AccountSettingsSource } from "~/accountSettings/AccountSettings";
+import { PageHeader, PageSection } from "~/pages/PageSection";
 
 type State = { status: "loading" } | { status: "failed"; reason: string } | { status: "ready"; profile: Profile };
 
@@ -14,7 +15,9 @@ function reasonOf(error: unknown): string {
 
 const NEW_SITE: ProfileSite = { kind: "search", label: "", lat: 44.4268, lng: 26.1025, radius_km: 25 };
 
-export function ConfigurationPage({ source = orchestratorOnboarding }: { source?: OnboardingSource }) {
+type ConfigurationPageProps = { source?: OnboardingSource; accountSettings?: AccountSettingsSource };
+
+export function ConfigurationPage({ source = orchestratorOnboarding, accountSettings }: ConfigurationPageProps) {
   const [state, setState] = useState<State>({ status: "loading" });
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
@@ -55,19 +58,14 @@ export function ConfigurationPage({ source = orchestratorOnboarding }: { source?
   return (
     <section aria-labelledby="configuration-title" className="flex flex-col gap-4">
       <PageHeader id="configuration-title" title="Configuration" lead="Connections and the defaults every new analysis starts from." />
-      <PageSection title="GitHub organisation">
-        <dl className="flex flex-col gap-1">
-          <Fact label="Organisation" value="Not connected" />
-        </dl>
-        <p className="text-caption text-fg-subtle">Connected with GitHub sign-in.</p>
-      </PageSection>
-      <PageSection title="Infrastructure">
-        <dl className="flex flex-col gap-1">
-          <Fact label="Provider" value="AWS" />
-          <Fact label="Account" value="Demo estate on Floci" />
-        </dl>
-        <p className="text-caption text-fg-subtle">Reached with the orchestrator&apos;s credentials. No cloud credentials pass through the browser.</p>
-      </PageSection>
+      <AccountSettings source={accountSettings}>
+        <PageSection title="GitHub organisation">
+          <AccountSettingsPanel panel="github" />
+        </PageSection>
+        <PageSection title="Cloud access">
+          <AccountSettingsPanel panel="cloud" />
+        </PageSection>
+      </AccountSettings>
 
       {state.status === "loading" ? (
         <p role="status" className="text-label text-fg-muted">Loading the defaults</p>

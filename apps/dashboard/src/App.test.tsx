@@ -59,15 +59,15 @@ describe("the platform frame", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: "Configuration" }));
     expect(window.location.hash).toBe("#/configuration");
     expect(screen.getByRole("heading", { level: 1, name: "Configuration" })).toBeTruthy();
-    for (const section of ["GitHub organisation", "Infrastructure"]) {
+    for (const section of ["GitHub organisation", "Cloud access"]) {
       expect(screen.getByRole("heading", { level: 2, name: section })).toBeTruthy();
     }
-    expect(screen.getByRole("status").textContent).toBe("Loading the defaults");
+    expect(screen.getByText("Loading the defaults")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Account" }));
     expect(window.location.hash).toBe("#/account");
-    expect(screen.getByText("5 runs · 100 USD")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2, name: "Subscription" })).toBeTruthy();
   });
 
   it("disconnects to the sign-in page, which signs in with GitHub on the orchestrator", () => {

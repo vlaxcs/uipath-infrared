@@ -63,16 +63,15 @@ On desktop the sections sit in two columns, with Focus across both. Start takes 
 A table of every run: id, project, started, status, winner, monthly cost before and after. A row opens its run page, with the same content as a live run. A live run (running or at a gate) is highlighted and has a bar under its row: one segment per step, done, current or waiting at a gate. The table refreshes every 3 s.
 
 ### Configuration
-- **GitHub organisation**: the one connected at sign-in, with the repositories it grants.
-- **Infrastructure**: AWS. In the MVP it reaches Floci through the orchestrator's own credentials; the page says so.
+- **GitHub organisation**: Andrei's GitHub panel from `apps/settings`: install the Infrared app on the organisation, pick all or some repositories, see the permissions, disconnect by typing the org name. Simulated: no real GitHub App yet.
+- **Cloud access**: Andrei's AWS panel from `apps/settings`: connect a read-only role (external ID, trust and permissions policies or a CloudFormation stack, the role ARN, verify), edit regions, rotate the external ID, revoke by typing the account ID. Simulated: no real STS call. Runs still reach Floci through the orchestrator's own credentials.
 - **Default focus**: one of the four focuses of Analyze, and the market when it is Zones. New analyses start from it. A profile saved in an older shape reads as the default (Cost reduction).
 - **On-prem**: wanted or not; headquarters with its free area, or a search area with a radius (`docs/onprem-site.md`).
 
 ### Account
-- Credits left, credits used, and the plan.
-- **Buy credits**: the run pack from the PRD, 5 runs for 100 USD, through Stripe Checkout in test mode.
-- **Subscription**: 200 USD a month with scheduled runs, shown as not yet available.
-- Payment history: date, pack, amount, Stripe status.
+- **Runs**: credits left.
+- **Subscription**: Andrei's subscription panel from `apps/settings`: the run pack (5 runs, 100 USD) and the subscription (200 USD a month), switch, cancel at period end and resume, the card, invoices, an overdue warning. Payments go through his local Stripe test-mode sandbox (test cards, 3-D Secure, declines, a renewal button standing in for Stripe's test clock), with no keys and no network.
+- Both pages render his panels from `apps/settings/src` against his in-memory settings API, shared by the two pages for the session. A real orchestrator API replaces it through the same `SettingsApi` port.
 
 ## 5. Rules
 
