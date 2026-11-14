@@ -73,7 +73,7 @@ Strategies plug in through `engine/application/strategies.py`: a builder `(previ
 
 ## Pricing rule
 
-- An unchanged component costs its reported `cost.monthly_eur`; that is what the client pays today. Without one, the catalog prices it. Without either, it costs 0 and is flagged `unpriced`.
+- An unchanged component costs its reported `cost.monthly_eur` when that cost is `observed`: it is what the client pays today, from billing. A reported cost that is only `estimated` or `synthetic` gives way to a complete catalog price, so the estate today and the candidates are priced from the same source; when the catalog cannot price the component completely, the estimate stays. Without a reported cost, the catalog prices it. Without either, it costs 0 and is flagged `unpriced`.
 - A changed component (resized, scaled, moved, stopped) is priced from the catalog.
 - Every component the catalog can price completely is cross-checked against its reported cost. Differences above 15% are listed, because a saving on that component carries the catalog's error.
 - A tier is matched by SKU first. Otherwise the smallest single tier covering vCPU, memory and GPUs is used. Only when no single tier covers it is the component priced as the cheapest multiple of one tier.

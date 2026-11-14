@@ -49,8 +49,8 @@ def test_cleanup_acts_on_the_seven_idle_and_orphan_components(cleanup):
     }
 
 
-def test_cleanup_saves_about_9200_a_month_at_high_confidence(cleanup, mock_infra, catalog):
-    assert 9000 <= saving(DO_NOTHING, cleanup, mock_infra, catalog) <= 9300
+def test_cleanup_saves_about_9300_a_month_at_high_confidence(cleanup, mock_infra, catalog):
+    assert 9200 <= saving(DO_NOTHING, cleanup, mock_infra, catalog) <= 9400
     assert all(a.confidence.level == "high" for a in cleanup.actions)
 
 

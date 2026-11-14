@@ -1,6 +1,9 @@
+from dataclasses import replace
+
 import pytest
 
 from engine.domain.baseline import MISMATCH_THRESHOLD_PCT, price_baseline
+from engine.domain.provenance import Provenance
 from engine.domain.candidate import Action, ActionKind, Candidate
 from engine.domain.costing import cost_placement
 from engine.domain.end_state import apply_candidate
@@ -16,12 +19,32 @@ def cost_after(infra, catalog, action):
     return cost_placement(end_state.placements[action.component], catalog)
 
 
-def test_mock_baseline_matches_the_reported_estate(baseline):
-    assert baseline.monthly_eur == pytest.approx(133_308)
+def with_reported_provenance(infra, component_id, provenance):
+    components = tuple(
+        replace(c, reported_cost=replace(c.reported_cost, provenance=provenance)) if c.id == component_id else c
+        for c in infra.components
+    )
+    return replace(infra, components=components)
 
 
-def test_every_reported_component_keeps_its_reported_cost(baseline):
-    assert all(c.source == "reported" for c in baseline.costs if c.reported_eur is not None)
+def test_an_estimated_cost_gives_way_to_a_complete_catalog_price(baseline):
+    priced = [c for c in baseline.costs if c.reported_eur is not None and c.catalog is not None and c.catalog.complete]
+    assert priced
+    assert all(c.source == "catalog" and c.monthly_eur == pytest.approx(c.catalog.monthly_eur) for c in priced)
+
+
+def test_an_observed_cost_is_what_the_client_pays_and_wins(mock_infra, catalog):
+    observed = with_reported_provenance(mock_infra, "ddb-orders", Provenance.OBSERVED)
+    cost = next(c for c in price_baseline(observed, catalog).costs if c.component == "ddb-orders")
+    assert cost.source == "reported"
+    assert cost.monthly_eur == cost.reported_eur
+    assert cost.catalog.monthly_eur != pytest.approx(cost.reported_eur)
+
+
+def test_an_estimated_cost_stays_when_the_catalog_cannot_price_it_completely(baseline):
+    unpriceable = [c for c in baseline.costs if c.reported_eur is not None and (c.catalog is None or not c.catalog.complete)]
+    assert unpriceable
+    assert all(c.source == "reported" and c.monthly_eur == c.reported_eur for c in unpriceable)
 
 
 def test_cross_check_lists_only_differences_above_the_threshold(baseline):

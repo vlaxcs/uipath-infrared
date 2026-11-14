@@ -17,7 +17,7 @@ def test_baseline_command_prints_the_priced_estate(capsys):
     assert code == 0
     document = json.loads(out)
     assert document["project"] == "demo-shop"
-    assert document["monthly_eur"] == 133308
+    assert document["monthly_eur"] == 136384.07
     assert document["cross_check"]["mismatches"]
 
 
