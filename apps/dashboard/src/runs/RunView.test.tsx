@@ -143,7 +143,7 @@ describe("the run view", () => {
     expect(screen.getByRole("heading", { name: "A layout is waiting to be picked" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Pick layout" })).toBeTruthy();
     const banner = screen.getByRole("region", { name: "A layout is waiting to be picked" });
-    expect(banner.textContent).toContain("keep_analyses");
+    await waitFor(() => expect(banner.textContent).toContain("keep_analyses"));
     expect(banner.textContent).toContain("idle-gpu-nodes");
     expect(banner.textContent).toContain("orphan-volumes");
   });
