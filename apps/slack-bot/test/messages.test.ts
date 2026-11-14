@@ -47,8 +47,7 @@ describe('Event messages', () => {
 
   it('shows a revise decision on evaluate with its reason', () => {
     const message = text(formatEvent(sampleEvent(8)));
-    expect(message).toContain('back to propose');
-    expect(message).toContain('*Decision:* revise');
+    expect(message).toContain('goes back to Propose');
     expect(message).toContain('data_residency allows only eu-*');
     expect(message).toContain('result.0.json');
   });
@@ -61,12 +60,11 @@ describe('Event messages', () => {
   it('shows the rehearsal decision and its reason', () => {
     const message = text(formatEvent(afterLayoutEvent(19)));
     expect(message).toContain('The rehearsal held');
-    expect(message).toContain('*Decision:* proceed');
-    expect(message).toContain('the fallback took over');
+        expect(message).toContain('the fallback took over');
   });
 
   it('names the person and the surface behind a decision at a gate', () => {
-    expect(text(formatEvent(keepAnalyses))).toContain('cto (dashboard) kept the analyses idle-gpu-nodes, orphan-volumes');
+    expect(text(formatEvent(keepAnalyses))).toContain('cto from dashboard kept the analyses idle-gpu-nodes, orphan-volumes');
   });
 });
 
@@ -83,17 +81,18 @@ describe('Layout gate card', () => {
     expect(JSON.parse(buttons[1].value)).toEqual({ run_id: RUN, seq: 14, layout: 'managed_services' });
     const shown = text(message);
     expect(shown).toContain('Which architecture should we run');
-    expect(shown).toContain('demo-shop · 3 options pass the hard constraints');
-    expect(shown).toContain('Recommended — consolidate');
-    expect(shown).toContain('*Cost now*');
-    expect(shown).toContain('€74,365/mo');
+    expect(shown).toContain('The estate for demo-shop is extracted');
+    expect(shown).toContain('3 options pass the hard constraints');
+    expect(shown).toContain('*consolidate* — recommended');
+    expect(shown).toContain('*Cost today*');
+    expect(shown).toContain('€74,365 a month');
     expect(shown).toContain('€3.81M over 36 months');
-    expect(shown).toContain('99.95% vs 99.9% target');
+    expect(shown).toContain('99.95%, you asked for 99.9%');
     expect(shown).toContain('*Effort*');
-    expect(shown).toContain('794h');
-    expect(shown).toContain('1.38 months payback');
-    expect(shown).toContain('Not picked: higher risk');
-    expect(shown).toContain('Not viable');
+    expect(shown).toContain('794 hours of work');
+    expect(shown).toContain('pays back in 1.38 months');
+    expect(shown).toContain('Not picked: it carries more risk.');
+    expect(shown).toContain("These can't run");
     expect(shown).toContain('rightsize_in_place, cleanup_orphans, do_nothing');
     expect(shown).toContain('min_availability_pct on rds-orders');
   });
@@ -120,17 +119,17 @@ describe('Plan gate card', () => {
     expect(buttons.map(button => button.action_id)).toEqual(['approve_plan']);
     expect(JSON.parse(buttons[0].value)).toEqual({ run_id: RUN, seq: 20 });
     const shown = text(message);
-    expect(shown).toContain('Rehearsal held — approve the plan?');
+    expect(shown).toContain('The rehearsal held — approve the plan?');
     expect(shown).toContain('99.92%');
-    expect(shown).toContain('vs 99.9% target');
+    expect(shown).toContain(', you asked for 99.9%');
     expect(shown).toContain('*Result*');
     expect(shown).toContain('Held');
     expect(shown).toContain('stopped the primary database; the fallback took over');
     expect(shown).toContain('Latency p95');
     expect(shown).toContain('42 → 51 → 44 ms');
-    expect(shown).toContain('€133,308/mo → €82,665/mo');
-    expect(shown).toContain('514h effort');
-    expect(shown).toContain('2h downtime');
+    expect(shown).toContain('The estate moves from €133,308 a month to €82,665 a month');
+    expect(shown).toContain('514 hours of work');
+    expect(shown).toContain('up to 2 hours of downtime');
     expect(shown).toContain('rds-orders: resize to db.r5.4xlarge');
   });
 
@@ -143,15 +142,15 @@ describe('Plan gate card', () => {
 describe('Gate closed cards', () => {
   it('shows the picked architecture and what happens next', () => {
     const shown = text(formatGateClosed(pickLayout));
-    expect(shown).toContain('Architecture picked');
-    expect(shown).toContain('andrei (slack) picked the layout managed_services');
+    expect(shown).toContain('The architecture is picked');
+    expect(shown).toContain('andrei from slack picked the layout managed_services');
     expect(shown).toContain('the rehearsal runs on Floci');
   });
 
   it('shows who approved the plan and the note as the reason', () => {
     const shown = text(formatGateClosed(approvePlan, rehearsalOf(afterLayoutEvent(20))));
-    expect(shown).toContain('Plan approved');
-    expect(shown).toContain('andrei (slack) approved the plan');
+    expect(shown).toContain('The plan is approved');
+    expect(shown).toContain('andrei from slack approved the plan');
     expect(shown).toContain('looks good');
     expect(shown).toContain('The run is complete');
     expect(shown).toContain('99.92%');
@@ -179,29 +178,29 @@ describe('Approval modal', () => {
     expect(view.submit.text).toBe('Approve');
     expect(text(view)).toContain('99.92%');
     expect(text(view)).toContain('Result: Held');
-    expect(text(view)).toContain('€133,308/mo → €82,665/mo');
+    expect(text(view)).toContain('The estate moves from €133,308 a month to €82,665 a month');
     expect(view.blocks.some((block: any) => block.type === 'input' && block.block_id === 'note')).toBe(true);
   });
 });
 
 describe('Placeholders', () => {
-  it('keeps every metric row with an em dash when a rich candidate is missing a value', () => {
+  it('writes a placeholder when a rich candidate is missing a value', () => {
     const event = sampleEvent(14);
     const candidates = candidatesOf(event).map(candidate =>
       candidate.id === 'consolidate' ? { ...candidate, horizonEur: undefined, risk: undefined, actions: undefined } : candidate
     );
     const shown = text(formatLayoutGate(RUN, event, candidates, targetOf(event)));
-    expect(shown).toContain('*Horizon*\\n—');
-    expect(shown).toContain('*Risk*\\n—');
-    expect(shown).toContain('*Actions*\\n—');
-    expect(shown).toContain('*Cost now*');
+    expect(shown).toContain('*Over the horizon*\\nnot estimated');
+    expect(shown).toContain('*Risk score*\\nnot estimated');
+    expect(shown).toContain('*Changes*\\nnot estimated');
+    expect(shown).toContain('*Cost today*');
   });
 
-  it('keeps the rehearsal rows with an em dash when the summary is partial', () => {
+  it('writes a placeholder when the rehearsal summary is partial', () => {
     const event = { ...afterLayoutEvent(20), x_rehearsal: { passed: true } } as RunEvent;
     const shown = text(formatPlanGate(RUN, event, rehearsalOf(event), planOf(event)));
-    expect(shown).toContain('*Availability*\\n—');
-    expect(shown).toContain('*Latency p95*\\n— ms');
+    expect(shown).toContain('*Availability*\\nnot measured');
+    expect(shown).toContain('*Latency p95*\\nnot measured');
     expect(shown).toContain('*Result*\\nHeld');
   });
 });

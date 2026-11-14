@@ -15,7 +15,7 @@ import { afterLayoutEvents, sampleRun } from './sample.js';
 const RUN = 'run-demo-shop-0001';
 const CLICKED_AT = new Date('2026-11-14T09:25:00.123Z');
 const LAYOUT_CARD = 'Which architecture should we run?';
-const PLAN_CARD = 'Rehearsal held — approve the plan';
+const PLAN_CARD = 'The rehearsal held — approve the plan';
 const tick = () => new Promise<void>(resolve => setImmediate(resolve));
 
 async function until(condition: () => boolean) {
@@ -91,7 +91,7 @@ describe('Slack gates', () => {
     const buttons = gate.message.blocks.filter(block => block.type === 'actions').flatMap(block => block.elements);
     expect(buttons.map(element => JSON.parse(element.value).layout)).toEqual(['consolidate', 'managed_services', 'move_to_onprem']);
     expect(buttons[0].text.text).toBe('Rehearse consolidate');
-    expect(JSON.stringify(gate.message)).toContain('Recommended — consolidate');
+    expect(JSON.stringify(gate.message)).toContain('*consolidate* — recommended');
   });
 
   it('updates the layout card in place through the pick and the rehearsal, then posts the plan card', async () => {
@@ -102,8 +102,8 @@ describe('Slack gates', () => {
     await until(flow.planPosted);
 
     const updates = flow.slack.updates.filter(updated => updated.timestamp === layoutTs);
-    expect(JSON.stringify(updates[0].message)).toContain('Architecture picked');
-    expect(JSON.stringify(updates[0].message)).toContain('andrei (slack) picked the layout managed_services');
+    expect(JSON.stringify(updates[0].message)).toContain('The architecture is picked');
+    expect(JSON.stringify(updates[0].message)).toContain('andrei from slack picked the layout managed_services');
     expect(JSON.stringify(updates.at(-1)?.message)).toContain('Rehearsal complete');
     expect(JSON.stringify(updates.at(-1)?.message)).toContain('99.92%');
     expect(JSON.stringify(flow.card(PLAN_CARD)!.message)).toContain('99.92%');
@@ -122,9 +122,9 @@ describe('Slack gates', () => {
     await until(flow.planPosted);
 
     const plan = JSON.stringify(flow.card(PLAN_CARD)!.message);
-    expect(plan).toContain('Plan — consolidate');
-    expect(plan).toContain('€133,308/mo → €74,365/mo');
-    expect(plan).toContain('794h effort');
+    expect(plan).toContain('The plan — consolidate');
+    expect(plan).toContain('The estate moves from €133,308 a month to €74,365 a month');
+    expect(plan).toContain('794 hours of work');
     expect(plan).not.toContain('managed_services');
   });
 
@@ -136,7 +136,7 @@ describe('Slack gates', () => {
     await until(flow.planPosted);
 
     const updates = flow.slack.updates.filter(updated => updated.timestamp === layoutTs);
-    expect(updates.some(updated => /[▰▱]{8}/.test(JSON.stringify(updated.message)))).toBe(true);
+    expect(updates.some(updated => /step \d of 8/.test(JSON.stringify(updated.message)))).toBe(true);
     expect(JSON.stringify(updates.at(-1)?.message)).toContain('Rehearsal complete');
     expect(JSON.stringify(updates.at(-1)?.message)).toContain('99.92%');
   });
@@ -181,8 +181,8 @@ describe('Slack gates', () => {
     expect(flow.summary()?.status).toBe('completed');
 
     const shown = JSON.stringify(flow.lastUpdate(planTs));
-    expect(shown).toContain('Plan approved');
-    expect(shown).toContain('andrei (slack) approved the plan');
+    expect(shown).toContain('The plan is approved');
+    expect(shown).toContain('andrei from slack approved the plan');
     expect(shown).toContain('looks good');
     expect(shown).toContain('The run is complete');
   });

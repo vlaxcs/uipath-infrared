@@ -5,7 +5,7 @@ import { layoutActionId } from './layout-choice.js';
 import type { RehearsalSummary } from './rehearsal-summary.js';
 import type { PlanSummary } from './plan-summary.js';
 import { APPROVE_PLAN_ACTION } from './plan-approval.js';
-import { clip, compactEur, eur } from './format.js';
+import { basename, clip, compactEur, countPhrase, eur, humanDate } from './format.js';
 import type { DiagramRef } from './diagram.js';
 import { diagramBlocks } from './diagram.js';
 
@@ -39,10 +39,10 @@ export interface RunContext {
 export function formatEvent(event: RunEvent): BlockKitMessage | null {
   if (event.status === 'started') return null;
   const headline = describeEvent(event);
-  return {
-    text: headline,
-    blocks: [section(`*${stepLabel(event.step)}*\n${headline}`), ...details(event)],
-  };
+  const blocks: any[] = [section(`*${stepLabel(event.step)}* — ${headline}`)];
+  if (event.decision?.reason) blocks.push(section(event.decision.reason));
+  blocks.push(context(eventContext(event)));
+  return { text: headline, blocks };
 }
 
 export function formatLayoutGate(
@@ -57,20 +57,14 @@ export function formatLayoutGate(
   const excluded = candidates.filter(candidate => !candidate.feasible);
   if (offered.length === 0) {
     const blocks: any[] = [
-      header('Layout waiting to be picked'),
+      header('A layout is waiting to be picked'),
       section('Pick the analyses to keep and the layout to rehearse on the dashboard. The run continues once a layout is picked.'),
     ];
     if (runContext?.dashboardUrl) blocks.push(actions([dashboardButton(runContext.dashboardUrl)]));
     blocks.push(context(eventContext(event)));
     return { text: describeEvent(event), blocks };
   }
-  const lead = [
-    runContext?.project ?? '',
-    `${offered.length} options pass the hard constraints`,
-    target?.minAvailabilityPct !== undefined ? `target ${target.minAvailabilityPct}% availability` : '',
-    target?.maxMonthlyRunEur !== undefined ? `budget ${eur(target.maxMonthlyRunEur)}/mo` : '',
-    `revision ${event.revision}`,
-  ].filter(Boolean).join(' · ');
+  const lead = layoutLead(runContext, offered.length, target, event);
   const rich = offered.some(candidate =>
     candidate.monthlyEur !== undefined || candidate.horizonEur !== undefined || candidate.availabilityPct !== undefined ||
     candidate.risk !== undefined || candidate.effortHours !== undefined || candidate.paybackMonths !== undefined ||
@@ -103,13 +97,13 @@ function layoutBlocks(
   rich: boolean,
   slot: (candidate: LayoutCandidate) => any[]
 ): any[] {
-  const blocks: any[] = [header('Which architecture should we run?'), context(lead)];
+  const blocks: any[] = [header('Which architecture should we run?'), section(lead)];
   offered.forEach((candidate, index) => {
     if (index > 0) blocks.push(divider());
-    blocks.push(section(candidate.recommended ? `*Recommended — ${candidate.id}*` : `*${candidate.id}*`));
+    blocks.push(section(candidate.recommended ? `*${candidate.id}* — recommended` : `*${candidate.id}*`));
     const fields = candidateFields(candidate, target, rich);
     if (fields.length > 0) blocks.push(fieldsBlock(fields));
-    if (!candidate.recommended && rich) blocks.push(section(`Not picked: ${lostReason(candidate)}`));
+    if (!candidate.recommended) blocks.push(section(lostLine(candidate)));
     blocks.push(...slot(candidate));
     const elements: any[] = [layoutButton(runId, event, candidate)];
     if (index === 0 && runContext?.dashboardUrl) elements.push(dashboardButton(runContext.dashboardUrl));
@@ -121,8 +115,8 @@ function layoutBlocks(
       const reason = shortReason(candidate);
       groups.set(reason, [...(groups.get(reason) ?? []), candidate.id]);
     }
-    const lines = [...groups].map(([reason, ids]) => `${ids.join(', ')} — ${clip(reason, 100)}`);
-    blocks.push(divider(), section('*Not viable*'), section(lines.join('\n')));
+    const lines = [...groups].map(([reason, ids]) => `${ids.join(', ')}: ${clip(reason, 100)}`);
+    blocks.push(divider(), section('*These can\'t run*'), section(lines.join('\n')));
   }
   blocks.push(context(eventContext(event)));
   return blocks;
@@ -137,19 +131,18 @@ export function formatPlanGate(
   diagram?: DiagramRef
 ): BlockKitMessage {
   const missed = rehearsal?.passed === false;
-  const value: PlanActionValue = { run_id: runId, seq: event.seq };
-  const blocks: any[] = [header(missed ? 'Rehearsal missed the forecast' : 'Rehearsal held — approve the plan?')];
-  if (runContext?.project) blocks.push(context(`${runContext.project} · revision ${event.revision}`));
+  const blocks: any[] = [header(missed ? 'The rehearsal missed the forecast' : 'The rehearsal held — approve the plan?')];
+  if (runContext?.project) blocks.push(context(`${runContext.project}, revision ${event.revision}`));
   if (rehearsal) {
-    blocks.push(section('*Rehearsal*'));
+    blocks.push(section('*The rehearsal*'));
     blocks.push(fieldsBlock(rehearsalFields(rehearsal)));
-    blocks.push(section(`*Failure*\n${rehearsal.failure ?? '—'}`));
+    if (rehearsal.failure) blocks.push(section(rehearsal.failure));
   }
   if (plan) {
-    blocks.push(divider(), section(`*Plan${plan.layout ? ` — ${plan.layout}` : ''}*`));
-    blocks.push(fieldsBlock(planFields(plan)));
+    blocks.push(divider(), section(`*The plan${plan.layout ? ` — ${plan.layout}` : ''}*`));
+    blocks.push(section(planSentence(plan)));
     const lines = (plan.actions ?? []).slice(0, 3).map(action => `• ${action.component}: ${action.action}${action.to ? ` to ${action.to}` : ''}`);
-    blocks.push(section(`*First changes*\n${lines.length > 0 ? lines.join('\n') : '—'}`));
+    if (lines.length > 0) blocks.push(section(`*First changes*\n${lines.join('\n')}`));
   }
   if (!rehearsal && !plan) blocks.push(section('Approving the plan completes the run.'));
   blocks.push(...diagramBlocks(diagram, runContext?.dashboardUrl, 'plan'));
@@ -158,24 +151,22 @@ export function formatPlanGate(
     text: { type: 'plain_text', text: 'Approve plan' },
     style: 'primary',
     action_id: APPROVE_PLAN_ACTION,
-    value: JSON.stringify(value),
+    value: JSON.stringify(value(runId, event)),
   }];
   if (runContext?.dashboardUrl) elements.push(dashboardButton(runContext.dashboardUrl));
   blocks.push(actions(elements), context(eventContext(event)));
-  return { text: missed ? 'The rehearsal missed the forecast' : 'Rehearsal held — approve the plan', blocks };
+  return { text: missed ? 'The rehearsal missed the forecast' : 'The rehearsal held — approve the plan', blocks };
 }
 
 export function formatLayoutProgress(pick: RunEvent, frame: number, diagram?: DiagramRef, runContext?: RunContext): BlockKitMessage {
   const step = Math.max(1, Math.min(frame + 1, 8));
-  const bar = '▰'.repeat(step) + '▱'.repeat(8 - step);
   return {
     text: 'Rehearsal running',
     blocks: [
       header('Architecture picked'),
       section(`*${describeEvent(pick)}*`),
       ...diagramBlocks(diagram, runContext?.dashboardUrl, 'layout'),
-      section('Rehearsal running on Floci. The result and the plan follow here.'),
-      context(bar),
+      section(`The rehearsal is running on Floci, step ${step} of 8. The result and the plan follow here.`),
     ],
   };
 }
@@ -201,25 +192,26 @@ export function formatLayoutStopped(pick: RunEvent, reason?: string, diagram?: D
       section(`*${describeEvent(pick)}*`),
       section(reason ?? 'The rehearsal stopped before a measurement.'),
       ...diagramBlocks(diagram, runContext?.dashboardUrl, 'layout'),
-      context('The run stopped; see the failure card.'),
+      context('The run stopped; see the failure message above.'),
     ],
   };
 }
 
 export function formatGateClosed(closing: RunEvent, rehearsal?: RehearsalSummary, diagram?: DiagramRef, runContext?: RunContext): BlockKitMessage {
   const kind = closing.decision?.kind;
-  const title = kind === 'approve_plan' ? 'Plan approved' : kind === 'pick_layout' ? 'Architecture picked' : 'Gate closed';
+  const title = kind === 'approve_plan' ? 'The plan is approved' : kind === 'pick_layout' ? 'The architecture is picked' : 'The gate is closed';
   const headline = describeEvent(closing);
   const blocks: any[] = [header(title), section(`*${headline}*`)];
+  if (closing.decision?.reason) blocks.push(section(closing.decision.reason));
   if (kind === 'pick_layout') blocks.push(section('Next: the rehearsal runs on Floci. Its result and the plan follow here.'));
   if (kind === 'approve_plan') blocks.push(section('The run is complete.'));
   if (kind === 'pick_layout' || kind === 'approve_plan') blocks.push(...diagramBlocks(diagram, runContext?.dashboardUrl, kind));
   if (rehearsal) {
-    blocks.push(divider(), section('*Rehearsal*'));
+    blocks.push(divider(), section('*The rehearsal*'));
     const fields = rehearsalFields(rehearsal);
     if (fields.length > 0) blocks.push(fieldsBlock(fields));
   }
-  blocks.push(...details(closing));
+  blocks.push(context(eventContext(closing)));
   return { text: headline, blocks };
 }
 
@@ -227,59 +219,86 @@ export function formatFailedRun(event: RunEvent): BlockKitMessage {
   const reason = event.decision?.reason ?? 'the run stopped';
   return {
     text: `Run stopped: ${reason}`,
-    blocks: [header('Run stopped'), section(`*${stepLabel(event.step)}*\n${describeEvent(event)}\n\n${reason}`), context(eventContext(event))],
+    blocks: [
+      header('The run stopped'),
+      section(`*${stepLabel(event.step)}* — ${reason}`),
+      context(eventContext(event)),
+    ],
   };
+}
+
+function layoutLead(runContext: RunContext | undefined, offered: number, target: LayoutTarget | undefined, event: RunEvent): string {
+  const sentences = [
+    runContext?.project ? `The estate for ${runContext.project} is extracted.` : '',
+    offered === 1 ? 'One option passes the hard constraints.' : `${offered} options pass the hard constraints.`,
+    targetPhrase(target),
+    event.revision > 0 ? `This is revision ${event.revision}.` : '',
+  ].filter(Boolean);
+  return sentences.join(' ');
+}
+
+function targetPhrase(target: LayoutTarget | undefined): string {
+  const parts: string[] = [];
+  if (target?.minAvailabilityPct !== undefined) parts.push(`at least ${target.minAvailabilityPct}% availability`);
+  if (target?.maxMonthlyRunEur !== undefined) parts.push(`a budget of ${eur(target.maxMonthlyRunEur)} a month`);
+  return parts.length ? `You asked for ${parts.join(' and ')}.` : '';
 }
 
 function candidateFields(candidate: LayoutCandidate, target: LayoutTarget | undefined, rich: boolean): string[] {
   if (!rich) return [];
-  const months = target?.horizonMonths !== undefined ? ` over ${target.horizonMonths} months` : '';
-  const targetSuffix = target?.minAvailabilityPct !== undefined ? ` vs ${target.minAvailabilityPct}% target` : '';
-  const effort = [
-    candidate.effortHours !== undefined ? `${candidate.effortHours}h` : '',
-    candidate.paybackMonths !== undefined ? `${candidate.paybackMonths} months payback` : '',
-  ].filter(Boolean).join(' · ');
+  const horizon = candidate.horizonEur !== undefined
+    ? `${compactEur(candidate.horizonEur)}${target?.horizonMonths !== undefined ? ` over ${target.horizonMonths} months` : ''}`
+    : 'not estimated';
+  const availability = candidate.availabilityPct !== undefined
+    ? `${candidate.availabilityPct}%${target?.minAvailabilityPct !== undefined ? `, you asked for ${target.minAvailabilityPct}%` : ''}`
+    : 'not estimated';
+  const effort: string[] = [];
+  if (candidate.effortHours !== undefined) effort.push(`${candidate.effortHours} hours of work`);
+  if (candidate.paybackMonths !== undefined) effort.push(`pays back in ${candidate.paybackMonths} months`);
   return [
-    field('Cost now', candidate.monthlyEur !== undefined ? `${eur(candidate.monthlyEur)}/mo` : '—'),
-    field('Horizon', candidate.horizonEur !== undefined ? `${compactEur(candidate.horizonEur)}${months}` : '—'),
-    field('Availability', candidate.availabilityPct !== undefined ? `${candidate.availabilityPct}%${targetSuffix}` : '—'),
-    field('Risk', candidate.risk !== undefined ? `${candidate.risk}` : '—'),
-    field('Effort', effort || '—'),
-    field('Actions', candidate.actions !== undefined ? `${candidate.actions}` : '—'),
+    field('Cost today', candidate.monthlyEur !== undefined ? `${eur(candidate.monthlyEur)} a month` : 'not estimated'),
+    field('Over the horizon', horizon),
+    field('Availability', availability),
+    field('Risk score', candidate.risk !== undefined ? `${candidate.risk} out of 1` : 'not estimated'),
+    field('Effort', effort.length > 0 ? effort.join(', ') : 'not estimated'),
+    field('Changes', candidate.actions !== undefined ? countPhrase(candidate.actions, 'action', 'actions') : 'not estimated'),
   ];
 }
 
 function rehearsalFields(rehearsal: RehearsalSummary): string[] {
-  const target = rehearsal.targetAvailabilityPct !== undefined ? ` vs ${rehearsal.targetAvailabilityPct}% target` : '';
-  const latency = rehearsal.latency;
-  const points = latency === undefined
-    ? '—'
-    : [latency.baselineP95, latency.failureP95, latency.recoveryP95].map(value => value === undefined ? '—' : `${value}`).join(' → ');
+  const availability = rehearsal.measuredAvailabilityPct !== undefined
+    ? `${rehearsal.measuredAvailabilityPct}%${rehearsal.targetAvailabilityPct !== undefined ? `, you asked for ${rehearsal.targetAvailabilityPct}%` : ''}`
+    : 'not measured';
+  const result = rehearsal.passed === undefined ? 'not measured' : rehearsal.passed ? 'Held' : 'Missed';
+  const latency = rehearsal.latency === undefined
+    ? 'not measured'
+    : [rehearsal.latency.baselineP95, rehearsal.latency.failureP95, rehearsal.latency.recoveryP95]
+        .map(value => value === undefined ? '—' : `${value}`)
+        .join(' → ');
   return [
-    field('Availability', rehearsal.measuredAvailabilityPct !== undefined ? `${rehearsal.measuredAvailabilityPct}%${target}` : '—'),
-    field('Result', rehearsal.passed === undefined ? '—' : rehearsal.passed ? 'Held' : 'Missed'),
-    field('Latency p95', `${points} ms`),
+    field('Availability', availability),
+    field('Result', result),
+    field('Latency p95', rehearsal.latency === undefined ? latency : `${latency} ms`),
   ];
 }
 
-function planFields(plan: PlanSummary): string[] {
-  const size = [
-    plan.steps !== undefined ? `${plan.steps} steps` : '',
-    plan.actions?.length ? `${plan.actions.length} actions` : '',
-  ].filter(Boolean).join(' · ');
-  const cost = plan.monthlyEurNow !== undefined && plan.monthlyEurAfter !== undefined
-    ? `${eur(plan.monthlyEurNow)}/mo → ${eur(plan.monthlyEurAfter)}/mo`
-    : '—';
-  const effort = [
-    plan.effortHours !== undefined ? `${plan.effortHours}h effort` : '',
-    plan.cutoverDowntimeHours !== undefined ? `${plan.cutoverDowntimeHours}h downtime` : '',
-  ].filter(Boolean).join(' · ');
-  return [
-    field('Plan size', size || '—'),
-    field('Cost', cost),
-    field('Effort', effort || '—'),
-    field('Availability', plan.availabilityPct !== undefined ? `${plan.availabilityPct}%` : '—'),
-  ];
+function planSentence(plan: PlanSummary): string {
+  const parts: string[] = [];
+  if (plan.monthlyEurNow !== undefined && plan.monthlyEurAfter !== undefined) {
+    parts.push(`The estate moves from ${eur(plan.monthlyEurNow)} a month to ${eur(plan.monthlyEurAfter)} a month.`);
+  } else if (plan.monthlyEurAfter !== undefined) {
+    parts.push(`The estate runs at ${eur(plan.monthlyEurAfter)} a month.`);
+  }
+  const size: string[] = [];
+  if (plan.steps !== undefined) size.push(countPhrase(plan.steps, 'step', 'steps'));
+  if (plan.actions?.length) size.push(countPhrase(plan.actions.length, 'action', 'actions'));
+  if (size.length > 0) parts.push(`The plan has ${size.join(' and ')}.`);
+  const effort: string[] = [];
+  if (plan.effortHours !== undefined) effort.push(`${plan.effortHours} hours of work`);
+  if (plan.cutoverDowntimeHours !== undefined) effort.push(`up to ${plan.cutoverDowntimeHours} hours of downtime`);
+  if (effort.length > 0) parts.push(`It takes ${effort.join(' with ')}.`);
+  if (plan.availabilityPct !== undefined) parts.push(`The result runs at ${plan.availabilityPct}% availability.`);
+  return parts.length > 0 ? parts.join(' ') : 'The plan follows the rehearsal.';
 }
 
 function layoutButton(runId: string, event: RunEvent, candidate: LayoutCandidate) {
@@ -294,28 +313,29 @@ function layoutButton(runId: string, event: RunEvent, candidate: LayoutCandidate
   return element;
 }
 
-function details(event: RunEvent): any[] {
-  const blocks: any[] = [];
-  if (event.decision) blocks.push(section(`*Decision:* ${event.decision.kind}\n*Reason:* ${event.decision.reason}`));
-  blocks.push(context(eventContext(event)));
-  return blocks;
+function value(runId: string, event: RunEvent): PlanActionValue {
+  return { run_id: runId, seq: event.seq };
 }
 
 function eventContext(event: RunEvent): string {
-  const parts = [`#${event.seq}`, event.at];
+  const parts = [`Event #${event.seq}`, humanDate(event.at)];
   if (event.revision > 0) parts.push(`revision ${event.revision}`);
   if (event.actor.kind === 'human') parts.push(`by ${actorName(event.actor)}`);
-  if (event.output) parts.push(`${event.output.contract}: ${event.output.file.path}`);
+  if (event.output) parts.push(`wrote ${basename(event.output.file.path)}`);
   return parts.join(' · ');
+}
+
+function lostLine(candidate: LayoutCandidate): string {
+  return `Not picked: ${lostReason(candidate)}.`;
 }
 
 function lostReason(candidate: LayoutCandidate): string {
   switch (candidate.lostBecause?.reason) {
-    case 'cost': return 'higher expected total cost';
-    case 'risk': return 'higher risk';
-    case 'effort': return 'more migration effort';
-    case 'payback': return 'slower payback';
-    default: return candidate.lostBecause?.detail ? clip(candidate.lostBecause.detail.split(':')[0], 120) : '—';
+    case 'cost': return 'it costs more over the horizon than the recommended option';
+    case 'risk': return 'it carries more risk';
+    case 'effort': return 'it takes more migration effort';
+    case 'payback': return 'it pays back more slowly';
+    default: return candidate.lostBecause?.detail ? clip(candidate.lostBecause.detail.split(':')[0], 120) : 'it did not rank first';
   }
 }
 

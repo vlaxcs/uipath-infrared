@@ -14,7 +14,7 @@ import { afterLayoutEvents, sampleEvent, sampleRun } from './sample.js';
 
 const RUN = 'run-demo-shop-0001';
 const LAYOUT_CARD = 'Which architecture should we run?';
-const PLAN_CARD = 'Rehearsal held — approve the plan';
+const PLAN_CARD = 'The rehearsal held — approve the plan';
 const tick = () => new Promise<void>(resolve => setImmediate(resolve));
 
 async function until(condition: () => boolean) {
@@ -151,7 +151,7 @@ describe('Diagrams through a run', () => {
     await new PlanApprover(flow.orchestrator).approve(RUN, 'andrei');
     await flow.tracking;
     const approved = flow.updatesOf(PLAN_CARD).at(-1)!;
-    expect(JSON.stringify(approved)).toContain('Plan approved');
+    expect(JSON.stringify(approved)).toContain('The plan is approved');
     expect(fileIds(approved.blocks)).toEqual(['F0002']);
     expect(flow.slack.uploads).toHaveLength(3);
     expect(renderer.requests).toHaveLength(3);
