@@ -1,5 +1,5 @@
 import { loadLatest } from "~/domain/api";
-import { sampleLatestRun } from "~/domain/sample";
+import { noAccessNotice, noticeFor } from "~/domain/notice";
 import type { LatestResponse } from "~/domain/types";
 import { getSettings, hasOrchestratorPermission } from "~/storage";
 
@@ -34,15 +34,11 @@ async function latest(force: boolean): Promise<LatestResponse> {
   try {
     orchestratorUrl = (await getSettings()).orchestratorUrl;
   } catch (cause) {
-    return fallback(cause);
+    return { run: null, notice: noticeFor(cause) };
   }
 
   if (!(await hasOrchestratorPermission(orchestratorUrl))) {
-    return fallback(
-      new Error(
-        `No access to ${hostOf(orchestratorUrl)}. Open Settings and connect Infrared.`,
-      ),
-    );
+    return { run: null, notice: noAccessNotice(orchestratorUrl) };
   }
 
   if (
@@ -54,34 +50,14 @@ async function latest(force: boolean): Promise<LatestResponse> {
     return cache.response;
   }
 
+  let response: LatestResponse;
   try {
-    const response = { run: await loadLatest(orchestratorUrl) };
-    cache = { at: Date.now(), key: orchestratorUrl, response };
-    return response;
+    response = { run: await loadLatest(orchestratorUrl) };
   } catch (cause) {
-    const response = fallback(cause);
-    cache = { at: Date.now(), key: orchestratorUrl, response };
-    return response;
+    response = { run: null, notice: noticeFor(cause) };
   }
-}
-
-function fallback(cause: unknown): LatestResponse {
-  const detail = cause instanceof Error ? cause.message : String(cause);
-  const run = sampleLatestRun();
-  return {
-    run: {
-      ...run,
-      note: `Orchestrator unavailable (${detail}); showing sample data.`,
-    },
-  };
-}
-
-function hostOf(value: string): string {
-  try {
-    return new URL(value).host;
-  } catch {
-    return "the orchestrator";
-  }
+  cache = { at: Date.now(), key: orchestratorUrl, response };
+  return response;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

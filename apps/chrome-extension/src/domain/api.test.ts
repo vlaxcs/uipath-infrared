@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import result from "../../../../contracts/result.example.json";
 import runExample from "../../../../contracts/run.example.json";
-import { loadLatest, OrchestratorError, type FetchLike } from "~/domain/api";
+import { loadLatest, NoRunsError, type FetchLike } from "~/domain/api";
 import type { RunDetail } from "~/domain/types";
 
 const detail = runExample as unknown as RunDetail;
@@ -53,7 +53,6 @@ describe("loading the latest run", () => {
     const latest = await loadLatest(BASE, fetchImpl);
 
     expect(latest).toMatchObject({
-      source: "live",
       id: detail.id,
       project: detail.project,
       status: "completed",
@@ -107,7 +106,7 @@ describe("loading the latest run", () => {
 
   it("reports when there are no runs", async () => {
     const { fetchImpl } = fakeFetch({ [`${BASE}/runs?limit=1`]: () => response(200, []) });
-    await expect(loadLatest(BASE, fetchImpl)).rejects.toBeInstanceOf(OrchestratorError);
+    await expect(loadLatest(BASE, fetchImpl)).rejects.toBeInstanceOf(NoRunsError);
     await expect(loadLatest(BASE, fetchImpl)).rejects.toMatchObject({ message: "No runs yet" });
   });
 

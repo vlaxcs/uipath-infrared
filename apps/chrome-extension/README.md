@@ -17,11 +17,11 @@ Current branded Chrome disables the `--load-extension` command-line flag; load t
 
 ## Data
 
-The card shows the newest run from the orchestrator (`GET /runs?limit=1`), its latest `result.<n>.json` before/after prices, its pipeline state and the runner suggestions derived from the latest `infra.json`.
+The card shows the newest run from the orchestrator (`GET /runs?limit=1`): its monthly saving from the latest `result.<n>.json` before/after prices as the headline, its status and pipeline, the top runner suggestion derived from the latest `infra.json`, and one action, which becomes **Review layout** or **Review plan** when the run waits on a decision. Run id, revision, layout names and the full suggestion list stay in the dashboard.
 
 - The background service worker performs the requests. Extension service workers with host permissions are exempt from CORS, so the orchestrator needs no extra origin; the content script never fetches the API directly.
 - Without `ci_runners` in the run's `infra.json`, the card explains that there is no runner data. The extractor fills `ci_runners` from the GitHub Actions API when run with `GITHUB_TOKEN` and `GITHUB_REPOSITORY`.
-- If the orchestrator is down or has no runs, the card shows a bundled sample run with a **Sample data** badge, including sample runner usage.
+- If the orchestrator has no runs, is down, or the extension has no access to it, the card shows one line (**No runs yet**, **Can't reach Infrared**, **Not connected**) with a link to the dashboard, or **Connect** to Settings for missing access. There is no sample data; the cause of a failure is in the line's tooltip.
 - The extension is read-only: the orchestrator only accepts human decisions from the `dashboard` and `slack` surfaces. Approvals happen in the dashboard; the card links there.
 - The runner suggestions are heuristics from job durations, not engine-priced changes: self-hosted use at ≤ 20 h/month suggests moving to GitHub-hosted, hosted use at ≥ 160 h/month suggests evaluating self-hosted/on-prem, metered macOS/Windows at ≥ 80 h/month suggests checking whether the runner type is required.
 
@@ -42,6 +42,6 @@ The dashboard URL (default `http://localhost:5173`) is only used by the card's *
     npm test
     npm run build
 
-The card's design tokens mirror `apps/dashboard/src/styles/tokens.css`; the extension is a standalone app, so the values are copied rather than imported. The extension icons are resized from the Infrared logo in `apps/site/public/apple-touch-icon.png`.
+The card's design tokens mirror `apps/dashboard/src/styles/tokens.css`; the extension is a standalone app, so the values are copied rather than imported. The extension icons are rendered from the Infrared logo in `apps/dashboard/src/assets/infrared-icon.svg`, the mark the dashboard and site use.
 
 No CI: the team verifies locally.

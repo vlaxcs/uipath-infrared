@@ -75,7 +75,6 @@ export type StepEntry = {
 };
 
 export type LatestRun = {
-  source: "live" | "sample";
   id: string;
   project: string;
   status: RunStatus;
@@ -92,10 +91,14 @@ export type LatestRun = {
   runners: RunnerSuggestion[];
   runnerSourceRepo?: string;
   runnerNote?: string;
-  note?: string;
 };
 
-export type LatestResponse = {
-  run: LatestRun;
-  note?: string;
+export type NoticeKind = "no-runs" | "unreachable" | "no-access";
+
+export type Notice = {
+  kind: NoticeKind;
+  message: string;
+  detail?: string;
 };
+
+export type LatestResponse = { run: LatestRun; notice?: undefined } | { run: null; notice: Notice };
