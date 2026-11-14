@@ -1,6 +1,7 @@
 import { Card } from "~/ui/Card";
 import { Notice } from "~/ui/Notice";
-import { CHROME_EXTENSION_URL } from "~/features/github/constants";
+
+const CODE = "rounded-item bg-sunken px-1.5 py-0.5 font-mono";
 
 export function ExtensionCard({ org }: { org: string }) {
   return (
@@ -9,21 +10,20 @@ export function ExtensionCard({ org }: { org: string }) {
         <Notice tone="success">
           <span className="type-label">Extension ready.</span> The app is installed, so the extension can show Infrared data in {org}.
         </Notice>
-        <ol className="flex list-decimal flex-col gap-1.5 pl-5" aria-label="How to use the extension">
-          <li className="type-body">Install the Infrared extension in Chrome.</li>
-          <li className="type-body">Open any repository in the {org} organisation on GitHub.</li>
-          <li className="type-body">Open the Infrared panel to see the latest run, its status and CI runner suggestions.</li>
+        <p className="type-body">It is not in the Chrome Web Store yet. Load it from the repository:</p>
+        <ol className="flex list-decimal flex-col gap-1.5 pl-5" aria-label="Install the extension from the repository">
+          <li className="type-body">
+            In the repository, run <code className={CODE}>cd apps/chrome-extension</code>, <code className={CODE}>npm install</code> and{" "}
+            <code className={CODE}>npm run build</code>.
+          </li>
+          <li className="type-body">
+            Open <code className={`${CODE} select-all`}>chrome://extensions</code> in a new tab and turn on <strong>Developer mode</strong>.
+          </li>
+          <li className="type-body">
+            Choose <strong>Load unpacked</strong> and select <code className={CODE}>apps/chrome-extension/dist</code>.
+          </li>
+          <li className="type-body">Open any repository in the {org} organisation on GitHub and open the Infrared panel.</li>
         </ol>
-        <div>
-          <a
-            href={CHROME_EXTENSION_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="type-label inline-flex min-h-9 items-center rounded-item border border-line-strong bg-surface px-3.5 py-1.5 text-accent shadow-lip hover:bg-sunken"
-          >
-            Get the Chrome extension
-          </a>
-        </div>
       </div>
     </Card>
   );
