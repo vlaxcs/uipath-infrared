@@ -1,5 +1,7 @@
 import { Plus } from "lucide-react";
+import { useRef, useState } from "react";
 import { CreditMark } from "~/credits/CreditMarks";
+import { ExtensionInstallGuide } from "~/home/ExtensionInstallGuide";
 
 type HomePageProps = {
   extensionUrl: string | null;
@@ -10,6 +12,14 @@ type HomePageProps = {
 const PILL = "flex items-center gap-2 rounded-pill px-5 py-3 text-label font-semibold shadow-sm";
 
 export function HomePage({ extensionUrl, onAnalyze, onPrevious }: HomePageProps) {
+  const [guideOpen, setGuideOpen] = useState(false);
+  const guideButton = useRef<HTMLButtonElement>(null);
+
+  function closeGuide() {
+    setGuideOpen(false);
+    guideButton.current?.focus();
+  }
+
   return (
     <div>
       <div className="fixed inset-x-0 bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 p-4">
@@ -37,16 +47,18 @@ export function HomePage({ extensionUrl, onAnalyze, onPrevious }: HomePageProps)
           </a>
         ) : (
           <button
+            ref={guideButton}
             type="button"
-            disabled
-            title="Not published yet"
-            className={`${PILL} border border-dashed border-border-strong bg-surface text-fg-muted`}
+            onClick={() => setGuideOpen(true)}
+            aria-haspopup="dialog"
+            className={`${PILL} border border-dashed border-border-strong bg-surface text-fg hover:bg-surface-muted`}
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
             Browser extension
           </button>
         )}
       </div>
+      {guideOpen && <ExtensionInstallGuide onClose={closeGuide} />}
     </div>
   );
 }

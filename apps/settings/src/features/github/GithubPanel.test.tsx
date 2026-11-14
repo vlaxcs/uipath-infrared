@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { fakeApi, renderWithApi } from "~/app/test-utils";
 import { GithubPanel } from "~/features/github/GithubPanel";
-import { CHROME_EXTENSION_URL } from "~/features/github/constants";
 
 async function openConsent() {
   const user = userEvent.setup();
@@ -46,10 +45,8 @@ describe("the github panel", () => {
     expect(screen.getByText("14 Nov 2026")).toBeTruthy();
     expect(screen.getByText("All 5 repositories")).toBeTruthy();
     expect(screen.getByText(/Extension ready/)).toBeTruthy();
-    const link = screen.getByRole("link", { name: "Get the Chrome extension" });
-    expect(link.getAttribute("href")).toBe(CHROME_EXTENSION_URL);
-    expect(link.getAttribute("target")).toBe("_blank");
-    expect(within(screen.getByRole("list", { name: "How to use the extension" })).getAllByRole("listitem")).toHaveLength(3);
+    expect(screen.queryByRole("link", { name: "Get the Chrome extension" })).toBeNull();
+    expect(within(screen.getByRole("list", { name: "Install the extension from the repository" })).getAllByRole("listitem")).toHaveLength(4);
     expect(api.store.state.github.repoSelection).toEqual({ kind: "all" });
   });
 

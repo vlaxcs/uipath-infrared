@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Infrared",
+  "version": "0.1.0",
+  "description": "The latest Infrared run and GitHub Actions runner suggestions inside GitHub.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
+  "optional_host_permissions": ["https://*/*"],
+  "background": { "service_worker": "background.js" },
+  "action": {
+    "default_title": "Infrared",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

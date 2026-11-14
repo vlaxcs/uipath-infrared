@@ -38,11 +38,10 @@ describe("the platform frame", () => {
     expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
   });
 
-  it("shows the extension button disabled when it has no URL", () => {
+  it("opens the extension install guide when it has no URL", () => {
     render(<App extensionUrl={null} />);
-    const button = screen.getByRole("button", { name: "Browser extension" }) as HTMLButtonElement;
-    expect(button.disabled).toBe(true);
-    expect(button.title).toBe("Not published yet");
+    fireEvent.click(screen.getByRole("button", { name: "Browser extension" }));
+    expect(screen.getByRole("dialog", { name: "Install the Infrared extension" })).toBeTruthy();
   });
 
   it("opens a new analysis with a fade, and Back returns home", async () => {
