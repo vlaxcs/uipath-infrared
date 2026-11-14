@@ -36,8 +36,10 @@ type Constraints struct {
 }
 
 type Connection struct {
-	ID    string `json:"id"`
-	Label string `json:"label"`
+	ID        string `json:"id"`
+	Label     string `json:"label"`
+	Endpoint  string `json:"endpoint,omitempty"`
+	Reachable *bool  `json:"reachable,omitempty"`
 }
 
 type Project struct {
@@ -51,6 +53,7 @@ type Setup struct {
 	Providers   []string     `json:"providers"`
 	Onprem      bool         `json:"onprem"`
 	Projects    []Project    `json:"projects"`
+	Markets     []string     `json:"markets"`
 }
 
 var Connections = []Connection{{ID: Floci, Label: "AWS (demo estate)"}}

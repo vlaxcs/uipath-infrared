@@ -38,12 +38,7 @@ type Profile struct {
 
 func Default() Profile {
 	return Profile{
-		Criteria: onboarding.Criteria{
-			MinAvailabilityPct: 99.9,
-			MinZones:           2,
-			Weights:            onboarding.Weights{Cost: 0.65, Risk: 0.25, Effort: 0.1},
-			AllowedRegions:     []string{"eu-*"},
-		},
+		Criteria: onboarding.Criteria{Focus: onboarding.FocusCost},
 	}
 }
 
@@ -98,6 +93,9 @@ func (s *Store) Profile() (Profile, error) {
 	var saved Profile
 	if err := json.Unmarshal(data, &saved); err != nil {
 		return Profile{}, fmt.Errorf("%s: %w", s.path, err)
+	}
+	if Check(saved) != nil {
+		return Default(), nil
 	}
 	return saved, nil
 }

@@ -2,6 +2,7 @@ package workflow_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -117,6 +118,38 @@ func TestTheSetupListsTheCatalogsProvidersAndEveryProject(t *testing.T) {
 	}
 	if !slices.Equal(ids, []string{"alpha", "zeta"}) {
 		t.Fatalf("projects %v", ids)
+	}
+}
+
+func TestTheSetupSaysWhetherFlociAnswersAndListsTheMarkets(t *testing.T) {
+	for _, reachable := range []bool{true, false} {
+		asked := ""
+		h := newHarness(t, options{maxRevisions: 2, flociURL: "http://localhost:4566", probe: func(_ context.Context, url string) bool {
+			asked = url
+			return reachable
+		}})
+		setup, err := h.flow.Onboarding()
+		if err != nil {
+			t.Fatal(err)
+		}
+		floci := setup.Connections[0]
+		if asked != "http://localhost:4566" || floci.Endpoint != asked || floci.Reachable == nil || *floci.Reachable != reachable {
+			t.Fatalf("reachable %v: asked %q, connection %+v", reachable, asked, floci)
+		}
+		if !slices.Contains(setup.Markets, "fr") || !slices.Contains(setup.Markets, "us") {
+			t.Fatalf("markets %v", setup.Markets)
+		}
+	}
+}
+
+func TestWithoutAFlociURLTheConnectionIsNotProbed(t *testing.T) {
+	h := newHarness(t, options{maxRevisions: 2, probe: func(context.Context, string) bool {
+		t.Fatal("probed without a URL")
+		return false
+	}})
+	setup, _ := h.flow.Onboarding()
+	if setup.Connections[0].Reachable != nil {
+		t.Fatalf("connection %+v", setup.Connections[0])
 	}
 }
 

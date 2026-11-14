@@ -119,6 +119,8 @@ type options struct {
 	projectsDir  string
 	timeout      time.Duration
 	noStates     bool
+	flociURL     string
+	probe        func(context.Context, string) bool
 }
 
 func newHarness(t *testing.T, opts options) *harness {
@@ -165,6 +167,8 @@ func build(t *testing.T, opts options) (*harness, error) {
 		CatalogPath:  filepath.Join(repo, "contracts", "real", "catalog.json"),
 		MaxRevisions: opts.maxRevisions,
 		Timeouts:     timeouts,
+		FlociURL:     opts.flociURL,
+		Probe:        opts.probe,
 	}
 	flow := workflow.New(config, stages, schemas, files.Local{}, runs, time.Now)
 	if err := flow.Load(); err != nil {
@@ -261,7 +265,6 @@ func (s *flakyStore) Save(doc *run.Run) error {
 	}
 	return s.Store.Save(doc)
 }
-
 
 func statesCommand(opts options) []string {
 	if opts.noStates {

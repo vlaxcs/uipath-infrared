@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"time"
 
 	"infrared/orchestrator/internal/run"
@@ -20,6 +21,8 @@ type Config struct {
 	CatalogPath  string
 	MaxRevisions int
 	Timeouts     map[run.Step]time.Duration
+	FlociURL     string
+	Probe        func(ctx context.Context, url string) bool
 }
 
 const StatesTimeout = time.Minute

@@ -145,18 +145,18 @@ func (f *fakeRuns) SaveProfile(saved profile.Profile) error {
 func TestTheProfileIsReadAndSaved(t *testing.T) {
 	runs := &fakeRuns{}
 	read := send(t, runs, "GET", "/profile", "")
-	if read.Code != http.StatusOK || !strings.Contains(read.Body.String(), `"min_availability_pct":99.9`) {
+	if read.Code != http.StatusOK || !strings.Contains(read.Body.String(), `"focus":"cost"`) {
 		t.Fatalf("read %d %s", read.Code, read.Body)
 	}
-	body := `{"criteria":{"min_availability_pct":99.95,"min_zones":3,"weights":{"cost":0.2,"risk":0.7,"effort":0.1},"allowed_regions":["eu-*"]},"onprem":{"wanted":false}}`
-	if saved := send(t, runs, "PUT", "/profile", body); saved.Code != http.StatusOK || runs.saved == nil || runs.saved.Criteria.MinZones != 3 {
+	body := `{"criteria":{"focus":"zone","market":"fr"},"onprem":{"wanted":false}}`
+	if saved := send(t, runs, "PUT", "/profile", body); saved.Code != http.StatusOK || runs.saved == nil || runs.saved.Criteria.Market != "fr" {
 		t.Fatalf("save %d %s", saved.Code, saved.Body)
 	}
 }
 
 func TestABadProfileIsRefusedWith400(t *testing.T) {
 	for _, body := range []string{
-		`{"criteria":{"min_availability_pct":50,"min_zones":2,"weights":{"cost":1,"risk":0,"effort":0},"allowed_regions":["eu-*"]},"onprem":{"wanted":false}}`,
+		`{"criteria":{"focus":"speed"},"onprem":{"wanted":false}}`,
 		`{"criteria":{},"onprem":{"wanted":false},"extra":1}`,
 		`not json`,
 	} {

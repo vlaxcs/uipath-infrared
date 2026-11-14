@@ -8,15 +8,6 @@ import (
 	"infrared/orchestrator/internal/onboarding"
 )
 
-func criteria() *onboarding.Criteria {
-	return &onboarding.Criteria{
-		MinAvailabilityPct: 99.95,
-		MinZones:           3,
-		Weights:            onboarding.Weights{Cost: 0.2, Risk: 0.7, Effort: 0.1},
-		AllowedRegions:     []string{"eu-*", "us-east-1"},
-	}
-}
-
 func forecastDocument(t *testing.T) map[string]any {
 	t.Helper()
 	var document map[string]any
@@ -30,9 +21,10 @@ func forecastDocument(t *testing.T) map[string]any {
 	return document
 }
 
-func TestCriteriaReachTheForecastTheEngineReads(t *testing.T) {
+func applied(t *testing.T, criteria onboarding.Criteria) (map[string]any, map[string]any) {
+	t.Helper()
 	asked := answers("aws")
-	asked.Criteria = criteria()
+	asked.Criteria = &criteria
 	constraints, err := onboarding.Resolve(asked, catalog, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -41,22 +33,58 @@ func TestCriteriaReachTheForecastTheEngineReads(t *testing.T) {
 	if err := onboarding.Apply(document, constraints); err != nil {
 		t.Fatal(err)
 	}
-	hard := document["hard_constraints"].(map[string]any)
-	settings := document["cto_settings"].(map[string]any)
-	residency := hard["data_residency"].(map[string]any)
-	if hard["min_availability_pct"] != 99.95 || settings["min_zones"] != 3 {
+	return document["hard_constraints"].(map[string]any), document["cto_settings"].(map[string]any)
+}
+
+func TestHighAvailabilityRaisesTheTargetAndRanksByRisk(t *testing.T) {
+	hard, settings := applied(t, onboarding.Criteria{Focus: onboarding.FocusAvailability})
+	if hard["min_availability_pct"] != 99.95 || settings["min_zones"] != 2.0 {
 		t.Fatalf("availability %v, zones %v", hard["min_availability_pct"], settings["min_zones"])
 	}
-	weights := settings["weights"].(map[string]any)
-	if weights["cost"] != 0.2 || weights["risk"] != 0.7 || weights["effort"] != 0.1 {
+	if weights := settings["weights"].(map[string]any); weights["risk"] != 0.65 {
 		t.Fatalf("weights %v", weights)
 	}
-	regions, _ := json.Marshal(residency["allowed_regions"])
-	if string(regions) != `["eu-*","us-east-1"]` {
-		t.Fatalf("regions %s", regions)
+}
+
+func TestHighAvailabilityNeverLowersAStricterProject(t *testing.T) {
+	asked := answers("aws")
+	asked.Criteria = &onboarding.Criteria{Focus: onboarding.FocusAvailability}
+	constraints, _ := onboarding.Resolve(asked, catalog, nil)
+	document := forecastDocument(t)
+	document["hard_constraints"].(map[string]any)["min_availability_pct"] = 99.99
+	document["cto_settings"].(map[string]any)["min_zones"] = 3.0
+	if err := onboarding.Apply(document, constraints); err != nil {
+		t.Fatal(err)
 	}
-	if applies, _ := json.Marshal(residency["applies_to"]); string(applies) != `["pii"]` {
-		t.Fatalf("the data the residency rule covers changed: %s", applies)
+	if document["hard_constraints"].(map[string]any)["min_availability_pct"] != 99.99 || document["cto_settings"].(map[string]any)["min_zones"] != 3.0 {
+		t.Fatal("the project's stricter targets were lowered")
+	}
+}
+
+func TestAZoneNarrowsTheRegionsToTheMarket(t *testing.T) {
+	cases := map[string]string{"fr": `["eu-*"]`, "us": `["us-*"]`}
+	for market, want := range cases {
+		hard, _ := applied(t, onboarding.Criteria{Focus: onboarding.FocusZone, Market: market})
+		residency := hard["data_residency"].(map[string]any)
+		if regions, _ := json.Marshal(residency["allowed_regions"]); string(regions) != want {
+			t.Errorf("%s: regions %s, want %s", market, regions, want)
+		}
+		if applies, _ := json.Marshal(residency["applies_to"]); string(applies) != `["pii"]` {
+			t.Errorf("%s: the data the residency rule covers changed: %s", market, applies)
+		}
+		if hard["min_availability_pct"] != 99.4 {
+			t.Errorf("%s: a zone focus changed the availability target", market)
+		}
+	}
+}
+
+func TestCostReductionOnlyReranks(t *testing.T) {
+	hard, settings := applied(t, onboarding.Criteria{Focus: onboarding.FocusCost})
+	if weights := settings["weights"].(map[string]any); weights["cost"] != 0.65 || weights["risk"] != 0.25 {
+		t.Fatalf("weights %v", weights)
+	}
+	if hard["min_availability_pct"] != 99.4 || settings["min_zones"] != 2.0 {
+		t.Fatal("cost reduction changed a hard constraint")
 	}
 }
 
@@ -75,21 +103,16 @@ func TestWithoutCriteriaTheProjectsForecastStays(t *testing.T) {
 }
 
 func TestBadCriteriaAreRefusedWithTheReason(t *testing.T) {
-	cases := map[string]func(*onboarding.Criteria){
-		"availability below 90":  func(c *onboarding.Criteria) { c.MinAvailabilityPct = 80 },
-		"availability of 100":    func(c *onboarding.Criteria) { c.MinAvailabilityPct = 100 },
-		"no zone":                func(c *onboarding.Criteria) { c.MinZones = 0 },
-		"four zones":             func(c *onboarding.Criteria) { c.MinZones = 4 },
-		"a negative weight":      func(c *onboarding.Criteria) { c.Weights.Cost = -1 },
-		"every weight zero":      func(c *onboarding.Criteria) { c.Weights = onboarding.Weights{} },
-		"no region":              func(c *onboarding.Criteria) { c.AllowedRegions = nil },
-		"a region with a slash":  func(c *onboarding.Criteria) { c.AllowedRegions = []string{"eu/west"} },
-		"the same region twice":  func(c *onboarding.Criteria) { c.AllowedRegions = []string{"eu-*", "eu-*"} },
+	cases := map[string]onboarding.Criteria{
+		"no focus":              {},
+		"an unknown focus":      {Focus: "speed"},
+		"a zone without market": {Focus: onboarding.FocusZone},
+		"an unknown market":     {Focus: onboarding.FocusZone, Market: "atlantis"},
+		"a market without zone": {Focus: onboarding.FocusCost, Market: "fr"},
 	}
-	for name, breakIt := range cases {
+	for name, criteria := range cases {
 		asked := answers("aws")
-		asked.Criteria = criteria()
-		breakIt(asked.Criteria)
+		asked.Criteria = &criteria
 		if _, err := onboarding.Resolve(asked, catalog, nil); !errors.Is(err, onboarding.ErrInvalid) {
 			t.Errorf("%s: %v, want invalid", name, err)
 		}

@@ -22,6 +22,8 @@ type Settings struct {
 	Workflow       workflow.Config
 }
 
+const defaultFlociURL = "http://localhost:4566"
+
 func Load() (Settings, error) {
 	loadDotEnv()
 	missing := []string{}
@@ -57,6 +59,10 @@ func Load() (Settings, error) {
 		return Settings{}, err
 	}
 	settings.Workflow.MaxRevisions = maxRevisions
+	settings.Workflow.FlociURL = strings.TrimSpace(os.Getenv("AWS_ENDPOINT_URL"))
+	if settings.Workflow.FlociURL == "" {
+		settings.Workflow.FlociURL = defaultFlociURL
+	}
 	settings.AllowedOrigins = optionalList("ORCHESTRATOR_ALLOWED_ORIGINS")
 	return settings, nil
 }
