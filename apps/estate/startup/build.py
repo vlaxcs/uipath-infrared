@@ -1,4 +1,5 @@
 import json
+from contextlib import contextmanager
 
 from synth.common import ACCOUNT, attempt, client, lambda_zip
 
@@ -16,8 +17,29 @@ ZONE = "us-east-1a"
 LIVE_INSTANCE_STATES = ["pending", "running", "stopping", "stopped"]
 
 
+OWNER = {}
+
+
+@contextmanager
+def owned(project, environment):
+    OWNER.clear()
+    OWNER.update({"Project": project, "Environment": environment})
+    try:
+        yield
+    finally:
+        OWNER.clear()
+
+
+def owner_tags():
+    return [{"Key": key, "Value": value} for key, value in OWNER.items()]
+
+
+def owner_map():
+    return dict(OWNER)
+
+
 def name_tag(resource_type, name):
-    return [{"ResourceType": resource_type, "Tags": [{"Key": "Name", "Value": name}]}]
+    return [{"ResourceType": resource_type, "Tags": [{"Key": "Name", "Value": name}, *owner_tags()]}]
 
 
 def tagged(describe, key, name, extra_filters=()):
@@ -97,7 +119,7 @@ def web_group(subnet, sg):
 def database(subnet, sg):
     attempt("startup-db-subnets", rds.create_db_subnet_group,
             DBSubnetGroupName="startup-db-subnets", DBSubnetGroupDescription="Startup DB", SubnetIds=[subnet])
-    attempt("startup-app-db", rds.create_db_instance,
+    attempt("startup-app-db", rds.create_db_instance, Tags=owner_tags(),
             DBInstanceIdentifier="startup-app-db", DBInstanceClass="db.r5.4xlarge",
             Engine="postgres", EngineVersion="12.18", AllocatedStorage=300, StorageType="gp2",
             DBSubnetGroupName="startup-db-subnets", VpcSecurityGroupIds=[sg],
@@ -109,7 +131,7 @@ def database(subnet, sg):
 def cache(subnet):
     attempt("startup-cache-subnets", elasticache.create_cache_subnet_group,
             CacheSubnetGroupName="startup-cache-subnets", CacheSubnetGroupDescription="Cache", SubnetIds=[subnet])
-    attempt("startup-cache", elasticache.create_cache_cluster,
+    attempt("startup-cache", elasticache.create_cache_cluster, Tags=owner_tags(),
             CacheClusterId="startup-cache", Engine="redis", CacheNodeType="cache.r5.xlarge",
             NumCacheNodes=1, CacheSubnetGroupName="startup-cache-subnets", PreferredAvailabilityZone=ZONE,
             AutoMinorVersionUpgrade=False, SnapshotRetentionLimit=0)
@@ -123,6 +145,7 @@ def storage():
         else:
             print(f"  new   {bucket}")
             s3.create_bucket(Bucket=bucket)
+            s3.put_bucket_tagging(Bucket=bucket, Tagging={"TagSet": owner_tags()})
     s3.put_bucket_policy(Bucket="startup-uploads", Policy=json.dumps({"Version": "2012-10-17", "Statement": [
         {"Effect": "Allow", "Principal": "*", "Action": "s3:GetObject", "Resource": "arn:aws:s3:::startup-uploads/*"}]}))
     if "startup-uploads" not in existing:
@@ -131,7 +154,7 @@ def storage():
 
 
 def queue():
-    attempt("startup-queue", sqs.create_queue, QueueName="startup-queue", Attributes={
+    attempt("startup-queue", sqs.create_queue, QueueName="startup-queue", tags=owner_map(), Attributes={
         "VisibilityTimeout": "30", "ReceiveMessageWaitTimeSeconds": "0", "MessageRetentionPeriod": "1209600",
         "SqsManagedSseEnabled": "false"})
 
@@ -144,7 +167,7 @@ def worker_role():
 
 
 def lambda_worker(role):
-    attempt("startup-worker", lam.create_function,
+    attempt("startup-worker", lam.create_function, Tags=owner_map(),
             FunctionName="startup-worker", Runtime="python3.9", Role=role,
             Handler="index.handler", Code={"ZipFile": lambda_zip()}, MemorySize=1024, Timeout=300,
             Environment={"Variables": {"DB_HOST": "startup-app-db", "SECRET_KEY": "hardcoded-secret"}})
@@ -183,15 +206,16 @@ def build():
     vid, subnet = vpc_and_subnet()
     sg_web = security_group(vid, "startup-web", "Web tier", world_open(80, 443, 22))
     sg_db = security_group(vid, "startup-db", "Database", world_open(5432))
-    web_group(subnet, sg_web)
-    database(subnet, sg_db)
-    cache(subnet)
-    storage()
-    queue()
-    lambda_worker(worker_role())
+    with owned("receipts", "prod"):
+        web_group(subnet, sg_web)
+        database(subnet, sg_db)
+        cache(subnet)
+        storage()
+        queue()
+        lambda_worker(worker_role())
+        orphan_volume()
+        idle_bastion(subnet, sg_web)
     nat(subnet)
-    orphan_volume()
-    idle_bastion(subnet, sg_web)
     print("Start-up estate built.")
 
 

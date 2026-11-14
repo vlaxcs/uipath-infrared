@@ -214,11 +214,7 @@ func applyApps(forecast map[string]any, constraints Constraints) error {
 			"high":  max(1, round(float64(app.UsersExpected)*high)),
 		}}
 		if constraints.FocusMode == FocusPerProject && app.Criteria != nil {
-			focus := map[string]any{"focus": string(app.Criteria.Focus)}
-			if app.Criteria.Market != "" {
-				focus["market"] = app.Criteria.Market
-			}
-			project["focus"] = focus
+			project["focus"] = ProjectRules(*app.Criteria)
 		} else {
 			delete(project, "focus")
 		}

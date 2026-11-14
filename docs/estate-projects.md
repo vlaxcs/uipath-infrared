@@ -50,7 +50,12 @@ One mock estate with 8 to 10 projects of different kinds and sizes, each with it
 1. The contract and the engine's per-project growth. Done.
 2. The mock estate with its projects: `contracts/mock/build_estate.py` builds `northwind` (10 projects, 87 components) from the four mock companies, ownership planted as tags, a CloudFormation stack, a namespace and names, and resolved by the extractor. Done.
 3. New analysis: the list of projects with users and focus, and the switch between one focus for the plan and each project's own; the run's forecast carries both. Configuration: the default focus for all projects and each project's own. Done.
-4. Focus per project in the engine (constraints and ranking per project's stacks). Not done: the run's forecast records `projects[].focus`, the engine still applies the plan's focus to the whole estate. Until then the estate's own targets are 99.5% availability and EUR 320,000 a month at the horizon.
+4. Focus per project in the engine. Done:
+   - the orchestrator writes each project's rules into the run's forecast: High availability gives `min_availability_pct: 99.9` for the project's critical paths (a path multiplies its components' SLAs, so 99.95 is out of reach for three components); Zones gives `allowed_regions` for the market; Cost and Performance add no rule;
+   - the engine checks a project's paths against the stricter of the estate's target and the project's, and its data against the project's regions;
+   - `managed_services` keeps every component of a High availability project at or above a floor halfway from its target to 100% (99.95% for 99.9%), trying two zones before rejecting a target;
+   - ranking stays one for the whole plan: it is one plan.
+   The estate's own targets stay at 99.5% availability and EUR 320,000 a month at the horizon.
 
 ## Out of scope
 

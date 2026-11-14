@@ -67,3 +67,19 @@ def test_users_now_must_be_above_zero():
     broken = {**BOOKING, "users": {**BOOKING["users"], "current": 0}}
     with pytest.raises(ValueError, match="above 0"):
         forecast_from_document(document([broken]))
+
+
+def test_a_project_brings_its_own_focus_rules():
+    project = {**BOOKING, "focus": {"focus": "zone", "market": "ro", "allowed_regions": ["eu-*"]}}
+    payments = {**BOOKING, "id": "payments", "stacks": ["payments-prod"], "focus": {"focus": "availability", "min_availability_pct": 99.9}}
+    booking, pay = forecast_from_document(document([project, payments])).projects
+    assert (booking.focus, booking.allowed_regions, booking.min_availability_pct) == ("zone", ("eu-*",), None)
+    assert (pay.focus, pay.min_availability_pct) == ("availability", 99.9)
+
+
+def test_a_component_floor_sits_halfway_from_the_project_target_to_100():
+    from engine.domain.strategies.managed_services import component_floor
+
+    [booking] = forecast_from_document(document([{**BOOKING, "focus": {"focus": "availability", "min_availability_pct": 99.9}}])).projects
+    assert component_floor(booking) == pytest.approx(99.95)
+    assert component_floor(None) is None

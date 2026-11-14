@@ -77,6 +77,9 @@ class ProjectGrowth:
     name: str
     stacks: frozenset[str]
     monthly_by_scenario: Mapping[str, float]
+    focus: str | None = None
+    min_availability_pct: float | None = None
+    allowed_regions: tuple[str, ...] | None = None
 
 
 @dataclass(frozen=True)
@@ -141,7 +144,12 @@ def _projects(raw: list[Mapping[str, Any]], scenario_ids: list[str]) -> tuple[Pr
             if stack in owner:
                 raise ValueError(f"stack {stack} belongs to both {owner[stack]} and {entry['id']}")
             owner[stack] = entry["id"]
-        projects.append(ProjectGrowth(entry["id"], entry.get("name", entry["id"]), frozenset(entry["stacks"]), monthly))
+        focus = entry.get("focus") or {}
+        regions = focus.get("allowed_regions")
+        projects.append(ProjectGrowth(
+            entry["id"], entry.get("name", entry["id"]), frozenset(entry["stacks"]), monthly,
+            focus.get("focus"), focus.get("min_availability_pct"), tuple(regions) if regions else None,
+        ))
     return tuple(projects)
 
 
