@@ -624,14 +624,25 @@ def change_of(action: dict) -> dict:
     }
 
 
-def build_dataset() -> dict:
-    infra = load_json(INFRA_PATH)
-    result = load_json(RESULT_PATH)
-    winner = find_winner(result)
-    if winner.get("id") != CANDIDATE_ID:
-        raise SystemExit(
-            f"configured candidate {CANDIDATE_ID!r} but result winner is {winner.get('id')!r}"
-        )
+def find_candidate(result: dict, candidate_id: str) -> dict:
+    for candidate in result.get("candidates") or []:
+        if candidate.get("id") == candidate_id:
+            return candidate
+    raise SystemExit(f"candidate {candidate_id!r} not found in result")
+
+
+def build_dataset(infra_path: Path = INFRA_PATH, result_path: Path = RESULT_PATH, candidate_id: str | None = None) -> dict:
+    infra = load_json(infra_path)
+    result = load_json(result_path)
+    sample = candidate_id is None
+    if sample:
+        winner = find_winner(result)
+        if winner.get("id") != CANDIDATE_ID:
+            raise SystemExit(
+                f"configured candidate {CANDIDATE_ID!r} but result winner is {winner.get('id')!r}"
+            )
+    else:
+        winner = find_candidate(result, candidate_id)
 
     ordered = order_actions(winner.get("actions") or [])
     actions = [action for _, action in ordered]
@@ -806,13 +817,16 @@ def build_dataset() -> dict:
         "schema_version": "1.0",
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "project": infra.get("project", "demo-shop"),
-        "title": "Demo shop",
-        "subtitle": "Sample plan · 4 stacks · 38 resources",
+        "title": "Demo shop" if sample else infra.get("project", "Estate"),
+        "subtitle": (
+            "Sample plan · 4 stacks · 38 resources" if sample
+            else f"Plan {winner.get('id')} · {len(stacks)} stacks · {len(baseline_components)} resources"
+        ),
         "source": {
-            "infra": relative(INFRA_PATH),
-            "result": relative(RESULT_PATH),
+            "infra": relative(infra_path),
+            "result": relative(result_path),
             "candidate": winner.get("id"),
-            "sample": True,
+            "sample": sample,
         },
         "stages": stages,
         "tiers": [{"id": tier, "label": label} for tier, label in TIER_LABELS.items()],
@@ -823,16 +837,21 @@ def build_dataset() -> dict:
     }
 
 
-def build_document() -> dict:
-    return {"dataset": build_dataset()}
+def build_document(infra_path: Path = INFRA_PATH, result_path: Path = RESULT_PATH, candidate_id: str | None = None) -> dict:
+    return {"dataset": build_dataset(infra_path, result_path, candidate_id)}
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Generate the estate-state snapshots.")
     parser.add_argument("--out", default=str(DEFAULT_OUT), help=f"output path (default: {relative(DEFAULT_OUT)})")
+    parser.add_argument("--infra", type=Path, help="a run's infra.json (default: the demo estate)")
+    parser.add_argument("--result", type=Path, help="a run's result.json (default: the demo result)")
+    parser.add_argument("--candidate", help="the candidate to lay out (default: the demo's winner)")
     args = parser.parse_args(argv)
+    if (args.infra is None) != (args.result is None) or (args.candidate is not None and args.infra is None):
+        parser.error("--infra, --result and --candidate go together; without them the demo dataset is built")
 
-    document = build_document()
+    document = build_document(args.infra or INFRA_PATH, args.result or RESULT_PATH, args.candidate)
     out_path = Path(args.out)
     if not out_path.is_absolute():
         out_path = (Path.cwd() / out_path).resolve()

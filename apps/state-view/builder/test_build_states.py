@@ -155,3 +155,44 @@ class DashboardMappingTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ARunsOwnFilesTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import subprocess, sys, tempfile
+        repo = Path(__file__).resolve().parents[3]
+        cls.scratch = Path(tempfile.mkdtemp(prefix="states-"))
+        cls.infra = repo / "contracts" / "mock" / "startup.infra.json"
+        cls.result = cls.scratch / "result.json"
+        subprocess.run(
+            [sys.executable, "-m", "engine", "evaluate", str(cls.infra), str(repo / "contracts" / "mock" / "startup.forecast.json"),
+             str(repo / "contracts" / "real" / "catalog.json"), "--out", str(cls.result)],
+            check=True, cwd=repo / "apps" / "engine",
+        )
+        cls.document = json.loads(cls.result.read_text(encoding="utf-8"))
+
+    def build(self, candidate):
+        out = self.scratch / f"states.{candidate}.json"
+        code = build_states.main(["--infra", str(self.infra), "--result", str(self.result), "--candidate", candidate, "--out", str(out)])
+        self.assertEqual(code, 0)
+        return json.loads(out.read_text(encoding="utf-8"))["dataset"]
+
+    def test_the_winner_runs_from_the_estate_today_to_its_target(self):
+        winner = next(c for c in self.document["candidates"] if c["id"] == self.document["winner"])
+        dataset = self.build(winner["id"])
+        self.assertEqual(dataset["project"], "startup")
+        self.assertEqual(dataset["states"][0]["summary"]["monthly_eur"], round(self.document["baseline"]["monthly_eur"]))
+        self.assertEqual(dataset["states"][-1]["summary"]["monthly_eur"], round(winner["cost"]["run_eur_month_now"]))
+        self.assertEqual(dataset["source"]["candidate"], winner["id"])
+
+    def test_a_feasible_candidate_that_did_not_win_can_be_shown(self):
+        other = next(c for c in self.document["candidates"] if c["feasible"] and c["id"] != self.document["winner"])
+        dataset = self.build(other["id"])
+        self.assertEqual(dataset["source"]["candidate"], other["id"])
+        self.assertEqual(dataset["states"][-1]["summary"]["monthly_eur"], round(other["cost"]["run_eur_month_now"]))
+
+    def test_an_unknown_candidate_stops_naming_it(self):
+        with self.assertRaises(SystemExit) as stopped:
+            self.build("no-such-candidate")
+        self.assertIn("no-such-candidate", str(stopped.exception))
