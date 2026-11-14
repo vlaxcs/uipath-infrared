@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -26,8 +28,13 @@ func serve() error {
 	if err != nil {
 		return err
 	}
+	listener, err := listen(config.Addr, os.Stdout)
+	if err != nil {
+		return err
+	}
 	orchestrator, err := app.Build(config)
 	if err != nil {
+		listener.Close()
 		return err
 	}
 	defer orchestrator.Close()
@@ -36,8 +43,7 @@ func serve() error {
 	signals, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	served := make(chan error, 1)
-	go func() { served <- server.ListenAndServe() }()
-	fmt.Println("orchestrator listening on", config.Addr)
+	go func() { served <- server.Serve(listener) }()
 
 	select {
 	case err := <-served:
@@ -53,4 +59,13 @@ func serve() error {
 		return nil
 	}
 	return err
+}
+
+func listen(addr string, out io.Writer) (net.Listener, error) {
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Fprintln(out, "orchestrator listening on", listener.Addr())
+	return listener, nil
 }
