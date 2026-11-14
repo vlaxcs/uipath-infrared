@@ -8,7 +8,8 @@ export const SEED_SETTINGS: AccountSettings = {
     runsRemaining: 0,
     renewsAt: "2026-12-01",
     cancelAtPeriodEnd: false,
-    paymentMethod: { brand: "Visa", last4: "4242", expMonth: 8, expYear: 2028 },
+    paymentMethod: { id: "pm_seed_visa", brand: "Visa", last4: "4242", expMonth: 8, expYear: 2028 },
+    pendingPayment: null,
     invoices: [
       { id: "in_0003", date: "2026-11-01", description: "Subscription, November", amountUsd: 200, status: "paid" },
       { id: "in_0002", date: "2026-10-01", description: "Subscription, October", amountUsd: 200, status: "paid" },

@@ -10,6 +10,8 @@ import type {
 export interface SubscriptionApi {
   buyRunPack(): Promise<AccountSettings>;
   changePlan(plan: PaidPlan): Promise<AccountSettings>;
+  /** Settles a payment left waiting for 3-D Secure, after the customer passed or failed the challenge. */
+  completePayment(intentId: string, authenticated: boolean): Promise<AccountSettings>;
   cancelSubscription(): Promise<AccountSettings>;
   resumeSubscription(): Promise<AccountSettings>;
   updatePaymentMethod(method: PaymentMethod): Promise<AccountSettings>;

@@ -1,12 +1,14 @@
-import { useCallback } from "react";
-import { useSettings, useAction } from "~/app/settings-context";
+import { useCallback, useState } from "react";
+import { useSandbox, useSettings, useAction } from "~/app/settings-context";
 import { formatUsd } from "~/app/format";
 import { offerFor, RUN_PACK_RUNS } from "~/domain/plans";
+import type { PendingPayment } from "~/domain/types";
 import type { SettingsApi } from "~/ports/settings-api";
 import { Button } from "~/ui/Button";
 import { Dialog } from "~/ui/Dialog";
 import { Notice } from "~/ui/Notice";
 import { describeCard } from "~/features/subscription/card-form";
+import { AuthenticateDialog } from "~/features/subscription/AuthenticateDialog";
 
 export type ChargeKind = "buy_pack" | "subscribe" | "downgrade";
 
@@ -22,7 +24,9 @@ function runs(count: number): string {
 
 export function ChargeDialog({ kind, onClose }: { kind: ChargeKind | null; onClose(): void }) {
   const { subscription } = useSettings();
+  const sandbox = useSandbox();
   const action = useAction(kind ? actions[kind] : actions.buy_pack);
+  const [challenge, setChallenge] = useState<PendingPayment | null>(null);
   const pack = offerFor("run_pack");
   const monthly = offerFor("subscription");
 
@@ -33,7 +37,9 @@ export function ChargeDialog({ kind, onClose }: { kind: ChargeKind | null; onClo
   }, [clearError, onClose]);
 
   async function confirm() {
-    if (await action.run()) close();
+    const result = await action.run();
+    if (result?.subscription.pendingPayment) setChallenge(result.subscription.pendingPayment);
+    else if (result) close();
   }
 
   const copy = {
@@ -55,6 +61,7 @@ export function ChargeDialog({ kind, onClose }: { kind: ChargeKind | null; onClo
   };
 
   if (!kind) return null;
+  if (challenge) return <AuthenticateDialog pending={challenge} onClose={close} />;
   const text = copy[kind];
   const charges = kind !== "downgrade";
 
@@ -79,7 +86,7 @@ export function ChargeDialog({ kind, onClose }: { kind: ChargeKind | null; onClo
         <p className="type-body">{text.body}</p>
         {charges &&
           (subscription.paymentMethod ? (
-            <p className="type-small text-fg-muted">Charged to {describeCard(subscription.paymentMethod)}. Simulated, no real card is charged.</p>
+            <p className="type-small text-fg-muted">Charged to {describeCard(subscription.paymentMethod)}. {sandbox ? "Stripe test mode" : "Simulated"}, no real card is charged.</p>
           ) : (
             <Notice tone="warn">There is no payment method on file. Add one before you buy.</Notice>
           ))}

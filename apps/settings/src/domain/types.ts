@@ -3,6 +3,7 @@ export type PaidPlan = Exclude<Plan, "none">;
 export type SubscriptionStatus = "active" | "past_due" | "canceled";
 
 export interface PaymentMethod {
+  id?: string;
   brand: string;
   last4: string;
   expMonth: number;
@@ -15,6 +16,16 @@ export interface Invoice {
   description: string;
   amountUsd: number;
   status: "paid" | "open" | "failed";
+  paymentIntentId?: string;
+}
+
+export type Purchase = "run_pack" | "subscription";
+
+export interface PendingPayment {
+  intentId: string;
+  purchase: Purchase;
+  amountUsd: number;
+  description: string;
 }
 
 export interface Subscription {
@@ -24,6 +35,7 @@ export interface Subscription {
   renewsAt: string | null;
   cancelAtPeriodEnd: boolean;
   paymentMethod: PaymentMethod | null;
+  pendingPayment: PendingPayment | null;
   invoices: Invoice[];
 }
 

@@ -1,5 +1,12 @@
 import { offerFor, RUN_PACK_RUNS } from "~/domain/plans";
-import { SettingsError, type Invoice, type PaidPlan, type PaymentMethod, type Subscription } from "~/domain/types";
+import {
+  SettingsError,
+  type Invoice,
+  type PaidPlan,
+  type PaymentMethod,
+  type PendingPayment,
+  type Subscription,
+} from "~/domain/types";
 
 const monthNames = [
   "January",
@@ -28,16 +35,23 @@ export function addOneMonth(date: Date): string {
 }
 
 function requirePaymentMethod(subscription: Subscription): void {
+  if (subscription.pendingPayment) {
+    throw new SettingsError("conflict", "A payment is waiting for authentication. Finish it first.");
+  }
   if (!subscription.paymentMethod) {
     throw new SettingsError("payment_failed", "Add a payment method before you buy.");
   }
 }
 
-function paidInvoice(id: string, now: Date, description: string, amountUsd: number): Invoice {
-  return { id, date: isoDay(now), description, amountUsd, status: "paid" };
+function invoice(id: string, date: string, description: string, amountUsd: number, status: Invoice["status"], paymentIntentId?: string): Invoice {
+  return paymentIntentId ? { id, date, description, amountUsd, status, paymentIntentId } : { id, date, description, amountUsd, status };
 }
 
-export function buyRunPack(subscription: Subscription, now: Date, invoiceId: string): Subscription {
+function paidInvoice(id: string, now: Date, description: string, amountUsd: number, paymentIntentId?: string): Invoice {
+  return invoice(id, isoDay(now), description, amountUsd, "paid", paymentIntentId);
+}
+
+export function buyRunPack(subscription: Subscription, now: Date, invoiceId: string, paymentIntentId?: string): Subscription {
   requirePaymentMethod(subscription);
   const offer = offerFor("run_pack");
   const startsPlan = subscription.plan === "none";
@@ -46,11 +60,17 @@ export function buyRunPack(subscription: Subscription, now: Date, invoiceId: str
     plan: startsPlan ? "run_pack" : subscription.plan,
     status: startsPlan ? "active" : subscription.status,
     runsRemaining: subscription.runsRemaining + RUN_PACK_RUNS,
-    invoices: [paidInvoice(invoiceId, now, `Run pack, ${RUN_PACK_RUNS} runs`, offer.priceUsd), ...subscription.invoices],
+    invoices: [paidInvoice(invoiceId, now, `Run pack, ${RUN_PACK_RUNS} runs`, offer.priceUsd, paymentIntentId), ...subscription.invoices],
   };
 }
 
-export function changePlan(subscription: Subscription, plan: PaidPlan, now: Date, invoiceId: string): Subscription {
+export function changePlan(
+  subscription: Subscription,
+  plan: PaidPlan,
+  now: Date,
+  invoiceId: string,
+  paymentIntentId?: string,
+): Subscription {
   if (subscription.plan === plan) {
     throw new SettingsError("conflict", "You are already on this plan.");
   }
@@ -64,7 +84,7 @@ export function changePlan(subscription: Subscription, plan: PaidPlan, now: Date
       renewsAt: addOneMonth(now),
       cancelAtPeriodEnd: false,
       invoices: [
-        paidInvoice(invoiceId, now, `Subscription, ${monthNames[now.getUTCMonth()]}`, offer.priceUsd),
+        paidInvoice(invoiceId, now, `Subscription, ${monthNames[now.getUTCMonth()]}`, offer.priceUsd, paymentIntentId),
         ...subscription.invoices,
       ],
     };
@@ -103,9 +123,59 @@ export function updatePaymentMethod(subscription: Subscription, method: PaymentM
   if (method.expYear * 12 + method.expMonth < currentMonth) {
     throw new SettingsError("invalid_input", "This card has expired.");
   }
+  const card = { brand: method.brand.trim(), last4: method.last4, expMonth: method.expMonth, expYear: method.expYear };
   return {
     ...subscription,
-    paymentMethod: { brand: method.brand.trim(), last4: method.last4, expMonth: method.expMonth, expYear: method.expYear },
+    paymentMethod: method.id ? { id: method.id, ...card } : card,
     status: subscription.status === "past_due" ? "active" : subscription.status,
+  };
+}
+
+export function holdPayment(subscription: Subscription, pending: PendingPayment): Subscription {
+  requirePaymentMethod(subscription);
+  return { ...subscription, pendingPayment: pending };
+}
+
+export function completePendingPayment(
+  subscription: Subscription,
+  intentId: string,
+  authenticated: boolean,
+  now: Date,
+  invoiceId: string,
+): Subscription {
+  const pending = subscription.pendingPayment;
+  if (!pending || pending.intentId !== intentId) {
+    throw new SettingsError("not_found", "No payment is waiting for authentication.");
+  }
+  const released = { ...subscription, pendingPayment: null };
+  if (!authenticated) return released;
+  return pending.purchase === "run_pack"
+    ? buyRunPack(released, now, invoiceId, intentId)
+    : changePlan(released, "subscription", now, invoiceId, intentId);
+}
+
+export function renewalFor(subscription: Subscription): { date: Date; amountUsd: number; description: string } {
+  if (subscription.plan !== "subscription" || !subscription.renewsAt || subscription.status === "canceled") {
+    throw new SettingsError("conflict", "Only a subscription renews.");
+  }
+  const date = new Date(`${subscription.renewsAt}T00:00:00Z`);
+  return { date, amountUsd: offerFor("subscription").priceUsd, description: `Subscription, ${monthNames[date.getUTCMonth()]}` };
+}
+
+export function endSubscription(subscription: Subscription): Subscription {
+  renewalFor(subscription);
+  return { ...subscription, plan: "none", status: "canceled", renewsAt: null, cancelAtPeriodEnd: false };
+}
+
+export function renewSubscription(subscription: Subscription, paid: boolean, invoiceId: string, paymentIntentId?: string): Subscription {
+  const renewal = renewalFor(subscription);
+  return {
+    ...subscription,
+    status: paid ? "active" : "past_due",
+    renewsAt: addOneMonth(renewal.date),
+    invoices: [
+      invoice(invoiceId, isoDay(renewal.date), renewal.description, renewal.amountUsd, paid ? "paid" : "failed", paymentIntentId),
+      ...subscription.invoices,
+    ],
   };
 }

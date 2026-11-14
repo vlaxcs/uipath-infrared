@@ -19,7 +19,7 @@ function WhenReady({ children }: { children: ReactNode }) {
 
 export async function renderWithApi(ui: ReactNode, api: FakeSettingsApi = fakeApi()) {
   const result = render(
-    <SettingsProvider api={api}>
+    <SettingsProvider api={api} sandbox={api.sandbox}>
       <WhenReady>{ui}</WhenReady>
     </SettingsProvider>,
   );
