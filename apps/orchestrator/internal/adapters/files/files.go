@@ -261,5 +261,56 @@ func (Local) ReadProject(path string) (onboarding.Project, error) {
 	if forbidden == nil {
 		forbidden = []string{}
 	}
-	return onboarding.Project{Description: document.Description, ForbiddenProviders: forbidden}, nil
+	profile, err := readProjectProfile(strings.TrimSuffix(path, ".forecast.json") + ".project.json")
+	if err != nil {
+		return onboarding.Project{}, err
+	}
+	return onboarding.Project{Description: document.Description, ForbiddenProviders: forbidden, Profile: profile}, nil
+}
+
+func readProjectProfile(path string) (*onboarding.ProjectProfile, error) {
+	var document struct {
+		Name     string `json:"name"`
+		Summary  string `json:"summary"`
+		Business struct {
+			Markets []string `json:"markets"`
+		} `json:"business"`
+		Environments []struct {
+			Name string `json:"name"`
+		} `json:"environments"`
+		Users *struct {
+			Metric  string `json:"metric"`
+			Current struct {
+				Value int `json:"value"`
+			} `json:"current"`
+			Expected []struct {
+				Month int `json:"month"`
+				Base  int `json:"base"`
+			} `json:"expected"`
+		} `json:"users"`
+	}
+	err := readJSON(path, &document)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", filepath.Base(path), err)
+	}
+	profile := &onboarding.ProjectProfile{Name: document.Name, Summary: document.Summary, Markets: document.Business.Markets, Environments: []string{}}
+	if profile.Markets == nil {
+		profile.Markets = []string{}
+	}
+	for _, environment := range document.Environments {
+		profile.Environments = append(profile.Environments, environment.Name)
+	}
+	if users := document.Users; users != nil {
+		summary := &onboarding.ProjectUsers{Metric: users.Metric, Current: users.Current.Value}
+		for _, point := range users.Expected {
+			if point.Month >= summary.AtMonth {
+				summary.AtMonth, summary.Expected = point.Month, point.Base
+			}
+		}
+		profile.Users = summary
+	}
+	return profile, nil
 }

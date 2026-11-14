@@ -5,10 +5,19 @@ export type Connection = {
   reachable?: boolean;
 };
 
+export type ProjectProfile = {
+  name: string;
+  summary: string;
+  markets: string[];
+  environments: string[];
+  users?: { metric: string; current: number; expected: number; at_month: number };
+};
+
 export type Project = {
   id: string;
   description: string;
   forbidden_providers: string[];
+  profile?: ProjectProfile;
 };
 
 export type OnboardingSetup = {

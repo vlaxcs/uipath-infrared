@@ -16,4 +16,5 @@ apps/estate/logs/
 apps/agent/out/
 apps/slack-bot/out/
 runs/
+!apps/dashboard/src/runs/
 .bin/

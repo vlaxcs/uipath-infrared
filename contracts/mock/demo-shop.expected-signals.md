@@ -50,7 +50,7 @@ No encryption at rest: almost everything stateful except `ddb-orders`. No backup
 ## Hard constraints from `forecast.example.json`
 - **Data residency (EU only for pii/confidential/unknown):** `s3-legacy-reports` is `us-east-1` + `pii` -> the current estate already violates it. `do_nothing` must be reported infeasible but still shown as the baseline.
 - **Budget ceiling EUR 90k/mo on the base scenario at month 36:** current EUR 133k is already above it; with 2-3%/month growth, the ceiling is only reachable by removing GPU/staging/orphan waste AND rightsizing. A good engine says which combination is the cheapest way to get under it.
-- **Provider allow-list** `aws, managed_pg, onprem`; **99.9% availability** is not met by single-AZ RDS at 99.5%.
+- **Provider allow-list** `aws, supabase, neon, onprem`; **99.9% availability** is not met by single-AZ RDS at 99.5%.
 
 ## Migration blockers (catalog feature check)
 - `rds-analytics` uses `pg_partman` and `logical_replication`: **`neon-launch` lacks both**, so moving it there must be rejected with that reason. `aws-rds-postgres`, `aws-aurora-postgres` and `onprem-postgres` support them.

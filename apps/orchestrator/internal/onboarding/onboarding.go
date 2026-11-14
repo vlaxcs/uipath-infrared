@@ -43,9 +43,25 @@ type Connection struct {
 }
 
 type Project struct {
-	ID                 string   `json:"id"`
-	Description        string   `json:"description"`
-	ForbiddenProviders []string `json:"forbidden_providers"`
+	ID                 string          `json:"id"`
+	Description        string          `json:"description"`
+	ForbiddenProviders []string        `json:"forbidden_providers"`
+	Profile            *ProjectProfile `json:"profile,omitempty"`
+}
+
+type ProjectProfile struct {
+	Name         string        `json:"name"`
+	Summary      string        `json:"summary"`
+	Markets      []string      `json:"markets"`
+	Environments []string      `json:"environments"`
+	Users        *ProjectUsers `json:"users,omitempty"`
+}
+
+type ProjectUsers struct {
+	Metric   string `json:"metric"`
+	Current  int    `json:"current"`
+	Expected int    `json:"expected"`
+	AtMonth  int    `json:"at_month"`
 }
 
 type Setup struct {

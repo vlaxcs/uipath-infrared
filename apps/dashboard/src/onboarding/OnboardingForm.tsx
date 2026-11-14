@@ -2,6 +2,7 @@ import type { FormEvent, ReactNode } from "react";
 import { canStart, onpremChoice, targetChoices, withProject, withTarget } from "~/onboarding/answers";
 import { CriteriaFields } from "~/onboarding/CriteriaFields";
 import { ProjectHeld } from "~/onboarding/ProjectHeld";
+import { projectFacts, projectLabel } from "~/onboarding/projectFacts";
 import { StatusBadge } from "~/ui/StatusBadge";
 import type { RunSummary } from "~/runs/types";
 import type { Answers, Choice, OnboardingSetup } from "~/onboarding/types";
@@ -127,8 +128,8 @@ export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, e
               type="radio"
               name="project"
               id={project.id}
-              label={project.id}
-              hint={project.description || undefined}
+              label={projectLabel(project)}
+              hint={projectFacts(project)}
               checked={answers.project === project.id}
               onChange={() => onAnswers(withProject(setup, answers, project.id))}
             />

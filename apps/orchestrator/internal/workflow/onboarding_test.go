@@ -153,6 +153,34 @@ func TestWithoutAFlociURLTheConnectionIsNotProbed(t *testing.T) {
 	}
 }
 
+func TestEachProjectCarriesItsProfileWhenOneSitsBesideTheForecast(t *testing.T) {
+	setup, err := newHarness(t, options{maxRevisions: 2}).flow.Onboarding()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var clinic *onboarding.Project
+	for index := range setup.Projects {
+		if setup.Projects[index].ID == "clinic-booking" {
+			clinic = &setup.Projects[index]
+		}
+	}
+	if clinic == nil || clinic.Profile == nil {
+		t.Fatalf("clinic-booking has no profile: %+v", clinic)
+	}
+	profile := clinic.Profile
+	if profile.Name != "Clinic booking" || !slices.Equal(profile.Environments, []string{"prod", "staging", "dev"}) || !slices.Equal(profile.Markets, []string{"Romania"}) {
+		t.Fatalf("profile %+v", profile)
+	}
+	if users := profile.Users; users == nil || users.Current != 41000 || users.Expected != 112500 || users.AtMonth != 24 {
+		t.Fatalf("users %+v", profile.Users)
+	}
+
+	bare, err := newHarness(t, options{maxRevisions: 2, projectsDir: projectsNamed(t, "alpha")}).flow.Onboarding()
+	if err != nil || bare.Projects[0].Profile != nil {
+		t.Fatalf("a project without a profile file got %+v (%v)", bare.Projects[0].Profile, err)
+	}
+}
+
 func TestABrokenProjectForecastFailsTheSetupNamingIt(t *testing.T) {
 	projects := projectsNamed(t, "startup")
 	os.WriteFile(filepath.Join(projects, "broken.forecast.json"), []byte("{not json"), 0o644)
