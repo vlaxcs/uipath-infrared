@@ -1,5 +1,5 @@
 import { build, context } from "esbuild";
-import { copyFile, mkdir, rm } from "node:fs/promises";
+import { copyFile, cp, mkdir, rm } from "node:fs/promises";
 
 const watch = process.argv.includes("--watch");
 
@@ -37,6 +37,7 @@ await mkdir("dist", { recursive: true });
 await copyFile("manifest.json", "dist/manifest.json");
 await copyFile("options.html", "dist/options.html");
 await copyFile("src/options/options.css", "dist/options.css");
+await cp("icons", "dist/icons", { recursive: true });
 
 if (watch) {
   for (const entry of entries) {

@@ -35,6 +35,6 @@ The options page (toolbar action or **Settings** in the card) sets the orchestra
     npm test
     npm run build
 
-The card's design tokens mirror `apps/dashboard/src/styles/tokens.css`; the extension is a standalone app, so the values are copied rather than imported.
+The card's design tokens mirror `apps/dashboard/src/styles/tokens.css`; the extension is a standalone app, so the values are copied rather than imported. The extension icons are resized from the Infrared logo in `apps/site/public/apple-touch-icon.png`.
 
 No CI: the team verifies locally.

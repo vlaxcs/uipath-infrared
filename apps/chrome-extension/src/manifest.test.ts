@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import manifest from "../manifest.json";
 
@@ -8,6 +10,14 @@ describe("the extension manifest", () => {
     expect(manifest.host_permissions).toEqual(["http://127.0.0.1/*", "http://localhost/*"]);
     expect(manifest.host_permissions).not.toContain("<all_urls>");
     expect(manifest).not.toHaveProperty("externally_connectable");
+  });
+
+  it("ships the Infrared icon", () => {
+    expect(manifest.icons["128"]).toBe("icons/icon128.png");
+    expect(manifest.action.default_icon["32"]).toBe("icons/icon32.png");
+    for (const size of [16, 32, 48, 128]) {
+      expect(existsSync(join(import.meta.dirname, "..", "icons", `icon${size}.png`))).toBe(true);
+    }
   });
 
   it("injects a content script on GitHub and exposes the options page", () => {
