@@ -1,5 +1,6 @@
 import type { FormEvent, ReactNode } from "react";
 import { canStart, onpremChoice, targetChoices, withProject, withTarget } from "~/onboarding/answers";
+import { CriteriaFields } from "~/onboarding/CriteriaFields";
 import type { Answers, Choice, OnboardingSetup } from "~/onboarding/types";
 
 type OnboardingFormProps = {
@@ -129,8 +130,12 @@ export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, e
         ))}
       </Section>
 
+      <Section title="4. Criteria">
+        <CriteriaFields criteria={answers.criteria} onChange={(criteria) => onAnswers({ ...answers, criteria })} />
+      </Section>
+
       {onprem ? (
-        <Section title="4. On-prem">
+        <Section title="5. On-prem">
           <Checkbox name="onprem" choice={onprem} onChange={(checked) => onAnswers({ ...answers, onprem: checked })} />
           <p className="text-caption text-fg-muted">Infrared prices the hardware, the space and the people to run it.</p>
         </Section>

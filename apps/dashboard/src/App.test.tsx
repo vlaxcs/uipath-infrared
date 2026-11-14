@@ -8,7 +8,12 @@ import type { RunDetail } from "~/runs/types";
 
 vi.mock("~/onboarding/api", async (original) => ({
   ...(await original<typeof import("~/onboarding/api")>()),
-  orchestratorOnboarding: { load: () => new Promise(() => {}), start: () => new Promise(() => {}) },
+  orchestratorOnboarding: {
+    load: () => new Promise(() => {}),
+    start: () => new Promise(() => {}),
+    loadProfile: () => new Promise(() => {}),
+    saveProfile: () => new Promise(() => {}),
+  },
 }));
 
 afterEach(() => {
@@ -52,9 +57,10 @@ describe("the platform frame", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: "Configuration" }));
     expect(window.location.hash).toBe("#/configuration");
     expect(screen.getByRole("heading", { level: 1, name: "Configuration" })).toBeTruthy();
-    for (const section of ["GitHub organisation", "Infrastructure", "Project defaults", "On-prem"]) {
+    for (const section of ["GitHub organisation", "Infrastructure"]) {
       expect(screen.getByRole("heading", { level: 2, name: section })).toBeTruthy();
     }
+    expect(screen.getByRole("status").textContent).toBe("Loading the defaults");
 
     fireEvent.click(screen.getByRole("button", { name: "Account menu" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Account" }));

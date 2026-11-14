@@ -16,11 +16,39 @@ export type OnboardingSetup = {
   projects: Project[];
 };
 
+export type Weights = {
+  cost: number;
+  risk: number;
+  effort: number;
+};
+
+export type Criteria = {
+  min_availability_pct: number;
+  min_zones: number;
+  weights: Weights;
+  allowed_regions: string[];
+};
+
+export type ProfileSite = {
+  kind: "headquarters" | "search";
+  label: string;
+  lat: number;
+  lng: number;
+  radius_km?: number;
+  free_area_m2?: number;
+};
+
+export type Profile = {
+  criteria: Criteria;
+  onprem: { wanted: boolean; site?: ProfileSite };
+};
+
 export type Answers = {
   connection: string;
   project: string;
   targets: string[];
   onprem: boolean;
+  criteria: Criteria;
 };
 
 export type StartRequest = {
@@ -29,6 +57,7 @@ export type StartRequest = {
     connection: string;
     targets: string[];
     onprem: { wanted: boolean };
+    criteria: Criteria;
   };
 };
 

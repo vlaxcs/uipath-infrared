@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { OrchestratorError, type OnboardingSource } from "~/onboarding/api";
 import { OnboardingSection } from "~/onboarding/OnboardingSection";
 import type { OnboardingSetup } from "~/onboarding/types";
+import { DEFAULT_CRITERIA, DEFAULT_PROFILE } from "~/onboarding/criteria";
 
 afterEach(cleanup);
 
@@ -20,6 +21,8 @@ function source(overrides: Partial<OnboardingSource> = {}): OnboardingSource {
   return {
     load: vi.fn(async () => setup),
     start: vi.fn(async () => ({ id: "run-startup-0001", project: "startup" })),
+    loadProfile: vi.fn(async () => DEFAULT_PROFILE),
+    saveProfile: vi.fn(async (profile) => profile),
     ...overrides,
   };
 }
@@ -32,12 +35,12 @@ async function shown(fake: OnboardingSource, onFollowRun = vi.fn()) {
 const box = (name: string) => screen.getByRole("checkbox", { name }) as HTMLInputElement;
 
 describe("onboarding", () => {
-  it("shows the four sections in order, with the controls in that order", async () => {
+  it("shows the sections in order, with the controls in that order", async () => {
     await shown(source());
     const legends = [...document.querySelectorAll("legend")].map((legend) => legend.textContent);
-    expect(legends).toEqual(["1. Connect the infrastructure", "2. Pick the project", "3. Where it may move", "4. On-prem"]);
+    expect(legends).toEqual(["1. Connect the infrastructure", "2. Pick the project", "3. Where it may move", "4. Criteria", "Data residency", "5. On-prem"]);
     const controls = [...document.querySelectorAll("input, button")].map((element) => (element as HTMLInputElement).value || element.textContent);
-    expect(controls).toEqual(["floci", "startup", "strict", "aws", "managed_pg", "onprem", "Start the run"]);
+    expect(controls).toEqual(["floci", "startup", "strict", "aws", "managed_pg", "on", "on", "onprem", "Start the run"]);
   });
 
   it("starts the run with every target ticked and on-prem off by default", async () => {
@@ -47,7 +50,7 @@ describe("onboarding", () => {
     await screen.findByRole("heading", { name: "The run started" });
     expect(fake.start).toHaveBeenCalledWith({
       project: "startup",
-      onboarding: { connection: "floci", targets: ["aws", "managed_pg"], onprem: { wanted: false } },
+      onboarding: { connection: "floci", targets: ["aws", "managed_pg"], onprem: { wanted: false }, criteria: DEFAULT_CRITERIA },
     });
     expect(screen.getByText("run-startup-0001")).toBeTruthy();
   });
@@ -61,7 +64,7 @@ describe("onboarding", () => {
     await waitFor(() => expect(fake.start).toHaveBeenCalled());
     expect(fake.start).toHaveBeenCalledWith({
       project: "startup",
-      onboarding: { connection: "floci", targets: ["aws"], onprem: { wanted: true } },
+      onboarding: { connection: "floci", targets: ["aws"], onprem: { wanted: true }, criteria: DEFAULT_CRITERIA },
     });
   });
 
@@ -83,7 +86,7 @@ describe("onboarding", () => {
 
   it("hides on-prem when the catalog has no on-prem option", async () => {
     await shown(source({ load: vi.fn(async () => ({ ...setup, onprem: false })) }));
-    expect(screen.queryByText("4. On-prem")).toBeNull();
+    expect(screen.queryByText("5. On-prem")).toBeNull();
   });
 
   it("says there are no projects and keeps Start disabled", async () => {

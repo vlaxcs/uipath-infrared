@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { OrchestratorError, orchestratorOnboarding } from "~/onboarding/api";
+import { DEFAULT_CRITERIA } from "~/onboarding/criteria";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -23,7 +24,7 @@ describe("the onboarding data source", () => {
   it("posts the answers to start a run", async () => {
     vi.stubEnv("VITE_ORCHESTRATOR_URL", "http://orchestrator.test");
     const fetch = answering(201, { id: "run-startup-0001", project: "startup" });
-    const request = { project: "startup", onboarding: { connection: "floci", targets: ["aws"], onprem: { wanted: false } } };
+    const request = { project: "startup", onboarding: { connection: "floci", targets: ["aws"], onprem: { wanted: false }, criteria: DEFAULT_CRITERIA } };
     await expect(orchestratorOnboarding.start(request)).resolves.toMatchObject({ id: "run-startup-0001" });
     const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe("http://orchestrator.test/runs");

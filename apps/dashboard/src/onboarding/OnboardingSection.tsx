@@ -3,9 +3,10 @@ import { initialAnswers, startRequest } from "~/onboarding/answers";
 import { OrchestratorError, orchestratorOnboarding, type OnboardingSource } from "~/onboarding/api";
 import { OnboardingForm } from "~/onboarding/OnboardingForm";
 import { StartedRun } from "~/onboarding/StartedRun";
-import type { Answers, OnboardingSetup, StartedRun as Started } from "~/onboarding/types";
+import { DEFAULT_PROFILE } from "~/onboarding/criteria";
+import type { Answers, OnboardingSetup, Profile, StartedRun as Started } from "~/onboarding/types";
 
-type Loaded = { state: "loading" } | { state: "failed"; reason: string } | { state: "ready"; setup: OnboardingSetup };
+type Loaded = { state: "loading" } | { state: "failed"; reason: string } | { state: "ready"; setup: OnboardingSetup; profile: Profile };
 
 type OnboardingSectionProps = {
   source?: OnboardingSource;
@@ -27,11 +28,11 @@ export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun
   useEffect(() => {
     let current = true;
     setLoaded({ state: "loading" });
-    source.load().then(
-      (setup) => {
+    Promise.all([source.load(), source.loadProfile().catch(() => DEFAULT_PROFILE)]).then(
+      ([setup, profile]) => {
         if (!current) return;
-        setLoaded({ state: "ready", setup });
-        setAnswers(initialAnswers(setup));
+        setLoaded({ state: "ready", setup, profile });
+        setAnswers(initialAnswers(setup, profile));
       },
       (failure: unknown) => {
         if (current) setLoaded({ state: "failed", reason: reasonOf(failure) });
@@ -82,7 +83,7 @@ export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun
         onFollow={() => onFollowRun(started.id)}
         onAnother={() => {
           setStarted(null);
-          setAnswers(initialAnswers(loaded.setup));
+          setAnswers(initialAnswers(loaded.setup, loaded.profile));
         }}
       />
     );
