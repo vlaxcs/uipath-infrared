@@ -1,0 +1,7216 @@
+{
+  "schema_version": "1.0",
+  "project": "northwind",
+  "source": {
+    "extractor": "hand-written-mock",
+    "extractor_version": "0",
+    "generated_at": "2026-11-13T18:00:00Z",
+    "endpoint": null,
+    "regions_scanned": [
+      "eu-west-1",
+      "us-east-1"
+    ],
+    "is_mock": true,
+    "notes": "Hand-written estate built by contracts/mock/build_estate.py from the four mock companies; ownership planted as tags, a CloudFormation stack, a namespace and names, resolved by the extractor."
+  },
+  "stacks": [
+    {
+      "id": "clinic-booking-dev",
+      "name": "clinic-booking · Development",
+      "environment": "dev",
+      "description": "Assigned from tags."
+    },
+    {
+      "id": "clinic-booking-prod",
+      "name": "clinic-booking · Production",
+      "environment": "prod",
+      "description": "Assigned from tags."
+    },
+    {
+      "id": "clinic-booking-staging",
+      "name": "clinic-booking · Staging",
+      "environment": "staging",
+      "description": "Assigned from tags."
+    },
+    {
+      "id": "data-platform-prod",
+      "name": "data-platform · Production",
+      "environment": "prod",
+      "description": "Assigned from CloudFormation stacks."
+    },
+    {
+      "id": "erp",
+      "name": "erp",
+      "environment": "unknown",
+      "description": "Assigned from names."
+    },
+    {
+      "id": "fleet-dev",
+      "name": "fleet · Development",
+      "environment": "dev",
+      "description": "Assigned from Kubernetes namespaces."
+    },
+    {
+      "id": "fleet-prod",
+      "name": "fleet · Production",
+      "environment": "prod",
+      "description": "Assigned from Kubernetes namespaces."
+    },
+    {
+      "id": "hr-portal-prod",
+      "name": "hr-portal · Production",
+      "environment": "prod",
+      "description": "Assigned from tags."
+    },
+    {
+      "id": "marketing-site-prod",
+      "name": "marketing-site · Production",
+      "environment": "prod",
+      "description": "Assigned from tags."
+    },
+    {
+      "id": "payments-prod",
+      "name": "payments · Production",
+      "environment": "prod",
+      "description": "Assigned from tags."
+    },
+    {
+      "id": "receipts-prod",
+      "name": "receipts · Production",
+      "environment": "prod",
+      "description": "Assigned from tags."
+    },
+    {
+      "id": "shared",
+      "name": "Shared between projects",
+      "environment": "unknown",
+      "description": "Assigned from use by several projects."
+    },
+    {
+      "id": "storefront-prod",
+      "name": "storefront · Production",
+      "environment": "prod",
+      "description": "Assigned from tags."
+    },
+    {
+      "id": "storefront-staging",
+      "name": "storefront · Staging",
+      "environment": "staging",
+      "description": "Assigned from tags."
+    },
+    {
+      "id": "support-assistant-prod",
+      "name": "support-assistant · Production",
+      "environment": "prod",
+      "description": "Assigned from tags."
+    },
+    {
+      "id": "unassigned",
+      "name": "Not assigned to a project",
+      "environment": "unknown",
+      "description": "Assigned from nothing."
+    }
+  ],
+  "controls": {
+    "audit_logging_enabled": false,
+    "threat_detection_enabled": false,
+    "config_recording_enabled": false,
+    "backup_plans_exist": false,
+    "vpc_flow_logs_enabled": false,
+    "mfa_enforced": false
+  },
+  "components": [
+    {
+      "id": "storefront-eks-shop-main",
+      "kind": "kubernetes_cluster",
+      "provider": "aws",
+      "service": "eks",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": false,
+      "stack": "storefront-prod",
+      "sku": "k8s-1.28",
+      "engine": {
+        "name": "kubernetes",
+        "version": "1.28"
+      },
+      "config": {
+        "endpoint_public": true,
+        "control_plane_logging": false,
+        "secrets_kms_encryption": false
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "encryption_in_transit": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 67,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-eks-shop-main",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-ng-shop-general",
+      "kind": "node_group",
+      "provider": "aws",
+      "service": "eks-managed-nodegroup",
+      "quantity": 12,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "storefront-prod",
+      "sku": "m5.8xlarge",
+      "parent": "eks-shop-main",
+      "scaling": {
+        "min": 12,
+        "max": 12,
+        "desired": 12,
+        "autoscaling_enabled": false
+      },
+      "config": {
+        "capacity_type": "on_demand",
+        "ami": "AL2"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 32,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 128,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 500,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 14,
+          "p95": 31,
+          "max": 52,
+          "basis": "CloudWatch ContainerInsights node_cpu_utilization"
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 38,
+          "p95": 51,
+          "max": 63
+        }
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 12379,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-ng-shop-general",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-ng-shop-cpu",
+      "kind": "node_group",
+      "provider": "aws",
+      "service": "eks-managed-nodegroup",
+      "quantity": 6,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "storefront-prod",
+      "sku": "c5.12xlarge",
+      "parent": "eks-shop-main",
+      "scaling": {
+        "min": 6,
+        "max": 6,
+        "desired": 6,
+        "autoscaling_enabled": false
+      },
+      "config": {
+        "capacity_type": "on_demand",
+        "ami": "AL2"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 48,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 96,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 500,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 11,
+          "p95": 24,
+          "max": 40
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 22,
+          "p95": 30,
+          "max": 41
+        }
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 8220,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-ng-shop-cpu",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-eks-shop-staging",
+      "kind": "kubernetes_cluster",
+      "provider": "aws",
+      "service": "eks",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": false,
+      "stack": "storefront-staging",
+      "sku": "k8s-1.28",
+      "engine": {
+        "name": "kubernetes",
+        "version": "1.28"
+      },
+      "tags": {
+        "env": "staging",
+        "Project": "storefront",
+        "Environment": "staging"
+      },
+      "config": {
+        "endpoint_public": true,
+        "control_plane_logging": false
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 67,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-eks-shop-staging",
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "staging",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-ng-shop-staging",
+      "kind": "node_group",
+      "provider": "aws",
+      "service": "eks-managed-nodegroup",
+      "quantity": 12,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "storefront-staging",
+      "sku": "m5.8xlarge",
+      "parent": "eks-shop-staging",
+      "scaling": {
+        "min": 12,
+        "max": 12,
+        "desired": 12,
+        "autoscaling_enabled": false
+      },
+      "tags": {
+        "env": "staging",
+        "Project": "storefront",
+        "Environment": "staging"
+      },
+      "config": {
+        "capacity_type": "on_demand",
+        "ami": "AL2"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 32,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 128,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 500,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 2,
+          "p95": 6,
+          "max": 14
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 9,
+          "p95": 13,
+          "max": 19
+        }
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 12379,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-ng-shop-staging",
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "staging",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-rds-orders",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "storefront-prod",
+      "sku": "db.r5.8xlarge",
+      "engine": {
+        "name": "postgres",
+        "version": "11.22"
+      },
+      "tags": {
+        "app": "orders",
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "features_used": [
+        "pg_trgm",
+        "uuid-ossp",
+        "logical_replication"
+      ],
+      "data_gb": {
+        "value": 1450,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "vcpu": {
+          "value": 32,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 256,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 2000,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "provisioned_iops": {
+          "value": 6000,
+          "provenance": "observed",
+          "unit": "iops"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 8,
+          "p95": 22,
+          "max": 41,
+          "basis": "CloudWatch AWS/RDS CPUUtilization"
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 120,
+          "p95": 210,
+          "max": 480
+        },
+        "read_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 800,
+          "p95": 2100,
+          "max": 3900
+        },
+        "write_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 320,
+          "p95": 900,
+          "max": 1700
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "encryption_in_transit": false,
+        "backup_retention_days": 0,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 2919,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-rds-orders",
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-rds-orders-clone",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "orphan",
+      "stateful": true,
+      "stack": "storefront-prod",
+      "sku": "db.r5.8xlarge",
+      "engine": {
+        "name": "postgres",
+        "version": "11.22"
+      },
+      "tags": {
+        "purpose": "migration-test",
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "features_used": [
+        "pg_trgm",
+        "uuid-ossp"
+      ],
+      "data_gb": {
+        "value": 1450,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "vcpu": {
+          "value": 32,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 256,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 2000,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0.8,
+          "p95": 1.6,
+          "max": 7
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0.4,
+          "p95": 1,
+          "max": 3
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "backup_retention_days": 0,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 2919,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-rds-orders-clone",
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-rds-analytics",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "storefront-prod",
+      "sku": "db.m5.4xlarge",
+      "engine": {
+        "name": "postgres",
+        "version": "12.18"
+      },
+      "features_used": [
+        "postgis",
+        "pg_partman",
+        "logical_replication"
+      ],
+      "data_gb": {
+        "value": 640,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "confidential",
+      "capacity": {
+        "vcpu": {
+          "value": 16,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 64,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 1000,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 88,
+          "p95": 97,
+          "max": 100
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 55,
+          "p95": 60,
+          "max": 64
+        },
+        "read_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 3900,
+          "p95": 5200,
+          "max": 6000
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "backup_retention_days": 1,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1086,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-rds-analytics",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-cache-sessions",
+      "kind": "cache",
+      "provider": "aws",
+      "service": "elasticache-redis",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "storefront-prod",
+      "sku": "cache.r5.4xlarge",
+      "engine": {
+        "name": "redis",
+        "version": "6.2"
+      },
+      "data_gb": {
+        "value": 2,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 16,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 105,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 2.5,
+          "p95": 6,
+          "max": 12
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 2.0,
+          "p95": 3.1,
+          "max": 3.4
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 45,
+          "p95": 80,
+          "max": 120
+        },
+        "hit_rate_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 62
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": false,
+        "encryption_in_transit": false,
+        "backup_retention_days": 0
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1323,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-cache-sessions",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-alb-shop",
+      "kind": "load_balancer",
+      "provider": "aws",
+      "service": "alb",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": false,
+      "stack": "storefront-prod",
+      "sku": "application",
+      "config": {
+        "listeners": [
+          "HTTP:80"
+        ],
+        "health_check_interval_s": 300,
+        "idle_timeout_s": 4000
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 9800000,
+          "basis": "CloudWatch AWS/ApplicationELB RequestCount, Sum over window"
+        },
+        "latency_ms": {
+          "unit": "ms",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 450,
+          "p95": 1900
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_in_transit": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 57,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-alb-shop",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-vmfleet-web",
+      "kind": "virtual_machine",
+      "provider": "aws",
+      "service": "ec2-asg",
+      "quantity": 8,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "storefront-prod",
+      "sku": "m5.8xlarge",
+      "scaling": {
+        "min": 8,
+        "max": 8,
+        "desired": 8,
+        "autoscaling_enabled": false
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 32,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 128,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 500,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 6,
+          "p95": 14,
+          "max": 33
+        },
+        "network_out_gb": {
+          "unit": "gb",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 1.4,
+          "p95": 3.2
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "world_open_ports": [
+          -1
+        ],
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 8621,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-vmfleet-web",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-vm-bastion",
+      "kind": "virtual_machine",
+      "provider": "aws",
+      "service": "ec2",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "idle",
+      "stateful": false,
+      "stack": "storefront-prod",
+      "sku": "m5.4xlarge",
+      "capacity": {
+        "vcpu": {
+          "value": 16,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 64,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 500,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0.6,
+          "p95": 1.2,
+          "max": 9
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "world_open_ports": [
+          22,
+          3389
+        ],
+        "encryption_at_rest": false,
+        "admin_privileges": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 562,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-vm-bastion",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-vm-batch",
+      "kind": "virtual_machine",
+      "provider": "aws",
+      "service": "ec2",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "storefront-prod",
+      "sku": "c5.9xlarge",
+      "capacity": {
+        "vcpu": {
+          "value": 36,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 72,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 500,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 1.5,
+          "p95": 3,
+          "max": 62,
+          "basis": "spikes nightly ~02:00 for ~10 minutes"
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "world_open_ports": [
+          -1
+        ],
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1074,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-vm-batch",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-s3-uploads",
+      "kind": "object_storage",
+      "provider": "aws",
+      "service": "s3",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 3,
+      "status": "active",
+      "stateful": true,
+      "stack": "storefront-prod",
+      "sku": "standard",
+      "config": {
+        "anonymous_put_allowed": true,
+        "lifecycle_rules": 0,
+        "versioning": false
+      },
+      "data_gb": {
+        "value": 800,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "confidential",
+      "capacity": {
+        "object_count": {
+          "value": 3100000,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 2400000
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "backup_retention_days": 0
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 54,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-s3-uploads",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-s3-backups",
+      "kind": "object_storage",
+      "provider": "aws",
+      "service": "s3",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 3,
+      "status": "active",
+      "stateful": true,
+      "stack": "storefront-prod",
+      "sku": "standard",
+      "config": {
+        "lifecycle_rules": 0,
+        "versioning": false,
+        "oldest_object_age_days": 1900
+      },
+      "data_gb": {
+        "value": 9000,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "object_count": {
+          "value": 4200,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 3000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 190,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-s3-backups",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-ddb-orders",
+      "kind": "nosql",
+      "provider": "aws",
+      "service": "dynamodb",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 3,
+      "status": "active",
+      "stateful": true,
+      "stack": "storefront-prod",
+      "sku": "provisioned",
+      "config": {
+        "partition_key": "status",
+        "gsi_count": 2,
+        "gsi_projection": "ALL",
+        "autoscaling": false,
+        "ttl_enabled": false
+      },
+      "data_gb": {
+        "value": 410,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "confidential",
+      "capacity": {
+        "provisioned_rcu": {
+          "value": 8000,
+          "provenance": "observed",
+          "unit": "rcu"
+        },
+        "provisioned_wcu": {
+          "value": 4000,
+          "provenance": "observed",
+          "unit": "wcu"
+        }
+      },
+      "usage": {
+        "consumed_rcu": {
+          "unit": "per_second",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 220,
+          "p95": 640,
+          "max": 1500
+        },
+        "consumed_wcu": {
+          "unit": "per_second",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 90,
+          "p95": 260,
+          "max": 700
+        },
+        "throttled_requests": {
+          "unit": "per_hour",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 140,
+          "p95": 600,
+          "max": 2100,
+          "basis": "ReadThrottleEvents+WriteThrottleEvents"
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": true,
+        "backup_retention_days": 0,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 7617,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "table + 2 GSIs at identical provisioning, USD list prices x 0.92"
+        }
+      },
+      "name": "storefront-ddb-orders",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-q-orders",
+      "kind": "queue",
+      "provider": "aws",
+      "service": "sqs",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 3,
+      "status": "active",
+      "stateful": true,
+      "stack": "storefront-prod",
+      "sku": "standard",
+      "config": {
+        "visibility_timeout_s": 0,
+        "receive_wait_s": 0,
+        "dlq": false,
+        "retention_days": 14
+      },
+      "usage": {
+        "messages_sent": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 806000
+        },
+        "messages_received": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1040000
+        },
+        "empty_receives": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 30200000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 13,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-q-orders",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "storefront-fn-resize",
+      "kind": "function",
+      "provider": "aws",
+      "service": "lambda",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "storefront-prod",
+      "sku": "python3.8/3008MB",
+      "engine": {
+        "name": "python",
+        "version": "3.8"
+      },
+      "config": {
+        "vpc_attached": true,
+        "subnets": 1,
+        "dlq": false,
+        "reserved_concurrency": null
+      },
+      "capacity": {
+        "memory_gb": {
+          "value": 3,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "timeout_s": {
+          "value": 900,
+          "provenance": "observed",
+          "unit": "s"
+        }
+      },
+      "usage": {
+        "invocations": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 302400
+        },
+        "duration_ms": {
+          "unit": "ms",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 420,
+          "p95": 900,
+          "max": 4800
+        },
+        "concurrency": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 1.5,
+          "p95": 6,
+          "max": 18
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "plaintext_secrets_suspected": true,
+        "admin_privileges": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 14,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "storefront-fn-resize",
+      "tags": {
+        "Project": "storefront",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "storefront",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "data-platform-eks-data",
+      "kind": "kubernetes_cluster",
+      "provider": "aws",
+      "service": "eks",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "data-platform-prod",
+      "sku": "k8s-1.29",
+      "engine": {
+        "name": "kubernetes",
+        "version": "1.29"
+      },
+      "config": {
+        "endpoint_public": true,
+        "control_plane_logging": false
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 67,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "data-platform-eks-data",
+      "tags": {
+        "aws:cloudformation:stack-name": "data-platform-prod"
+      },
+      "x_ownership": {
+        "project": "data-platform",
+        "environment": "prod",
+        "source": "cloudformation"
+      }
+    },
+    {
+      "id": "data-platform-ng-data-spark",
+      "kind": "node_group",
+      "provider": "aws",
+      "service": "eks-managed-nodegroup",
+      "quantity": 10,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "data-platform-prod",
+      "sku": "r5.16xlarge",
+      "parent": "eks-data",
+      "scaling": {
+        "min": 10,
+        "max": 10,
+        "desired": 10,
+        "autoscaling_enabled": false
+      },
+      "config": {
+        "capacity_type": "on_demand",
+        "ami": "AL2"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 64,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 512,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 1000,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "synthetic",
+          "avg": 22,
+          "p95": 61,
+          "max": 88
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "synthetic",
+          "avg": 35,
+          "p95": 58,
+          "max": 79
+        }
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 27079,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "data-platform-ng-data-spark",
+      "tags": {
+        "aws:cloudformation:stack-name": "data-platform-prod"
+      },
+      "x_ownership": {
+        "project": "data-platform",
+        "environment": "prod",
+        "source": "cloudformation"
+      }
+    },
+    {
+      "id": "data-platform-ng-data-gpu",
+      "kind": "node_group",
+      "provider": "aws",
+      "service": "eks-managed-nodegroup",
+      "quantity": 4,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "data-platform-prod",
+      "sku": "p3.8xlarge",
+      "parent": "eks-data",
+      "scaling": {
+        "min": 4,
+        "max": 4,
+        "desired": 4,
+        "autoscaling_enabled": false
+      },
+      "config": {
+        "capacity_type": "on_demand",
+        "ami": "AL2"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 32,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 244,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "gpus": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "disk_gb": {
+          "value": 500,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "gpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "synthetic",
+          "avg": 0.4,
+          "p95": 1.0,
+          "max": 71,
+          "basis": "3 training bursts of ~3 h in 14 days"
+        },
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "synthetic",
+          "avg": 1.2,
+          "p95": 2.5,
+          "max": 48
+        }
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 32882,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "data-platform-ng-data-gpu",
+      "tags": {
+        "aws:cloudformation:stack-name": "data-platform-prod"
+      },
+      "x_ownership": {
+        "project": "data-platform",
+        "environment": "prod",
+        "source": "cloudformation"
+      }
+    },
+    {
+      "id": "data-platform-pg-lake",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "aurora-postgresql",
+      "quantity": 2,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "data-platform-prod",
+      "sku": "db.r5.4xlarge",
+      "engine": {
+        "name": "aurora-postgresql",
+        "version": "11.21"
+      },
+      "features_used": [
+        "pgvector",
+        "pg_partman",
+        "pg_trgm"
+      ],
+      "data_gb": {
+        "value": 520,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "internal",
+      "capacity": {
+        "vcpu": {
+          "value": 16,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 128,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 520,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "synthetic",
+          "avg": 3,
+          "p95": 9,
+          "max": 22
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "synthetic",
+          "avg": 14,
+          "p95": 19,
+          "max": 31
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "backup_retention_days": 1,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1882,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "data-platform-pg-lake",
+      "tags": {
+        "aws:cloudformation:stack-name": "data-platform-prod"
+      },
+      "x_ownership": {
+        "project": "data-platform",
+        "environment": "prod",
+        "source": "cloudformation"
+      }
+    },
+    {
+      "id": "data-platform-stream-clicks",
+      "kind": "stream",
+      "provider": "aws",
+      "service": "kinesis",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 3,
+      "status": "active",
+      "stateful": false,
+      "stack": "data-platform-prod",
+      "sku": "provisioned",
+      "capacity": {
+        "shards": {
+          "value": 50,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "incoming_bytes_per_s": {
+          "unit": "bytes",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "synthetic",
+          "avg": 100000,
+          "p95": 400000,
+          "max": 1200000
+        },
+        "write_throttled": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "synthetic",
+          "avg": 0,
+          "max": 0
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 527,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "data-platform-stream-clicks",
+      "tags": {
+        "aws:cloudformation:stack-name": "data-platform-prod"
+      },
+      "x_ownership": {
+        "project": "data-platform",
+        "environment": "prod",
+        "source": "cloudformation"
+      }
+    },
+    {
+      "id": "data-platform-s3-lake",
+      "kind": "object_storage",
+      "provider": "aws",
+      "service": "s3",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 3,
+      "status": "active",
+      "stateful": true,
+      "stack": "data-platform-prod",
+      "sku": "standard",
+      "config": {
+        "lifecycle_rules": 0,
+        "avg_object_size_kb": 252,
+        "key_layout": "flat"
+      },
+      "data_gb": {
+        "value": 48000,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "internal",
+      "capacity": {
+        "object_count": {
+          "value": 190000000,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "synthetic",
+          "sum": 96000000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1154,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "data-platform-s3-lake",
+      "tags": {
+        "aws:cloudformation:stack-name": "data-platform-prod"
+      },
+      "x_ownership": {
+        "project": "data-platform",
+        "environment": "prod",
+        "source": "cloudformation"
+      }
+    },
+    {
+      "id": "erp-svc-orders-api",
+      "kind": "container",
+      "provider": "aws",
+      "service": "ecs-fargate",
+      "quantity": 8,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "erp",
+      "sku": "4vcpu/16GB",
+      "scaling": {
+        "min": 8,
+        "max": 8,
+        "desired": 8,
+        "autoscaling_enabled": false
+      },
+      "config": {
+        "image_tag": "latest",
+        "runs_as_root": true,
+        "container_insights": false
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 16,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 4,
+          "p95": 11,
+          "max": 29
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 9,
+          "p95": 14,
+          "max": 22
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "plaintext_secrets_suspected": true,
+        "admin_privileges": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1253,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "erp-svc-orders-api",
+      "x_ownership": {
+        "project": "erp",
+        "environment": null,
+        "source": "name"
+      }
+    },
+    {
+      "id": "erp-svc-invoice-worker",
+      "kind": "container",
+      "provider": "aws",
+      "service": "ecs-fargate",
+      "quantity": 5,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "erp",
+      "sku": "4vcpu/30GB",
+      "scaling": {
+        "min": 5,
+        "max": 5,
+        "desired": 5,
+        "autoscaling_enabled": false
+      },
+      "config": {
+        "image_tag": "latest",
+        "runs_as_root": true,
+        "container_insights": false
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 30,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 2,
+          "p95": 5,
+          "max": 17
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 6,
+          "p95": 9,
+          "max": 15
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "plaintext_secrets_suspected": true,
+        "admin_privileges": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 992,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "erp-svc-invoice-worker",
+      "x_ownership": {
+        "project": "erp",
+        "environment": null,
+        "source": "name"
+      }
+    },
+    {
+      "id": "erp-svc-admin-portal",
+      "kind": "container",
+      "provider": "aws",
+      "service": "ecs-fargate",
+      "quantity": 4,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "erp",
+      "sku": "2vcpu/8GB",
+      "scaling": {
+        "min": 4,
+        "max": 4,
+        "desired": 4,
+        "autoscaling_enabled": false
+      },
+      "config": {
+        "image_tag": "latest",
+        "runs_as_root": true,
+        "container_insights": false
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 2,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 1,
+          "p95": 3,
+          "max": 8
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 5,
+          "p95": 7,
+          "max": 11
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "plaintext_secrets_suspected": true,
+        "admin_privileges": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 313,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "erp-svc-admin-portal",
+      "x_ownership": {
+        "project": "erp",
+        "environment": null,
+        "source": "name"
+      }
+    },
+    {
+      "id": "erp-svc-report-gen",
+      "kind": "container",
+      "provider": "aws",
+      "service": "ecs-fargate",
+      "quantity": 3,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "erp",
+      "sku": "4vcpu/16GB",
+      "scaling": {
+        "min": 3,
+        "max": 3,
+        "desired": 3,
+        "autoscaling_enabled": false
+      },
+      "config": {
+        "image_tag": "latest",
+        "runs_as_root": true,
+        "container_insights": false
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 16,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 1.5,
+          "p95": 4,
+          "max": 55
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 4,
+          "p95": 6,
+          "max": 38
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "plaintext_secrets_suspected": true,
+        "admin_privileges": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 470,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "erp-svc-report-gen",
+      "x_ownership": {
+        "project": "erp",
+        "environment": null,
+        "source": "name"
+      }
+    },
+    {
+      "id": "erp-alb-legacy",
+      "kind": "load_balancer",
+      "provider": "aws",
+      "service": "alb",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": false,
+      "stack": "erp",
+      "sku": "application",
+      "config": {
+        "listeners": [
+          "HTTP:80"
+        ],
+        "health_check_interval_s": 300
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1300000
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_in_transit": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 28,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "erp-alb-legacy",
+      "x_ownership": {
+        "project": "erp",
+        "environment": null,
+        "source": "name"
+      }
+    },
+    {
+      "id": "erp-rds-erp",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "erp",
+      "sku": "db.r4.4xlarge",
+      "engine": {
+        "name": "postgres",
+        "version": "11.22"
+      },
+      "features_used": [
+        "hstore",
+        "pg_trgm"
+      ],
+      "data_gb": {
+        "value": 310,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "confidential",
+      "capacity": {
+        "vcpu": {
+          "value": 16,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 122,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 500,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 4,
+          "p95": 10,
+          "max": 24
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 15,
+          "p95": 24,
+          "max": 40
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "backup_retention_days": 0,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1342,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "erp-rds-erp",
+      "x_ownership": {
+        "project": "erp",
+        "environment": null,
+        "source": "name"
+      }
+    },
+    {
+      "id": "erp-cache-legacy-mc",
+      "kind": "cache",
+      "provider": "aws",
+      "service": "elasticache-memcached",
+      "quantity": 4,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "idle",
+      "stateful": false,
+      "stack": "erp",
+      "sku": "cache.m4.2xlarge",
+      "engine": {
+        "name": "memcached",
+        "version": "1.6"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 30,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0.1,
+          "p95": 0.2,
+          "max": 0.6
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0,
+          "max": 1
+        },
+        "hit_rate_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1504,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "erp-cache-legacy-mc",
+      "x_ownership": {
+        "project": "erp",
+        "environment": null,
+        "source": "name"
+      }
+    },
+    {
+      "id": "erp-efs-legacy",
+      "kind": "file_system",
+      "provider": "aws",
+      "service": "efs",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 3,
+      "status": "idle",
+      "stateful": true,
+      "stack": "erp",
+      "sku": "provisioned-throughput",
+      "data_gb": {
+        "value": 38,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "capacity": {
+        "throughput_mibps": {
+          "value": 512,
+          "provenance": "observed",
+          "unit": "MiB/s"
+        }
+      },
+      "usage": {
+        "throughput_utilization_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0.4,
+          "p95": 1.1,
+          "max": 6
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": false,
+        "backup_retention_days": 0
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 2837,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "erp-efs-legacy",
+      "x_ownership": {
+        "project": "erp",
+        "environment": null,
+        "source": "name"
+      }
+    },
+    {
+      "id": "erp-fn-cron",
+      "kind": "function",
+      "provider": "aws",
+      "service": "lambda",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "erp",
+      "sku": "python3.7/2048MB",
+      "engine": {
+        "name": "python",
+        "version": "3.7"
+      },
+      "config": {
+        "schedule": "rate(1 minute)"
+      },
+      "capacity": {
+        "memory_gb": {
+          "value": 2,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "timeout_s": {
+          "value": 900,
+          "provenance": "observed",
+          "unit": "s"
+        }
+      },
+      "usage": {
+        "invocations": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 20160
+        },
+        "duration_ms": {
+          "unit": "ms",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 1100,
+          "p95": 2300,
+          "max": 9000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "plaintext_secrets_suspected": true,
+        "admin_privileges": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 2,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "erp-fn-cron",
+      "x_ownership": {
+        "project": "erp",
+        "environment": null,
+        "source": "name"
+      }
+    },
+    {
+      "id": "erp-s3-legacy-reports",
+      "kind": "object_storage",
+      "provider": "aws",
+      "service": "s3",
+      "quantity": 1,
+      "region": "us-east-1",
+      "zones": 3,
+      "status": "active",
+      "stateful": true,
+      "stack": "erp",
+      "sku": "standard",
+      "data_gb": {
+        "value": 25,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "object_count": {
+          "value": 900,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 2,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "erp-s3-legacy-reports",
+      "x_ownership": {
+        "project": "erp",
+        "environment": null,
+        "source": "name"
+      }
+    },
+    {
+      "id": "erp-q-legacy-jobs",
+      "kind": "queue",
+      "provider": "aws",
+      "service": "sqs",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 3,
+      "status": "active",
+      "stateful": true,
+      "stack": "erp",
+      "sku": "standard",
+      "config": {
+        "consumers_detected": 0,
+        "dlq": false
+      },
+      "usage": {
+        "messages_sent": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1700
+        },
+        "messages_received": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 0
+        },
+        "messages_visible": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 840,
+          "max": 1721
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "erp-q-legacy-jobs",
+      "x_ownership": {
+        "project": "erp",
+        "environment": null,
+        "source": "name"
+      }
+    },
+    {
+      "id": "sandbox-nat-dev",
+      "kind": "nat",
+      "provider": "aws",
+      "service": "nat-gateway",
+      "quantity": 3,
+      "region": "eu-west-1",
+      "zones": 3,
+      "status": "idle",
+      "stateful": false,
+      "stack": "unassigned",
+      "sku": "per-az",
+      "usage": {
+        "network_out_gb": {
+          "unit": "gb",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0.02,
+          "max": 0.05,
+          "sum": 0.4
+        }
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 91,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "sandbox-nat-dev",
+      "x_ownership": {
+        "project": null,
+        "environment": "dev",
+        "source": "none"
+      }
+    },
+    {
+      "id": "sandbox-vm-dev-jump",
+      "kind": "virtual_machine",
+      "provider": "aws",
+      "service": "ec2",
+      "quantity": 2,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "idle",
+      "stateful": false,
+      "stack": "unassigned",
+      "sku": "r5.2xlarge",
+      "capacity": {
+        "vcpu": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 64,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 500,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 1.0,
+          "p95": 3.2,
+          "max": 8
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "world_open_ports": [
+          22
+        ],
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 769,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "sandbox-vm-dev-jump",
+      "x_ownership": {
+        "project": null,
+        "environment": "dev",
+        "source": "none"
+      }
+    },
+    {
+      "id": "sandbox-ebs-orphans",
+      "kind": "block_storage",
+      "provider": "aws",
+      "service": "ebs",
+      "quantity": 6,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "orphan",
+      "stateful": true,
+      "stack": "unassigned",
+      "sku": "gp2",
+      "config": {
+        "attached": false,
+        "size_gb_each": 1000
+      },
+      "capacity": {
+        "storage_gb": {
+          "value": 1000,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "read_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0,
+          "max": 0
+        },
+        "write_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0,
+          "max": 0
+        }
+      },
+      "security": {
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 552,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "sandbox-ebs-orphans",
+      "x_ownership": {
+        "project": null,
+        "environment": "dev",
+        "source": "none"
+      }
+    },
+    {
+      "id": "receipts-web-server",
+      "kind": "virtual_machine",
+      "provider": "aws",
+      "service": "ec2",
+      "quantity": 3,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "receipts-prod",
+      "sku": "m5.4xlarge",
+      "tags": {
+        "env": "prod",
+        "Project": "receipts",
+        "Environment": "prod"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 16,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 64,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 100,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 12,
+          "p95": 28,
+          "max": 45
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 22,
+          "p95": 35,
+          "max": 48
+        },
+        "network_out_gb": {
+          "unit": "gb",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0.8,
+          "p95": 2.1
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "world_open_ports": [
+          80,
+          443,
+          22
+        ],
+        "encryption_at_rest": null,
+        "admin_privileges": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1575,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "receipts-web-server",
+      "x_ownership": {
+        "project": "receipts",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "receipts-app-db",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "receipts-prod",
+      "sku": "db.r5.4xlarge",
+      "engine": {
+        "name": "postgres",
+        "version": "12.18"
+      },
+      "tags": {
+        "app": "main",
+        "Project": "receipts",
+        "Environment": "prod"
+      },
+      "features_used": [
+        "pg_trgm",
+        "uuid-ossp"
+      ],
+      "data_gb": {
+        "value": 85,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "vcpu": {
+          "value": 16,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 128,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 300,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 18,
+          "p95": 42,
+          "max": 68
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 35,
+          "p95": 58,
+          "max": 92
+        },
+        "read_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 420,
+          "p95": 890,
+          "max": 1600
+        },
+        "write_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 180,
+          "p95": 410,
+          "max": 720
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "encryption_in_transit": false,
+        "backup_retention_days": 0,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1267,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "receipts-app-db",
+      "x_ownership": {
+        "project": "receipts",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "receipts-cache",
+      "kind": "cache",
+      "provider": "aws",
+      "service": "elasticache-redis",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "receipts-prod",
+      "sku": "cache.r5.xlarge",
+      "engine": {
+        "name": "redis",
+        "version": "6.2"
+      },
+      "data_gb": {
+        "value": 0.8,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 26,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 8,
+          "p95": 19,
+          "max": 34
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 14,
+          "p95": 22,
+          "max": 31
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 18,
+          "p95": 32,
+          "max": 48
+        },
+        "hit_rate_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 78
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": false,
+        "encryption_in_transit": false,
+        "backup_retention_days": 0
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 265,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "receipts-cache",
+      "tags": {
+        "Project": "receipts",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "receipts",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "receipts-queue",
+      "kind": "queue",
+      "provider": "aws",
+      "service": "sqs",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "receipts-prod",
+      "sku": "standard",
+      "config": {
+        "visibility_timeout_s": 30,
+        "receive_wait_s": 0,
+        "dlq": false,
+        "retention_days": 14
+      },
+      "usage": {
+        "messages_sent": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 142000
+        },
+        "messages_received": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 145000
+        },
+        "empty_receives": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 3200000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 3,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "receipts-queue",
+      "tags": {
+        "Project": "receipts",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "receipts",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "receipts-uploads",
+      "kind": "object_storage",
+      "provider": "aws",
+      "service": "s3",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "receipts-prod",
+      "sku": "standard",
+      "config": {
+        "anonymous_put_allowed": false,
+        "lifecycle_rules": 0,
+        "versioning": false
+      },
+      "data_gb": {
+        "value": 120,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "confidential",
+      "capacity": {
+        "object_count": {
+          "value": 48000,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 380000
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": true,
+        "backup_retention_days": 0
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 10,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "receipts-uploads",
+      "tags": {
+        "Project": "receipts",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "receipts",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "receipts-worker",
+      "kind": "function",
+      "provider": "aws",
+      "service": "lambda",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": false,
+      "stack": "receipts-prod",
+      "sku": "python3.9/1024MB",
+      "engine": {
+        "name": "python",
+        "version": "3.9"
+      },
+      "config": {
+        "vpc_attached": false,
+        "subnets": 0,
+        "dlq": false,
+        "reserved_concurrency": null
+      },
+      "capacity": {
+        "memory_gb": {
+          "value": 1,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "timeout_s": {
+          "value": 300,
+          "provenance": "observed",
+          "unit": "s"
+        }
+      },
+      "usage": {
+        "invocations": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 68400
+        },
+        "duration_ms": {
+          "unit": "ms",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 820,
+          "p95": 1900,
+          "max": 3200
+        },
+        "concurrency": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 2.1,
+          "p95": 5,
+          "max": 8
+        }
+      },
+      "security": {
+        "public_exposure": "unknown",
+        "plaintext_secrets_suspected": true,
+        "admin_privileges": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 6,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "receipts-worker",
+      "tags": {
+        "Project": "receipts",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "receipts",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "receipts-backup-storage",
+      "kind": "object_storage",
+      "provider": "aws",
+      "service": "s3",
+      "quantity": 1,
+      "region": "us-east-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "receipts-prod",
+      "sku": "standard",
+      "config": {
+        "lifecycle_rules": 0,
+        "versioning": false,
+        "oldest_object_age_days": 240
+      },
+      "data_gb": {
+        "value": 220,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "object_count": {
+          "value": 850,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 2400
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 6,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "receipts-backup-storage",
+      "tags": {
+        "Project": "receipts",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "receipts",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "egress-nat",
+      "kind": "nat",
+      "provider": "aws",
+      "service": "nat-gateway",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "shared",
+      "sku": "per-az",
+      "usage": {
+        "network_out_gb": {
+          "unit": "gb",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 1.8,
+          "max": 4.2,
+          "sum": 25
+        }
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 31,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "egress-nat",
+      "x_ownership": {
+        "project": null,
+        "environment": null,
+        "source": "shared",
+        "shared_by": [
+          "receipts",
+          "storefront"
+        ]
+      }
+    },
+    {
+      "id": "receipts-logs-volume",
+      "kind": "block_storage",
+      "provider": "aws",
+      "service": "ebs",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "orphan",
+      "stateful": true,
+      "stack": "receipts-prod",
+      "sku": "gp2",
+      "config": {
+        "attached": false,
+        "size_gb_each": 500
+      },
+      "capacity": {
+        "storage_gb": {
+          "value": 500,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "read_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0,
+          "max": 0
+        },
+        "write_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0,
+          "max": 0
+        }
+      },
+      "security": {
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 46,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "receipts-logs-volume",
+      "tags": {
+        "Project": "receipts",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "receipts",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "receipts-old-bastion",
+      "kind": "virtual_machine",
+      "provider": "aws",
+      "service": "ec2",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "idle",
+      "stateful": false,
+      "stack": "receipts-prod",
+      "sku": "t3.large",
+      "capacity": {
+        "vcpu": {
+          "value": 2,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 50,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0.8,
+          "p95": 2.1,
+          "max": 8
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "world_open_ports": [
+          22
+        ],
+        "encryption_at_rest": null
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 60,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "receipts-old-bastion",
+      "tags": {
+        "Project": "receipts",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "receipts",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-prod-alb",
+      "kind": "load_balancer",
+      "provider": "aws",
+      "service": "elbv2",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": false,
+      "stack": "clinic-booking-prod",
+      "sku": "application",
+      "name": "clinic-booking-prod-alb",
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 61000000
+        }
+      },
+      "security": {
+        "public_exposure": "internet"
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 43,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "clinic-booking",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-prod-api",
+      "kind": "container",
+      "provider": "aws",
+      "service": "ecs-fargate",
+      "quantity": 6,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "clinic-booking-prod",
+      "sku": "4vcpu/8GB",
+      "name": "clinic-booking-prod-api",
+      "scaling": {
+        "desired": 6
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 31,
+          "p95": 64,
+          "max": 82
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 44,
+          "p95": 58,
+          "max": 66
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "plaintext_secrets_suspected": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 796,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "clinic-booking",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-prod-db",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": true,
+      "stack": "clinic-booking-prod",
+      "sku": "db.r5.2xlarge",
+      "name": "clinic-booking-prod-db",
+      "engine": {
+        "name": "postgres",
+        "version": "15.6"
+      },
+      "features_used": [
+        "pg_trgm",
+        "btree_gist"
+      ],
+      "data_gb": {
+        "value": 140,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "vcpu": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 64,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 400,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 24,
+          "p95": 51,
+          "max": 77
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 118,
+          "p95": 190,
+          "max": 240
+        },
+        "read_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 900,
+          "p95": 2100,
+          "max": 3400
+        },
+        "write_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 310,
+          "p95": 760,
+          "max": 1300
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": true,
+        "encryption_in_transit": true,
+        "backup_retention_days": 7,
+        "deletion_protection": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1428,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, Multi-AZ doubles the instance, gp2 Multi-AZ storage) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "clinic-booking",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-prod-cache",
+      "kind": "cache",
+      "provider": "aws",
+      "service": "elasticache-redis",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "clinic-booking-prod",
+      "sku": "cache.m5.large",
+      "name": "clinic-booking-prod-cache",
+      "engine": {
+        "name": "redis",
+        "version": "7.1"
+      },
+      "data_gb": {
+        "value": 1.2,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 2,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 6.4,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 11,
+          "p95": 24,
+          "max": 38
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 64,
+          "p95": 110,
+          "max": 140
+        },
+        "hit_rate_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 91
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": false,
+        "backup_retention_days": 0
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 105,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "clinic-booking",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-prod-reminders",
+      "kind": "queue",
+      "provider": "aws",
+      "service": "sqs",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "clinic-booking-prod",
+      "sku": "standard",
+      "name": "clinic-booking-prod-reminders",
+      "config": {
+        "visibility_timeout_s": 120,
+        "receive_wait_s": 20,
+        "dlq": false,
+        "retention_days": 4
+      },
+      "usage": {
+        "messages_sent": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1260000
+        },
+        "messages_received": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1262000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 2,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "clinic-booking",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-prod-notifier",
+      "kind": "function",
+      "provider": "aws",
+      "service": "lambda",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "status": "active",
+      "stateful": false,
+      "stack": "clinic-booking-prod",
+      "sku": "python3.12/512MB",
+      "name": "clinic-booking-prod-notifier",
+      "engine": {
+        "name": "python",
+        "version": "3.12"
+      },
+      "config": {
+        "vpc_attached": true,
+        "dlq": false
+      },
+      "capacity": {
+        "memory_gb": {
+          "value": 0.5,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "timeout_s": {
+          "value": 60,
+          "provenance": "observed",
+          "unit": "s"
+        }
+      },
+      "usage": {
+        "invocations": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1262000
+        },
+        "duration_ms": {
+          "unit": "ms",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 340,
+          "p95": 900,
+          "max": 2400
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "plaintext_secrets_suspected": false,
+        "admin_privileges": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 8,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "clinic-booking",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-prod-documents",
+      "kind": "object_storage",
+      "provider": "aws",
+      "service": "s3",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "clinic-booking-prod",
+      "sku": "standard",
+      "name": "clinic-booking-prod-documents",
+      "config": {
+        "versioning": true,
+        "lifecycle_rules": 0
+      },
+      "data_gb": {
+        "value": 640,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "object_count": {
+          "value": 2300000,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 4100000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 20,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "clinic-booking",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-prod-nat",
+      "kind": "nat",
+      "provider": "aws",
+      "service": "nat-gateway",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "clinic-booking-prod",
+      "sku": "per-az",
+      "name": "clinic-booking-prod-nat",
+      "usage": {
+        "network_out_gb": {
+          "unit": "gb",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0.55,
+          "max": 1.9,
+          "sum": 185
+        }
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 44,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "clinic-booking",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-staging-alb",
+      "kind": "load_balancer",
+      "provider": "aws",
+      "service": "elbv2",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": false,
+      "stack": "clinic-booking-staging",
+      "sku": "application",
+      "name": "clinic-booking-staging-alb",
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 210000
+        }
+      },
+      "security": {
+        "public_exposure": "internet"
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 17,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "clinic-booking",
+        "Environment": "staging"
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "staging",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-staging-api",
+      "kind": "container",
+      "provider": "aws",
+      "service": "ecs-fargate",
+      "quantity": 6,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "clinic-booking-staging",
+      "sku": "4vcpu/8GB",
+      "name": "clinic-booking-staging-api",
+      "scaling": {
+        "desired": 6
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 2.4,
+          "p95": 9,
+          "max": 31
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 19,
+          "p95": 22,
+          "max": 30
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "plaintext_secrets_suspected": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 796,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "clinic-booking",
+        "Environment": "staging"
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "staging",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-staging-db",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "clinic-booking-staging",
+      "sku": "db.r5.2xlarge",
+      "name": "clinic-booking-staging-db",
+      "engine": {
+        "name": "postgres",
+        "version": "15.6"
+      },
+      "tags": {
+        "restored_from": "clinic-prod-db snapshot, weekly, unmasked",
+        "Project": "clinic-booking",
+        "Environment": "staging"
+      },
+      "features_used": [
+        "pg_trgm",
+        "btree_gist"
+      ],
+      "data_gb": {
+        "value": 138,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "vcpu": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 64,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 400,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 3,
+          "p95": 11,
+          "max": 40
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 6,
+          "p95": 14,
+          "max": 22
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": false,
+        "encryption_in_transit": false,
+        "backup_retention_days": 1,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 714,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "staging",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-dev-db",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "clinic-booking-dev",
+      "sku": "db.t3.medium",
+      "name": "clinic-booking-dev-db",
+      "engine": {
+        "name": "postgres",
+        "version": "15.6"
+      },
+      "data_gb": {
+        "value": 4,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "internal",
+      "capacity": {
+        "vcpu": {
+          "value": 2,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 20,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 4,
+          "p95": 18,
+          "max": 55
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 3,
+          "p95": 9,
+          "max": 14
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "encryption_in_transit": false,
+        "backup_retention_days": 0,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 50,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "clinic-booking",
+        "Environment": "dev"
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "dev",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-dev-runner",
+      "kind": "virtual_machine",
+      "provider": "aws",
+      "service": "ec2",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "idle",
+      "stateful": false,
+      "stack": "clinic-booking-dev",
+      "sku": "m5.2xlarge",
+      "name": "clinic-booking-dev-runner",
+      "config": {
+        "role": "self-hosted CI runner, always on"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 32,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 100,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 1.6,
+          "p95": 6,
+          "max": 71
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "world_open_ports": [
+          22
+        ],
+        "encryption_at_rest": null
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 267,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "clinic-booking",
+        "Environment": "dev"
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "dev",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "clinic-booking-dev-scratch",
+      "kind": "block_storage",
+      "provider": "aws",
+      "service": "ebs",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "orphan",
+      "stateful": true,
+      "stack": "clinic-booking-dev",
+      "sku": "gp3",
+      "config": {
+        "attached": false,
+        "size_gb_each": 200
+      },
+      "capacity": {
+        "storage_gb": {
+          "value": 200,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "read_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0,
+          "max": 0
+        },
+        "write_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0,
+          "max": 0
+        }
+      },
+      "security": {
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 15,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "clinic-booking-dev-scratch",
+      "tags": {
+        "Project": "clinic-booking",
+        "Environment": "dev"
+      },
+      "x_ownership": {
+        "project": "clinic-booking",
+        "environment": "dev",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "fleet-prod-ingest-stream",
+      "kind": "stream",
+      "provider": "aws",
+      "service": "kinesis",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "fleet-prod",
+      "sku": "provisioned",
+      "name": "fleet-prod-ingest-stream",
+      "config": {
+        "mode": "PROVISIONED",
+        "retention_hours": 168
+      },
+      "data_gb": {
+        "value": 310,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "shards": {
+          "value": 24,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "incoming_bytes_per_s": {
+          "unit": "bytes_per_s",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 180000,
+          "p95": 410000,
+          "max": 690000
+        },
+        "incoming_records": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1090000000
+        }
+      },
+      "security": {
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 277,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "kubernetes.io/namespace": "fleet-prod"
+      },
+      "x_ownership": {
+        "project": "fleet",
+        "environment": "prod",
+        "source": "namespace"
+      }
+    },
+    {
+      "id": "fleet-prod-ingest",
+      "kind": "function",
+      "provider": "aws",
+      "service": "lambda",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": false,
+      "stack": "fleet-prod",
+      "sku": "python3.12/256MB",
+      "name": "fleet-prod-ingest",
+      "engine": {
+        "name": "python",
+        "version": "3.12"
+      },
+      "config": {
+        "vpc_attached": false,
+        "dlq": false
+      },
+      "capacity": {
+        "memory_gb": {
+          "value": 0.25,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "timeout_s": {
+          "value": 30,
+          "provenance": "observed",
+          "unit": "s"
+        }
+      },
+      "usage": {
+        "invocations": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 9600000
+        },
+        "duration_ms": {
+          "unit": "ms",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 95,
+          "p95": 240,
+          "max": 1800
+        },
+        "concurrency": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 24,
+          "p95": 48,
+          "max": 96
+        }
+      },
+      "security": {
+        "public_exposure": "unknown",
+        "plaintext_secrets_suspected": false,
+        "admin_privileges": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 87,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "kubernetes.io/namespace": "fleet-prod"
+      },
+      "x_ownership": {
+        "project": "fleet",
+        "environment": "prod",
+        "source": "namespace"
+      }
+    },
+    {
+      "id": "fleet-prod-positions",
+      "kind": "nosql",
+      "provider": "aws",
+      "service": "dynamodb",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "fleet-prod",
+      "sku": "provisioned",
+      "name": "fleet-prod-positions",
+      "config": {
+        "partition_key": "vehicle_id",
+        "billing_mode": "provisioned",
+        "gsi_count": 1,
+        "gsi_projection_all": 1,
+        "ttl_enabled": false,
+        "pitr_enabled": false
+      },
+      "data_gb": {
+        "value": 900,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "provisioned_rcu": {
+          "value": 3000,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "provisioned_wcu": {
+          "value": 5000,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "consumed_rcu": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 410,
+          "p95": 980,
+          "max": 1600
+        },
+        "consumed_wcu": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 860,
+          "p95": 1900,
+          "max": 2700
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": true,
+        "backup_retention_days": 0,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 5096,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "kubernetes.io/namespace": "fleet-prod"
+      },
+      "x_ownership": {
+        "project": "fleet",
+        "environment": "prod",
+        "source": "namespace"
+      }
+    },
+    {
+      "id": "fleet-prod-accounts-db",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "fleet-prod",
+      "sku": "db.r5.xlarge",
+      "name": "fleet-prod-accounts-db",
+      "engine": {
+        "name": "postgres",
+        "version": "14.11"
+      },
+      "features_used": [
+        "postgis"
+      ],
+      "data_gb": {
+        "value": 60,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "vcpu": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 32,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 200,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 21,
+          "p95": 47,
+          "max": 70
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 54,
+          "p95": 96,
+          "max": 130
+        },
+        "read_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 380,
+          "p95": 900,
+          "max": 1500
+        },
+        "write_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 120,
+          "p95": 300,
+          "max": 520
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": true,
+        "encryption_in_transit": true,
+        "backup_retention_days": 7,
+        "deletion_protection": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 357,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "kubernetes.io/namespace": "fleet-prod"
+      },
+      "x_ownership": {
+        "project": "fleet",
+        "environment": "prod",
+        "source": "namespace"
+      }
+    },
+    {
+      "id": "fleet-prod-dashboard-api",
+      "kind": "container",
+      "provider": "aws",
+      "service": "ecs-fargate",
+      "quantity": 6,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "fleet-prod",
+      "sku": "2vcpu/4GB",
+      "name": "fleet-prod-dashboard-api",
+      "scaling": {
+        "desired": 6
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 2,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 27,
+          "p95": 58,
+          "max": 79
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 48,
+          "p95": 61,
+          "max": 70
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "plaintext_secrets_suspected": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 398,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "kubernetes.io/namespace": "fleet-prod"
+      },
+      "x_ownership": {
+        "project": "fleet",
+        "environment": "prod",
+        "source": "namespace"
+      }
+    },
+    {
+      "id": "fleet-prod-alb",
+      "kind": "load_balancer",
+      "provider": "aws",
+      "service": "elbv2",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": false,
+      "stack": "fleet-prod",
+      "sku": "application",
+      "name": "fleet-prod-alb",
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 38000000
+        }
+      },
+      "security": {
+        "public_exposure": "internet"
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 28,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "kubernetes.io/namespace": "fleet-prod"
+      },
+      "x_ownership": {
+        "project": "fleet",
+        "environment": "prod",
+        "source": "namespace"
+      }
+    },
+    {
+      "id": "fleet-prod-geofence",
+      "kind": "cache",
+      "provider": "aws",
+      "service": "elasticache-redis",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "fleet-prod",
+      "sku": "cache.r5.large",
+      "name": "fleet-prod-geofence",
+      "engine": {
+        "name": "redis",
+        "version": "7.1"
+      },
+      "data_gb": {
+        "value": 3.5,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 2,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 13,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 34,
+          "p95": 66,
+          "max": 88
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 40,
+          "p95": 72,
+          "max": 96
+        },
+        "hit_rate_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 97
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": false,
+        "backup_retention_days": 0
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 145,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "kubernetes.io/namespace": "fleet-prod"
+      },
+      "x_ownership": {
+        "project": "fleet",
+        "environment": "prod",
+        "source": "namespace"
+      }
+    },
+    {
+      "id": "fleet-prod-alerts",
+      "kind": "queue",
+      "provider": "aws",
+      "service": "sqs",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "fleet-prod",
+      "sku": "standard",
+      "name": "fleet-prod-alerts",
+      "config": {
+        "visibility_timeout_s": 30,
+        "receive_wait_s": 0,
+        "dlq": false,
+        "retention_days": 4
+      },
+      "usage": {
+        "messages_sent": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 520000
+        },
+        "messages_received": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 515000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 2,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "kubernetes.io/namespace": "fleet-prod"
+      },
+      "x_ownership": {
+        "project": "fleet",
+        "environment": "prod",
+        "source": "namespace"
+      }
+    },
+    {
+      "id": "fleet-prod-archive",
+      "kind": "object_storage",
+      "provider": "aws",
+      "service": "s3",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "fleet-prod",
+      "sku": "standard",
+      "name": "fleet-prod-archive",
+      "config": {
+        "versioning": false,
+        "lifecycle_rules": 0
+      },
+      "data_gb": {
+        "value": 2400,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "object_count": {
+          "value": 41000000,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 7400000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 55,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "kubernetes.io/namespace": "fleet-prod"
+      },
+      "x_ownership": {
+        "project": "fleet",
+        "environment": "prod",
+        "source": "namespace"
+      }
+    },
+    {
+      "id": "fleet-prod-nat",
+      "kind": "nat",
+      "provider": "aws",
+      "service": "nat-gateway",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "fleet-prod",
+      "sku": "per-az",
+      "name": "fleet-prod-nat",
+      "usage": {
+        "network_out_gb": {
+          "unit": "gb",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 1.3,
+          "max": 3.8,
+          "sum": 420
+        }
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 51,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "kubernetes.io/namespace": "fleet-prod"
+      },
+      "x_ownership": {
+        "project": "fleet",
+        "environment": "prod",
+        "source": "namespace"
+      }
+    },
+    {
+      "id": "fleet-dev-ingest-stream",
+      "kind": "stream",
+      "provider": "aws",
+      "service": "kinesis",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "fleet-dev",
+      "sku": "provisioned",
+      "name": "fleet-dev-ingest-stream",
+      "config": {
+        "mode": "PROVISIONED",
+        "retention_hours": 24
+      },
+      "capacity": {
+        "shards": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "incoming_bytes_per_s": {
+          "unit": "bytes_per_s",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 40,
+          "p95": 0,
+          "max": 52000
+        },
+        "incoming_records": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 11000
+        }
+      },
+      "security": {
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 81,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "kubernetes.io/namespace": "fleet-dev"
+      },
+      "x_ownership": {
+        "project": "fleet",
+        "environment": "dev",
+        "source": "namespace"
+      }
+    },
+    {
+      "id": "fleet-dev-replay",
+      "kind": "virtual_machine",
+      "provider": "aws",
+      "service": "ec2",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "idle",
+      "stateful": false,
+      "stack": "fleet-dev",
+      "sku": "c5.2xlarge",
+      "name": "fleet-dev-replay",
+      "config": {
+        "role": "replays recorded GPS traces into the dev stream"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 16,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 50,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0.9,
+          "p95": 2,
+          "max": 64
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "world_open_ports": [
+          22
+        ],
+        "encryption_at_rest": null
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 233,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "kubernetes.io/namespace": "fleet-dev"
+      },
+      "x_ownership": {
+        "project": "fleet",
+        "environment": "dev",
+        "source": "namespace"
+      }
+    },
+    {
+      "id": "fleet-dev-db",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "fleet-dev",
+      "sku": "db.t3.large",
+      "name": "fleet-dev-db",
+      "engine": {
+        "name": "postgres",
+        "version": "14.11"
+      },
+      "tags": {
+        "restored_from": "fleet-prod-accounts-db snapshot, 2026-03",
+        "kubernetes.io/namespace": "fleet-dev"
+      },
+      "features_used": [
+        "postgis"
+      ],
+      "data_gb": {
+        "value": 55,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "vcpu": {
+          "value": 2,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 50,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 5,
+          "p95": 21,
+          "max": 60
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 4,
+          "p95": 11,
+          "max": 18
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "encryption_in_transit": false,
+        "backup_retention_days": 0,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 103,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "x_ownership": {
+        "project": "fleet",
+        "environment": "dev",
+        "source": "namespace"
+      }
+    },
+    {
+      "id": "payments-alb",
+      "kind": "load_balancer",
+      "provider": "aws",
+      "service": "elbv2",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": false,
+      "stack": "payments-prod",
+      "sku": "application",
+      "name": "payments-alb",
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 61000000
+        }
+      },
+      "security": {
+        "public_exposure": "internet"
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 43,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "payments",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "payments",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "payments-api",
+      "kind": "container",
+      "provider": "aws",
+      "service": "ecs-fargate",
+      "quantity": 6,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "payments-prod",
+      "sku": "4vcpu/8GB",
+      "name": "payments-api",
+      "scaling": {
+        "desired": 6
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 31,
+          "p95": 64,
+          "max": 82
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 44,
+          "p95": 58,
+          "max": 66
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "plaintext_secrets_suspected": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 796,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "payments",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "payments",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "payments-db",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": true,
+      "stack": "payments-prod",
+      "sku": "db.r5.2xlarge",
+      "name": "payments-db",
+      "engine": {
+        "name": "postgres",
+        "version": "15.6"
+      },
+      "features_used": [
+        "pg_trgm",
+        "btree_gist"
+      ],
+      "data_gb": {
+        "value": 140,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "vcpu": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 64,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 400,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 24,
+          "p95": 51,
+          "max": 77
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 118,
+          "p95": 190,
+          "max": 240
+        },
+        "read_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 900,
+          "p95": 2100,
+          "max": 3400
+        },
+        "write_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 310,
+          "p95": 760,
+          "max": 1300
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": true,
+        "encryption_in_transit": true,
+        "backup_retention_days": 7,
+        "deletion_protection": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1428,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, Multi-AZ doubles the instance, gp2 Multi-AZ storage) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "payments",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "payments",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "payments-reminders",
+      "kind": "queue",
+      "provider": "aws",
+      "service": "sqs",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "payments-prod",
+      "sku": "standard",
+      "name": "payments-reminders",
+      "config": {
+        "visibility_timeout_s": 120,
+        "receive_wait_s": 20,
+        "dlq": false,
+        "retention_days": 4
+      },
+      "usage": {
+        "messages_sent": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1260000
+        },
+        "messages_received": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1262000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 2,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "tags": {
+        "Project": "payments",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "payments",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "hr-portal-web-server",
+      "kind": "virtual_machine",
+      "provider": "aws",
+      "service": "ec2",
+      "quantity": 3,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "hr-portal-prod",
+      "sku": "m5.4xlarge",
+      "tags": {
+        "env": "prod",
+        "Project": "hr-portal",
+        "Environment": "prod"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 16,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 64,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 100,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 12,
+          "p95": 28,
+          "max": 45
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 22,
+          "p95": 35,
+          "max": 48
+        },
+        "network_out_gb": {
+          "unit": "gb",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0.8,
+          "p95": 2.1
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "world_open_ports": [
+          80,
+          443,
+          22
+        ],
+        "encryption_at_rest": null,
+        "admin_privileges": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1575,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "hr-portal-web-server",
+      "x_ownership": {
+        "project": "hr-portal",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "hr-portal-app-db",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "hr-portal-prod",
+      "sku": "db.r5.4xlarge",
+      "engine": {
+        "name": "postgres",
+        "version": "12.18"
+      },
+      "tags": {
+        "app": "main",
+        "Project": "hr-portal",
+        "Environment": "prod"
+      },
+      "features_used": [
+        "pg_trgm",
+        "uuid-ossp"
+      ],
+      "data_gb": {
+        "value": 85,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "vcpu": {
+          "value": 16,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 128,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 300,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 18,
+          "p95": 42,
+          "max": 68
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 35,
+          "p95": 58,
+          "max": 92
+        },
+        "read_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 420,
+          "p95": 890,
+          "max": 1600
+        },
+        "write_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 180,
+          "p95": 410,
+          "max": 720
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "encryption_in_transit": false,
+        "backup_retention_days": 0,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1267,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "hr-portal-app-db",
+      "x_ownership": {
+        "project": "hr-portal",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "hr-portal-uploads",
+      "kind": "object_storage",
+      "provider": "aws",
+      "service": "s3",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "hr-portal-prod",
+      "sku": "standard",
+      "config": {
+        "anonymous_put_allowed": false,
+        "lifecycle_rules": 0,
+        "versioning": false
+      },
+      "data_gb": {
+        "value": 120,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "confidential",
+      "capacity": {
+        "object_count": {
+          "value": 48000,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 380000
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": true,
+        "backup_retention_days": 0
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 10,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "hr-portal-uploads",
+      "tags": {
+        "Project": "hr-portal",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "hr-portal",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "support-assistant-ng-data-gpu",
+      "kind": "node_group",
+      "provider": "aws",
+      "service": "eks-managed-nodegroup",
+      "quantity": 4,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "support-assistant-prod",
+      "sku": "p3.8xlarge",
+      "parent": "eks-data",
+      "scaling": {
+        "min": 4,
+        "max": 4,
+        "desired": 4,
+        "autoscaling_enabled": false
+      },
+      "config": {
+        "capacity_type": "on_demand",
+        "ami": "AL2"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 32,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 244,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "gpus": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "disk_gb": {
+          "value": 500,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "gpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "synthetic",
+          "avg": 0.4,
+          "p95": 1.0,
+          "max": 71,
+          "basis": "3 training bursts of ~3 h in 14 days"
+        },
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "synthetic",
+          "avg": 1.2,
+          "p95": 2.5,
+          "max": 48
+        }
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 32882,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "support-assistant-ng-data-gpu",
+      "tags": {
+        "Project": "support-assistant",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "support-assistant",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "support-assistant-q-orders",
+      "kind": "queue",
+      "provider": "aws",
+      "service": "sqs",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 3,
+      "status": "active",
+      "stateful": true,
+      "stack": "support-assistant-prod",
+      "sku": "standard",
+      "config": {
+        "visibility_timeout_s": 0,
+        "receive_wait_s": 0,
+        "dlq": false,
+        "retention_days": 14
+      },
+      "usage": {
+        "messages_sent": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 806000
+        },
+        "messages_received": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1040000
+        },
+        "empty_receives": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 30200000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 13,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "support-assistant-q-orders",
+      "tags": {
+        "Project": "support-assistant",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "support-assistant",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "support-assistant-s3-uploads",
+      "kind": "object_storage",
+      "provider": "aws",
+      "service": "s3",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 3,
+      "status": "active",
+      "stateful": true,
+      "stack": "support-assistant-prod",
+      "sku": "standard",
+      "config": {
+        "anonymous_put_allowed": true,
+        "lifecycle_rules": 0,
+        "versioning": false
+      },
+      "data_gb": {
+        "value": 800,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "confidential",
+      "capacity": {
+        "object_count": {
+          "value": 3100000,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 2400000
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "backup_retention_days": 0
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 54,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "support-assistant-s3-uploads",
+      "tags": {
+        "Project": "support-assistant",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "support-assistant",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "marketing-site-uploads",
+      "kind": "object_storage",
+      "provider": "aws",
+      "service": "s3",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "marketing-site-prod",
+      "sku": "standard",
+      "config": {
+        "anonymous_put_allowed": false,
+        "lifecycle_rules": 0,
+        "versioning": false
+      },
+      "data_gb": {
+        "value": 120,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "confidential",
+      "capacity": {
+        "object_count": {
+          "value": 48000,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 380000
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": true,
+        "backup_retention_days": 0
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 10,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "marketing-site-uploads",
+      "tags": {
+        "Project": "marketing-site",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "marketing-site",
+        "environment": "prod",
+        "source": "tag"
+      }
+    },
+    {
+      "id": "marketing-site-worker",
+      "kind": "function",
+      "provider": "aws",
+      "service": "lambda",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": false,
+      "stack": "marketing-site-prod",
+      "sku": "python3.9/1024MB",
+      "engine": {
+        "name": "python",
+        "version": "3.9"
+      },
+      "config": {
+        "vpc_attached": false,
+        "subnets": 0,
+        "dlq": false,
+        "reserved_concurrency": null
+      },
+      "capacity": {
+        "memory_gb": {
+          "value": 1,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "timeout_s": {
+          "value": 300,
+          "provenance": "observed",
+          "unit": "s"
+        }
+      },
+      "usage": {
+        "invocations": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 68400
+        },
+        "duration_ms": {
+          "unit": "ms",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 820,
+          "p95": 1900,
+          "max": 3200
+        },
+        "concurrency": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 2.1,
+          "p95": 5,
+          "max": 8
+        }
+      },
+      "security": {
+        "public_exposure": "unknown",
+        "plaintext_secrets_suspected": true,
+        "admin_privileges": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 6,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      },
+      "name": "marketing-site-worker",
+      "tags": {
+        "Project": "marketing-site",
+        "Environment": "prod"
+      },
+      "x_ownership": {
+        "project": "marketing-site",
+        "environment": "prod",
+        "source": "tag"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "demo-shop-e01",
+      "from": "storefront-alb-shop",
+      "to": "storefront-vmfleet-web",
+      "kind": "traffic",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 1800,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      },
+      "latency_sensitive": true,
+      "note": "ASG attached to ALB target group"
+    },
+    {
+      "id": "demo-shop-e02",
+      "from": "storefront-vmfleet-web",
+      "to": "storefront-rds-orders",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 380,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      },
+      "latency_sensitive": true,
+      "note": "DB host in launch template user-data"
+    },
+    {
+      "id": "demo-shop-e03",
+      "from": "storefront-vmfleet-web",
+      "to": "storefront-cache-sessions",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 220,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      },
+      "latency_sensitive": true
+    },
+    {
+      "id": "demo-shop-e04",
+      "from": "storefront-vmfleet-web",
+      "to": "storefront-ddb-orders",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 150,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      },
+      "latency_sensitive": true
+    },
+    {
+      "id": "demo-shop-e05",
+      "from": "storefront-vmfleet-web",
+      "to": "storefront-q-orders",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 12,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      }
+    },
+    {
+      "id": "demo-shop-e06",
+      "from": "storefront-eks-shop-main",
+      "to": "storefront-rds-orders",
+      "kind": "data",
+      "evidence": "inferred",
+      "gb_month": {
+        "value": 410,
+        "provenance": "synthetic",
+        "unit": "GB",
+        "basis": "invented for the mock"
+      },
+      "latency_sensitive": true,
+      "note": "pods use the orders DB; inferred from SG rules"
+    },
+    {
+      "id": "demo-shop-e07",
+      "from": "storefront-eks-shop-main",
+      "to": "storefront-ddb-orders",
+      "kind": "data",
+      "evidence": "inferred",
+      "gb_month": {
+        "value": 160,
+        "provenance": "synthetic",
+        "unit": "GB",
+        "basis": "invented for the mock"
+      }
+    },
+    {
+      "id": "demo-shop-e08",
+      "from": "storefront-eks-shop-main",
+      "to": "storefront-q-orders",
+      "kind": "event",
+      "evidence": "inferred",
+      "gb_month": {
+        "value": 20,
+        "provenance": "synthetic",
+        "unit": "GB",
+        "basis": "invented for the mock"
+      }
+    },
+    {
+      "id": "demo-shop-e09",
+      "from": "storefront-eks-shop-staging",
+      "to": "storefront-rds-orders",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 30,
+        "provenance": "synthetic",
+        "unit": "GB",
+        "basis": "invented for the mock"
+      },
+      "note": "staging connects to the PRODUCTION database (config env var)"
+    },
+    {
+      "id": "demo-shop-e10",
+      "from": "storefront-s3-uploads",
+      "to": "storefront-fn-resize",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 40,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      },
+      "note": "S3 ObjectCreated notification"
+    },
+    {
+      "id": "demo-shop-e11",
+      "from": "storefront-fn-resize",
+      "to": "storefront-rds-orders",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 5,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      }
+    },
+    {
+      "id": "demo-shop-e12",
+      "from": "storefront-rds-orders",
+      "to": "storefront-rds-analytics",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 600,
+        "provenance": "synthetic",
+        "unit": "GB",
+        "basis": "invented for the mock"
+      },
+      "note": "logical replication feeds analytics"
+    },
+    {
+      "id": "demo-shop-e13",
+      "from": "storefront-vm-batch",
+      "to": "storefront-rds-orders",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 40,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      }
+    },
+    {
+      "id": "demo-shop-e14",
+      "from": "storefront-vm-batch",
+      "to": "storefront-s3-backups",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 500,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      },
+      "note": "nightly dump upload"
+    },
+    {
+      "id": "demo-shop-e15",
+      "from": "storefront-vm-bastion",
+      "to": "storefront-rds-orders",
+      "kind": "network",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 0.1,
+        "provenance": "synthetic",
+        "unit": "GB",
+        "basis": "invented for the mock"
+      }
+    },
+    {
+      "id": "demo-shop-e16",
+      "from": "data-platform-eks-data",
+      "to": "data-platform-pg-lake",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 900,
+        "provenance": "synthetic",
+        "unit": "GB",
+        "basis": "invented for the mock"
+      },
+      "latency_sensitive": true
+    },
+    {
+      "id": "demo-shop-e17",
+      "from": "data-platform-eks-data",
+      "to": "data-platform-s3-lake",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 6000,
+        "provenance": "synthetic",
+        "unit": "GB",
+        "basis": "invented for the mock"
+      }
+    },
+    {
+      "id": "demo-shop-e18",
+      "from": "data-platform-stream-clicks",
+      "to": "data-platform-s3-lake",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 3000,
+        "provenance": "synthetic",
+        "unit": "GB",
+        "basis": "invented for the mock"
+      },
+      "note": "delivery stream, small buffer"
+    },
+    {
+      "id": "demo-shop-e19",
+      "from": "storefront-rds-analytics",
+      "to": "data-platform-pg-lake",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 250,
+        "provenance": "synthetic",
+        "unit": "GB",
+        "basis": "invented for the mock"
+      },
+      "note": "cross-stack nightly export"
+    },
+    {
+      "id": "demo-shop-e20",
+      "from": "data-platform-eks-data",
+      "to": "storefront-ddb-orders",
+      "kind": "data",
+      "evidence": "inferred",
+      "gb_month": {
+        "value": 80,
+        "provenance": "synthetic",
+        "unit": "GB",
+        "basis": "invented for the mock"
+      },
+      "note": "reads orders for feature building"
+    },
+    {
+      "id": "demo-shop-e21",
+      "from": "erp-alb-legacy",
+      "to": "erp-svc-orders-api",
+      "kind": "traffic",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 300,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      },
+      "latency_sensitive": true
+    },
+    {
+      "id": "demo-shop-e22",
+      "from": "erp-svc-orders-api",
+      "to": "erp-rds-erp",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 120,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      },
+      "latency_sensitive": true
+    },
+    {
+      "id": "demo-shop-e23",
+      "from": "erp-svc-invoice-worker",
+      "to": "erp-rds-erp",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 80,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      },
+      "latency_sensitive": true
+    },
+    {
+      "id": "demo-shop-e24",
+      "from": "erp-svc-invoice-worker",
+      "to": "erp-q-legacy-jobs",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 2,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      }
+    },
+    {
+      "id": "demo-shop-e25",
+      "from": "erp-svc-admin-portal",
+      "to": "erp-rds-erp",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 10,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      }
+    },
+    {
+      "id": "demo-shop-e26",
+      "from": "erp-svc-report-gen",
+      "to": "erp-rds-erp",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 45,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      }
+    },
+    {
+      "id": "demo-shop-e27",
+      "from": "erp-svc-report-gen",
+      "to": "erp-s3-legacy-reports",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 15,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      }
+    },
+    {
+      "id": "demo-shop-e28",
+      "from": "erp-svc-orders-api",
+      "to": "erp-cache-legacy-mc",
+      "kind": "config",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 0,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      },
+      "note": "cache endpoint configured, never connected"
+    },
+    {
+      "id": "demo-shop-e29",
+      "from": "erp-fn-cron",
+      "to": "erp-rds-erp",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 30,
+        "provenance": "estimated",
+        "unit": "GB",
+        "basis": "ALB ProcessedBytes x 30/14"
+      }
+    },
+    {
+      "id": "demo-shop-e30",
+      "from": "sandbox-nat-dev",
+      "to": "sandbox-vm-dev-jump",
+      "kind": "network",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 0.4,
+        "provenance": "synthetic",
+        "unit": "GB",
+        "basis": "invented for the mock"
+      }
+    },
+    {
+      "id": "startup-e01",
+      "from": "receipts-web-server",
+      "to": "receipts-app-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 28,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "DB connection from web tier"
+    },
+    {
+      "id": "startup-e02",
+      "from": "receipts-web-server",
+      "to": "receipts-cache",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 12,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Session cache access"
+    },
+    {
+      "id": "startup-e03",
+      "from": "receipts-web-server",
+      "to": "receipts-uploads",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 85,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Object storage writes"
+    },
+    {
+      "id": "startup-e04",
+      "from": "receipts-web-server",
+      "to": "receipts-queue",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 4,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Background job queue"
+    },
+    {
+      "id": "startup-e05",
+      "from": "receipts-uploads",
+      "to": "receipts-worker",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 18,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "S3 event trigger"
+    },
+    {
+      "id": "startup-e06",
+      "from": "receipts-worker",
+      "to": "receipts-app-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 6,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    },
+    {
+      "id": "startup-e07",
+      "from": "receipts-worker",
+      "to": "receipts-backup-storage",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 45,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Cross-region backup writes"
+    },
+    {
+      "id": "startup-e08",
+      "from": "receipts-web-server",
+      "to": "egress-nat",
+      "kind": "network",
+      "evidence": "inferred",
+      "gb_month": {
+        "value": 25,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    },
+    {
+      "id": "startup-e09",
+      "from": "receipts-old-bastion",
+      "to": "receipts-app-db",
+      "kind": "network",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 0.1,
+        "provenance": "synthetic",
+        "unit": "GB"
+      }
+    },
+    {
+      "id": "clinic-booking-e01",
+      "from": "clinic-booking-prod-alb",
+      "to": "clinic-booking-prod-api",
+      "kind": "traffic",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 210,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Target group -> ECS service"
+    },
+    {
+      "id": "clinic-booking-e02",
+      "from": "clinic-booking-prod-api",
+      "to": "clinic-booking-prod-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 95,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Bookings, patients, schedules"
+    },
+    {
+      "id": "clinic-booking-e03",
+      "from": "clinic-booking-prod-api",
+      "to": "clinic-booking-prod-cache",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 40,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Sessions and slot availability"
+    },
+    {
+      "id": "clinic-booking-e04",
+      "from": "clinic-booking-prod-api",
+      "to": "clinic-booking-prod-documents",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 60,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Referral letters, scanned results"
+    },
+    {
+      "id": "clinic-booking-e05",
+      "from": "clinic-booking-prod-api",
+      "to": "clinic-booking-prod-reminders",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 2,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Reminder jobs 24 h and 2 h before a visit"
+    },
+    {
+      "id": "clinic-booking-e06",
+      "from": "clinic-booking-prod-reminders",
+      "to": "clinic-booking-prod-notifier",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 2,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Event source mapping"
+    },
+    {
+      "id": "clinic-booking-e07",
+      "from": "clinic-booking-prod-notifier",
+      "to": "clinic-booking-prod-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 3,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    },
+    {
+      "id": "clinic-booking-e08",
+      "from": "clinic-booking-prod-notifier",
+      "to": "clinic-booking-prod-nat",
+      "kind": "network",
+      "evidence": "inferred",
+      "gb_month": {
+        "value": 18,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "SMS and e-mail providers over the internet"
+    },
+    {
+      "id": "clinic-booking-e09",
+      "from": "clinic-booking-prod-api",
+      "to": "clinic-booking-prod-nat",
+      "kind": "network",
+      "evidence": "inferred",
+      "gb_month": {
+        "value": 160,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Payment and calendar integrations"
+    },
+    {
+      "id": "clinic-booking-e10",
+      "from": "clinic-booking-staging-alb",
+      "to": "clinic-booking-staging-api",
+      "kind": "traffic",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 1,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    },
+    {
+      "id": "clinic-booking-e11",
+      "from": "clinic-booking-staging-api",
+      "to": "clinic-booking-staging-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 1,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    },
+    {
+      "id": "fleet-telemetry-e01",
+      "from": "fleet-prod-ingest-stream",
+      "to": "fleet-prod-ingest",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 460,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Event source mapping, batch 500"
+    },
+    {
+      "id": "fleet-telemetry-e02",
+      "from": "fleet-prod-ingest",
+      "to": "fleet-prod-positions",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 380,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Latest position per vehicle"
+    },
+    {
+      "id": "fleet-telemetry-e03",
+      "from": "fleet-prod-ingest",
+      "to": "fleet-prod-geofence",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 25,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Geofence lookup per point"
+    },
+    {
+      "id": "fleet-telemetry-e04",
+      "from": "fleet-prod-ingest",
+      "to": "fleet-prod-alerts",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 1,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Late delivery and geofence alerts"
+    },
+    {
+      "id": "fleet-telemetry-e05",
+      "from": "fleet-prod-ingest",
+      "to": "fleet-prod-archive",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 290,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Raw points, one object per vehicle-minute"
+    },
+    {
+      "id": "fleet-telemetry-e06",
+      "from": "fleet-prod-alb",
+      "to": "fleet-prod-dashboard-api",
+      "kind": "traffic",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 140,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Target group -> ECS service"
+    },
+    {
+      "id": "fleet-telemetry-e07",
+      "from": "fleet-prod-dashboard-api",
+      "to": "fleet-prod-positions",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 120,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Live map"
+    },
+    {
+      "id": "fleet-telemetry-e08",
+      "from": "fleet-prod-dashboard-api",
+      "to": "fleet-prod-accounts-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 30,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Customers, vehicles, routes"
+    },
+    {
+      "id": "fleet-telemetry-e09",
+      "from": "fleet-prod-dashboard-api",
+      "to": "fleet-prod-alerts",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 1,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    },
+    {
+      "id": "fleet-telemetry-e10",
+      "from": "fleet-prod-dashboard-api",
+      "to": "fleet-prod-nat",
+      "kind": "network",
+      "evidence": "inferred",
+      "gb_month": {
+        "value": 420,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Map tiles and routing provider"
+    },
+    {
+      "id": "fleet-telemetry-e11",
+      "from": "fleet-dev-replay",
+      "to": "fleet-dev-ingest-stream",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 0.1,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    },
+    {
+      "id": "fleet-telemetry-e12",
+      "from": "fleet-dev-replay",
+      "to": "fleet-dev-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 0.1,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    },
+    {
+      "id": "payments-e01",
+      "from": "payments-alb",
+      "to": "payments-api",
+      "kind": "traffic",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 210,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Target group -> ECS service"
+    },
+    {
+      "id": "payments-e02",
+      "from": "payments-api",
+      "to": "payments-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 95,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Bookings, patients, schedules"
+    },
+    {
+      "id": "payments-e05",
+      "from": "payments-api",
+      "to": "payments-reminders",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 2,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Reminder jobs 24 h and 2 h before a visit"
+    },
+    {
+      "id": "hr-portal-e01",
+      "from": "hr-portal-web-server",
+      "to": "hr-portal-app-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 28,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "DB connection from web tier"
+    },
+    {
+      "id": "hr-portal-e03",
+      "from": "hr-portal-web-server",
+      "to": "hr-portal-uploads",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 85,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Object storage writes"
+    },
+    {
+      "id": "marketing-site-e05",
+      "from": "marketing-site-uploads",
+      "to": "marketing-site-worker",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 18,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "S3 event trigger"
+    },
+    {
+      "id": "shared-nat-storefront",
+      "from": "storefront-vm-batch",
+      "to": "egress-nat",
+      "kind": "network",
+      "evidence": "declared",
+      "note": "The storefront's batch jobs reach the internet through the receipts team's NAT."
+    }
+  ],
+  "stay_together": [
+    {
+      "id": "orders-core",
+      "members": [
+        "storefront-rds-orders",
+        "storefront-vmfleet-web",
+        "storefront-cache-sessions"
+      ],
+      "scope": "region",
+      "reason": "Latency-bound request path; every web request touches DB and cache."
+    },
+    {
+      "id": "orders-replication",
+      "members": [
+        "storefront-rds-orders",
+        "storefront-rds-analytics"
+      ],
+      "scope": "provider",
+      "reason": "Logical replication; split providers means cross-provider replication and egress."
+    },
+    {
+      "id": "erp-core",
+      "members": [
+        "erp-svc-orders-api",
+        "erp-svc-invoice-worker",
+        "erp-rds-erp"
+      ],
+      "scope": "region",
+      "reason": "Chatty ERP transactions."
+    }
+  ]
+}

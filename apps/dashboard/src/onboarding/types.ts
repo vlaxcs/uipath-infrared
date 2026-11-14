@@ -13,11 +13,32 @@ export type ProjectProfile = {
   users?: { metric: string; current: number; expected: number; at_month: number };
 };
 
+export type ProjectUsers = { metric: string; current: number; expected: number; at_month: number };
+
+export type Application = {
+  id: string;
+  name: string;
+  summary: string;
+  stacks: string[];
+  users: ProjectUsers;
+};
+
 export type Project = {
   id: string;
   description: string;
   forbidden_providers: string[];
   profile?: ProjectProfile;
+  applications?: Application[];
+};
+
+export type FocusMode = "plan" | "project";
+
+export type AppAnswer = {
+  id: string;
+  users_now: number;
+  users_expected: number;
+  at_month: number;
+  criteria: Criteria;
 };
 
 export type OnboardingSetup = {
@@ -46,6 +67,7 @@ export type ProfileSite = {
 
 export type Profile = {
   criteria: Criteria;
+  projects?: Record<string, Criteria>;
   onprem: { wanted: boolean; site?: ProfileSite };
 };
 
@@ -56,6 +78,8 @@ export type Answers = {
   onprem: boolean;
   site?: ProfileSite;
   criteria: Criteria;
+  focusMode: FocusMode;
+  apps: AppAnswer[];
 };
 
 export type StartRequest = {
@@ -65,6 +89,8 @@ export type StartRequest = {
     targets: string[];
     onprem: { wanted: boolean };
     criteria: Criteria;
+    focus_mode?: FocusMode;
+    applications?: AppAnswer[];
   };
 };
 

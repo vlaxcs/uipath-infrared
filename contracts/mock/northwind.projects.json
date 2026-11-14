@@ -1,0 +1,55 @@
+{
+  "estate": "northwind",
+  "projects": [
+    {
+      "id": "storefront",
+      "name": "Storefront",
+      "summary": "The online shop customers order from: web fleet, Kubernetes, orders database, sessions cache."
+    },
+    {
+      "id": "data-platform",
+      "name": "Data platform",
+      "summary": "Clickstream ingestion, the data lake and the analysts' Spark jobs."
+    },
+    {
+      "id": "erp",
+      "name": "ERP",
+      "summary": "The legacy ERP: orders API, invoices, admin portal and reports."
+    },
+    {
+      "id": "receipts",
+      "name": "Receipt scanner",
+      "summary": "The receipt-scanning app sold to freelancers and small accounting firms."
+    },
+    {
+      "id": "clinic-booking",
+      "name": "Clinic booking",
+      "summary": "Patients book a doctor online; clinic staff manage calendars and patient files."
+    },
+    {
+      "id": "fleet",
+      "name": "Fleet telemetry",
+      "summary": "GPS tracking and alerts for courier vans."
+    },
+    {
+      "id": "payments",
+      "name": "Payments API",
+      "summary": "Card payments for the storefront and partner shops."
+    },
+    {
+      "id": "hr-portal",
+      "name": "HR portal",
+      "summary": "Internal tool: leave, payslips and onboarding for employees."
+    },
+    {
+      "id": "support-assistant",
+      "name": "Support assistant",
+      "summary": "AI chat that answers customer questions, on GPU nodes."
+    },
+    {
+      "id": "marketing-site",
+      "name": "Marketing site",
+      "summary": "Public website and landing pages."
+    }
+  ]
+}

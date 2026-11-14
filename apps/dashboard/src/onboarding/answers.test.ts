@@ -8,13 +8,14 @@ import {
   onpremChoice,
   startRequest,
   targetChoices,
+  withApp,
   withOnpremOnProfile,
   withProject,
   withTarget,
 } from "~/onboarding/answers";
 import { providerLabel } from "~/onboarding/providers";
 import type { OnboardingSetup } from "~/onboarding/types";
-import { DEFAULT_CRITERIA } from "~/onboarding/criteria";
+import { DEFAULT_CRITERIA, DEFAULT_PROFILE } from "~/onboarding/criteria";
 
 const setup: OnboardingSetup = {
   connections: [{ id: "floci", label: "AWS (demo estate)" }],
@@ -72,7 +73,7 @@ describe("the onboarding answers", () => {
   });
 
   it("become the body POST /runs takes", () => {
-    expect(startRequest({ connection: "floci", project: "startup", targets: ["aws"], onprem: true, criteria: DEFAULT_CRITERIA })).toEqual({
+    expect(startRequest({ connection: "floci", project: "startup", targets: ["aws"], onprem: true, criteria: DEFAULT_CRITERIA, focusMode: "plan", apps: [] })).toEqual({
       project: "startup",
       onboarding: { connection: "floci", targets: ["aws"], onprem: { wanted: true }, criteria: DEFAULT_CRITERIA },
     });
@@ -96,7 +97,7 @@ describe("the onboarding answers", () => {
 describe("on-prem changes against the profile", () => {
   const site = { kind: "search" as const, label: "Bucharest", lat: 44.43, lng: 26.1, radius_km: 25 };
   const profile = { criteria: DEFAULT_CRITERIA, onprem: { wanted: true, site } };
-  const answers = { connection: "floci", project: "startup", targets: ["aws"], criteria: DEFAULT_CRITERIA, onprem: true, site };
+  const answers = { connection: "floci", project: "startup", targets: ["aws"], criteria: DEFAULT_CRITERIA, onprem: true, site, focusMode: "plan" as const, apps: [] };
 
   it("sees no change when the run keeps the profile's site", () => {
     expect(onpremChanged(profile, answers)).toBe(false);
@@ -114,6 +115,41 @@ describe("on-prem changes against the profile", () => {
   it("writes the run's on-prem details onto the profile", () => {
     const moved = { ...site, label: "Cluj" };
     expect(withOnpremOnProfile(profile, { ...answers, site: moved }).onprem).toEqual({ wanted: true, site: moved });
+  });
+});
+
+describe("the projects of an estate in a run", () => {
+  const estate = {
+    ...setup,
+    projects: [{
+      id: "northwind", description: "", forbidden_providers: [],
+      applications: [
+        { id: "payments", name: "Payments API", summary: "", stacks: ["payments-prod"], users: { metric: "monthly_active_users", current: 52000, expected: 190000, at_month: 36 } },
+        { id: "hr-portal", name: "HR portal", summary: "", stacks: ["hr-portal-prod"], users: { metric: "internal_users", current: 900, expected: 1450, at_month: 36 } },
+      ],
+    }],
+  };
+
+  it("start from the estate's users and from each project's focus in Configuration", () => {
+    const answers = initialAnswers(estate, { ...DEFAULT_PROFILE, projects: { payments: { focus: "availability" } } });
+    expect(answers.apps).toEqual([
+      { id: "payments", users_now: 52000, users_expected: 190000, at_month: 36, criteria: { focus: "availability" } },
+      { id: "hr-portal", users_now: 900, users_expected: 1450, at_month: 36, criteria: DEFAULT_CRITERIA },
+    ]);
+  });
+
+  it("send one focus for every project in plan mode, and each project's own otherwise", () => {
+    const answers = initialAnswers(estate, { ...DEFAULT_PROFILE, projects: { payments: { focus: "availability" } } });
+    const plan = startRequest(answers).onboarding;
+    expect(plan.focus_mode).toBe("plan");
+    expect(plan.applications?.map((app) => app.criteria)).toEqual([DEFAULT_CRITERIA, DEFAULT_CRITERIA]);
+    const own = startRequest({ ...answers, focusMode: "project" }).onboarding;
+    expect(own.applications?.map((app) => app.criteria)).toEqual([{ focus: "availability" }, DEFAULT_CRITERIA]);
+  });
+
+  it("will not start with a project that has no users", () => {
+    const answers = withApp(initialAnswers(estate), "payments", { users_now: 0 });
+    expect(canStart(estate, answers)).toBe(false);
   });
 });
 

@@ -1,6 +1,5 @@
 import argparse
 import json
-import shutil
 import sys
 from pathlib import Path
 
@@ -23,8 +22,16 @@ def propose(arguments):
     if not proposal.exists():
         print(f"the stub has no proposal for revision {arguments.revision}", file=sys.stderr)
         return 1
-    shutil.copyfile(proposal, arguments.out)
-    print(f"agent stub: no model call; proposed {proposal.name}", file=sys.stderr)
+    document = json.loads(proposal.read_text(encoding="utf-8"))
+    infra = json.loads(Path(arguments.infra).read_text(encoding="utf-8"))
+    ids = [component["id"] for component in infra["components"]]
+    if infra["project"] != document["project"]:
+        document["project"] = infra["project"]
+        for candidate in document["candidates"]:
+            for action in candidate["actions"]:
+                action["component"] = next((i for i in ids if i == action["component"] or i.endswith("-" + action["component"])), action["component"])
+    Path(arguments.out).write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
+    print(f"agent stub: no model call; proposed {proposal.name} for {infra['project']}", file=sys.stderr)
     return 0
 
 

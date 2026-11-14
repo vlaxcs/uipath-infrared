@@ -1,6 +1,6 @@
 import { DEFAULT_PROFILE } from "~/onboarding/criteria";
 import { providerLabel } from "~/onboarding/providers";
-import type { Answers, Choice, OnboardingSetup, Profile, Project, StartRequest } from "~/onboarding/types";
+import type { AppAnswer, Answers, Choice, Criteria, OnboardingSetup, Profile, Project, StartRequest } from "~/onboarding/types";
 
 const ONPREM = "onprem";
 export const FORBIDDEN_HINT = "Forbidden by the project";
@@ -24,11 +24,36 @@ export function initialAnswers(setup: OnboardingSetup, profile: Profile = DEFAUL
     onprem: setup.onprem && !onpremForbidden && profile.onprem.wanted,
     site: profile.onprem.site,
     criteria: profile.criteria,
+    focusMode: "plan",
+    apps: appAnswers(project, profile),
   };
 }
 
-export function withProject(setup: OnboardingSetup, answers: Answers, id: string): Answers {
-  return { ...answers, project: id, targets: defaultTargets(setup, projectById(setup, id)), onprem: false };
+export function appAnswers(project: Project | undefined, profile: Profile = DEFAULT_PROFILE): AppAnswer[] {
+  return (project?.applications ?? []).map((app) => ({
+    id: app.id,
+    users_now: app.users.current,
+    users_expected: app.users.expected,
+    at_month: app.users.at_month,
+    criteria: profile.projects?.[app.id] ?? profile.criteria,
+  }));
+}
+
+export function withProject(setup: OnboardingSetup, answers: Answers, id: string, profile: Profile = DEFAULT_PROFILE): Answers {
+  const project = projectById(setup, id);
+  return { ...answers, project: id, targets: defaultTargets(setup, project), onprem: false, apps: appAnswers(project, profile) };
+}
+
+export function withApp(answers: Answers, id: string, change: Partial<Omit<AppAnswer, "id">>): Answers {
+  return { ...answers, apps: answers.apps.map((app) => (app.id === id ? { ...app, ...change } : app)) };
+}
+
+export function withAppFocus(answers: Answers, id: string, criteria: Criteria): Answers {
+  return withApp(answers, id, { criteria });
+}
+
+export function appsValid(answers: Answers): boolean {
+  return answers.apps.every((app) => app.users_now > 0 && app.users_expected > 0 && app.at_month >= 1);
 }
 
 export function withTarget(answers: Answers, provider: string, ticked: boolean): Answers {
@@ -65,7 +90,7 @@ export function onpremChoice(setup: OnboardingSetup, answers: Answers): Choice |
 }
 
 export function canStart(setup: OnboardingSetup, answers: Answers): boolean {
-  return answers.connection !== "" && projectById(setup, answers.project) !== undefined && answers.targets.length > 0;
+  return answers.connection !== "" && projectById(setup, answers.project) !== undefined && answers.targets.length > 0 && appsValid(answers);
 }
 
 export function startRequest(answers: Answers): StartRequest {
@@ -76,6 +101,15 @@ export function startRequest(answers: Answers): StartRequest {
       targets: answers.targets,
       onprem: { wanted: answers.onprem },
       criteria: answers.criteria,
+      ...(answers.apps.length > 0
+        ? {
+            focus_mode: answers.focusMode,
+            applications: answers.apps.map((app) => ({
+              ...app,
+              criteria: answers.focusMode === "project" ? app.criteria : answers.criteria,
+            })),
+          }
+        : {}),
     },
   };
 }

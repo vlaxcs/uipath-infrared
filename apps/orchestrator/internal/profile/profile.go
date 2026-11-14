@@ -32,8 +32,9 @@ type Onprem struct {
 }
 
 type Profile struct {
-	Criteria onboarding.Criteria `json:"criteria"`
-	Onprem   Onprem              `json:"onprem"`
+	Criteria onboarding.Criteria            `json:"criteria"`
+	Onprem   Onprem                         `json:"onprem"`
+	Projects map[string]onboarding.Criteria `json:"projects,omitempty"`
 }
 
 func Default() Profile {
@@ -45,6 +46,11 @@ func Default() Profile {
 func Check(profile Profile) error {
 	if err := onboarding.CheckCriteria(profile.Criteria); err != nil {
 		return fmt.Errorf("%w: %v", ErrInvalid, err)
+	}
+	for id, criteria := range profile.Projects {
+		if err := onboarding.CheckCriteria(criteria); err != nil {
+			return fmt.Errorf("%w: project %s: %v", ErrInvalid, id, err)
+		}
 	}
 	site := profile.Onprem.Site
 	if site == nil {

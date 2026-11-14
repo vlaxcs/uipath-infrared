@@ -151,6 +151,7 @@ export function OnboardingSection({ source = orchestratorOnboarding, onFollowRun
       error={error}
       holder={answers.project ? holderOf(runs, answers.project) : null}
       onOpenRun={onFollowRun}
+      profile={loaded.profile}
       saveChoice={asking ? { saving: savingProfile, onSave: saveAndStart, onSkip: launch, onBack: () => setAsking(false) } : null}
     />
   ) : null;

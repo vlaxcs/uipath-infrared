@@ -1,8 +1,9 @@
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { OrchestratorError, orchestratorOnboarding, type OnboardingSource } from "~/onboarding/api";
 import { CriteriaFields } from "~/onboarding/CriteriaFields";
+import { ProjectFocusList } from "~/onboarding/ProjectFocusList";
 import { NEW_SITE, SiteFields } from "~/onboarding/SiteFields";
-import type { Profile } from "~/onboarding/types";
+import type { Application, Profile } from "~/onboarding/types";
 import { AccountSettings, AccountSettingsPanel, type AccountSettingsSource } from "~/accountSettings/AccountSettings";
 import { PageSection } from "~/pages/PageSection";
 
@@ -18,6 +19,7 @@ type ConfigurationPageProps = { source?: OnboardingSource; accountSettings?: Acc
 
 export function ConfigurationPage({ source = orchestratorOnboarding, accountSettings }: ConfigurationPageProps) {
   const [state, setState] = useState<State>({ status: "loading" });
+  const [applications, setApplications] = useState<Application[]>([]);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
   const id = useId();
@@ -27,6 +29,12 @@ export function ConfigurationPage({ source = orchestratorOnboarding, accountSett
     source.loadProfile().then(
       (profile) => current && setState({ status: "ready", profile }),
       (error: unknown) => current && setState({ status: "failed", reason: reasonOf(error) }),
+    );
+    Promise.resolve()
+      .then(() => source.load())
+      .then(
+      (setup) => current && setApplications(setup.projects.flatMap((project) => project.applications ?? [])),
+      () => undefined,
     );
     return () => {
       current = false;
@@ -72,7 +80,11 @@ export function ConfigurationPage({ source = orchestratorOnboarding, accountSett
       ) : (
         <form aria-label="Defaults" onSubmit={save} className="flex flex-col gap-4">
           <PageSection title="Default focus">
+            <p className="text-caption text-fg-muted">Every project uses it unless it has its own focus below.</p>
             <CriteriaFields criteria={state.profile.criteria} onChange={(criteria) => update({ ...state.profile, criteria })} />
+          </PageSection>
+          <PageSection title="Each project's focus">
+            <ProjectFocusList applications={applications} focus={state.profile.projects ?? {}} onChange={(projects) => update({ ...state.profile, projects })} />
           </PageSection>
           <PageSection title="On-prem">
             <label className="flex items-center gap-2 text-label text-fg">

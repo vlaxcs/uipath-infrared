@@ -47,10 +47,10 @@ One mock estate with 8 to 10 projects of different kinds and sizes, each with it
 
 ## Delivery
 
-1. The contract and the engine's per-project growth.
-2. The mock estate with its projects.
-3. New analysis: the list of projects with users and focus, and the switch between one focus for the plan and each project's own. Configuration: the default focus for all projects and each project's own.
-4. Focus per project in the engine (constraints and ranking per project's stacks).
+1. The contract and the engine's per-project growth. Done.
+2. The mock estate with its projects: `contracts/mock/build_estate.py` builds `northwind` (10 projects, 87 components) from the four mock companies, ownership planted as tags, a CloudFormation stack, a namespace and names, and resolved by the extractor. Done.
+3. New analysis: the list of projects with users and focus, and the switch between one focus for the plan and each project's own; the run's forecast carries both. Configuration: the default focus for all projects and each project's own. Done.
+4. Focus per project in the engine (constraints and ranking per project's stacks). Not done: the run's forecast records `projects[].focus`, the engine still applies the plan's focus to the whole estate. Until then the estate's own targets are 99.5% availability and EUR 320,000 a month at the horizon.
 
 ## Out of scope
 
