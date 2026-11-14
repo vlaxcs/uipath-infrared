@@ -1,14 +1,18 @@
 package files
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 
+	"infrared/orchestrator/internal/onboarding"
 	"infrared/orchestrator/internal/run"
 )
 
@@ -139,4 +143,62 @@ func readJSON(path string, into any) error {
 		return err
 	}
 	return json.Unmarshal(data, into)
+}
+
+func (Local) ReadObject(path string) (map[string]any, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+	var object map[string]any
+	if err := decoder.Decode(&object); err != nil {
+		return nil, fmt.Errorf("%s: %w", filepath.Base(path), err)
+	}
+	if object == nil {
+		return nil, fmt.Errorf("%s: is not a JSON object", filepath.Base(path))
+	}
+	return object, nil
+}
+
+func (Local) ReadCatalogOffer(path string) (onboarding.Catalog, error) {
+	var document struct {
+		Options []struct {
+			Provider string `json:"provider"`
+		} `json:"options"`
+		OnpremPlatforms []json.RawMessage `json:"onprem_platforms"`
+	}
+	if err := readJSON(path, &document); err != nil {
+		return onboarding.Catalog{}, fmt.Errorf("%s: %w", filepath.Base(path), err)
+	}
+	offer := onboarding.Catalog{Providers: []string{}, Onprem: len(document.OnpremPlatforms) > 0}
+	for _, option := range document.Options {
+		if option.Provider == onboarding.OnpremProvider {
+			offer.Onprem = true
+			continue
+		}
+		if option.Provider != "" && !slices.Contains(offer.Providers, option.Provider) {
+			offer.Providers = append(offer.Providers, option.Provider)
+		}
+	}
+	slices.Sort(offer.Providers)
+	return offer, nil
+}
+
+func (Local) ReadProject(path string) (onboarding.Project, error) {
+	var document struct {
+		Description     string `json:"description"`
+		HardConstraints struct {
+			ForbiddenProviders []string `json:"forbidden_providers"`
+		} `json:"hard_constraints"`
+	}
+	if err := readJSON(path, &document); err != nil {
+		return onboarding.Project{}, fmt.Errorf("%s: %w", filepath.Base(path), err)
+	}
+	forbidden := document.HardConstraints.ForbiddenProviders
+	if forbidden == nil {
+		forbidden = []string{}
+	}
+	return onboarding.Project{Description: document.Description, ForbiddenProviders: forbidden}, nil
 }

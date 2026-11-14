@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"infrared/orchestrator/internal/onboarding"
 	"infrared/orchestrator/internal/run"
 )
 
@@ -24,6 +25,11 @@ var (
 )
 
 var projectName = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*$`)
+
+const (
+	forecastSuffix = ".forecast.json"
+	forecastName   = "forecast.json"
+)
 
 type Workflow struct {
 	config    Config
@@ -80,13 +86,47 @@ func (w *Workflow) Shutdown() {
 	w.inFlight.Wait()
 }
 
-func (w *Workflow) Start(project string) (run.Run, error) {
+func (w *Workflow) Onboarding() (onboarding.Setup, error) {
+	offer, err := w.files.ReadCatalogOffer(w.config.CatalogPath)
+	if err != nil {
+		return onboarding.Setup{}, err
+	}
+	entries, err := os.ReadDir(w.config.ProjectsDir)
+	if err != nil {
+		return onboarding.Setup{}, err
+	}
+	projects := []onboarding.Project{}
+	for _, entry := range entries {
+		id, isForecast := strings.CutSuffix(entry.Name(), forecastSuffix)
+		if entry.IsDir() || !isForecast || !projectName.MatchString(id) {
+			continue
+		}
+		project, err := w.files.ReadProject(filepath.Join(w.config.ProjectsDir, entry.Name()))
+		if err != nil {
+			return onboarding.Setup{}, err
+		}
+		project.ID = id
+		projects = append(projects, project)
+	}
+	sort.Slice(projects, func(i, j int) bool { return projects[i].ID < projects[j].ID })
+	return onboarding.Setup{Connections: onboarding.Connections, Providers: offer.Providers, Onprem: offer.Onprem, Projects: projects}, nil
+}
+
+func (w *Workflow) Start(project string, answers *onboarding.Answers) (run.Run, error) {
 	if !projectName.MatchString(project) {
 		return run.Run{}, fmt.Errorf("%w: %q", ErrUnknownProject, project)
 	}
-	forecast := filepath.Join(w.config.ProjectsDir, project+".forecast.json")
+	forecast := filepath.Join(w.config.ProjectsDir, project+forecastSuffix)
 	if _, err := os.Stat(forecast); err != nil {
 		return run.Run{}, fmt.Errorf("%w: no %s", ErrUnknownProject, filepath.Base(forecast))
+	}
+	var answered map[string]any
+	if answers != nil {
+		prepared, err := w.answeredForecast(forecast, *answers)
+		if err != nil {
+			return run.Run{}, err
+		}
+		answered = prepared
 	}
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -98,7 +138,7 @@ func (w *Workflow) Start(project string) (run.Run, error) {
 	if err != nil {
 		return run.Run{}, err
 	}
-	inputs, err := w.copyInputs(forecast, dir)
+	inputs, err := w.copyInputs(forecast, answered, dir)
 	if err != nil {
 		return run.Run{}, err
 	}
@@ -195,8 +235,27 @@ func (w *Workflow) checkLayout(entry *tracked, layout string) error {
 	return nil
 }
 
-func (w *Workflow) copyInputs(forecast, dir string) (run.Inputs, error) {
-	forecastFile, err := w.copyInput(forecast, dir, "forecast.json")
+func (w *Workflow) answeredForecast(forecast string, answers onboarding.Answers) (map[string]any, error) {
+	offer, err := w.files.ReadCatalogOffer(w.config.CatalogPath)
+	if err != nil {
+		return nil, err
+	}
+	document, err := w.files.ReadObject(forecast)
+	if err != nil {
+		return nil, err
+	}
+	constraints, err := onboarding.Resolve(answers, offer, onboarding.ForbiddenIn(document))
+	if err != nil {
+		return nil, err
+	}
+	if err := onboarding.Apply(document, constraints); err != nil {
+		return nil, fmt.Errorf("%s: %w", filepath.Base(forecast), err)
+	}
+	return document, nil
+}
+
+func (w *Workflow) copyInputs(forecast string, answered map[string]any, dir string) (run.Inputs, error) {
+	forecastFile, err := w.forecastInput(forecast, answered, dir)
 	if err != nil {
 		return run.Inputs{}, err
 	}
@@ -205,6 +264,16 @@ func (w *Workflow) copyInputs(forecast, dir string) (run.Inputs, error) {
 		return run.Inputs{}, err
 	}
 	return run.Inputs{Forecast: forecastFile, Catalog: catalogFile}, nil
+}
+
+func (w *Workflow) forecastInput(forecast string, answered map[string]any, dir string) (run.File, error) {
+	if answered == nil {
+		return w.copyInput(forecast, dir, forecastName)
+	}
+	if err := w.files.WriteJSON(filepath.Join(dir, forecastName), answered); err != nil {
+		return run.File{}, err
+	}
+	return w.fileRef(dir, forecastName)
 }
 
 func (w *Workflow) copyInput(source, dir, name string) (run.File, error) {

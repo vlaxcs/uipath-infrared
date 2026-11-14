@@ -7,6 +7,12 @@ The CTO's surface for runs, the infrastructure graph, candidates, approvals and 
     npm install
     npm run dev
 
+The dashboard is served under `/app/` (`base` in `vite.config.ts`), so the dev server answers at `http://localhost:5173/app/`.
+
+## New run
+
+"New run" is the first section: the onboarding of `docs/onboarding.md`. It reads `GET /onboarding` and starts a run with `POST /runs` on the orchestrator at `VITE_ORCHESTRATOR_URL`, through `src/onboarding/api.ts`, the only file that calls it. The other sections still show sample data.
+
 ## Checks
 
     npm run typecheck

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"infrared/orchestrator/internal/adapters/httpapi"
+	"infrared/orchestrator/internal/onboarding"
 	"infrared/orchestrator/internal/run"
 	"infrared/orchestrator/internal/workflow"
 )
@@ -19,9 +20,16 @@ type fakeRuns struct {
 	listedFor   string
 	eventsAfter int
 	decided     run.Event
+	answers     *onboarding.Answers
+	started     bool
 }
 
-func (f *fakeRuns) Start(project string) (run.Run, error) {
+func (f *fakeRuns) Onboarding() (onboarding.Setup, error) {
+	return onboarding.Setup{Connections: onboarding.Connections, Providers: []string{"aws"}, Projects: []onboarding.Project{}}, f.err
+}
+
+func (f *fakeRuns) Start(project string, answers *onboarding.Answers) (run.Run, error) {
+	f.started, f.answers = true, answers
 	return run.Run{Summary: run.Summary{ID: "run-" + project + "-0001", Project: project}}, f.err
 }
 
@@ -59,6 +67,7 @@ func TestRoutesAnswerWithTheirStatus(t *testing.T) {
 		method, path, body string
 		status             int
 	}{
+		{"GET", "/onboarding", "", http.StatusOK},
 		{"GET", "/runs", "", http.StatusOK},
 		{"POST", "/runs", `{"project": "startup"}`, http.StatusCreated},
 		{"GET", "/runs/run-startup-0001", "", http.StatusOK},
@@ -152,5 +161,58 @@ func TestTheDecisionBodyReachesTheWorkflowWhole(t *testing.T) {
 	got := runs.decided
 	if got.Step != run.Rehearse || got.Actor.Surface != "slack" || got.Decision.Kind != run.ApprovePlan || got.Decision.Reason != "go" {
 		t.Fatalf("decided %+v", got)
+	}
+}
+
+func TestStartPassesTheOnboardingAnswers(t *testing.T) {
+	runs := &fakeRuns{}
+	recorder := send(t, runs, "POST", "/runs", `{"project": "startup", "onboarding": {"connection": "floci", "targets": ["aws"], "onprem": {"wanted": true}}}`)
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("%d: %s", recorder.Code, recorder.Body)
+	}
+	if runs.answers == nil || runs.answers.Connection != "floci" || len(runs.answers.Targets) != 1 || !runs.answers.Onprem.Wanted {
+		t.Fatalf("answers reached the workflow as %+v", runs.answers)
+	}
+}
+
+func TestStartWithoutOnboardingPassesNoAnswers(t *testing.T) {
+	runs := &fakeRuns{}
+	send(t, runs, "POST", "/runs", `{"project": "startup"}`)
+	if !runs.started || runs.answers != nil {
+		t.Fatalf("started %v with answers %+v", runs.started, runs.answers)
+	}
+}
+
+func TestAnUnknownOnboardingFieldIsRefusedBeforeTheWorkflow(t *testing.T) {
+	runs := &fakeRuns{}
+	recorder := send(t, runs, "POST", "/runs", `{"project": "startup", "onboarding": {"connection": "floci", "targets": ["aws"], "region": "eu"}}`)
+	if recorder.Code != http.StatusBadRequest || runs.started {
+		t.Fatalf("%d, started %v", recorder.Code, runs.started)
+	}
+}
+
+func TestInvalidOnboardingAnswersAre400WithTheReason(t *testing.T) {
+	err := fmt.Errorf("%w: gcp is forbidden by the project", onboarding.ErrInvalid)
+	recorder := send(t, &fakeRuns{err: err}, "POST", "/runs", `{"project": "startup", "onboarding": {"connection": "floci", "targets": ["gcp"]}}`)
+	var body map[string]string
+	json.Unmarshal(recorder.Body.Bytes(), &body)
+	if recorder.Code != http.StatusBadRequest || body["error"] != err.Error() {
+		t.Fatalf("%d %v", recorder.Code, body)
+	}
+}
+
+func TestTheOnboardingSetupIsServedAsJSON(t *testing.T) {
+	recorder := send(t, &fakeRuns{}, "GET", "/onboarding", "")
+	var setup struct {
+		Connections []struct{ ID, Label string } `json:"connections"`
+		Providers   []string                     `json:"providers"`
+		Onprem      *bool                        `json:"onprem"`
+		Projects    []any                        `json:"projects"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &setup); err != nil {
+		t.Fatal(err)
+	}
+	if len(setup.Connections) != 1 || setup.Connections[0].ID != "floci" || setup.Onprem == nil || setup.Projects == nil {
+		t.Fatalf("setup %s", recorder.Body)
 	}
 }
