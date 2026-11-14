@@ -35,7 +35,7 @@ type Runs interface {
 }
 
 func Handler(runs Runs, allowedOrigins ...string) http.Handler {
-	return withCORS(routes(runs), allowedOrigins)
+	return withCORS(withDemoAuth(routes(runs)), allowedOrigins)
 }
 
 func routes(runs Runs) http.Handler {
