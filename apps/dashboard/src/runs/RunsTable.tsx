@@ -7,11 +7,10 @@ import { StatusBadge } from "~/ui/StatusBadge";
 type RunsTableProps = {
   runs: readonly RunSummary[];
   costs: Record<string, RunCostEntry>;
-  selectedRunId: string | null;
-  onSelectRun: (id: string) => void;
+  onOpenRun: (id: string) => void;
 };
 
-export function RunsTable({ runs, costs, selectedRunId, onSelectRun }: RunsTableProps) {
+export function RunsTable({ runs, costs, onOpenRun }: RunsTableProps) {
   return (
     <div className="overflow-x-auto rounded-card border border-border">
       <table aria-label="Runs" className="w-full border-collapse text-left">
@@ -39,33 +38,26 @@ export function RunsTable({ runs, costs, selectedRunId, onSelectRun }: RunsTable
         </thead>
         <tbody>
           {runs.map((run) => {
-            const selected = run.id === selectedRunId;
             const status = runStatusMeta[run.status];
             const cost = costs[run.id];
 
             return (
               <tr
                 key={run.id}
-                onClick={() => onSelectRun(run.id)}
-                aria-current={selected ? "true" : undefined}
-                className={
-                  selected
-                    ? "cursor-pointer border-b border-border bg-surface-muted last:border-0"
-                    : "cursor-pointer border-b border-border bg-surface last:border-0 hover:bg-surface-muted"
-                }
+                onClick={() => onOpenRun(run.id)}
+                className="cursor-pointer border-b border-border bg-surface last:border-0 hover:bg-surface-muted"
               >
                 <td className="px-4 py-3">
                   <button
                     type="button"
                     onClick={(event) => {
                       event.stopPropagation();
-                      onSelectRun(run.id);
+                      onOpenRun(run.id);
                     }}
-                    aria-expanded={selected}
                     className="flex items-center gap-2 text-left"
                   >
                     <span aria-hidden="true" className="text-fg-subtle">
-                      {selected ? "▾" : "▸"}
+                      ▸
                     </span>
                     <span className="flex flex-col">
                       <span className="text-label font-semibold">{run.project}</span>

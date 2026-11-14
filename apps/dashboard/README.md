@@ -25,9 +25,11 @@ The orchestrator's `ORCHESTRATOR_ALLOWED_ORIGINS` must include the Vite origin (
 
 ## Live workflow
 
-Runs are a table: status, current step, the **before** price (the result's baseline) and the **after** price (the winner's monthly cost), plus when the run last changed. Prices come from the latest `result.<n>.json`; a run that has not been evaluated shows `—`. Selecting a row opens the run below the table. "Start run" posts `{"project":"startup"}` when no run is active.
+Runs are a table: status, current step, the **before** price (the result's baseline) and the **after** price (the winner's monthly cost), plus when the run last changed. Prices come from the latest `result.<n>.json`; a run that has not been evaluated shows `—`. Selecting a row navigates to the run's own page (`#/runs/<id>`), and "← All runs" returns to the table. "Start run" posts `{"project":"startup"}` when no run is active and opens the new run.
 
-The six steps form a connected pipeline graph. Selecting a node loads its artifact and shows the step's result, its events and the next step. Selecting the same node again returns to the **run overview** (summary and timeline); the overview is also what a freshly opened run shows, and it follows `run.step` while "Following live" is on. "Next step" only moves the selection; the orchestrator advances the automatic steps itself.
+The six steps form a connected pipeline graph. Selecting a node loads its artifact and shows the step's result, its events and the next step. Selecting the same node again returns to the **run overview** (summary and timeline); the overview is also what a freshly opened run page shows, and it follows `run.step` while "Following live" is on. "Next step" only moves the selection; the orchestrator advances the automatic steps itself.
+
+Sections are hash routes (`#/runs`, `#/graph`, …), so a run page survives a refresh and the browser's back button works without a server rewrite.
 
 The layout gate is decided in the Present pane: it lists the feasible `x_candidates` (highest rank preselected, infeasible layouts named) and submits `pick_layout`. The plan gate is decided in the Rehearse pane and submits `approve_plan`. Both need a reason and act as `cto` on the `dashboard` surface. A `409` means another surface decided first, so the page asks for a refresh instead of resubmitting; `422` reports an infeasible layout.
 

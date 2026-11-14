@@ -14,7 +14,7 @@ describe("the start run panel", () => {
         busy={false}
         error={null}
         onStart={() => {}}
-        onFollow={() => {}}
+        onView={() => {}}
       />,
     );
 
@@ -30,7 +30,7 @@ describe("the start run panel", () => {
         busy={false}
         error={null}
         onStart={onStart}
-        onFollow={() => {}}
+        onView={() => {}}
       />,
     );
 
@@ -46,7 +46,7 @@ describe("the start run panel", () => {
         busy
         error="orchestrator is offline"
         onStart={() => {}}
-        onFollow={() => {}}
+        onView={() => {}}
       />,
     );
 
@@ -64,12 +64,12 @@ describe("the start run panel", () => {
         busy={false}
         error={null}
         onStart={() => {}}
-        onFollow={onFollow}
+        onView={onFollow}
       />,
     );
 
     expect(screen.getByText(/demo-shop is awaiting_approval/)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Follow active run" }));
+    fireEvent.click(screen.getByRole("button", { name: "View active run" }));
     expect(onFollow).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { RunSource } from "~/runs/source";
 import { deriveStepStates } from "~/runs/stepProgress";
 import type { HumanDecision, RunDetail, RunStep } from "~/runs/types";
@@ -22,19 +22,14 @@ type RunViewProps = {
   source: RunSource;
   onReload?: () => void;
   onStartAgain?: () => void;
-  onRunUpdated?: () => void;
 };
 
-export function RunView({ run: initialRun, source, onReload, onStartAgain, onRunUpdated }: RunViewProps) {
+export function RunView({ run: initialRun, source, onReload, onStartAgain }: RunViewProps) {
   const { run, error, mergeEvent } = useRunFeed(initialRun, source);
   const steps = deriveStepStates(run.events, run);
   const [following, setFollowing] = useState(true);
   const [selectedStep, setSelectedStep] = useState<RunStep | null>(null);
   const [revision, setRevision] = useState<number | null>(null);
-
-  useEffect(() => {
-    onRunUpdated?.();
-  }, [onRunUpdated, run.status, run.step, run.updated_at]);
 
   const pinStep = (step: RunStep) => {
     setFollowing(false);

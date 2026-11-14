@@ -7,10 +7,10 @@ type StartRunPanelProps = {
   busy: boolean;
   error: string | null;
   onStart: () => void;
-  onFollow: () => void;
+  onView: () => void;
 };
 
-export function StartRunPanel({ mode, activeRun, busy, error, onStart, onFollow }: StartRunPanelProps) {
+export function StartRunPanel({ mode, activeRun, busy, error, onStart, onView }: StartRunPanelProps) {
   if (mode !== "live") return null;
 
   return (
@@ -23,10 +23,10 @@ export function StartRunPanel({ mode, activeRun, busy, error, onStart, onFollow 
           </p>
           <button
             type="button"
-            onClick={onFollow}
+            onClick={onView}
             className="self-start rounded-control border border-border px-3 py-2 text-label hover:bg-surface-muted"
           >
-            Follow active run
+            View active run
           </button>
         </>
       ) : (
