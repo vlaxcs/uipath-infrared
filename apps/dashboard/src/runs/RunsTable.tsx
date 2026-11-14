@@ -51,11 +51,11 @@ export function RunsTable({ runs, costs, onOpenRun }: RunsTableProps) {
                 onClick={() => onOpenRun(run.id)}
                 className={
                   live
-                    ? "cursor-pointer bg-surface hover:bg-surface-muted"
+                    ? "cursor-pointer bg-surface-muted"
                     : "cursor-pointer border-b border-border bg-surface last:border-0 hover:bg-surface-muted"
                 }
               >
-                <td className="px-4 py-3">
+                <td className={live ? "border-l-4 border-credit px-4 py-3" : "border-l-4 border-transparent px-4 py-3"}>
                   <button
                     type="button"
                     onClick={(event) => {
@@ -89,8 +89,8 @@ export function RunsTable({ runs, costs, onOpenRun }: RunsTableProps) {
                 </td>
               </tr>
               {live ? (
-                <tr onClick={() => onOpenRun(run.id)} className="cursor-pointer border-b border-border bg-surface last:border-0 hover:bg-surface-muted">
-                  <td colSpan={6} className="px-4 pb-3">
+                <tr onClick={() => onOpenRun(run.id)} className="cursor-pointer border-b border-border bg-surface-muted last:border-0">
+                  <td colSpan={6} className="border-l-4 border-credit px-4 pb-3">
                     <RunProgressBar run={run} />
                   </td>
                 </tr>
