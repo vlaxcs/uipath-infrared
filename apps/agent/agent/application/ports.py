@@ -15,6 +15,10 @@ class SiteStoreUnavailable(Exception):
     pass
 
 
+class ListingSourceUnavailable(Exception):
+    pass
+
+
 class SiteStore(Protocol):
     def nearby(self, center: Point, radius_km: float, kinds: Sequence[SiteKind], fresh_since: datetime) -> dict[SiteKind, list[NearbyOption]]: ...
 

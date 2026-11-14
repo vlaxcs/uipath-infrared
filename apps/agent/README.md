@@ -56,6 +56,15 @@ export SITES_TEST_DATABASE_URL=postgresql://site_step_login:site_step@127.0.0.1:
 
 CI runs them in the `site-store` job, against the same image.
 
+### Filling it with real listings
+
+```bash
+SITES_DATABASE_URL=postgresql://site_step_login:site_step@127.0.0.1:54329/sites \
+  .venv/bin/python -m agent sites-search --lat 44.4268 --lng 26.1025 --radius-km 25
+```
+
+It needs no LLM key. When the store has fewer than 5 fresh options of a kind near the pin, it searches that kind and keeps what it finds, then prints the options near the pin. Leases come from Storia's commercial rentals, about a minute per search (one request at a time, 2 s apart, robots.txt obeyed). Colocation comes from `config/colocation.json`, providers' own published rack prices, kept only while the quote is still on the page. The rules are in section 3 of `docs/onprem-site.md`. The tests use trimmed copies of real Storia pages in `tests/fixtures/storia/`, with no personal data, and make no live calls.
+
 ## Run and test
 
 From `apps/agent/`:
@@ -89,6 +98,6 @@ It compares the findings with `apps/estate/ground_truth/planted_issues.json` and
 |---|---|---|
 | `agent/cli.py`, `agent/__main__.py` | entry point | arguments, wiring |
 | `agent/application/` | application | `investigate`, `propose` (`Proposal`), the tool shape, the ports |
-| `agent/domain/` | domain | prompts, the findings log, the candidates document and the figures read from a result |
-| `agent/adapters/` | adapters | the SDK session, AWS clients and read tools, the engine subprocess, the contract checker |
+| `agent/domain/` | domain | prompts, the findings log, the candidates document and the figures read from a result, sites and the listing search rules |
+| `agent/adapters/` | adapters | the SDK session, AWS clients and read tools, the engine subprocess, the contract checker, the site store, Storia, the colocation file, the polite fetcher |
 | `agent/settings.py` | configuration | the environment and `.env` |
