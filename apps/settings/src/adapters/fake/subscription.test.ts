@@ -68,3 +68,67 @@ describe("the fake subscription slice", () => {
     });
   });
 });
+
+describe("the fake subscription slice on the Stripe sandbox", () => {
+  async function withCard(number: string, patch?: (seed: AccountSettings) => void) {
+    const fake = api(patch);
+    await fake.updatePaymentMethod(await fake.sandbox.createPaymentMethod({ number, expMonth: 12, expYear: 2034, cvc: "123" }));
+    return fake;
+  }
+
+  it("refuses a charge the card declines and leaves state untouched", async () => {
+    const fake = await withCard("4000000000000341");
+    await expect(fake.buyRunPack()).rejects.toMatchObject({ code: "payment_failed", message: "Your card was declined." });
+    expect(fake.store.state.subscription.runsRemaining).toBe(0);
+    expect(fake.store.state.subscription.invoices).toHaveLength(3);
+  });
+
+  it("holds a 3-D Secure payment until it is completed, and refuses other charges meanwhile", async () => {
+    const fake = await withCard("4000002500003155");
+    const held = await fake.buyRunPack();
+    const pending = held.subscription.pendingPayment!;
+    expect(pending).toMatchObject({ purchase: "run_pack", amountUsd: 100, description: "Run pack, 5 runs" });
+    expect(held.subscription.runsRemaining).toBe(0);
+    await expect(fake.buyRunPack()).rejects.toMatchObject({ code: "conflict" });
+    await expect(fake.completePayment("pi_other", true)).rejects.toMatchObject({ code: "not_found" });
+    const done = await fake.completePayment(pending.intentId, true);
+    expect(done.subscription).toMatchObject({ pendingPayment: null, runsRemaining: 5 });
+    expect(done.subscription.invoices[0].paymentIntentId).toBe(pending.intentId);
+  });
+
+  it("drops a payment whose 3-D Secure failed", async () => {
+    const fake = await withCard("4000002500003155", (seed) => {
+      seed.subscription.plan = "run_pack";
+      seed.subscription.renewsAt = null;
+    });
+    const held = await fake.changePlan("subscription");
+    const done = await fake.completePayment(held.subscription.pendingPayment!.intentId, false);
+    expect(done.subscription).toMatchObject({ plan: "run_pack", pendingPayment: null });
+    expect(done.subscription.invoices).toHaveLength(3);
+  });
+
+  it("renews a subscription on its renewal date", async () => {
+    const fake = api();
+    const renewed = await fake.sandbox.advanceToRenewal();
+    expect(renewed.subscription).toMatchObject({ status: "active", renewsAt: "2027-01-01" });
+    expect(renewed.subscription.invoices[0]).toMatchObject({ date: "2026-12-01", description: "Subscription, December", amountUsd: 200, status: "paid" });
+    expect(fake.sandbox.events()[0].type).toBe("invoice.paid");
+  });
+
+  it("fails an off-session renewal on a card that needs 3-D Secure", async () => {
+    const fake = await withCard("4000002500003155");
+    const renewed = await fake.sandbox.advanceToRenewal();
+    expect(renewed.subscription.status).toBe("past_due");
+    expect(renewed.subscription.invoices[0].status).toBe("failed");
+  });
+
+  it("ends a cancelling subscription instead of renewing it", async () => {
+    const fake = api((seed) => {
+      seed.subscription.cancelAtPeriodEnd = true;
+    });
+    const ended = await fake.sandbox.advanceToRenewal();
+    expect(ended.subscription).toMatchObject({ plan: "none", status: "canceled", renewsAt: null, cancelAtPeriodEnd: false });
+    expect(ended.subscription.invoices).toHaveLength(3);
+    await expect(fake.sandbox.advanceToRenewal()).rejects.toMatchObject({ code: "conflict" });
+  });
+});

@@ -2,11 +2,13 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { AccountSettings } from "~/domain/types";
 import { SettingsError } from "~/domain/types";
 import type { SettingsApi } from "~/ports/settings-api";
+import type { SandboxControls } from "~/ports/billing";
 
 type LoadState = { kind: "loading" } | { kind: "ready"; settings: AccountSettings } | { kind: "failed"; message: string };
 
 interface SettingsContextValue {
   api: SettingsApi;
+  sandbox: SandboxControls | null;
   load: LoadState;
   apply(settings: AccountSettings): void;
   reload(): void;
@@ -14,7 +16,7 @@ interface SettingsContextValue {
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
-export function SettingsProvider({ api, children }: { api: SettingsApi; children: ReactNode }) {
+export function SettingsProvider({ api, sandbox = null, children }: { api: SettingsApi; sandbox?: SandboxControls | null; children: ReactNode }) {
   const [load, setLoad] = useState<LoadState>({ kind: "loading" });
   const [attempt, setAttempt] = useState(0);
 
@@ -33,11 +35,12 @@ export function SettingsProvider({ api, children }: { api: SettingsApi; children
   const value = useMemo<SettingsContextValue>(
     () => ({
       api,
+      sandbox,
       load,
       apply: (settings) => setLoad({ kind: "ready", settings }),
       reload: () => setAttempt((n) => n + 1),
     }),
-    [api, load],
+    [api, sandbox, load],
   );
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
@@ -51,6 +54,11 @@ function useSettingsContext(): SettingsContextValue {
 
 export function useLoadState(): LoadState {
   return useSettingsContext().load;
+}
+
+/** The Stripe test-mode controls, when the page runs on the simulator; null against a real API. */
+export function useSandbox(): SandboxControls | null {
+  return useSettingsContext().sandbox;
 }
 
 export function useReload(): () => void {

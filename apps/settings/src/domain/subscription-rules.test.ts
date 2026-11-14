@@ -4,6 +4,9 @@ import {
   buyRunPack,
   cancelSubscription,
   changePlan,
+  completePendingPayment,
+  holdPayment,
+  renewSubscription,
   resumeSubscription,
   updatePaymentMethod,
 } from "~/domain/subscription-rules";
@@ -19,6 +22,7 @@ function subscription(patch: Partial<Subscription> = {}): Subscription {
     renewsAt: "2026-12-01",
     cancelAtPeriodEnd: false,
     paymentMethod: { brand: "Visa", last4: "4242", expMonth: 8, expYear: 2028 },
+    pendingPayment: null,
     invoices: [{ id: "in_old", date: "2026-11-01", description: "Subscription, November", amountUsd: 200, status: "paid" }],
     ...patch,
   };
@@ -157,5 +161,64 @@ describe("updatePaymentMethod", () => {
   it("rejects an expired card", () => {
     expect(codeOf(() => updatePaymentMethod(subscription(), { ...card, expMonth: 10 }, NOW))).toBe("invalid_input");
     expect(codeOf(() => updatePaymentMethod(subscription(), { ...card, expMonth: 12, expYear: 2025 }, NOW))).toBe("invalid_input");
+  });
+});
+
+describe("3-D Secure", () => {
+  const pending = { intentId: "pi_1", purchase: "run_pack" as const, amountUsd: 100, description: "Run pack, 5 runs" };
+
+  it("holds the payment without changing the plan", () => {
+    const next = holdPayment(subscription(), pending);
+    expect(next.pendingPayment).toEqual(pending);
+    expect(next.runsRemaining).toBe(0);
+    expect(codeOf(() => buyRunPack(next, NOW, "in_new"))).toBe("conflict");
+  });
+
+  it("completes the purchase once authenticated", () => {
+    const next = completePendingPayment(subscription({ pendingPayment: pending }), "pi_1", true, NOW, "in_new");
+    expect(next).toMatchObject({ pendingPayment: null, runsRemaining: 5 });
+    expect(next.invoices[0]).toMatchObject({ id: "in_new", status: "paid", paymentIntentId: "pi_1" });
+  });
+
+  it("subscribes once authenticated", () => {
+    const held = subscription({ plan: "run_pack", renewsAt: null, pendingPayment: { ...pending, purchase: "subscription", amountUsd: 200 } });
+    expect(completePendingPayment(held, "pi_1", true, NOW, "in_new")).toMatchObject({ plan: "subscription", renewsAt: "2026-12-14" });
+  });
+
+  it("releases the payment when authentication fails", () => {
+    const next = completePendingPayment(subscription({ pendingPayment: pending }), "pi_1", false, NOW, "in_new");
+    expect(next).toMatchObject({ pendingPayment: null, runsRemaining: 0 });
+    expect(next.invoices).toHaveLength(1);
+  });
+
+  it("refuses an intent that is not pending", () => {
+    expect(codeOf(() => completePendingPayment(subscription(), "pi_1", true, NOW, "in_new"))).toBe("not_found");
+    expect(codeOf(() => completePendingPayment(subscription({ pendingPayment: pending }), "pi_2", true, NOW, "in_new"))).toBe("not_found");
+  });
+});
+
+describe("renewSubscription", () => {
+  it("bills the renewal month and moves the date on", () => {
+    const next = renewSubscription(subscription(), true, "in_new", "pi_1");
+    expect(next).toMatchObject({ status: "active", renewsAt: "2027-01-01" });
+    expect(next.invoices[0]).toEqual({
+      id: "in_new",
+      date: "2026-12-01",
+      description: "Subscription, December",
+      amountUsd: 200,
+      status: "paid",
+      paymentIntentId: "pi_1",
+    });
+  });
+
+  it("goes past due when the charge fails", () => {
+    const next = renewSubscription(subscription(), false, "in_new");
+    expect(next.status).toBe("past_due");
+    expect(next.invoices[0]).toMatchObject({ status: "failed" });
+    expect(next.invoices[0]).not.toHaveProperty("paymentIntentId");
+  });
+
+  it("refuses anything but a subscription", () => {
+    expect(codeOf(() => renewSubscription(subscription({ plan: "run_pack", renewsAt: null }), true, "in_new"))).toBe("conflict");
   });
 });
