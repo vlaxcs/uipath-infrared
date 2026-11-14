@@ -51,7 +51,7 @@
     {
       "stack": "shop-prod",
       "service": "ec2",
-      "resource": "vpc-5ea4faf2",
+      "resource": "vpc-3a19f01c",
       "issue": "VPC has no flow logs; all subnets public (route to IGW), no private tier",
       "category": "security",
       "severity": "high"
@@ -59,7 +59,7 @@
     {
       "stack": "shop-prod",
       "service": "ec2",
-      "resource": "vpc-5ea4faf2",
+      "resource": "vpc-3a19f01c",
       "issue": "No VPC endpoints for S3/DynamoDB; all AWS traffic goes via internet/NAT",
       "category": "cost",
       "severity": "medium"
@@ -67,7 +67,7 @@
     {
       "stack": "data-platform",
       "service": "ec2",
-      "resource": "vpc-5fad6202",
+      "resource": "vpc-7d47aeeb",
       "issue": "VPC has no flow logs; all subnets public (route to IGW), no private tier",
       "category": "security",
       "severity": "high"
@@ -75,7 +75,7 @@
     {
       "stack": "data-platform",
       "service": "ec2",
-      "resource": "vpc-5fad6202",
+      "resource": "vpc-7d47aeeb",
       "issue": "No VPC endpoints for S3/DynamoDB; all AWS traffic goes via internet/NAT",
       "category": "cost",
       "severity": "medium"
@@ -83,7 +83,7 @@
     {
       "stack": "data-platform",
       "service": "ec2",
-      "resource": "vpc-5fad6202",
+      "resource": "vpc-7d47aeeb",
       "issue": "All subnets in a single AZ - no zonal redundancy",
       "category": "reliability",
       "severity": "high"
@@ -91,7 +91,7 @@
     {
       "stack": "legacy",
       "service": "ec2",
-      "resource": "vpc-80ef02a5",
+      "resource": "vpc-10e80a6c",
       "issue": "VPC has no flow logs; all subnets public (route to IGW), no private tier",
       "category": "security",
       "severity": "high"
@@ -99,7 +99,7 @@
     {
       "stack": "legacy",
       "service": "ec2",
-      "resource": "vpc-80ef02a5",
+      "resource": "vpc-10e80a6c",
       "issue": "No VPC endpoints for S3/DynamoDB; all AWS traffic goes via internet/NAT",
       "category": "cost",
       "severity": "medium"
@@ -107,7 +107,7 @@
     {
       "stack": "legacy",
       "service": "ec2",
-      "resource": "vpc-80ef02a5",
+      "resource": "vpc-10e80a6c",
       "issue": "CIDR 10.0.0.0/16 overlaps shop-prod-vpc - peering/TGW impossible",
       "category": "ops",
       "severity": "medium"
@@ -115,7 +115,7 @@
     {
       "stack": "dev",
       "service": "ec2",
-      "resource": "vpc-99131b6f",
+      "resource": "vpc-c927431e",
       "issue": "VPC has no flow logs; all subnets public (route to IGW), no private tier",
       "category": "security",
       "severity": "high"
@@ -123,7 +123,7 @@
     {
       "stack": "dev",
       "service": "ec2",
-      "resource": "vpc-99131b6f",
+      "resource": "vpc-c927431e",
       "issue": "No VPC endpoints for S3/DynamoDB; all AWS traffic goes via internet/NAT",
       "category": "cost",
       "severity": "medium"
@@ -131,7 +131,7 @@
     {
       "stack": "dev",
       "service": "ec2",
-      "resource": "vpc-99131b6f",
+      "resource": "vpc-c927431e",
       "issue": "3 NAT gateways (one per AZ) in a sandbox with ~no traffic: ~$100/mo idle + data processing",
       "category": "cost",
       "severity": "high"
@@ -139,7 +139,7 @@
     {
       "stack": "shop-prod",
       "service": "ec2",
-      "resource": "sg-933a7777cc3783d51",
+      "resource": "sg-3229a927d0dbc64c2",
       "issue": "Security group allows ALL TCP ports from 0.0.0.0/0",
       "category": "security",
       "severity": "critical"
@@ -147,7 +147,7 @@
     {
       "stack": "shop-prod",
       "service": "ec2",
-      "resource": "sg-3384d04bf3a34776a",
+      "resource": "sg-b7fa270c4c9edc15e",
       "issue": "DB/cache ports (5432/3306/6379) open to the world",
       "category": "security",
       "severity": "critical"
@@ -155,7 +155,7 @@
     {
       "stack": "shop-prod",
       "service": "ec2",
-      "resource": "sg-8a05321dafaf87fae",
+      "resource": "sg-f52e3cffa9b3eab42",
       "issue": "SSH/RDP open to 0.0.0.0/0",
       "category": "security",
       "severity": "critical"
@@ -163,7 +163,7 @@
     {
       "stack": "data-platform",
       "service": "ec2",
-      "resource": "sg-c62f04eae3310c905",
+      "resource": "sg-96225f201dea8b307",
       "issue": "All TCP+UDP open to 0.0.0.0/0",
       "category": "security",
       "severity": "critical"
@@ -171,7 +171,7 @@
     {
       "stack": "legacy",
       "service": "ec2",
-      "resource": "sg-909f7fa980c179ea6",
+      "resource": "sg-2a34654c9fa3b2820",
       "issue": "SSH + Elasticsearch 9200 open to the world",
       "category": "security",
       "severity": "critical"

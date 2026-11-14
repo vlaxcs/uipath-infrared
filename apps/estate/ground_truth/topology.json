@@ -2,19 +2,19 @@
   "edges": [
     {
       "src": "shop-db-subnets",
-      "dst": "vpc-5ea4faf2",
+      "dst": "vpc-3a19f01c",
       "kind": "network",
       "note": "DB subnet group lives in this VPC"
     },
     {
       "src": "data-db-subnets",
-      "dst": "vpc-5fad6202",
+      "dst": "vpc-7d47aeeb",
       "kind": "network",
       "note": "DB subnet group lives in this VPC"
     },
     {
       "src": "legacy-db-subnets",
-      "dst": "vpc-80ef02a5",
+      "dst": "vpc-10e80a6c",
       "kind": "network",
       "note": "DB subnet group lives in this VPC"
     },
@@ -26,7 +26,7 @@
     },
     {
       "src": "shop-orders-db",
-      "dst": "sg-3384d04bf3a34776a",
+      "dst": "sg-b7fa270c4c9edc15e",
       "kind": "network",
       "note": "VPC security group"
     },
@@ -38,7 +38,7 @@
     },
     {
       "src": "shop-orders-db-copy",
-      "dst": "sg-3384d04bf3a34776a",
+      "dst": "sg-b7fa270c4c9edc15e",
       "kind": "network",
       "note": "VPC security group"
     },
@@ -50,7 +50,7 @@
     },
     {
       "src": "shop-analytics-db",
-      "dst": "sg-3384d04bf3a34776a",
+      "dst": "sg-b7fa270c4c9edc15e",
       "kind": "network",
       "note": "VPC security group"
     },
@@ -62,7 +62,7 @@
     },
     {
       "src": "legacy-erp-db",
-      "dst": "sg-909f7fa980c179ea6",
+      "dst": "sg-2a34654c9fa3b2820",
       "kind": "network",
       "note": "VPC security group"
     },
@@ -98,7 +98,7 @@
     },
     {
       "src": "shop-resize-image",
-      "dst": "sg-933a7777cc3783d51",
+      "dst": "sg-3229a927d0dbc64c2",
       "kind": "network",
       "note": "VPC-attached Lambda"
     },
@@ -116,7 +116,7 @@
     },
     {
       "src": "shop-send-email",
-      "dst": "sg-933a7777cc3783d51",
+      "dst": "sg-3229a927d0dbc64c2",
       "kind": "network",
       "note": "VPC-attached Lambda"
     },
@@ -134,73 +134,73 @@
     },
     {
       "src": "shop-prod",
-      "dst": "subnet-f6c77ed5",
+      "dst": "subnet-ce9a74cb",
       "kind": "network",
       "note": "cluster VPC config / nodegroups in this subnet only"
     },
     {
       "src": "shop-prod",
-      "dst": "sg-933a7777cc3783d51",
+      "dst": "sg-3229a927d0dbc64c2",
       "kind": "network",
       "note": "cluster security group"
     },
     {
       "src": "shop-staging",
-      "dst": "subnet-f6c77ed5",
+      "dst": "subnet-ce9a74cb",
       "kind": "network",
       "note": "cluster VPC config / nodegroups in this subnet only"
     },
     {
       "src": "shop-staging",
-      "dst": "sg-933a7777cc3783d51",
+      "dst": "sg-3229a927d0dbc64c2",
       "kind": "network",
       "note": "cluster security group"
     },
     {
       "src": "data-platform",
-      "dst": "subnet-27256f8b",
+      "dst": "subnet-f4b62540",
       "kind": "network",
       "note": "cluster VPC config / nodegroups in this subnet only"
     },
     {
       "src": "data-platform",
-      "dst": "sg-c62f04eae3310c905",
+      "dst": "sg-96225f201dea8b307",
       "kind": "network",
       "note": "cluster security group"
     },
     {
       "src": "ml-experiments",
-      "dst": "subnet-27256f8b",
+      "dst": "subnet-f4b62540",
       "kind": "network",
       "note": "cluster VPC config / nodegroups in this subnet only"
     },
     {
       "src": "ml-experiments",
-      "dst": "sg-c62f04eae3310c905",
+      "dst": "sg-96225f201dea8b307",
       "kind": "network",
       "note": "cluster security group"
     },
     {
       "src": "shop-alb",
-      "dst": "vpc-5ea4faf2",
+      "dst": "vpc-3a19f01c",
       "kind": "network",
       "note": "internet-facing, public subnets"
     },
     {
       "src": "shop-alb",
-      "dst": "sg-933a7777cc3783d51",
+      "dst": "sg-3229a927d0dbc64c2",
       "kind": "network",
       "note": "ALB security group"
     },
     {
       "src": "legacy-alb",
-      "dst": "vpc-80ef02a5",
+      "dst": "vpc-10e80a6c",
       "kind": "network",
       "note": "internet-facing, public subnets"
     },
     {
       "src": "legacy-alb",
-      "dst": "sg-909f7fa980c179ea6",
+      "dst": "sg-2a34654c9fa3b2820",
       "kind": "network",
       "note": "ALB security group"
     },
@@ -224,7 +224,7 @@
     },
     {
       "src": "legacy-ecs/orders-api",
-      "dst": "sg-909f7fa980c179ea6",
+      "dst": "sg-2a34654c9fa3b2820",
       "kind": "network",
       "note": "awsvpc SG, public subnet, public IP"
     },
@@ -254,7 +254,7 @@
     },
     {
       "src": "legacy-ecs/invoice-worker",
-      "dst": "sg-909f7fa980c179ea6",
+      "dst": "sg-2a34654c9fa3b2820",
       "kind": "network",
       "note": "awsvpc SG, public subnet, public IP"
     },
@@ -278,7 +278,7 @@
     },
     {
       "src": "legacy-ecs/admin-portal",
-      "dst": "sg-909f7fa980c179ea6",
+      "dst": "sg-2a34654c9fa3b2820",
       "kind": "network",
       "note": "awsvpc SG, public subnet, public IP"
     },
@@ -302,7 +302,7 @@
     },
     {
       "src": "legacy-ecs/report-gen",
-      "dst": "sg-909f7fa980c179ea6",
+      "dst": "sg-2a34654c9fa3b2820",
       "kind": "network",
       "note": "awsvpc SG, public subnet, public IP"
     },
@@ -362,7 +362,7 @@
     },
     {
       "src": "shop-sessions",
-      "dst": "sg-933a7777cc3783d51",
+      "dst": "sg-3229a927d0dbc64c2",
       "kind": "network",
       "note": "cache SG"
     },
