@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import "~/plan/estateView.css";
+import "~/plan/rehearsalOverlay.css";
 import { mountEstateView } from "~/plan/estateView";
 import { parseArtifact } from "~/runs/artifactParse";
 import type { RunSource } from "~/runs/source";

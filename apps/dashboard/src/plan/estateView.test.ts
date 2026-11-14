@@ -43,6 +43,15 @@ describe("Andrei's estate view, ported", () => {
     expect(window.location.hash).toBe(before);
   });
 
+  it("marks the component the sandbox failed, on the target state only", () => {
+    const failed = (dataset.states[0] as unknown as { infra: { components: { id: string }[] } }).infra.components[0].id;
+    const container = mount({ failedComponent: failed });
+    const node = () => container.querySelector(`.tnode[data-node="${failed}"]`);
+    expect(node()?.classList.contains("is-rehearsal-failed")).toBe(false);
+    container.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
+    expect(node()?.classList.contains("is-rehearsal-failed")).toBe(true);
+  });
+
   it("removes itself when destroyed", () => {
     const container = mount();
     destroy?.();
