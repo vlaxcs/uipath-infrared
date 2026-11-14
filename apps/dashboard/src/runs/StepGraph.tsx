@@ -12,6 +12,7 @@ type StepGraphProps = {
   onSelectStep: (step: RunStep) => void;
   parallel?: readonly ParallelTask[];
   trials?: number;
+  onSelectPlan?: (candidate: string) => void;
 };
 
 const NODE_CLASS: Record<NodeTone, string> = {
@@ -52,7 +53,7 @@ const EDGE_TONES: readonly EdgeTone[] = ["idle", "taken", "active", "returned", 
 const RADIUS: Record<NodeKind, number> = { terminal: 17, step: 8, check: 17, gate: 8, side: 8, later: 8 };
 const MAX_TEXT = 34;
 
-export function StepGraph({ run, states, selectedStep, onSelectStep, parallel = [], trials = 0 }: StepGraphProps) {
+export function StepGraph({ run, states, selectedStep, onSelectStep, parallel = [], trials = 0, onSelectPlan }: StepGraphProps) {
   const titles = Object.fromEntries(Object.entries(STEP_META).map(([id, meta]) => [id, meta.title])) as Record<RunStep, string>;
   const layout = workflowLayout(workflowFlow(run), run.project, titles, states, parallel, trials);
   const spine = layout.nodes.filter((node) => node.kind !== "side");
@@ -104,7 +105,7 @@ export function StepGraph({ run, states, selectedStep, onSelectStep, parallel = 
                 .filter((node) => node.beside === beside)
                 .map((node) => (
                   <g key={node.id} role="listitem">
-                    <Node node={node} />
+                    {node.candidate && onSelectPlan ? <PlanButton node={node} candidate={node.candidate} onSelect={onSelectPlan} /> : <Node node={node} />}
                   </g>
                 ))}
             </g>
@@ -187,6 +188,20 @@ function Glyph({ node }: { node: LayoutNode }) {
 function Node({ node }: { node: LayoutNode }) {
   return (
     <g>
+      <Shape node={node} />
+    </g>
+  );
+}
+
+function PlanButton({ node, candidate, onSelect }: { node: LayoutNode; candidate: string; onSelect: (candidate: string) => void }) {
+  const onKeyDown = (event: KeyboardEvent<SVGGElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onSelect(candidate);
+    }
+  };
+  return (
+    <g role="button" tabIndex={0} aria-label={`Open the migration plan of ${candidate}`} onClick={() => onSelect(candidate)} onKeyDown={onKeyDown} className="group cursor-pointer outline-none">
       <Shape node={node} />
     </g>
   );

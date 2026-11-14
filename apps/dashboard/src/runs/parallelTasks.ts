@@ -9,6 +9,7 @@ export type ParallelTask = {
   label: string;
   beside: RunStep;
   file: string;
+  candidate: string;
   state: ParallelTaskState;
 };
 
@@ -44,7 +45,7 @@ export function parallelTasks(
       : Number.isFinite(started) && now - started > PLAN_BUILD_LIMIT_MS
         ? "failed"
         : "running";
-    return [{ id: file, label: `Migration plan · ${fork.candidate}`, beside: fork.beside, file, state }];
+    return [{ id: file, label: `Migration plan · ${fork.candidate}`, beside: fork.beside, file, candidate: fork.candidate, state }];
   });
 }
 

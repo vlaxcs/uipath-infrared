@@ -27,8 +27,8 @@ function flow(overrides: Partial<WorkflowFlow> = {}): WorkflowFlow {
 }
 
 const plans = [
-  { id: "a", label: "Migration plan · managed", beside: "present" as const, file: "states.0.managed.json", state: "done" as const },
-  { id: "b", label: "Migration plan · lift", beside: "rehearse" as const, file: "states.0.lift.json", state: "running" as const },
+  { id: "a", label: "Migration plan · managed", beside: "present" as const, file: "states.0.managed.json", candidate: "managed", state: "done" as const },
+  { id: "b", label: "Migration plan · lift", beside: "rehearse" as const, file: "states.0.lift.json", candidate: "lift", state: "running" as const },
 ];
 
 describe("the workflow layout", () => {

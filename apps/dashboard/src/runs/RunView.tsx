@@ -138,7 +138,7 @@ export function RunView({ run: initialRun, source, initialStep = null, onReload,
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,46rem)_minmax(0,1fr)]">
       <aside aria-label="Agent" className="flex min-w-0 flex-col gap-4">
-        <StepGraph run={run} states={steps} selectedStep={selectedStep} onSelectStep={toggleStep} parallel={parallel.tasks} trials={parallel.trials} />
+        <StepGraph run={run} states={steps} selectedStep={selectedStep} onSelectStep={toggleStep} parallel={parallel.tasks} trials={parallel.trials} onSelectPlan={pickCandidate} />
         {loggedStep ? <StepLog step={loggedStep} log={log} /> : null}
         {candidates && candidates.candidates.length > 0 ? (
           <section aria-labelledby="run-candidates-title" className="flex flex-col gap-3">
@@ -208,6 +208,15 @@ export function RunView({ run: initialRun, source, initialStep = null, onReload,
               decisionError={decision.error}
               onRefresh={onReload}
             />
+            {evaluatedRevision !== null && stepPlan(selectedStep, result?.winner, pickedLayout) ? (
+              <PlanView
+                source={source}
+                runId={run.id}
+                revision={evaluatedRevision}
+                candidate={stepPlan(selectedStep, result?.winner, pickedLayout)!}
+                rehearsalPath={selectedStep === "rehearse" ? latestOutputPath(run, "rehearsal") : null}
+              />
+            ) : null}
             <NextStepPreview
               preview={preview}
               onSelect={() => {
@@ -227,4 +236,10 @@ export function RunView({ run: initialRun, source, initialStep = null, onReload,
       </section>
     </div>
   );
+}
+
+function stepPlan(step: RunStep, winner: unknown, picked: string | null): string | null {
+  if (step === "present") return typeof winner === "string" ? winner : null;
+  if (step === "rehearse") return picked ?? (typeof winner === "string" ? winner : null);
+  return null;
 }

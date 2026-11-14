@@ -2,6 +2,7 @@ package workflow_test
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -70,5 +71,25 @@ func TestWithoutAStatesCommandNoStatesAreBuilt(t *testing.T) {
 	matches, _ := filepath.Glob(filepath.Join(h.runsDir, id, "states.*.json"))
 	if len(matches) != 0 || h.stages.callsTo("states") != 0 {
 		t.Fatalf("states built without a command: %v", matches)
+	}
+}
+
+func TestThePlanIsBuiltFromTheRunsOwnCatalog(t *testing.T) {
+	h := newHarness(t, options{maxRevisions: 2})
+	id := h.start().ID
+	h.waitForGate(id, run.LayoutGate)
+	path := filepath.Join(h.runsDir, id, "states.1.agent-serverless-db-eu.json")
+	waitForFile(t, path)
+	var document struct {
+		Dataset struct {
+			Catalog string `json:"catalog"`
+		} `json:"dataset"`
+	}
+	data, _ := os.ReadFile(path)
+	if err := json.Unmarshal(data, &document); err != nil {
+		t.Fatal(err)
+	}
+	if want := filepath.Join(h.runsDir, id, "catalog.json"); filepath.Clean(document.Dataset.Catalog) != filepath.Clean(want) {
+		t.Fatalf("built from %q, want the run's %q", document.Dataset.Catalog, want)
 	}
 }

@@ -68,8 +68,8 @@ describe("the step graph", () => {
         selectedStep={null}
         onSelectStep={() => {}}
         parallel={[
-          { id: "a", label: "Migration plan · managed", beside: "present", file: "states.1.managed.json", state: "done" },
-          { id: "b", label: "Migration plan · lift", beside: "rehearse", file: "states.1.lift.json", state: "running" },
+          { id: "a", label: "Migration plan · managed", beside: "present", file: "states.1.managed.json", candidate: "managed", state: "done" },
+          { id: "b", label: "Migration plan · lift", beside: "rehearse", file: "states.1.lift.json", candidate: "lift", state: "running" },
         ]}
       />,
     );
@@ -102,4 +102,26 @@ describe("the step graph", () => {
     fireEvent.keyDown(evaluate, { key: "Enter" });
     expect(onSelectStep).toHaveBeenCalledWith("evaluate");
   });
+
+  it("opens a built migration plan from its node in the diagram", () => {
+    const run = cutSampleRun(14);
+    const onSelectPlan = vi.fn();
+    render(
+      <StepGraph
+        run={run}
+        states={deriveStepStates(run.events, run)}
+        selectedStep={null}
+        onSelectStep={() => {}}
+        onSelectPlan={onSelectPlan}
+        parallel={[
+          { id: "a", label: "Migration plan · managed", beside: "present", file: "states.1.managed.json", candidate: "managed", state: "done" },
+          { id: "b", label: "Migration plan · lift", beside: "rehearse", file: "states.1.lift.json", candidate: "lift", state: "running" },
+        ]}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Open the migration plan of managed" }));
+    expect(onSelectPlan).toHaveBeenCalledWith("managed");
+    expect(screen.queryByRole("button", { name: "Open the migration plan of lift" })).toBeNull();
+  });
 });
+

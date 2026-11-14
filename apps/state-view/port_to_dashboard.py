@@ -133,7 +133,25 @@ root_rule = (
     "}\n\n"
 )
 header = "/* Ported from apps/state-view/web/app.css by Andrei; regenerate with the port script named in docs/run-plan-view.md. */\n"
-(TARGET / "estateView.css").write_text(header + root_rule + scope_block(rules), encoding="utf-8")
+CARD_START = "/* --------------------------------- card"
+CARD_END = "/* ------------------------------ responsive"
+MIXED_PAINT = re.compile(r"\b(fill|stroke): color-mix\(in srgb, var\((--[a-z0-9-]+)\) ([\d.]+)%, (?:transparent|var\(--surface\))\)")
+
+
+def dashboard_safe(text: str) -> str:
+    # The dashboard keeps colour arithmetic in tokens.css only, and card mode is Slack's.
+    if CARD_START in text and CARD_END in text:
+        text = text[: text.index(CARD_START)] + text[text.index(CARD_END):]
+    text = MIXED_PAINT.sub(lambda m: f"{m.group(1)}: var({m.group(2)}); {m.group(1)}-opacity: {float(m.group(3)) / 100:g}", text)
+    text = text.replace("border: 0.0625rem solid color-mix(in srgb, var(--prov) 45%, transparent);", "border: 0.0625rem solid var(--prov);")
+    text = text.replace("background: color-mix(in srgb, var(--prov) 10%, var(--surface));", "background: var(--surface);")
+    left = re.findall(r"color-mix\([^;]*", text)
+    if left:
+        raise SystemExit(f"color-mix left in the dashboard CSS: {left[:3]}")
+    return text
+
+
+(TARGET / "estateView.css").write_text(dashboard_safe(header + root_rule + scope_block(rules)), encoding="utf-8")
 
 js = (SOURCE / "app.js").read_text(encoding="utf-8")
 
@@ -285,4 +303,5 @@ swap('''  stateIndex = initialStateIndex();
 js = js.replace('\n  var BASELINE = dataset.baseline || {};\n', '\n')
 assert "document.addEventListener" not in js and "window.location" not in js and "localStorage" not in js and "data-theme" not in js
 (TARGET / "estateView.js").write_text("/* Ported from apps/state-view/web/app.js by Andrei; regenerate with the port script named in docs/run-plan-view.md. */\n" + js, encoding="utf-8")
+(TARGET / "providers.js").write_text("/* Copied from apps/state-view/web/providers.js by the port script. */\n" + (SOURCE / "providers.js").read_text(encoding="utf-8"), encoding="utf-8")
 print("ported:", len(css), "->", (TARGET / "estateView.css").stat().st_size, "bytes css;", (TARGET / "estateView.js").stat().st_size, "bytes js")

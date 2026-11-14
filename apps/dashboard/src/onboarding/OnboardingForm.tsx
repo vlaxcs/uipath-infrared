@@ -4,6 +4,7 @@ import { CriteriaFields } from "~/onboarding/CriteriaFields";
 import { EstateApps } from "~/onboarding/EstateApps";
 import { ProjectHeld } from "~/onboarding/ProjectHeld";
 import { NEW_SITE, SiteFields } from "~/onboarding/SiteFields";
+import { SaveProfileDialog, type SaveChoice } from "~/onboarding/SaveProfileDialog";
 import { projectFacts, projectLabel } from "~/onboarding/projectFacts";
 import { StatusBadge } from "~/ui/StatusBadge";
 import type { RunSummary } from "~/runs/types";
@@ -22,7 +23,6 @@ type OnboardingFormProps = {
   profile?: Profile;
 };
 
-export type SaveChoice = { saving: boolean; onSave: () => void; onSkip: () => void; onBack: () => void };
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -196,25 +196,9 @@ export function OnboardingForm({ setup, answers, onAnswers, onStart, starting, e
         </Section>
       ) : null}
 
-      <div className="flex flex-col items-start gap-3">
+      <div className="flex flex-col items-center gap-3">
         {holder ? <ProjectHeld run={holder} onOpen={() => onOpenRun?.(holder.id)} /> : null}
-        {saveChoice ? (
-          <div role="group" aria-label="Save the on-prem details" className="flex flex-col gap-3 rounded-control border border-status-awaiting bg-surface-muted px-4 py-3">
-            <p className="text-label text-fg">You changed the on-prem details. Save them to your profile too?</p>
-            <p className="text-caption text-fg-muted">Saving makes them the default for every new analysis.</p>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={saveChoice.onSave} disabled={saveChoice.saving} aria-busy={saveChoice.saving} className="rounded-control bg-accent px-4 py-2 text-label font-medium text-on-accent disabled:opacity-50">
-                {saveChoice.saving ? "Saving" : "Save to profile and start"}
-              </button>
-              <button type="button" onClick={saveChoice.onSkip} disabled={saveChoice.saving} className="rounded-control border border-border-strong bg-surface px-4 py-2 text-label font-medium text-fg disabled:opacity-50">
-                Start without saving
-              </button>
-              <button type="button" onClick={saveChoice.onBack} disabled={saveChoice.saving} className="rounded-control px-4 py-2 text-label font-medium text-fg-muted disabled:opacity-50">
-                Back to the form
-              </button>
-            </div>
-          </div>
-        ) : null}
+        {saveChoice ? <SaveProfileDialog choice={saveChoice} /> : null}
         <button
           type="submit"
           disabled={starting || holder !== null || saveChoice !== null || !canStart(setup, answers)}

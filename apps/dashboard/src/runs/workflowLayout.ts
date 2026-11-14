@@ -19,6 +19,7 @@ export type LayoutNode = {
   height: number;
   step?: RunStep;
   beside?: RunStep;
+  candidate?: string;
 };
 
 export type LayoutEdge = { id: string; path: string; tone: EdgeTone; label: string | null; labelX: number; labelY: number; returns: boolean };
@@ -140,9 +141,9 @@ export function workflowLayout(
   edges.push(returnEdge("revise-rehearse", "forecast", 44, 0, flow.rehearseRevisions, "revise", "returned"));
   edges.push(returnEdge("diverge", "verify", 72, 8, 0, "diverges", "later"));
 
-  const sideOf = (parentId: string, id: string, label: string, sub: string, tone: NodeTone, beside: RunStep): void => {
+  const sideOf = (parentId: string, id: string, label: string, sub: string, tone: NodeTone, beside: RunStep, candidate?: string): void => {
     const parent = at(parentId);
-    const node: LayoutNode = { id, kind: "side", label, sub, detail: null, tone, x: parent.x - SIDE_WIDTH - SIDE_GAP, y: parent.y + (parent.height - HEIGHTS.side) / 2, width: SIDE_WIDTH, height: HEIGHTS.side, beside };
+    const node: LayoutNode = { id, kind: "side", label, sub, detail: null, tone, x: parent.x - SIDE_WIDTH - SIDE_GAP, y: parent.y + (parent.height - HEIGHTS.side) / 2, width: SIDE_WIDTH, height: HEIGHTS.side, beside, candidate };
     nodes.push(node);
     edges.push({
       id: `${parentId}-${id}`,
@@ -158,7 +159,7 @@ export function workflowLayout(
   for (const task of parallel) latestBeside.set(task.beside, task);
   for (const task of latestBeside.values()) {
     const parentId = task.beside === "present" ? "feasible" : "layout-gate";
-    sideOf(parentId, task.id, task.label.replace("Migration plan · ", "Plan: "), SIDE_SUB[task.state], SIDE_TONE[task.state], task.beside);
+    sideOf(parentId, task.id, task.label.replace("Migration plan · ", "Plan: "), SIDE_SUB[task.state], SIDE_TONE[task.state], task.beside, task.state === "done" ? task.candidate : undefined);
   }
   if (trials > 0) sideOf("rehearse", "trials", `Trials: ${trials}`, "Gates untouched", "done", "rehearse");
 
