@@ -1314,6 +1314,209 @@ html.is-card *, html.is-card *::before, html.is-card *::after {
 .is-card .tnode[data-status="removed"] .tnode-label { fill: var(--card-removed); text-decoration: none; }
 .is-card .tnode[data-status="removed"] { opacity: 0.8; }
 
+/* --------------------------------- card -------------------------------- */
+/* #card&state=…: one static snapshot for a 1200x675 viewport, read in Slack at
+   ~360-500 px wide. Type is large, labels short, no motion. Always light. */
+
+html.is-card {
+  --card-bg: #ffffff;
+  --card-panel: #f3f5f1;
+  --card-panel-line: #d3d9d1;
+  --card-ink: #17211b;
+  --card-muted: #4f5e55;
+  --card-link: #a3aea7;
+  --card-changed: #b86e00;
+  --card-changed-soft: #fde9c2;
+  --card-changed-ink: #6e4100;
+  --card-added: #1c7c3f;
+  --card-added-soft: #d3f0db;
+  --card-added-ink: #0f5228;
+  --card-removed: #b8392b;
+  --card-removed-soft: #fbe5e1;
+}
+html.is-card, html.is-card body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--card-bg);
+}
+html.is-card *, html.is-card *::before, html.is-card *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  padding: 16px 22px 14px;
+  color: var(--card-ink);
+}
+
+.card-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 24px;
+  row-gap: 2px;
+  flex: none;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--card-ink);
+}
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+.card-chip {
+  padding: 3px 10px 2px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--card-muted);
+}
+.card-chip[data-tone="good"] { color: var(--card-added); background: var(--card-added-soft); }
+.card-chip[data-tone="bad"] { color: var(--card-removed); background: var(--card-removed-soft); }
+
+.card-money {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.card-eur { font-size: 38px; font-weight: 700; line-height: 1.05; }
+.card-eur.is-from { color: var(--card-muted); font-weight: 600; }
+.card-per { font-size: 22px; font-weight: 600; color: var(--card-muted); }
+.card-arrow { margin: 0 6px; font-size: 30px; color: var(--card-muted); }
+.card-delta {
+  margin-left: 10px;
+  padding: 2px 9px 1px;
+  border-radius: 4px;
+  font-size: 26px;
+  font-weight: 700;
+}
+.card-delta.is-save { color: var(--card-added-ink); background: var(--card-added-soft); }
+.card-delta.is-spend { color: var(--card-removed); background: var(--card-removed-soft); }
+
+.card-state {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.card-project {
+  margin-left: 14px;
+  font-weight: 500;
+  color: var(--card-muted);
+}
+
+.card-legend {
+  display: flex;
+  justify-content: flex-end;
+  gap: 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--card-muted);
+  white-space: nowrap;
+}
+.card-legend li { display: flex; align-items: center; gap: 8px; }
+.card-legend b { color: var(--card-ink); font-weight: 700; }
+.card-legend i {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid var(--card-ink);
+  border-radius: 4px;
+  background: var(--card-bg);
+}
+.card-legend [data-status="changed"] i { border-color: var(--card-changed); background: var(--card-changed-soft); }
+.card-legend [data-status="added"] i { border-color: var(--card-added); background: var(--card-added-soft); }
+.card-legend [data-status="removed"] i { border-color: var(--card-removed); border-style: dashed; }
+.card-legend [data-status="changed"] b { color: var(--card-changed-ink); }
+.card-legend [data-status="added"] b { color: var(--card-added-ink); }
+.card-legend [data-status="removed"] b { color: var(--card-removed); }
+
+.card-canvas {
+  flex: 1;
+  min-height: 0;
+  padding-top: 12px;
+}
+.card-canvas .topo-graph { width: 100%; height: 100%; }
+
+.is-card .tband rect { fill: var(--card-panel); stroke: var(--card-panel-line); stroke-width: 1.5; }
+.is-card .tband-rule { stroke: var(--card-panel-line); stroke-width: 1.5; }
+.is-card .tband-name { font-size: 26px; font-weight: 700; fill: var(--card-ink); }
+
+.is-card .tlink-path {
+  fill: none;
+  stroke: var(--card-link);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+.is-card .tlink[data-inferred="true"] .tlink-path { stroke-width: 2.5; }
+.is-card .tlink[data-status="added"] .tlink-path { stroke: var(--card-added); stroke-width: 3.5; }
+.is-card .tlink[data-status="removed"] .tlink-path {
+  stroke: var(--card-removed);
+  stroke-width: 2.2;
+  stroke-dasharray: 7 6;
+  opacity: 0.6;
+}
+.is-card .tlink[data-status="absent"],
+.is-card .tnode[data-status="absent"] { display: none; }
+
+.is-card .tnode { cursor: default; }
+.is-card .tnode-label {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  fill: var(--card-ink);
+}
+.is-card .tnode-shape { fill: var(--card-bg); stroke: var(--card-ink); stroke-width: 1.4; }
+.is-card .tnode[data-kind="kubernetes_cluster"] .tnode-shape { fill: var(--card-bg); stroke: var(--card-ink); stroke-width: 1.6; }
+.is-card .tnode-core { fill: var(--card-ink); }
+.is-card .tnode-core-line { stroke: var(--card-ink); }
+.is-card .tnode-hit { rx: 5px; fill: transparent; }
+
+.is-card .tnode[data-status="changed"] .tnode-hit { fill: var(--card-changed-soft); stroke: var(--card-changed); stroke-width: 2; }
+.is-card .tnode[data-status="changed"] .tnode-shape { stroke: var(--card-changed); stroke-width: 1.8; }
+.is-card .tnode[data-status="changed"] .tnode-label { fill: var(--card-changed-ink); font-weight: 700; }
+
+.is-card .tnode[data-status="added"] .tnode-hit { fill: var(--card-added-soft); stroke: var(--card-added); stroke-width: 2; }
+.is-card .tnode[data-status="added"] .tnode-shape { stroke: var(--card-added); stroke-width: 1.8; }
+.is-card .tnode[data-status="added"] .tnode-label { fill: var(--card-added-ink); font-weight: 700; }
+
+.is-card .tnode[data-status="removed"] .tnode-hit {
+  fill: var(--card-bg);
+  stroke: var(--card-removed);
+  stroke-width: 1.6;
+  stroke-dasharray: 6 4;
+}
+.is-card .tnode[data-status="removed"] .tnode-shape { stroke: var(--card-removed); stroke-dasharray: 2.5 2; fill: var(--card-bg); }
+.is-card .tnode[data-status="removed"] .tnode-core,
+.is-card .tnode[data-status="removed"] .tnode-core-line { opacity: 0; }
+.is-card .tnode[data-status="removed"] .tnode-label { fill: var(--card-removed); text-decoration: none; }
+.is-card .tnode[data-status="removed"] { opacity: 0.8; }
+
 /* ------------------------------ responsive ----------------------------- */
 
 @media (max-width: 1100px) {

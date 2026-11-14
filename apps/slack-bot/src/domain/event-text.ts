@@ -17,9 +17,11 @@ export function describeEvent(event: RunEvent): string {
   const label = stepLabel(event.step);
   const decision = event.decision;
   if (event.status === 'started') return `${label} started`;
-  if (event.status === 'failed') return `${label} failed; the run stopped`;
+  if (event.status === 'failed') return 'The run stopped';
   if (event.status === 'awaiting_approval') {
-    return event.gate === 'plan' ? 'The plan is waiting for approval' : 'A layout is waiting to be picked';
+    return event.gate === 'plan'
+      ? 'The plan is waiting for your approval'
+      : 'A layout is waiting to be picked';
   }
   if (event.status === 'approved' && decision) {
     const who = actorName(event.actor);
@@ -31,7 +33,7 @@ export function describeEvent(event: RunEvent): string {
 }
 
 export function actorName(actor: Actor): string {
-  return actor.kind === 'human' ? `${actor.id} (${actor.surface})` : 'the orchestrator';
+  return actor.kind === 'human' ? `${actor.id} from ${actor.surface}` : 'the orchestrator';
 }
 
 function completedText(event: RunEvent): string {
@@ -42,12 +44,16 @@ function completedText(event: RunEvent): string {
     case 'investigate':
       return 'The investigation finished';
     case 'propose':
-      return event.revision > 0 ? 'Revised candidate plans proposed' : 'Candidate plans proposed';
+      return event.revision > 0 ? 'Revised candidate plans were proposed' : 'Candidate plans were proposed';
     case 'evaluate':
-      return revise ? 'A candidate breaks a hard constraint; back to propose' : 'The candidates hold; on to present';
+      return revise
+        ? 'A candidate broke a hard constraint, so the run goes back to Propose'
+        : 'The candidates hold; the run moves on to Present';
     case 'present':
-      return 'Layout picked; on to rehearse';
+      return 'The layout is picked; the run moves on to Rehearse';
     case 'rehearse':
-      return revise ? 'The rehearsal missed the forecast; back to propose' : 'The rehearsal held';
+      return revise
+        ? 'The rehearsal missed the forecast, so the run goes back to Propose'
+        : 'The rehearsal held';
   }
 }
