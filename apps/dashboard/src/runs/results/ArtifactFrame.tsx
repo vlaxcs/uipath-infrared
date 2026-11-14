@@ -17,9 +17,9 @@ export function ArtifactFrame({ path, artifact, children }: ArtifactFrameProps) 
   if (artifact.status === "unavailable") {
     return (
       <div className="flex flex-col gap-2 rounded-card border border-dashed border-border-strong p-4">
-        <p className="text-label font-medium">Artifact content is unavailable</p>
+        <p className="text-label font-medium">Not written yet</p>
         <p className="text-body text-fg-muted">
-          It needs the orchestrator file API. The path and the event data remain available.
+          This step has not produced its file. It appears here once the step has run.
         </p>
         <p className="break-all font-mono text-caption text-fg-subtle">{path}</p>
       </div>
