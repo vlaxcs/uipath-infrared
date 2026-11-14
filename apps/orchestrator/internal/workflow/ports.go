@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"infrared/orchestrator/internal/onboarding"
 	"infrared/orchestrator/internal/run"
 )
 
@@ -37,6 +38,9 @@ type Files interface {
 	WriteJSON(path string, value any) error
 	List(dir string) ([]run.Artifact, error)
 	Read(dir, name string, limit int64) ([]byte, error)
+	ReadObject(path string) (map[string]any, error)
+	ReadCatalogOffer(path string) (onboarding.Catalog, error)
+	ReadProject(path string) (onboarding.Project, error)
 }
 
 type Store interface {

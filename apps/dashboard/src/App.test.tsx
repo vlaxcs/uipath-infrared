@@ -1,10 +1,15 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "~/App";
 import { cutSampleRun } from "~/runs/fixtures";
 import { sampleRunSource } from "~/runs/sampleRunSource";
 import type { RunSource } from "~/runs/source";
 import type { RunDetail } from "~/runs/types";
+
+vi.mock("~/onboarding/api", async (original) => ({
+  ...(await original<typeof import("~/onboarding/api")>()),
+  orchestratorOnboarding: { load: () => new Promise(() => {}), start: () => new Promise(() => {}) },
+}));
 
 afterEach(() => {
   cleanup();
@@ -16,11 +21,22 @@ describe("the dashboard shell", () => {
     render(<App />);
     expect(screen.getByText("Infrared")).toBeTruthy();
     const nav = screen.getByRole("navigation", { name: "Primary" });
-    for (const label of ["Runs", "Graph", "Candidates", "Rehearsal", "Approvals"]) {
+    for (const label of ["New run", "Runs", "Graph", "Candidates", "Rehearsal", "Approvals"]) {
       expect(nav.textContent).toContain(label);
     }
     expect(screen.getByText("Sample data")).toBeTruthy();
     expect(await screen.findByRole("table", { name: "Runs" })).toBeTruthy();
+  });
+
+  it("opens New run from the menu at #/start, without the data badge", async () => {
+    render(<App />);
+    await screen.findByRole("table", { name: "Runs" });
+
+    fireEvent.click(screen.getByRole("button", { name: "New run" }));
+    expect(screen.getByRole("heading", { level: 1, name: "New run" })).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toContain("Loading the platform");
+    expect(window.location.hash).toBe("#/start");
+    expect(screen.queryByText("Sample data")).toBeNull();
   });
 
   it("opens a run on its own page and returns to the list", async () => {

@@ -182,7 +182,7 @@ func projectsNamed(t *testing.T, names ...string) string {
 
 func (h *harness) start() run.Run {
 	h.t.Helper()
-	started, err := h.flow.Start("startup")
+	started, err := h.flow.Start("startup", nil)
 	if err != nil {
 		h.t.Fatal(err)
 	}

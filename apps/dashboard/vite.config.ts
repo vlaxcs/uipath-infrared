@@ -6,6 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 
 export default defineConfig({
+  base: "/app/",
   plugins: [react(), tailwindcss()],
   envDir: repoRoot,
   server: { fs: { allow: [repoRoot] } },

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"infrared/orchestrator/internal/onboarding"
 	"infrared/orchestrator/internal/run"
 	"infrared/orchestrator/internal/workflow"
 )
@@ -17,7 +18,8 @@ const (
 )
 
 type Runs interface {
-	Start(project string) (run.Run, error)
+	Onboarding() (onboarding.Setup, error)
+	Start(project string, answers *onboarding.Answers) (run.Run, error)
 	Get(id string) (run.Run, error)
 	EventsAfter(id string, seq int) ([]run.Event, error)
 	List(project string, limit int) []run.Summary
@@ -29,6 +31,7 @@ type Runs interface {
 func Handler(runs Runs, allowedOrigins ...string) http.Handler {
 	api := &api{runs: runs}
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /onboarding", api.onboarding)
 	mux.HandleFunc("GET /runs", api.list)
 	mux.HandleFunc("POST /runs", api.start)
 	mux.HandleFunc("GET /runs/{id}", api.get)
@@ -52,14 +55,24 @@ func (a *api) list(w http.ResponseWriter, r *http.Request) {
 	reply(w, http.StatusOK, a.runs.List(r.URL.Query().Get("project"), limit))
 }
 
+func (a *api) onboarding(w http.ResponseWriter, r *http.Request) {
+	setup, err := a.runs.Onboarding()
+	if err != nil {
+		failWith(w, err)
+		return
+	}
+	reply(w, http.StatusOK, setup)
+}
+
 func (a *api) start(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		Project string `json:"project"`
+		Project    string              `json:"project"`
+		Onboarding *onboarding.Answers `json:"onboarding"`
 	}
 	if !decode(w, r, &body) {
 		return
 	}
-	started, err := a.runs.Start(body.Project)
+	started, err := a.runs.Start(body.Project, body.Onboarding)
 	if err != nil {
 		failWith(w, err)
 		return
@@ -153,7 +166,7 @@ func failWith(w http.ResponseWriter, err error) {
 		status = http.StatusNotFound
 	case errors.Is(err, workflow.ErrProjectBusy), errors.Is(err, run.ErrGateNotOpen):
 		status = http.StatusConflict
-	case errors.Is(err, run.ErrInvalidDecision):
+	case errors.Is(err, run.ErrInvalidDecision), errors.Is(err, onboarding.ErrInvalid):
 		status = http.StatusBadRequest
 	case errors.Is(err, workflow.ErrLayoutNotFeasible):
 		status = http.StatusUnprocessableEntity

@@ -13,6 +13,12 @@ To follow a real run, start the orchestrator first and point the dashboard at it
 
 The orchestrator's `ORCHESTRATOR_ALLOWED_ORIGINS` must include the Vite origin (`http://localhost:5173`). Without `VITE_ORCHESTRATOR_URL` the dashboard uses the sample run and the header badge says "Sample data".
 
+The dashboard is served under `/app/` (`base` in `vite.config.ts`), so the dev server answers at `http://localhost:5173/app/`.
+
+## New run
+
+"New run" is the first section in the menu (`#/start`): the onboarding of `docs/onboarding.md`. It reads `GET /onboarding` and starts a run with `POST /runs` on the orchestrator at `VITE_ORCHESTRATOR_URL`, through `src/onboarding/api.ts`, the only onboarding file that calls it. "Follow it in Runs" opens the started run's page. Without `VITE_ORCHESTRATOR_URL` it says the variable is not set, since onboarding has no sample.
+
 ## Checks
 
     npm run typecheck

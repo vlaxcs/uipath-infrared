@@ -64,7 +64,7 @@ func TestTheDemoPathCompletesAfterThePlanIsApproved(t *testing.T) {
 	if finished.Status != run.Completed {
 		t.Fatalf("status %s after the plan was approved", finished.Status)
 	}
-	if _, err := h.flow.Start("startup"); err != nil {
+	if _, err := h.flow.Start("startup", nil); err != nil {
 		t.Fatalf("a finished run still blocks its project: %v", err)
 	}
 }
@@ -237,7 +237,7 @@ func TestTwoPicksAtTheSameGateAppendOnlyOne(t *testing.T) {
 func TestAProjectHasOneActiveRun(t *testing.T) {
 	h := newHarness(t, options{maxRevisions: 2})
 	first := h.start()
-	if _, err := h.flow.Start("startup"); !errors.Is(err, workflow.ErrProjectBusy) {
+	if _, err := h.flow.Start("startup", nil); !errors.Is(err, workflow.ErrProjectBusy) {
 		t.Fatalf("a second run while %s is active: %v", first.ID, err)
 	}
 }
@@ -245,7 +245,7 @@ func TestAProjectHasOneActiveRun(t *testing.T) {
 func TestUnknownProjectsAreRefused(t *testing.T) {
 	h := newHarness(t, options{maxRevisions: 2})
 	for _, project := range []string{"nowhere", "../startup", "Startup", ""} {
-		if _, err := h.flow.Start(project); !errors.Is(err, workflow.ErrUnknownProject) {
+		if _, err := h.flow.Start(project, nil); !errors.Is(err, workflow.ErrUnknownProject) {
 			t.Errorf("project %q: %v", project, err)
 		}
 	}
@@ -268,7 +268,7 @@ func TestOnlyOneRehearsalRunsAtATime(t *testing.T) {
 	h := newHarness(t, options{maxRevisions: 2, overrides: map[string]stage{"sandbox": sandbox}, projectsDir: projectsNamed(t, "alpha", "beta")})
 	ids := []string{}
 	for _, project := range []string{"alpha", "beta"} {
-		started, err := h.flow.Start(project)
+		started, err := h.flow.Start(project, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -314,7 +314,7 @@ func TestARestartFailsTheRunsThatWereMidStep(t *testing.T) {
 	if reloaded.Status != run.Failed || lastReason(reloaded) != "the orchestrator restarted during investigate" {
 		t.Fatalf("after restart: %s %q", reloaded.Status, lastReason(reloaded))
 	}
-	if next, err := second.flow.Start("startup"); err != nil || next.ID != "run-startup-0002" {
+	if next, err := second.flow.Start("startup", nil); err != nil || next.ID != "run-startup-0002" {
 		t.Fatalf("next run %q, %v; want run-startup-0002", next.ID, err)
 	}
 }

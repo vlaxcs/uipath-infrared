@@ -4,6 +4,7 @@ import { GraphSection } from "~/graph/GraphSection";
 import { sampleGraphModel } from "~/graph/sampleGraph";
 import { sectionById } from "~/navigation/sections";
 import { useHashRoute } from "~/navigation/useHashRoute";
+import { OnboardingSection } from "~/onboarding/OnboardingSection";
 import { RehearsalSection } from "~/rehearsal/RehearsalSection";
 import { sampleRehearsal } from "~/rehearsal/sampleRehearsal";
 import { ApprovalsPage } from "~/runs/ApprovalsPage";
@@ -28,13 +29,17 @@ export function App({ source = runSource }: AppProps = {}) {
       onSelectSection={route.selectSection}
       title={activeSection.label}
       headerBadge={
-        <StatusBadge
-          label={source.mode === "live" ? "Live" : "Sample data"}
-          tone={source.mode === "live" ? "running" : "neutral"}
-        />
+        route.section === "start" ? undefined : (
+          <StatusBadge
+            label={source.mode === "live" ? "Live" : "Sample data"}
+            tone={source.mode === "live" ? "running" : "neutral"}
+          />
+        )
       }
     >
-      {route.section === "runs" ? (
+      {route.section === "start" ? (
+        <OnboardingSection onFollowRun={route.openRun} />
+      ) : route.section === "runs" ? (
         <RunsSection
           source={source}
           runId={route.runId}

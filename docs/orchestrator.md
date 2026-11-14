@@ -76,8 +76,9 @@ JSON in and out, `Content-Type: application/json`. Errors are `{"error": "<reaso
 
 | Route | Answers |
 | --- | --- |
+| `GET /onboarding` | `200`, what onboarding offers: the connections, the providers the catalog prices (without `onprem`), whether it has an on-prem option, and every project with its description and forbidden providers (`docs/onboarding.md` section 5). `500` naming the file when the catalog or a project's forecast does not parse |
 | `GET /runs?project=<p>&limit=<n>` | `200`, an array of run summaries, newest first: the run document without `events` and `inputs`. `limit` defaults to 50 and is capped at 200; `project` is optional |
-| `POST /runs` with `{"project": "<p>"}` | `201`, the new run document. `404` when the project has no forecast. `409` when the project already has a run that is `running` or `awaiting_approval` |
+| `POST /runs` with `{"project": "<p>", "onboarding": {...}}` | `201`, the new run document. `onboarding` is optional; when present, its answers are written into the run's copy of `forecast.json` (`docs/onboarding.md` section 5), and `400` with the reason when they break its rules. `404` when the project has no forecast. `409` when the project already has a run that is `running` or `awaiting_approval` |
 | `GET /runs/{id}` | `200`, the run document. `404` |
 | `GET /runs/{id}/events?after=<seq>` | `200`, the events with `seq` greater than `after`, in order; `[]` when there is none. `after` defaults to 0; `400` when it is not a non-negative integer. `404` |
 | `POST /runs/{id}/decisions` | `201`, the appended event. `400` when the body breaks the rules below. `404`. `409` when the gate it targets is not open. `422` when `pick_layout` names a candidate that is not a feasible candidate of the latest result |

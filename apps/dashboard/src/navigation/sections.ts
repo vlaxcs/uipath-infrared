@@ -1,4 +1,4 @@
-export type SectionId = "runs" | "graph" | "candidates" | "rehearsal" | "approvals";
+export type SectionId = "start" | "runs" | "graph" | "candidates" | "rehearsal" | "approvals";
 
 export type Section = {
   id: SectionId;
@@ -7,6 +7,7 @@ export type Section = {
 };
 
 export const SECTIONS: readonly Section[] = [
+  { id: "start", label: "New run", description: "Connect the infrastructure, pick the project and start a run." },
   { id: "runs", label: "Runs", description: "Follow a run and its decisions." },
   { id: "graph", label: "Graph", description: "The infrastructure graph and its dependencies." },
   { id: "candidates", label: "Candidates", description: "Cost, availability, risk and effort for every plan." },
