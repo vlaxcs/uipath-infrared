@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { LatestResponse } from "~/domain/types";
+import type { LatestResponse, Notice } from "~/domain/types";
 import { DEFAULT_SETTINGS, getSettings, type Settings } from "~/storage";
 import { Panel } from "~/ui/Panel";
 
@@ -25,7 +25,7 @@ export function ExtensionPanel() {
         force,
       })) as LatestResponse | undefined;
 
-      if (latest?.run) {
+      if (latest && (latest.run || latest.notice)) {
         setResponse(latest);
         setError(null);
       } else {
@@ -76,7 +76,7 @@ export function ExtensionPanel() {
   return (
     <Panel
       run={response?.run ?? null}
-      note={error ?? undefined}
+      notice={error ? backgroundFailure(error) : (response?.notice ?? undefined)}
       loading={loading}
       collapsed={collapsed}
       dashboardUrl={settings.dashboardUrl}
@@ -85,4 +85,8 @@ export function ExtensionPanel() {
       onOpenOptions={openOptions}
     />
   );
+}
+
+function backgroundFailure(detail: string): Notice {
+  return { kind: "unreachable", message: "Can't reach Infrared", detail };
 }

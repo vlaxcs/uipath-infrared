@@ -16,11 +16,18 @@ export class OrchestratorError extends Error {
   }
 }
 
+export class NoRunsError extends OrchestratorError {
+  constructor() {
+    super("No runs yet");
+    this.name = "NoRunsError";
+  }
+}
+
 export async function loadLatest(baseUrl: string, fetchImpl: FetchLike = fetch): Promise<LatestRun> {
   const base = baseUrl.replace(/\/+$/, "");
   const summaries = await getJson<RunSummary[]>(fetchImpl, `${base}/runs?limit=1`);
   const summary = summaries[0];
-  if (!summary) throw new OrchestratorError("No runs yet");
+  if (!summary) throw new NoRunsError();
 
   const detail = await getJson<RunDetail>(
     fetchImpl,
@@ -37,7 +44,6 @@ export async function loadLatest(baseUrl: string, fetchImpl: FetchLike = fetch):
   const runners = runnerReport(ciRunners);
 
   return {
-    source: "live",
     id: detail.id,
     project: detail.project,
     status: detail.status,

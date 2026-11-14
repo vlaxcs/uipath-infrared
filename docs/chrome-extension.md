@@ -124,7 +124,7 @@ Home's **+ Browser extension** links to `VITE_CHROME_EXTENSION_URL` when it is s
 
 | Failure | What happens |
 | --- | --- |
-| Orchestrator unreachable | the card shows the sample run with the Sample data badge, as today |
+| Orchestrator unreachable | the card shows "Can't reach Infrared" and a link to the dashboard; no sample data |
 | No token on a hosted orchestrator | the card shows "Sign in" and no account data |
 | Token expired or revoked | `401`, token cleared, "Sign in again" |
 | Repository not installed for this account | `403`, the card links to the installation page |

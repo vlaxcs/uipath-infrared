@@ -106,7 +106,7 @@ With auth `off` nothing changes from today: no database, no `/auth` routes, `/me
 
 - Dashboard: `credentials: "include"` on every orchestrator request; a `401` from any of them opens `#/login`. The login page shows the callback's `login_error` in words. **Disconnect** posts `/auth/logout` and opens `#/login` without waiting for the answer. Vite listens on `127.0.0.1` so the dashboard and the orchestrator share a site.
 - Slack bot: sends `Authorization: Bearer $ORCHESTRATOR_SERVICE_TOKEN` when it is set.
-- Chrome extension: unchanged here. Against an orchestrator with auth on it gets `401` and shows its sample data; its own token is `docs/chrome-extension.md` section 3.
+- Chrome extension: unchanged here. Against an orchestrator with auth on it gets `401` and shows "Can't reach Infrared" with a link to the dashboard; its own token is `docs/chrome-extension.md` section 3.
 
 ## 8. Failure modes
 
