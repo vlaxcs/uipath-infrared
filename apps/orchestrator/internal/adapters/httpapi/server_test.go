@@ -94,6 +94,13 @@ func TestALogRequestNeedsAStepWithALogAndAValidOffset(t *testing.T) {
 	}
 }
 
+func (f *fakeRuns) BuildPlan(id, candidate string) (string, error) {
+	if candidate == "nope" {
+		return "", workflow.ErrUnknownCandidate
+	}
+	return "states.0." + candidate + ".json", nil
+}
+
 func (f *fakeRuns) Rehearse(id string, trial workflow.TrialProfile) (workflow.TrialStarted, error) {
 	f.trial = &trial
 	return workflow.TrialStarted{File: "rehearsal.1.trial-1.json", Candidate: "managed_services"}, f.err
@@ -389,5 +396,17 @@ func TestStartWithNoProjectLeavesTheCompanyToTheWorkflowAndCarriesIntents(t *tes
 	recorder := send(t, runs, "POST", "/runs", `{"onboarding": {"connection": "floci", "targets": ["aws"], "applications": [{"id": "billing", "users_now": 1, "users_expected": 2, "at_month": 12, "intent": "Move to the EU"}]}}`)
 	if recorder.Code != http.StatusCreated || !runs.started || runs.answers == nil || runs.answers.Apps[0].Intent != "Move to the EU" {
 		t.Fatalf("%d: %s, answers %+v", recorder.Code, recorder.Body, runs.answers)
+	}
+}
+
+func TestACandidatesPlanIsBuiltOnDemandForReview(t *testing.T) {
+	recorder := send(t, &fakeRuns{}, "POST", "/runs/run-company-0002/plans", `{"candidate":"managed_services"}`)
+	if recorder.Code != http.StatusOK || !strings.Contains(recorder.Body.String(), "states.0.managed_services.json") {
+		t.Fatalf("%d: %s", recorder.Code, recorder.Body)
+	}
+	for body, want := range map[string]int{`{"candidate":"nope"}`: http.StatusBadRequest, `{}`: http.StatusBadRequest, `not json`: http.StatusBadRequest} {
+		if got := send(t, &fakeRuns{}, "POST", "/runs/run-company-0002/plans", body).Code; got != want {
+			t.Fatalf("%s: %d, want %d", body, got, want)
+		}
 	}
 }

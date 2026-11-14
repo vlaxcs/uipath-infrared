@@ -52,6 +52,14 @@ export function createHttpRunSource(baseUrl: string): RunSource {
       text(`/runs/${encodeURIComponent(id)}/files/${encodeURIComponent(path)}`, signal),
     readLog: (id, step, after, signal) =>
       request<RunLogChunk>(`/runs/${encodeURIComponent(id)}/logs?step=${step}&after=${after}`, { signal }),
+    buildPlan: async (id, candidate, signal) =>
+      (
+        await request<{ path: string }>(`/runs/${encodeURIComponent(id)}/plans`, {
+          method: "POST",
+          body: JSON.stringify({ candidate }),
+          signal,
+        })
+      ).path,
     rehearse: (id, trial, signal) =>
       request<TrialStarted>(`/runs/${encodeURIComponent(id)}/rehearsals`, {
         method: "POST",

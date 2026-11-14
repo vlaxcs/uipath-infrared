@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { approvePlanDecision } from "~/runs/decisions";
 import type { AnalysisOption } from "~/runs/findings";
 import { LayoutChat } from "~/runs/LayoutChat";
@@ -18,6 +18,7 @@ type GateApprovalProps = {
   busy: boolean;
   error: string | null;
   onRefresh?: () => void;
+  renderPlan?: (candidate: string) => ReactNode;
 };
 
 export function GateApproval({
@@ -31,6 +32,7 @@ export function GateApproval({
   busy,
   error,
   onRefresh,
+  renderPlan,
 }: GateApprovalProps) {
   if (gate === "layout") {
     return (
@@ -44,6 +46,7 @@ export function GateApproval({
         busy={busy}
         error={error}
         onRefresh={onRefresh}
+        renderPlan={renderPlan}
       />
     );
   }

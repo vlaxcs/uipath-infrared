@@ -17,6 +17,7 @@ type LayoutChatProps = {
   busy: boolean;
   error: string | null;
   onRefresh?: () => void;
+  renderPlan?: (candidate: string) => ReactNode;
   typingMs?: number;
 };
 
@@ -34,6 +35,7 @@ export function LayoutChat({
   busy,
   error,
   onRefresh,
+  renderPlan,
   typingMs = 700,
 }: LayoutChatProps) {
   const feasible = feasibleLayouts(options);
@@ -46,6 +48,7 @@ export function LayoutChat({
   const [layoutAnswer, setLayoutAnswer] = useState<string | null>(null);
   const [layoutReason, setLayoutReason] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [playing, setPlaying] = useState<string | null>(null);
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -162,15 +165,31 @@ export function LayoutChat({
           <fieldset disabled={layoutAnswer !== null} className="flex flex-col gap-2">
             <legend className="sr-only">Feasible layouts</legend>
             {feasible.map((option) => (
-              <label key={option.id} className="flex items-start gap-2 rounded-control bg-surface px-3 py-2">
-                <input type="radio" name="layout" className="mt-1" value={option.id} checked={layout === option.id} onChange={() => setLayout(option.id)} />
-                <span>
-                  <span className="font-mono">{option.id}</span>
-                  <span className="block text-caption text-fg-subtle">
-                    rank {option.rank ?? "—"} · {formatEUR(option.monthly_eur)}/mo · {formatPercent(option.availability_pct)} · risk {formatRisk(option.risk)}
-                  </span>
-                </span>
-              </label>
+              <div key={option.id} className="flex flex-col gap-2 rounded-control bg-surface px-3 py-2">
+                <div className="flex items-start justify-between gap-3">
+                  <label className="flex flex-1 items-start gap-2">
+                    <input type="radio" name="layout" className="mt-1" value={option.id} checked={layout === option.id} onChange={() => setLayout(option.id)} />
+                    <span>
+                      <span className="font-mono">{option.id}</span>
+                      <span className="block text-caption text-fg-subtle">
+                        rank {option.rank ?? "—"} · {formatEUR(option.monthly_eur)}/mo · {formatPercent(option.availability_pct)} · risk {formatRisk(option.risk)}
+                      </span>
+                    </span>
+                  </label>
+                  {renderPlan ? (
+                    <button
+                      type="button"
+                      aria-pressed={playing === option.id}
+                      aria-label={`${playing === option.id ? "Hide" : "Play"} the migration plan of ${option.id}`}
+                      onClick={() => setPlaying((current) => (current === option.id ? null : option.id))}
+                      className="shrink-0 rounded-control border border-border px-2 py-1 text-caption text-fg hover:bg-surface-muted"
+                    >
+                      {playing === option.id ? "■ Hide" : "▶ Play"}
+                    </button>
+                  ) : null}
+                </div>
+                {renderPlan && playing === option.id ? renderPlan(option.id) : null}
+              </div>
             ))}
           </fieldset>
           {infeasible.length > 0 ? <p className="text-caption text-fg-subtle">Ruled out: {infeasible.map((option) => option.id).join(", ")}</p> : null}

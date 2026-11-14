@@ -74,6 +74,21 @@ describe("the layout chat", () => {
     expect(screen.getByRole("checkbox", { name: /The GPU node group is idle/ }).closest("fieldset")?.disabled).toBe(true);
   });
 
+  it("plays each candidate's migration plan for review before choosing", () => {
+    chat({ renderPlan: (candidate) => <p>plan of {candidate}</p> });
+    fireEvent.click(screen.getByRole("button", { name: "Skip" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Play the migration plan of managed_services" }));
+    expect(screen.getByText("plan of managed_services")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Play the migration plan of consolidate" }));
+    expect(screen.getByText("plan of consolidate")).toBeTruthy();
+    expect(screen.queryByText("plan of managed_services")).toBeNull();
+    expect((screen.getByRole("radio", { name: /consolidate/ }) as HTMLInputElement).checked).toBe(true);
+
+    fireEvent.click(screen.getByRole("button", { name: "Hide the migration plan of consolidate" }));
+    expect(screen.queryByText("plan of consolidate")).toBeNull();
+  });
+
   it("will not keep an empty selection", () => {
     chat();
     for (const analysis of analyses) fireEvent.click(screen.getByRole("checkbox", { name: new RegExp(analysis.title) }));

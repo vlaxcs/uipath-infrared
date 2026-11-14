@@ -39,6 +39,7 @@ export type RunSource = {
   readArtifact(id: string, path: string, signal?: AbortSignal): Promise<string>;
   readLog(id: string, step: RunStep, after: number, signal?: AbortSignal): Promise<RunLogChunk>;
   rehearse(id: string, trial: TrialRequest, signal?: AbortSignal): Promise<TrialStarted>;
+  buildPlan?(id: string, candidate: string, signal?: AbortSignal): Promise<string>;
 };
 
 export class RunSourceError extends Error {

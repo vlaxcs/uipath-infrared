@@ -31,6 +31,7 @@ import { StepLog } from "~/runs/StepLog";
 import { useStepLog } from "~/runs/useStepLog";
 import { StepResultPane } from "~/runs/StepResultPane";
 import { StepDialog, type DialogPage } from "~/runs/StepDialog";
+import { ReviewPlan } from "~/runs/ReviewPlan";
 import { ArtifactFrame } from "~/runs/results/ArtifactFrame";
 import { StartResult, type ForecastArtifact } from "~/runs/results/StartResult";
 import { StepEvents } from "~/runs/StepEvents";
@@ -287,6 +288,11 @@ export function RunView({
                 decisionBusy={decision.busy}
                 decisionError={decision.error}
                 onRefresh={onReload}
+                renderPlan={
+                  evaluatedRevision !== null
+                    ? (planned: string) => <ReviewPlan source={source} runId={run.id} revision={evaluatedRevision} candidate={planned} />
+                    : undefined
+                }
                 gate={
                   run.awaiting === "layout"
                     ? selectedStep === "evaluate" || selectedStep === "present"

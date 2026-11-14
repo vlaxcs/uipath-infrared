@@ -42,6 +42,7 @@ type StepResultPaneProps = {
   decisionError: string | null;
   onRefresh?: () => void;
   gate?: Gate | null;
+  renderPlan?: (candidate: string) => ReactNode;
   children?: ReactNode;
 };
 
@@ -64,6 +65,7 @@ export function StepResultPane({
   decisionError,
   onRefresh,
   gate = run.awaiting && STEP_META[step].gate === run.awaiting ? run.awaiting : null,
+  renderPlan,
   children,
 }: StepResultPaneProps) {
   const meta = STEP_META[step];
@@ -127,6 +129,7 @@ export function StepResultPane({
           busy={decisionBusy}
           error={decisionError}
           onRefresh={onRefresh}
+          renderPlan={renderPlan}
         />
       ) : null}
     </section>

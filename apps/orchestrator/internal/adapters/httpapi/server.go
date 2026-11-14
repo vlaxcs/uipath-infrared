@@ -32,6 +32,7 @@ type Runs interface {
 	Profile() (profile.Profile, error)
 	SaveProfile(profile.Profile) error
 	Rehearse(id string, trial workflow.TrialProfile) (workflow.TrialStarted, error)
+	BuildPlan(id, candidate string) (string, error)
 }
 
 func Handler(runs Runs, allowedOrigins ...string) http.Handler {
@@ -53,6 +54,7 @@ func routes(runs Runs) http.Handler {
 	mux.HandleFunc("GET /runs/{id}/files/{name}", api.file)
 	mux.HandleFunc("GET /runs/{id}/logs", api.logs)
 	mux.HandleFunc("POST /runs/{id}/rehearsals", api.rehearse)
+	mux.HandleFunc("POST /runs/{id}/plans", api.plan)
 	mux.HandleFunc("GET /profile", api.profile)
 	mux.HandleFunc("PUT /profile", api.saveProfile)
 	return seen.observe(mux)
@@ -239,7 +241,9 @@ func failWith(w http.ResponseWriter, err error) {
 		status = http.StatusConflict
 	case errors.Is(err, run.ErrInvalidDecision), errors.Is(err, onboarding.ErrInvalid), errors.Is(err, profile.ErrInvalid), errors.Is(err, workflow.ErrInvalidTrial):
 		status = http.StatusBadRequest
-	case errors.Is(err, workflow.ErrLayoutNotFeasible):
+	case errors.Is(err, workflow.ErrUnknownCandidate):
+		status = http.StatusBadRequest
+	case errors.Is(err, workflow.ErrLayoutNotFeasible), errors.Is(err, workflow.ErrNoPlan):
 		status = http.StatusUnprocessableEntity
 	case errors.Is(err, run.ErrArtifactTooLarge):
 		status = http.StatusRequestEntityTooLarge
@@ -266,4 +270,21 @@ func boundedInt(raw string, fallback, low, high int) (int, error) {
 		return 0, errors.New("out of range")
 	}
 	return value, nil
+}
+
+// plan builds a candidate's migration plan on demand and answers its file name.
+func (a *api) plan(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		Candidate string `json:"candidate"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&body); err != nil || body.Candidate == "" {
+		fail(w, http.StatusBadRequest, "send {\"candidate\": \"<id>\"}")
+		return
+	}
+	path, err := a.runs.BuildPlan(r.PathValue("id"), body.Candidate)
+	if err != nil {
+		failWith(w, err)
+		return
+	}
+	reply(w, http.StatusOK, map[string]string{"path": path})
 }
