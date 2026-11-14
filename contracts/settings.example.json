@@ -1,0 +1,47 @@
+{
+  "account": { "id": "acct_shopwave", "company": "Shopwave", "ownerEmail": "cto@shopwave.io" },
+  "subscription": {
+    "plan": "subscription",
+    "status": "active",
+    "runsRemaining": 0,
+    "renewsAt": "2026-12-01",
+    "cancelAtPeriodEnd": false,
+    "paymentMethod": { "id": "pm_seed_visa", "brand": "Visa", "last4": "4242", "expMonth": 8, "expYear": 2028 },
+    "pendingPayment": null,
+    "invoices": [
+      { "id": "in_0003", "date": "2026-11-01", "description": "Subscription, November", "amountUsd": 200, "status": "paid" },
+      { "id": "in_0002", "date": "2026-10-01", "description": "Subscription, October", "amountUsd": 200, "status": "paid" },
+      { "id": "in_0001", "date": "2026-09-14", "description": "Run pack, 5 runs", "amountUsd": 100, "status": "paid" }
+    ]
+  },
+  "cloud": [
+    {
+      "id": "cc_prod",
+      "provider": "aws",
+      "accountId": "412345678901",
+      "roleArn": "arn:aws:iam::412345678901:role/InfraredReadOnly",
+      "externalId": "ir-7f3c9a2e5b14",
+      "regions": ["eu-central-1", "eu-west-1"],
+      "access": "read-only",
+      "status": "connected",
+      "createdAt": "2026-09-14T10:02:00Z",
+      "lastVerifiedAt": "2026-11-14T06:00:00Z",
+      "error": null
+    }
+  ],
+  "github": {
+    "status": "connected",
+    "org": "shopwave",
+    "installationId": 51234567,
+    "repoSelection": { "kind": "selected", "repos": ["shopwave/storefront", "shopwave/checkout-api", "shopwave/infra"] },
+    "availableRepos": ["shopwave/storefront", "shopwave/checkout-api", "shopwave/infra", "shopwave/mobile-app", "shopwave/data-pipeline"],
+    "permissions": [
+      { "scope": "actions", "access": "read", "reason": "See workflow runs and runners" },
+      { "scope": "metadata", "access": "read", "reason": "List repositories" },
+      { "scope": "pull_requests", "access": "write", "reason": "Open migration pull requests (phase 2)" },
+      { "scope": "contents", "access": "read", "reason": "Read workflow files to suggest runners" }
+    ],
+    "installedAt": "2026-11-14T12:00:00Z",
+    "extensionReady": true
+  }
+}

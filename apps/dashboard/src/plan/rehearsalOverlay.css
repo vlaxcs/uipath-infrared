@@ -1,0 +1,10 @@
+.estate-view .tnode.is-rehearsal-failed .tnode-shape {
+  stroke: var(--removed);
+  stroke-width: 2.5;
+  stroke-dasharray: 3 2;
+}
+
+.estate-view .tnode.is-rehearsal-failed .tnode-label {
+  fill: var(--removed);
+  font-weight: 700;
+}

@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "project": "demo-shop",
+  "name": "Demo shop",
+  "summary": "An EU e-commerce company: the storefront and order system, a data platform for recommendations and reporting, and a legacy ERP the finance team still runs on.",
+  "owner": "Platform team (6 engineers)",
+  "business": {
+    "model": "b2c",
+    "customers": "Shoppers in the EU; finance and warehouse staff use the ERP.",
+    "markets": [
+      "Germany",
+      "Austria",
+      "Romania",
+      "Poland"
+    ],
+    "critical_flows": [
+      "Browse, add to cart and check out",
+      "Order reaches the warehouse",
+      "Nightly finance reports"
+    ]
+  },
+  "forecast_id": "demo-shop-2027-plan",
+  "environments": [
+    {
+      "name": "prod",
+      "stacks": [
+        "shop",
+        "data",
+        "legacy"
+      ],
+      "purpose": "Live storefront, data platform and ERP.",
+      "always_on": true,
+      "data": "production",
+      "users": "customers and staff"
+    },
+    {
+      "name": "staging",
+      "stacks": [
+        "shop"
+      ],
+      "purpose": "The shop-staging EKS cluster, inside the shop stack's VPC; 12 nodes kept up between releases.",
+      "always_on": true,
+      "data": "synthetic",
+      "users": "QA"
+    },
+    {
+      "name": "dev",
+      "stacks": [
+        "dev"
+      ],
+      "purpose": "A dev sandbox nobody has cleaned up: jump boxes and NAT gateways.",
+      "always_on": true,
+      "data": "none",
+      "users": "engineers"
+    }
+  ],
+  "users": {
+    "metric": "monthly_active_users",
+    "definition": "Unique signed-in or cookied shoppers in 30 days.",
+    "current": {
+      "value": 1200000,
+      "as_of": "2026-11-01",
+      "provenance": "synthetic",
+      "source": "hand-written mock"
+    },
+    "peak_concurrent": 14000,
+    "expected": [
+      {
+        "month": 6,
+        "low": 1731000,
+        "base": 1892000,
+        "high": 2125700,
+        "note": "After the marketplace launch"
+      },
+      {
+        "month": 12,
+        "low": 1783600,
+        "base": 2130600,
+        "high": 2689700
+      },
+      {
+        "month": 24,
+        "low": 1893600,
+        "base": 2702200,
+        "high": 4306400
+      },
+      {
+        "month": 36,
+        "low": 2010400,
+        "base": 3427000,
+        "high": 6894600
+      }
+    ]
+  }
+}

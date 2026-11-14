@@ -1,0 +1,16 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "hours": {
+      "amount": 0.1,
+      "currency": "USD",
+      "description": "Amazon EKS cluster usage in EU (Ireland)",
+      "reference": "HYMNGN7MKVJ8Y4HA",
+      "unit": "Hours"
+    }
+  },
+  "source": "aws-AmazonEKS",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEKS/20261111153557/eu-west-1/index.csv",
+  "version": "20261111153557"
+}

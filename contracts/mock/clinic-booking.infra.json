@@ -1,0 +1,1032 @@
+{
+  "schema_version": "1.0",
+  "project": "clinic-booking",
+  "source": {
+    "extractor": "hand-written-mock",
+    "extractor_version": "0",
+    "generated_at": "2026-11-14T10:00:00Z",
+    "endpoint": null,
+    "regions_scanned": [
+      "eu-central-1"
+    ],
+    "is_mock": true,
+    "notes": "Mid-sized B2B SaaS mock with dev, staging and prod. Staging is a full-size, always-on copy of prod holding unmasked patient data."
+  },
+  "stacks": [
+    {
+      "id": "prod",
+      "name": "Production",
+      "environment": "prod",
+      "description": "Booking API, patient database, reminders."
+    },
+    {
+      "id": "staging",
+      "name": "Staging",
+      "environment": "staging",
+      "description": "Release candidate copy of prod, refreshed weekly from a prod snapshot."
+    },
+    {
+      "id": "dev",
+      "name": "Development",
+      "environment": "dev",
+      "description": "Shared dev database and the CI runner."
+    }
+  ],
+  "controls": {
+    "audit_logging_enabled": true,
+    "threat_detection_enabled": false,
+    "config_recording_enabled": false,
+    "backup_plans_exist": true,
+    "vpc_flow_logs_enabled": false,
+    "mfa_enforced": true
+  },
+  "components": [
+    {
+      "id": "prod-alb",
+      "kind": "load_balancer",
+      "provider": "aws",
+      "service": "elbv2",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": false,
+      "stack": "prod",
+      "sku": "application",
+      "name": "clinic-prod-alb",
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 61000000
+        }
+      },
+      "security": {
+        "public_exposure": "internet"
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 43,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-api",
+      "kind": "container",
+      "provider": "aws",
+      "service": "ecs-fargate",
+      "quantity": 6,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "prod",
+      "sku": "4vcpu/8GB",
+      "name": "clinic-prod/api",
+      "scaling": {
+        "desired": 6
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 31,
+          "p95": 64,
+          "max": 82
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 44,
+          "p95": 58,
+          "max": 66
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "plaintext_secrets_suspected": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 796,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-db",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": true,
+      "stack": "prod",
+      "sku": "db.r5.2xlarge",
+      "name": "clinic-prod-db",
+      "engine": {
+        "name": "postgres",
+        "version": "15.6"
+      },
+      "features_used": [
+        "pg_trgm",
+        "btree_gist"
+      ],
+      "data_gb": {
+        "value": 140,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "vcpu": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 64,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 400,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 24,
+          "p95": 51,
+          "max": 77
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 118,
+          "p95": 190,
+          "max": 240
+        },
+        "read_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 900,
+          "p95": 2100,
+          "max": 3400
+        },
+        "write_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 310,
+          "p95": 760,
+          "max": 1300
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": true,
+        "encryption_in_transit": true,
+        "backup_retention_days": 7,
+        "deletion_protection": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 1428,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, Multi-AZ doubles the instance, gp2 Multi-AZ storage) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-cache",
+      "kind": "cache",
+      "provider": "aws",
+      "service": "elasticache-redis",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "prod",
+      "sku": "cache.m5.large",
+      "name": "clinic-prod-cache",
+      "engine": {
+        "name": "redis",
+        "version": "7.1"
+      },
+      "data_gb": {
+        "value": 1.2,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 2,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 6.4,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 11,
+          "p95": 24,
+          "max": 38
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 64,
+          "p95": 110,
+          "max": 140
+        },
+        "hit_rate_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 91
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": false,
+        "backup_retention_days": 0
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 105,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-reminders",
+      "kind": "queue",
+      "provider": "aws",
+      "service": "sqs",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "prod",
+      "sku": "standard",
+      "name": "clinic-prod-reminders",
+      "config": {
+        "visibility_timeout_s": 120,
+        "receive_wait_s": 20,
+        "dlq": false,
+        "retention_days": 4
+      },
+      "usage": {
+        "messages_sent": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1260000
+        },
+        "messages_received": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1262000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 2,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-notifier",
+      "kind": "function",
+      "provider": "aws",
+      "service": "lambda",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "status": "active",
+      "stateful": false,
+      "stack": "prod",
+      "sku": "python3.12/512MB",
+      "name": "clinic-prod-notifier",
+      "engine": {
+        "name": "python",
+        "version": "3.12"
+      },
+      "config": {
+        "vpc_attached": true,
+        "dlq": false
+      },
+      "capacity": {
+        "memory_gb": {
+          "value": 0.5,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "timeout_s": {
+          "value": 60,
+          "provenance": "observed",
+          "unit": "s"
+        }
+      },
+      "usage": {
+        "invocations": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1262000
+        },
+        "duration_ms": {
+          "unit": "ms",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 340,
+          "p95": 900,
+          "max": 2400
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "plaintext_secrets_suspected": false,
+        "admin_privileges": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 8,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-documents",
+      "kind": "object_storage",
+      "provider": "aws",
+      "service": "s3",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "prod",
+      "sku": "standard",
+      "name": "clinic-prod-documents",
+      "config": {
+        "versioning": true,
+        "lifecycle_rules": 0
+      },
+      "data_gb": {
+        "value": 640,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "object_count": {
+          "value": 2300000,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 4100000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 20,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-nat",
+      "kind": "nat",
+      "provider": "aws",
+      "service": "nat-gateway",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "prod",
+      "sku": "per-az",
+      "name": "1 NAT gateway(s) in clinic-prod-vpc",
+      "usage": {
+        "network_out_gb": {
+          "unit": "gb",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0.55,
+          "max": 1.9,
+          "sum": 185
+        }
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 44,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "staging-alb",
+      "kind": "load_balancer",
+      "provider": "aws",
+      "service": "elbv2",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": false,
+      "stack": "staging",
+      "sku": "application",
+      "name": "clinic-staging-alb",
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 210000
+        }
+      },
+      "security": {
+        "public_exposure": "internet"
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 17,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "staging-api",
+      "kind": "container",
+      "provider": "aws",
+      "service": "ecs-fargate",
+      "quantity": 6,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "staging",
+      "sku": "4vcpu/8GB",
+      "name": "clinic-staging/api",
+      "scaling": {
+        "desired": 6
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 2.4,
+          "p95": 9,
+          "max": 31
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 19,
+          "p95": 22,
+          "max": 30
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "plaintext_secrets_suspected": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 796,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "staging-db",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "staging",
+      "sku": "db.r5.2xlarge",
+      "name": "clinic-staging-db",
+      "engine": {
+        "name": "postgres",
+        "version": "15.6"
+      },
+      "tags": {
+        "restored_from": "clinic-prod-db snapshot, weekly, unmasked"
+      },
+      "features_used": [
+        "pg_trgm",
+        "btree_gist"
+      ],
+      "data_gb": {
+        "value": 138,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "vcpu": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 64,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 400,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 3,
+          "p95": 11,
+          "max": 40
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 6,
+          "p95": 14,
+          "max": 22
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": false,
+        "encryption_in_transit": false,
+        "backup_retention_days": 1,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 714,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "dev-db",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "dev",
+      "sku": "db.t3.medium",
+      "name": "clinic-dev-db",
+      "engine": {
+        "name": "postgres",
+        "version": "15.6"
+      },
+      "data_gb": {
+        "value": 4,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "internal",
+      "capacity": {
+        "vcpu": {
+          "value": 2,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 20,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 4,
+          "p95": 18,
+          "max": 55
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 3,
+          "p95": 9,
+          "max": 14
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "encryption_in_transit": false,
+        "backup_retention_days": 0,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 50,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "dev-runner",
+      "kind": "virtual_machine",
+      "provider": "aws",
+      "service": "ec2",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "idle",
+      "stateful": false,
+      "stack": "dev",
+      "sku": "m5.2xlarge",
+      "name": "clinic-dev-runner",
+      "config": {
+        "role": "self-hosted CI runner, always on"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 32,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 100,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 1.6,
+          "p95": 6,
+          "max": 71
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "world_open_ports": [
+          22
+        ],
+        "encryption_at_rest": null
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 267,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "dev-scratch",
+      "kind": "block_storage",
+      "provider": "aws",
+      "service": "ebs",
+      "quantity": 1,
+      "region": "eu-central-1",
+      "zones": 1,
+      "status": "orphan",
+      "stateful": true,
+      "stack": "dev",
+      "sku": "gp3",
+      "config": {
+        "attached": false,
+        "size_gb_each": 200
+      },
+      "capacity": {
+        "storage_gb": {
+          "value": 200,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "read_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0,
+          "max": 0
+        },
+        "write_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0,
+          "max": 0
+        }
+      },
+      "security": {
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 15,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e01",
+      "from": "prod-alb",
+      "to": "prod-api",
+      "kind": "traffic",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 210,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Target group -> ECS service"
+    },
+    {
+      "id": "e02",
+      "from": "prod-api",
+      "to": "prod-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 95,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Bookings, patients, schedules"
+    },
+    {
+      "id": "e03",
+      "from": "prod-api",
+      "to": "prod-cache",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 40,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Sessions and slot availability"
+    },
+    {
+      "id": "e04",
+      "from": "prod-api",
+      "to": "prod-documents",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 60,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Referral letters, scanned results"
+    },
+    {
+      "id": "e05",
+      "from": "prod-api",
+      "to": "prod-reminders",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 2,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Reminder jobs 24 h and 2 h before a visit"
+    },
+    {
+      "id": "e06",
+      "from": "prod-reminders",
+      "to": "prod-notifier",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 2,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Event source mapping"
+    },
+    {
+      "id": "e07",
+      "from": "prod-notifier",
+      "to": "prod-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 3,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    },
+    {
+      "id": "e08",
+      "from": "prod-notifier",
+      "to": "prod-nat",
+      "kind": "network",
+      "evidence": "inferred",
+      "gb_month": {
+        "value": 18,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "SMS and e-mail providers over the internet"
+    },
+    {
+      "id": "e09",
+      "from": "prod-api",
+      "to": "prod-nat",
+      "kind": "network",
+      "evidence": "inferred",
+      "gb_month": {
+        "value": 160,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Payment and calendar integrations"
+    },
+    {
+      "id": "e10",
+      "from": "staging-alb",
+      "to": "staging-api",
+      "kind": "traffic",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 1,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    },
+    {
+      "id": "e11",
+      "from": "staging-api",
+      "to": "staging-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 1,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    }
+  ],
+  "stay_together": [
+    {
+      "id": "booking-path",
+      "members": [
+        "prod-api",
+        "prod-db",
+        "prod-cache"
+      ],
+      "scope": "region",
+      "reason": "Slot search and booking are latency-bound."
+    }
+  ]
+}

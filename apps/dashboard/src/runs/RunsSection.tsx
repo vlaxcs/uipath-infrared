@@ -1,30 +1,24 @@
-import type { Run } from "~/runs/types";
-import { RunsEmptyState } from "~/runs/RunsEmptyState";
-import { RunsList } from "~/runs/RunsList";
-import { RunSummary } from "~/runs/RunSummary";
+import type { RunSource } from "~/runs/source";
+import { RunPage } from "~/runs/RunPage";
+import { RunsPage } from "~/runs/RunsPage";
 
 type RunsSectionProps = {
-  runs: readonly Run[];
-  selectedRunId: string | null;
-  onSelectRun: (id: string) => void;
+  source: RunSource;
+  runId: string | null;
+  focusGate: boolean;
+  onOpenRun: (id: string) => void;
 };
 
-export function RunsSection({ runs, selectedRunId, onSelectRun }: RunsSectionProps) {
-  const selectedRun = runs.find((run) => run.id === selectedRunId) ?? null;
-
-  return (
-    <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
-      <div className="flex w-full flex-col gap-3 xl:w-80 xl:shrink-0">
-        <h2 className="text-label font-semibold uppercase tracking-wide text-fg-subtle">All runs</h2>
-        {runs.length === 0 ? (
-          <RunsEmptyState hasRuns={false} />
-        ) : (
-          <RunsList runs={runs} selectedRunId={selectedRunId} onSelectRun={onSelectRun} />
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        {selectedRun ? <RunSummary run={selectedRun} /> : runs.length > 0 ? <RunsEmptyState hasRuns /> : null}
-      </div>
-    </div>
-  );
+export function RunsSection({ source, runId, focusGate, onOpenRun }: RunsSectionProps) {
+  if (runId) {
+    return (
+      <RunPage
+        source={source}
+        runId={runId}
+        focusGate={focusGate}
+        onOpenRun={onOpenRun}
+      />
+    );
+  }
+  return <RunsPage source={source} onOpenRun={onOpenRun} />;
 }

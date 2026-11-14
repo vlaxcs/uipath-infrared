@@ -1,0 +1,16 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "standard:first-50tb": {
+      "amount": 0.023,
+      "currency": "USD",
+      "description": "$0.023 per GB - first 50 TB / month of storage used",
+      "reference": "4AJHPB29ZPVFADXP",
+      "unit": "GB-Mo"
+    }
+  },
+  "source": "aws-AmazonS3",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/20261109154310/eu-west-1/index.csv",
+  "version": "20261109154310"
+}

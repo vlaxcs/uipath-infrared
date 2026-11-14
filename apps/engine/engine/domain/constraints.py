@@ -16,6 +16,7 @@ class CandidateFigures:
     migration_eur: float = 0.0
     effort_hours: float = 0.0
     cutover_hours: float = 0.0
+    upfront_hardware_eur: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -103,8 +104,9 @@ def _figures(figures: CandidateFigures, constraints: HardConstraints) -> tuple[V
     checks = (
         ("budget", figures.run_eur_month_at_horizon_base, constraints.max_monthly_run_cost_eur,
          "EUR {actual:,.0f} a month at the horizon on the base scenario, ceiling EUR {limit:,.0f}"),
-        ("migration_budget", figures.migration_eur, constraints.max_one_off_migration_cost_eur,
-         "one-off migration EUR {actual:,.0f}, ceiling EUR {limit:,.0f}"),
+        ("migration_budget", figures.migration_eur + figures.upfront_hardware_eur,
+         constraints.max_one_off_migration_cost_eur,
+         _one_off_text(figures)),
         ("max_migration_effort_hours", figures.effort_hours, constraints.max_migration_effort_hours,
          "{actual:,.0f} migration hours, limit {limit:,.0f}"),
         ("max_cutover_downtime_hours", figures.cutover_hours, constraints.max_cutover_downtime_hours,
@@ -114,4 +116,13 @@ def _figures(figures: CandidateFigures, constraints: HardConstraints) -> tuple[V
         Violation(constraint, None, text.format(actual=actual, limit=limit), actual, limit)
         for constraint, actual, limit, text in checks
         if limit is not None and actual > limit
+    )
+
+
+def _one_off_text(figures: CandidateFigures) -> str:
+    if not figures.upfront_hardware_eur:
+        return "one-off migration EUR {actual:,.0f}, ceiling EUR {limit:,.0f}"
+    return (
+        f"one-off EUR {{actual:,.0f}}: migration EUR {figures.migration_eur:,.0f} plus "
+        f"EUR {figures.upfront_hardware_eur:,.0f} of on-prem hardware paid up front, ceiling EUR {{limit:,.0f}}"
     )

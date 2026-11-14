@@ -1,0 +1,366 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "aws-route53:hosted-zone": {
+      "amount": 0.5,
+      "currency": "USD",
+      "description": "AWS Route53 public hosted zone, USD per zone-month. Not in the AmazonRoute53 price list CSV anymore, only on the pricing page.",
+      "reference": "https://aws.amazon.com/route53/pricing/",
+      "unit": "HostedZone"
+    },
+    "azure-blob:hot-lrs-gb": {
+      "amount": 0.0196,
+      "currency": "USD",
+      "description": "Azure Blob Storage Hot LRS, first 50 TB, West Europe, USD per GB-month.",
+      "reference": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Storage'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Blob%20Storage'%20and%20skuName%20eq%20'Hot%20LRS'%20and%20meterName%20eq%20'Hot%20LRS%20Data%20Stored'",
+      "unit": "GB-Mo"
+    },
+    "azure-net:egress-gb": {
+      "amount": 0.08,
+      "currency": "USD",
+      "description": "Azure internet egress from West Europe after the first 100 GB, USD per GB.",
+      "reference": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Bandwidth'%20and%20armRegionName%20eq%20'westeurope'%20and%20meterName%20eq%20'Standard%20Data%20Transfer%20Out'%20and%20productName%20eq%20'Bandwidth%20-%20Routing%20Preference%3A%20Internet'",
+      "unit": "GB"
+    },
+    "azure-pg:16-vcore": {
+      "amount": 1.696,
+      "currency": "USD",
+      "description": "Azure Database for PostgreSQL Flexible Server, General Purpose Ddsv5 16-vcore, West Europe, USD per hour, 4 GiB per vCore.",
+      "reference": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Azure%20Database%20for%20PostgreSQL'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Azure%20Database%20for%20PostgreSQL%20Flexible%20Server%20General%20Purpose%20Ddsv5%20Series%20Compute'",
+      "unit": "Hrs"
+    },
+    "azure-pg:2-vcore": {
+      "amount": 0.212,
+      "currency": "USD",
+      "description": "Azure Database for PostgreSQL Flexible Server, General Purpose Ddsv5 2-vcore, West Europe, USD per hour, 4 GiB per vCore.",
+      "reference": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Azure%20Database%20for%20PostgreSQL'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Azure%20Database%20for%20PostgreSQL%20Flexible%20Server%20General%20Purpose%20Ddsv5%20Series%20Compute'",
+      "unit": "Hrs"
+    },
+    "azure-pg:32-vcore": {
+      "amount": 3.392,
+      "currency": "USD",
+      "description": "Azure Database for PostgreSQL Flexible Server, General Purpose Ddsv5 32-vcore, West Europe, USD per hour, 4 GiB per vCore.",
+      "reference": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Azure%20Database%20for%20PostgreSQL'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Azure%20Database%20for%20PostgreSQL%20Flexible%20Server%20General%20Purpose%20Ddsv5%20Series%20Compute'",
+      "unit": "Hrs"
+    },
+    "azure-pg:4-vcore": {
+      "amount": 0.424,
+      "currency": "USD",
+      "description": "Azure Database for PostgreSQL Flexible Server, General Purpose Ddsv5 4-vcore, West Europe, USD per hour, 4 GiB per vCore.",
+      "reference": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Azure%20Database%20for%20PostgreSQL'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Azure%20Database%20for%20PostgreSQL%20Flexible%20Server%20General%20Purpose%20Ddsv5%20Series%20Compute'",
+      "unit": "Hrs"
+    },
+    "azure-pg:8-vcore": {
+      "amount": 0.848,
+      "currency": "USD",
+      "description": "Azure Database for PostgreSQL Flexible Server, General Purpose Ddsv5 8-vcore, West Europe, USD per hour, 4 GiB per vCore.",
+      "reference": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Azure%20Database%20for%20PostgreSQL'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Azure%20Database%20for%20PostgreSQL%20Flexible%20Server%20General%20Purpose%20Ddsv5%20Series%20Compute'",
+      "unit": "Hrs"
+    },
+    "azure-pg:storage-gb": {
+      "amount": 0.1369,
+      "currency": "USD",
+      "description": "Azure PostgreSQL Flexible Server storage, West Europe, USD per GB-month.",
+      "reference": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Azure%20Database%20for%20PostgreSQL'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Azure%20Database%20for%20PostgreSQL%20Flex%20Server%20Storage'%20and%20meterName%20eq%20'Storage%20Data%20Stored'",
+      "unit": "GB-Mo"
+    },
+    "azure-vm:d16s-v5": {
+      "amount": 0.92,
+      "currency": "USD",
+      "description": "Azure D16S-V5 Linux pay-as-you-go, West Europe, USD per hour, Azure Retail Prices API.",
+      "reference": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Virtual%20Machines'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Virtual%20Machines%20Dsv5%20Series'%20and%20priceType%20eq%20'Consumption'",
+      "unit": "Hrs"
+    },
+    "azure-vm:d2s-v5": {
+      "amount": 0.115,
+      "currency": "USD",
+      "description": "Azure D2S-V5 Linux pay-as-you-go, West Europe, USD per hour, Azure Retail Prices API.",
+      "reference": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Virtual%20Machines'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Virtual%20Machines%20Dsv5%20Series'%20and%20priceType%20eq%20'Consumption'",
+      "unit": "Hrs"
+    },
+    "azure-vm:d32s-v5": {
+      "amount": 1.84,
+      "currency": "USD",
+      "description": "Azure D32S-V5 Linux pay-as-you-go, West Europe, USD per hour, Azure Retail Prices API.",
+      "reference": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Virtual%20Machines'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Virtual%20Machines%20Dsv5%20Series'%20and%20priceType%20eq%20'Consumption'",
+      "unit": "Hrs"
+    },
+    "azure-vm:d4s-v5": {
+      "amount": 0.23,
+      "currency": "USD",
+      "description": "Azure D4S-V5 Linux pay-as-you-go, West Europe, USD per hour, Azure Retail Prices API.",
+      "reference": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Virtual%20Machines'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Virtual%20Machines%20Dsv5%20Series'%20and%20priceType%20eq%20'Consumption'",
+      "unit": "Hrs"
+    },
+    "azure-vm:d8s-v5": {
+      "amount": 0.46,
+      "currency": "USD",
+      "description": "Azure D8S-V5 Linux pay-as-you-go, West Europe, USD per hour, Azure Retail Prices API.",
+      "reference": "https://prices.azure.com/api/retail/prices?$filter=serviceName%20eq%20'Virtual%20Machines'%20and%20armRegionName%20eq%20'westeurope'%20and%20productName%20eq%20'Virtual%20Machines%20Dsv5%20Series'%20and%20priceType%20eq%20'Consumption'",
+      "unit": "Hrs"
+    },
+    "b2:storage-tb": {
+      "amount": 6.95,
+      "currency": "USD",
+      "description": "Backblaze B2 pay-as-you-go storage, USD per TB-month.",
+      "reference": "https://www.backblaze.com/cloud-storage/pricing",
+      "unit": "TB-Mo"
+    },
+    "fly:egress-gb": {
+      "amount": 0.02,
+      "currency": "USD",
+      "description": "Fly.io internet egress from North America and Europe, USD per GB.",
+      "reference": "https://fly.io/docs/about/pricing/",
+      "unit": "GB"
+    },
+    "fly:performance-1x-2gb": {
+      "amount": 33.0,
+      "currency": "USD",
+      "description": "Fly.io Machine performance-1x with 2 GB, always on, USD per month. Larger presets scale linearly per CPU (performance-2x with 4 GB is listed at USD 66.00).",
+      "reference": "https://fly.io/docs/about/pricing/",
+      "unit": "Mo"
+    },
+    "fly:performance-2x-4gb": {
+      "amount": 66.0,
+      "currency": "USD",
+      "description": "Fly.io Machine performance-2x with 4 GB, always on, USD per month.",
+      "reference": "https://fly.io/docs/about/pricing/",
+      "unit": "Mo"
+    },
+    "fly:shared-cpu-2x-2gb": {
+      "amount": 13.39,
+      "currency": "USD",
+      "description": "Fly.io Machine shared-cpu-2x with 2 GB, always on, USD per month.",
+      "reference": "https://fly.io/docs/about/pricing/",
+      "unit": "Mo"
+    },
+    "gcp-gcs:standard-gib-hour": {
+      "amount": 2.7397e-05,
+      "currency": "USD",
+      "description": "Cloud Storage Standard, Iowa (us-central1), USD per GiB-hour.",
+      "reference": "https://cloud.google.com/storage/pricing",
+      "unit": "GiB-Hrs"
+    },
+    "gcp-net:egress-gib": {
+      "amount": 0.12,
+      "currency": "USD",
+      "description": "Premium Tier internet egress from Iowa, first TiB, USD per GiB.",
+      "reference": "https://cloud.google.com/vpc/network-pricing",
+      "unit": "GiB"
+    },
+    "gcp-sql:memory-gib-hour": {
+      "amount": 0.007,
+      "currency": "USD",
+      "description": "Cloud SQL Enterprise memory, Iowa (us-central1), USD per GiB-hour; the catalog counts a GiB as a GB.",
+      "reference": "https://cloud.google.com/sql/pricing",
+      "unit": "GiB-Hrs"
+    },
+    "gcp-sql:ssd-gib-hour": {
+      "amount": 0.000232877,
+      "currency": "USD",
+      "description": "Cloud SQL SSD storage, zonal, Iowa (us-central1), USD per GiB-hour.",
+      "reference": "https://cloud.google.com/sql/pricing",
+      "unit": "GiB-Hrs"
+    },
+    "gcp-sql:vcpu-hour": {
+      "amount": 0.0413,
+      "currency": "USD",
+      "description": "Cloud SQL Enterprise, dedicated core, Iowa (us-central1), USD per vCPU-hour. The page shows other regions only through a script.",
+      "reference": "https://cloud.google.com/sql/pricing",
+      "unit": "Hrs"
+    },
+    "hetzner-object:egress-tb": {
+      "amount": 1.0,
+      "currency": "EUR",
+      "description": "Hetzner Object Storage egress beyond the included 1 TB, EUR per TB.",
+      "reference": "https://www.hetzner.com/storage/object-storage",
+      "unit": "TB"
+    },
+    "hetzner-object:storage-tb-hour": {
+      "amount": 0.0087,
+      "currency": "EUR",
+      "description": "Hetzner Object Storage beyond the included 1 TB, EUR per TB-hour. The EUR 6.49 base fee is not modelled.",
+      "reference": "https://www.hetzner.com/storage/object-storage",
+      "unit": "TB-Hrs"
+    },
+    "hetzner:ccx13": {
+      "amount": 36.99,
+      "currency": "EUR",
+      "description": "Hetzner Cloud CCX13, dedicated vCPU, EUR per month excluding VAT, with 80 GB NVMe and 20 TB traffic.",
+      "reference": "https://www.hetzner.com/cloud/general-purpose",
+      "unit": "Mo"
+    },
+    "hetzner:ccx23": {
+      "amount": 73.49,
+      "currency": "EUR",
+      "description": "Hetzner Cloud CCX23, dedicated vCPU, EUR per month excluding VAT, with 160 GB NVMe and 20 TB traffic.",
+      "reference": "https://www.hetzner.com/cloud/general-purpose",
+      "unit": "Mo"
+    },
+    "hetzner:ccx33": {
+      "amount": 117.99,
+      "currency": "EUR",
+      "description": "Hetzner Cloud CCX33, dedicated vCPU, EUR per month excluding VAT, with 240 GB NVMe and 20 TB traffic.",
+      "reference": "https://www.hetzner.com/cloud/general-purpose",
+      "unit": "Mo"
+    },
+    "hetzner:ccx43": {
+      "amount": 234.99,
+      "currency": "EUR",
+      "description": "Hetzner Cloud CCX43, dedicated vCPU, EUR per month excluding VAT, with 360 GB NVMe and 20 TB traffic.",
+      "reference": "https://www.hetzner.com/cloud/general-purpose",
+      "unit": "Mo"
+    },
+    "hetzner:ccx53": {
+      "amount": 453.49,
+      "currency": "EUR",
+      "description": "Hetzner Cloud CCX53, dedicated vCPU, EUR per month excluding VAT, with 600 GB NVMe and 20 TB traffic.",
+      "reference": "https://www.hetzner.com/cloud/general-purpose",
+      "unit": "Mo"
+    },
+    "hetzner:traffic-tb": {
+      "amount": 1.0,
+      "currency": "EUR",
+      "description": "Hetzner Cloud traffic beyond the included 20 TB, EUR per TB.",
+      "reference": "https://www.hetzner.com/cloud/general-purpose",
+      "unit": "TB"
+    },
+    "neon-launch:cu-hour": {
+      "amount": 0.106,
+      "currency": "USD",
+      "description": "Neon Launch plan, USD per CU-hour (Scale is USD 0.222).",
+      "reference": "https://neon.com/docs/introduction/plans",
+      "unit": "Hrs"
+    },
+    "neon-scale:cu-hour": {
+      "amount": 0.222,
+      "currency": "USD",
+      "description": "Neon Scale plan, USD per CU-hour (Launch is USD 0.106).",
+      "reference": "https://neon.com/docs/introduction/plans",
+      "unit": "Hrs"
+    },
+    "neon:storage-gb": {
+      "amount": 0.35,
+      "currency": "USD",
+      "description": "Neon storage on Launch and Scale, USD per GB-month.",
+      "reference": "https://neon.com/docs/introduction/plans",
+      "unit": "GB-Mo"
+    },
+    "neon:transfer-gb": {
+      "amount": 0.1,
+      "currency": "USD",
+      "description": "Neon public network transfer beyond 500 GB per project, USD per GB.",
+      "reference": "https://neon.com/docs/introduction/plans",
+      "unit": "GB"
+    },
+    "r2:egress-gb": {
+      "amount": 0.0,
+      "currency": "USD",
+      "description": "Cloudflare R2 charges nothing for egress to the internet.",
+      "reference": "https://developers.cloudflare.com/r2/pricing/",
+      "unit": "GB"
+    },
+    "r2:storage-gb": {
+      "amount": 0.015,
+      "currency": "USD",
+      "description": "Cloudflare R2 Standard storage, USD per GB-month.",
+      "reference": "https://developers.cloudflare.com/r2/pricing/",
+      "unit": "GB-Mo"
+    },
+    "runpod:a100-pcie": {
+      "amount": 2.09,
+      "currency": "USD",
+      "description": "RunPod A100 PCIe pod (80 GB VRAM), the per-hour price the pricing page shows by default, USD.",
+      "reference": "https://www.runpod.io/pricing",
+      "unit": "Hrs"
+    },
+    "runpod:a40": {
+      "amount": 0.59,
+      "currency": "USD",
+      "description": "RunPod A40 pod (48 GB VRAM), the per-hour price the pricing page shows by default, USD.",
+      "reference": "https://www.runpod.io/pricing",
+      "unit": "Hrs"
+    },
+    "runpod:h100-pcie": {
+      "amount": 2.89,
+      "currency": "USD",
+      "description": "RunPod H100 PCIe pod (80 GB VRAM), the per-hour price the pricing page shows by default, USD.",
+      "reference": "https://www.runpod.io/pricing",
+      "unit": "Hrs"
+    },
+    "runpod:l4": {
+      "amount": 0.69,
+      "currency": "USD",
+      "description": "RunPod L4 pod (24 GB VRAM), the per-hour price the pricing page shows by default, USD.",
+      "reference": "https://www.runpod.io/pricing",
+      "unit": "Hrs"
+    },
+    "runpod:l40s": {
+      "amount": 1.09,
+      "currency": "USD",
+      "description": "RunPod L40S pod (48 GB VRAM), the per-hour price the pricing page shows by default, USD.",
+      "reference": "https://www.runpod.io/pricing",
+      "unit": "Hrs"
+    },
+    "runpod:rtx-a5000": {
+      "amount": 0.27,
+      "currency": "USD",
+      "description": "RunPod RTX A5000 pod (24 GB VRAM), the per-hour price the pricing page shows by default, USD.",
+      "reference": "https://www.runpod.io/pricing",
+      "unit": "Hrs"
+    },
+    "supabase:compute-2xl": {
+      "amount": 0.562,
+      "currency": "USD",
+      "description": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+      "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
+      "unit": "Hrs"
+    },
+    "supabase:compute-4xl": {
+      "amount": 1.32,
+      "currency": "USD",
+      "description": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+      "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
+      "unit": "Hrs"
+    },
+    "supabase:compute-8xl": {
+      "amount": 2.562,
+      "currency": "USD",
+      "description": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+      "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
+      "unit": "Hrs"
+    },
+    "supabase:compute-large": {
+      "amount": 0.1517,
+      "currency": "USD",
+      "description": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+      "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
+      "unit": "Hrs"
+    },
+    "supabase:compute-xl": {
+      "amount": 0.2877,
+      "currency": "USD",
+      "description": "Supabase compute add-on, USD per hour. The Pro plan's monthly base fee is extra.",
+      "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
+      "unit": "Hrs"
+    },
+    "supabase:disk-gb": {
+      "amount": 0.125,
+      "currency": "USD",
+      "description": "Supabase disk beyond the 8 GB included, USD per GB-month.",
+      "reference": "https://supabase.com/docs/guides/platform/compute-and-disk",
+      "unit": "GB-Mo"
+    },
+    "supabase:egress-gb": {
+      "amount": 0.09,
+      "currency": "USD",
+      "description": "Supabase Pro egress beyond the included 250 GB, USD per GB.",
+      "reference": "https://supabase.com/pricing",
+      "unit": "GB"
+    }
+  },
+  "source": "manual",
+  "unverified": {},
+  "url": "apps/pricing/config/manual.json",
+  "version": "a3bc37142772"
+}

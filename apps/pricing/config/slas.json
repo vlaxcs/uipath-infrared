@@ -1,0 +1,205 @@
+{
+  "aws-alb/availability_pct": {
+    "url": "https://aws.amazon.com/elasticloadbalancing/sla/",
+    "value": 99.99,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.99% but greater than or equal to 99.0%",
+    "note": "Multi-AZ Load Balancer SLA."
+  },
+  "aws-aurora-postgres/availability_pct": {
+    "url": "https://aws.amazon.com/aurora/sla/",
+    "value": 99.9,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.9% but equal to or greater than 99.0%",
+    "note": "Aurora Single-AZ SLA."
+  },
+  "aws-aurora-postgres/multi_az_availability_pct": {
+    "url": "https://aws.amazon.com/aurora/sla/",
+    "value": 99.99,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.99% but equal to or greater than 99.0%",
+    "note": "Aurora Multi-AZ SLA."
+  },
+  "aws-dynamodb-ondemand/availability_pct": {
+    "url": "https://aws.amazon.com/dynamodb/sla/",
+    "value": 99.99,
+    "read_on": "2026-11-14",
+    "quote": "at least 99.99% if the Standard SLA applies",
+    "note": "DynamoDB Standard SLA; Global Tables 99.999% is not used."
+  },
+  "aws-dynamodb-provisioned/availability_pct": {
+    "url": "https://aws.amazon.com/dynamodb/sla/",
+    "value": 99.99,
+    "read_on": "2026-11-14",
+    "quote": "at least 99.99% if the Standard SLA applies",
+    "note": "DynamoDB Standard SLA; Global Tables 99.999% is not used."
+  },
+  "aws-ebs/availability_pct": {
+    "url": "https://aws.amazon.com/ebs/sla/",
+    "value": 99.9,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.9% but equal to or greater than 99.0%",
+    "note": "EBS Volume-Level SLA."
+  },
+  "aws-ebs/multi_az_availability_pct": {
+    "url": "https://aws.amazon.com/ebs/sla/",
+    "value": 99.99,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.99% but equal to or greater than 99.0%",
+    "note": "EBS Region-Level SLA."
+  },
+  "aws-ec2-general/availability_pct": {
+    "url": "https://aws.amazon.com/compute/sla/",
+    "value": 99.5,
+    "read_on": "2026-11-14",
+    "quote": "Instance-Level Uptime Percentage of at least 99.5%",
+    "note": "EC2 Instance-Level SLA."
+  },
+  "aws-ec2-general/multi_az_availability_pct": {
+    "url": "https://aws.amazon.com/compute/sla/",
+    "value": 99.99,
+    "read_on": "2026-11-14",
+    "quote": "Monthly Uptime Percentage of at least 99.99%",
+    "note": "EC2 Region-Level SLA."
+  },
+  "aws-ecr/availability_pct": {
+    "url": "https://aws.amazon.com/ecr/sla/",
+    "value": 99.9,
+    "read_on": "2026-11-14",
+    "quote": "Monthly Uptime Percentage for each AWS region, during any monthly billing cycle, of at least 99.9%",
+    "note": "ECR regional SLA."
+  },
+  "aws-efs/availability_pct": {
+    "url": "https://aws.amazon.com/efs/sla/",
+    "value": 99.99,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.99% but greater than or equal to 99.0%",
+    "note": "EFS Standard and Standard-IA SLA; One Zone is 99.9%."
+  },
+  "aws-eks/availability_pct": {
+    "url": "https://aws.amazon.com/eks/sla/",
+    "value": 99.95,
+    "read_on": "2026-11-14",
+    "quote": "Monthly Uptime Percentage of at least 99.95%",
+    "note": "EKS Standard Control Plane SLA; provisioned control plane is 99.99%."
+  },
+  "aws-eks-nodes/availability_pct": {
+    "url": "https://aws.amazon.com/compute/sla/",
+    "value": 99.99,
+    "read_on": "2026-11-14",
+    "quote": "Monthly Uptime Percentage of at least 99.99%",
+    "note": "EC2 Region-Level SLA for instances spread across AZs."
+  },
+  "aws-elasticache-memcached/availability_pct": {
+    "url": "https://aws.amazon.com/elasticache/sla/",
+    "value": 99.5,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.5% but equal to or greater than 99.0%",
+    "note": "ElastiCache Single-AZ SLA."
+  },
+  "aws-elasticache-memcached/multi_az_availability_pct": {
+    "url": "https://aws.amazon.com/elasticache/sla/",
+    "value": 99.9,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.9% but equal to or greater than 99.0%",
+    "note": "ElastiCache Cross-AZ SLA for Memcached."
+  },
+  "aws-elasticache-redis/availability_pct": {
+    "url": "https://aws.amazon.com/elasticache/sla/",
+    "value": 99.5,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.5% but equal to or greater than 99.0%",
+    "note": "ElastiCache Single-AZ SLA."
+  },
+  "aws-elasticache-redis/multi_az_availability_pct": {
+    "url": "https://aws.amazon.com/elasticache/sla/",
+    "value": 99.99,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.99% but equal to or greater than 99.0%",
+    "note": "ElastiCache Serverless and Multi-AZ SLA."
+  },
+  "aws-fargate/availability_pct": {
+    "url": "https://aws.amazon.com/ecs/sla/",
+    "value": 99.99,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.99% but equal to or greater than 99.0%",
+    "note": "Multi-AZ Included Container Service SLA; a single task is 99.5%."
+  },
+  "aws-kinesis/availability_pct": {
+    "url": "https://aws.amazon.com/kinesis/sla/",
+    "value": 99.9,
+    "read_on": "2026-11-14",
+    "quote": "Monthly Uptime Percentage of at least 99.9%",
+    "note": "Kinesis Data Streams SLA; Firehose is not an included service."
+  },
+  "aws-lambda/availability_pct": {
+    "url": "https://aws.amazon.com/lambda/sla/",
+    "value": 99.95,
+    "read_on": "2026-11-14",
+    "quote": "Monthly Uptime Percentage for each AWS region, during any monthly billing cycle, of at least 99.95%",
+    "note": "Lambda regional SLA."
+  },
+  "aws-nat-gateway/availability_pct": {
+    "url": "https://aws.amazon.com/vpc/sla/",
+    "value": 99.9,
+    "read_on": "2026-11-14",
+    "quote": "Monthly Uptime Percentage of at least 99.9%",
+    "note": "VPC NAT Gateway SLA."
+  },
+  "aws-rds-postgres/availability_pct": {
+    "url": "https://aws.amazon.com/rds/sla/",
+    "value": 99.5,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.5% but equal to or greater than 99.0%",
+    "note": "RDS Single-DB Instance SLA."
+  },
+  "aws-rds-postgres/multi_az_availability_pct": {
+    "url": "https://aws.amazon.com/rds/sla/",
+    "value": 99.95,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.95% but equal to or greater than 99.0%",
+    "note": "RDS Multi-AZ DB Instance and Multi-AZ DB Cluster SLA."
+  },
+  "aws-route53/availability_pct": {
+    "url": "https://aws.amazon.com/route53/sla/",
+    "value": 100.0,
+    "read_on": "2026-11-14",
+    "quote": "Less than 100% but greater than or equal to 99.99%",
+    "note": "Hosted Zone commitment is 100%; service credits start below 100%."
+  },
+  "aws-s3/availability_pct": {
+    "url": "https://aws.amazon.com/s3/sla/",
+    "value": 99.9,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.9% but greater than or equal to 99.0%",
+    "note": "S3 Standard request SLA."
+  },
+  "aws-sns/availability_pct": {
+    "url": "https://aws.amazon.com/messaging/sla/",
+    "value": 99.9,
+    "read_on": "2026-11-14",
+    "quote": "Monthly Uptime Percentage for each AWS region, during any monthly billing cycle, of at least 99.9%",
+    "note": "Amazon Messaging (SQS, SNS) SLA."
+  },
+  "aws-sqs/availability_pct": {
+    "url": "https://aws.amazon.com/messaging/sla/",
+    "value": 99.9,
+    "read_on": "2026-11-14",
+    "quote": "Monthly Uptime Percentage for each AWS region, during any monthly billing cycle, of at least 99.9%",
+    "note": "Amazon Messaging (SQS, SNS) SLA."
+  },
+  "neon-scale/availability_pct": {
+    "url": "https://neon.com/sla",
+    "value": 99.95,
+    "read_on": "2026-11-14",
+    "quote": "Less than 99.95% but greater than or equal to 99.0%",
+    "note": "Neon SLA applies to Business and Scale plans."
+  },
+  "supabase-postgres/availability_pct": {
+    "url": "https://supabase.com/sla",
+    "value": 99.9,
+    "read_on": "2026-11-14",
+    "quote": "Supabase will provide Actual Availability for at least ninety-nine and nine tenths percent (99.9%)",
+    "note": "Supabase Enterprise Uptime Commitment."
+  }
+}

@@ -1,0 +1,1010 @@
+{
+  "schema_version": "1.0",
+  "project": "fleet-telemetry",
+  "source": {
+    "extractor": "hand-written-mock",
+    "extractor_version": "0",
+    "generated_at": "2026-11-14T10:00:00Z",
+    "endpoint": null,
+    "regions_scanned": [
+      "eu-west-1"
+    ],
+    "is_mock": true,
+    "notes": "Event-driven GPS telemetry mock with prod and dev, no staging. Over-provisioned stream and table ahead of a large customer onboarding."
+  },
+  "stacks": [
+    {
+      "id": "prod",
+      "name": "Production",
+      "environment": "prod",
+      "description": "Ingest pipeline, live map API, accounts."
+    },
+    {
+      "id": "dev",
+      "name": "Development",
+      "environment": "dev",
+      "description": "Dev stream, trace replay box and a dev database."
+    }
+  ],
+  "controls": {
+    "audit_logging_enabled": true,
+    "threat_detection_enabled": true,
+    "config_recording_enabled": false,
+    "backup_plans_exist": false,
+    "vpc_flow_logs_enabled": false,
+    "mfa_enforced": false
+  },
+  "components": [
+    {
+      "id": "prod-ingest-stream",
+      "kind": "stream",
+      "provider": "aws",
+      "service": "kinesis",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "prod",
+      "sku": "provisioned",
+      "name": "fleet-prod-ingest-stream",
+      "config": {
+        "mode": "PROVISIONED",
+        "retention_hours": 168
+      },
+      "data_gb": {
+        "value": 310,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "shards": {
+          "value": 24,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "incoming_bytes_per_s": {
+          "unit": "bytes_per_s",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 180000,
+          "p95": 410000,
+          "max": 690000
+        },
+        "incoming_records": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 1090000000
+        }
+      },
+      "security": {
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 277,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-ingest",
+      "kind": "function",
+      "provider": "aws",
+      "service": "lambda",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": false,
+      "stack": "prod",
+      "sku": "python3.12/256MB",
+      "name": "fleet-prod-ingest",
+      "engine": {
+        "name": "python",
+        "version": "3.12"
+      },
+      "config": {
+        "vpc_attached": false,
+        "dlq": false
+      },
+      "capacity": {
+        "memory_gb": {
+          "value": 0.25,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "timeout_s": {
+          "value": 30,
+          "provenance": "observed",
+          "unit": "s"
+        }
+      },
+      "usage": {
+        "invocations": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 9600000
+        },
+        "duration_ms": {
+          "unit": "ms",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 95,
+          "p95": 240,
+          "max": 1800
+        },
+        "concurrency": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 24,
+          "p95": 48,
+          "max": 96
+        }
+      },
+      "security": {
+        "public_exposure": "unknown",
+        "plaintext_secrets_suspected": false,
+        "admin_privileges": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 87,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-positions",
+      "kind": "nosql",
+      "provider": "aws",
+      "service": "dynamodb",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "prod",
+      "sku": "provisioned",
+      "name": "fleet-prod-positions",
+      "config": {
+        "partition_key": "vehicle_id",
+        "billing_mode": "provisioned",
+        "gsi_count": 1,
+        "gsi_projection_all": 1,
+        "ttl_enabled": false,
+        "pitr_enabled": false
+      },
+      "data_gb": {
+        "value": 900,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "provisioned_rcu": {
+          "value": 3000,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "provisioned_wcu": {
+          "value": 5000,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "consumed_rcu": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 410,
+          "p95": 980,
+          "max": 1600
+        },
+        "consumed_wcu": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 860,
+          "p95": 1900,
+          "max": 2700
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": true,
+        "backup_retention_days": 0,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 5096,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-accounts-db",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "prod",
+      "sku": "db.r5.xlarge",
+      "name": "fleet-prod-accounts-db",
+      "engine": {
+        "name": "postgres",
+        "version": "14.11"
+      },
+      "features_used": [
+        "postgis"
+      ],
+      "data_gb": {
+        "value": 60,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "vcpu": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 32,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 200,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 21,
+          "p95": 47,
+          "max": 70
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 54,
+          "p95": 96,
+          "max": 130
+        },
+        "read_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 380,
+          "p95": 900,
+          "max": 1500
+        },
+        "write_iops": {
+          "unit": "iops",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 120,
+          "p95": 300,
+          "max": 520
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": true,
+        "encryption_in_transit": true,
+        "backup_retention_days": 7,
+        "deletion_protection": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 357,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-dashboard-api",
+      "kind": "container",
+      "provider": "aws",
+      "service": "ecs-fargate",
+      "quantity": 6,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "prod",
+      "sku": "2vcpu/4GB",
+      "name": "fleet-prod/dashboard-api",
+      "scaling": {
+        "desired": 6
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 2,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 4,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 27,
+          "p95": 58,
+          "max": 79
+        },
+        "memory_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 48,
+          "p95": 61,
+          "max": 70
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "plaintext_secrets_suspected": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 398,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-alb",
+      "kind": "load_balancer",
+      "provider": "aws",
+      "service": "elbv2",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 2,
+      "status": "active",
+      "stateful": false,
+      "stack": "prod",
+      "sku": "application",
+      "name": "fleet-prod-alb",
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 38000000
+        }
+      },
+      "security": {
+        "public_exposure": "internet"
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 28,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-geofence",
+      "kind": "cache",
+      "provider": "aws",
+      "service": "elasticache-redis",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "prod",
+      "sku": "cache.r5.large",
+      "name": "fleet-prod-geofence",
+      "engine": {
+        "name": "redis",
+        "version": "7.1"
+      },
+      "data_gb": {
+        "value": 3.5,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 2,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 13,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 34,
+          "p95": 66,
+          "max": 88
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 40,
+          "p95": 72,
+          "max": 96
+        },
+        "hit_rate_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 97
+        }
+      },
+      "security": {
+        "public_exposure": "vpc_only",
+        "encryption_at_rest": false,
+        "backup_retention_days": 0
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 145,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-alerts",
+      "kind": "queue",
+      "provider": "aws",
+      "service": "sqs",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "prod",
+      "sku": "standard",
+      "name": "fleet-prod-alerts",
+      "config": {
+        "visibility_timeout_s": 30,
+        "receive_wait_s": 0,
+        "dlq": false,
+        "retention_days": 4
+      },
+      "usage": {
+        "messages_sent": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 520000
+        },
+        "messages_received": {
+          "unit": "messages",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 515000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 2,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-archive",
+      "kind": "object_storage",
+      "provider": "aws",
+      "service": "s3",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "prod",
+      "sku": "standard",
+      "name": "fleet-prod-archive",
+      "config": {
+        "versioning": false,
+        "lifecycle_rules": 0
+      },
+      "data_gb": {
+        "value": 2400,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "object_count": {
+          "value": 41000000,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "requests": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 7400000
+        }
+      },
+      "security": {
+        "public_exposure": "none",
+        "encryption_at_rest": true
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 55,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "prod-nat",
+      "kind": "nat",
+      "provider": "aws",
+      "service": "nat-gateway",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": false,
+      "stack": "prod",
+      "sku": "per-az",
+      "name": "1 NAT gateway(s) in fleet-prod-vpc",
+      "usage": {
+        "network_out_gb": {
+          "unit": "gb",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 1.3,
+          "max": 3.8,
+          "sum": 420
+        }
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 51,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "dev-ingest-stream",
+      "kind": "stream",
+      "provider": "aws",
+      "service": "kinesis",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "status": "active",
+      "stateful": true,
+      "stack": "dev",
+      "sku": "provisioned",
+      "name": "fleet-dev-ingest-stream",
+      "config": {
+        "mode": "PROVISIONED",
+        "retention_hours": 24
+      },
+      "capacity": {
+        "shards": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "count"
+        }
+      },
+      "usage": {
+        "incoming_bytes_per_s": {
+          "unit": "bytes_per_s",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 40,
+          "p95": 0,
+          "max": 52000
+        },
+        "incoming_records": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "sum": 11000
+        }
+      },
+      "security": {
+        "encryption_at_rest": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 81,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "dev-replay",
+      "kind": "virtual_machine",
+      "provider": "aws",
+      "service": "ec2",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "idle",
+      "stateful": false,
+      "stack": "dev",
+      "sku": "c5.2xlarge",
+      "name": "fleet-dev-replay",
+      "config": {
+        "role": "replays recorded GPS traces into the dev stream"
+      },
+      "capacity": {
+        "vcpu": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 16,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "disk_gb": {
+          "value": 50,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 0.9,
+          "p95": 2,
+          "max": 64
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "world_open_ports": [
+          22
+        ],
+        "encryption_at_rest": null
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 233,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    },
+    {
+      "id": "dev-db",
+      "kind": "postgres",
+      "provider": "aws",
+      "service": "rds",
+      "quantity": 1,
+      "region": "eu-west-1",
+      "zones": 1,
+      "status": "active",
+      "stateful": true,
+      "stack": "dev",
+      "sku": "db.t3.large",
+      "name": "fleet-dev-db",
+      "engine": {
+        "name": "postgres",
+        "version": "14.11"
+      },
+      "tags": {
+        "restored_from": "fleet-prod-accounts-db snapshot, 2026-03"
+      },
+      "features_used": [
+        "postgis"
+      ],
+      "data_gb": {
+        "value": 55,
+        "provenance": "observed",
+        "unit": "GB"
+      },
+      "data_classification": "pii",
+      "capacity": {
+        "vcpu": {
+          "value": 2,
+          "provenance": "observed",
+          "unit": "count"
+        },
+        "memory_gb": {
+          "value": 8,
+          "provenance": "observed",
+          "unit": "GB"
+        },
+        "storage_gb": {
+          "value": 50,
+          "provenance": "observed",
+          "unit": "GB"
+        }
+      },
+      "usage": {
+        "cpu_pct": {
+          "unit": "percent",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 5,
+          "p95": 21,
+          "max": 60
+        },
+        "connections": {
+          "unit": "count",
+          "window_days": 14,
+          "resolution_seconds": 3600,
+          "provenance": "observed",
+          "avg": 4,
+          "p95": 11,
+          "max": 18
+        }
+      },
+      "security": {
+        "public_exposure": "internet",
+        "encryption_at_rest": false,
+        "encryption_in_transit": false,
+        "backup_retention_days": 0,
+        "deletion_protection": false
+      },
+      "cost": {
+        "monthly_eur": {
+          "value": 103,
+          "provenance": "estimated",
+          "unit": "EUR/month",
+          "basis": "list price (USD, on-demand, no discounts) x 730 h x 0.92 EUR/USD"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e01",
+      "from": "prod-ingest-stream",
+      "to": "prod-ingest",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 460,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Event source mapping, batch 500"
+    },
+    {
+      "id": "e02",
+      "from": "prod-ingest",
+      "to": "prod-positions",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 380,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Latest position per vehicle"
+    },
+    {
+      "id": "e03",
+      "from": "prod-ingest",
+      "to": "prod-geofence",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 25,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Geofence lookup per point"
+    },
+    {
+      "id": "e04",
+      "from": "prod-ingest",
+      "to": "prod-alerts",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 1,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Late delivery and geofence alerts"
+    },
+    {
+      "id": "e05",
+      "from": "prod-ingest",
+      "to": "prod-archive",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 290,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Raw points, one object per vehicle-minute"
+    },
+    {
+      "id": "e06",
+      "from": "prod-alb",
+      "to": "prod-dashboard-api",
+      "kind": "traffic",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 140,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Target group -> ECS service"
+    },
+    {
+      "id": "e07",
+      "from": "prod-dashboard-api",
+      "to": "prod-positions",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 120,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Live map"
+    },
+    {
+      "id": "e08",
+      "from": "prod-dashboard-api",
+      "to": "prod-accounts-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 30,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "latency_sensitive": true,
+      "note": "Customers, vehicles, routes"
+    },
+    {
+      "id": "e09",
+      "from": "prod-dashboard-api",
+      "to": "prod-alerts",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 1,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    },
+    {
+      "id": "e10",
+      "from": "prod-dashboard-api",
+      "to": "prod-nat",
+      "kind": "network",
+      "evidence": "inferred",
+      "gb_month": {
+        "value": 420,
+        "provenance": "estimated",
+        "unit": "GB"
+      },
+      "note": "Map tiles and routing provider"
+    },
+    {
+      "id": "e11",
+      "from": "dev-replay",
+      "to": "dev-ingest-stream",
+      "kind": "event",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 0.1,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    },
+    {
+      "id": "e12",
+      "from": "dev-replay",
+      "to": "dev-db",
+      "kind": "data",
+      "evidence": "declared",
+      "gb_month": {
+        "value": 0.1,
+        "provenance": "estimated",
+        "unit": "GB"
+      }
+    }
+  ],
+  "stay_together": [
+    {
+      "id": "ingest-path",
+      "members": [
+        "prod-ingest-stream",
+        "prod-ingest",
+        "prod-positions",
+        "prod-geofence"
+      ],
+      "scope": "region",
+      "reason": "A position must reach the live map within two seconds."
+    }
+  ]
+}

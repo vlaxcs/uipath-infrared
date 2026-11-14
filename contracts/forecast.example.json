@@ -17,7 +17,7 @@
     "data_residency": { "allowed_regions": ["eu-*", "onprem-dc1"], "applies_to": ["pii", "confidential", "unknown"] },
     "budget": { "max_monthly_run_cost_eur": 90000, "max_one_off_migration_cost_eur": 120000 },
     "min_availability_pct": 99.9,
-    "allowed_providers": ["aws", "managed_pg", "onprem"],
+    "allowed_providers": ["aws", "supabase", "neon", "onprem"],
     "max_migration_effort_hours": 1200,
     "max_cutover_downtime_hours": 4,
     "security_gates": {

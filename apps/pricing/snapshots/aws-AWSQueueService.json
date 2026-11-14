@@ -1,0 +1,16 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "requests": {
+      "amount": 4e-07,
+      "currency": "USD",
+      "description": "$0.40 per million Amazon SQS standard requests in Tier1 in EU (Ireland)",
+      "reference": "SSZJAF3K6XY544ES",
+      "unit": "Requests"
+    }
+  },
+  "source": "aws-AWSQueueService",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSQueueService/20261111153551/eu-west-1/index.csv",
+  "version": "20261111153551"
+}

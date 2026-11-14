@@ -82,6 +82,11 @@ class Platform:
     colocation_eur_month: float
     disks: Mapping[str, float]
     staff: Mapping[str, float]
+    maintenance_pct_of_capex_year: float = 0.0
+    network_eur_month: float = 0.0
+    licences_eur_month: float = 0.0
+    setup_one_off_eur: float = 0.0
+    contingency_pct: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -106,11 +111,26 @@ class Catalog:
             o for o in self.options_for(component.kind) if o.provider == component.provider
         ]
         exact = [o for o in same_provider if o.service == component.service]
+        if len(exact) > 1:
+            preferred = _provisioned_options(exact) if _has_provisioned_capacity(component) else _ondemand_options(exact)
+            return preferred[0] if preferred else exact[0]
         if exact:
             return exact[0]
-        if len(same_provider) == 1:
+        if len(same_provider) == 1 and component.kind != "other":
             return same_provider[0]
         return None
+
+
+def _has_provisioned_capacity(component: Component) -> bool:
+    return any(key in component.capacity for key in ("provisioned_rcu", "provisioned_wcu"))
+
+
+def _provisioned_options(options: tuple[Option, ...]) -> tuple[Option, ...]:
+    return tuple(o for o in options if o.id.endswith("-provisioned"))
+
+
+def _ondemand_options(options: tuple[Option, ...]) -> tuple[Option, ...]:
+    return tuple(o for o in options if not o.id.endswith("-provisioned"))
 
 
 def catalog_from_document(document: Mapping[str, Any]) -> Catalog:
@@ -176,4 +196,9 @@ def _platform(raw: Mapping[str, Any]) -> Platform:
         colocation_eur_month=raw.get("colocation_eur_month", 0.0),
         disks=dict(raw.get("disks", {})),
         staff=dict(raw.get("staff", {})),
+        maintenance_pct_of_capex_year=raw.get("maintenance_pct_of_capex_year", 0.0),
+        network_eur_month=raw.get("network_eur_month", 0.0),
+        licences_eur_month=raw.get("licences_eur_month", 0.0),
+        setup_one_off_eur=raw.get("setup_one_off_eur", 0.0),
+        contingency_pct=raw.get("contingency_pct", 0.0),
     )

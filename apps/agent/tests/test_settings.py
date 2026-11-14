@@ -36,3 +36,12 @@ def test_base_url_routes_through_another_provider(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "key")
     monkeypatch.setenv("ANTHROPIC_BASE_URL", "https://openrouter.ai/api")
     assert settings.llm().base_url == "https://openrouter.ai/api"
+
+
+def test_sites_search_needs_the_store_not_the_llm_key(monkeypatch):
+    from agent.cli import main
+
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("SITES_DATABASE_URL", raising=False)
+    with pytest.raises(SystemExit, match="SITES_DATABASE_URL"):
+        main(["sites-search", "--lat", "44.43", "--lng", "26.10"])

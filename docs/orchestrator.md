@@ -76,8 +76,9 @@ JSON in and out, `Content-Type: application/json`. Errors are `{"error": "<reaso
 
 | Route | Answers |
 | --- | --- |
+| `GET /onboarding` | `200`, what onboarding offers: the connections, the providers the catalog prices (without `onprem`), whether it has an on-prem option, and every project with its description and forbidden providers (`docs/onboarding.md` section 5). `500` naming the file when the catalog or a project's forecast does not parse |
 | `GET /runs?project=<p>&limit=<n>` | `200`, an array of run summaries, newest first: the run document without `events` and `inputs`. `limit` defaults to 50 and is capped at 200; `project` is optional |
-| `POST /runs` with `{"project": "<p>"}` | `201`, the new run document. `404` when the project has no forecast. `409` when the project already has a run that is `running` or `awaiting_approval` |
+| `POST /runs` with `{"project": "<p>", "onboarding": {...}}` | `201`, the new run document. `onboarding` is optional; when present, its answers are written into the run's copy of `forecast.json` (`docs/onboarding.md` section 5), and `400` with the reason when they break its rules. `404` when the project has no forecast. `409` when the project already has a run that is `running` or `awaiting_approval` |
 | `GET /runs/{id}` | `200`, the run document. `404` |
 | `GET /runs/{id}/events?after=<seq>` | `200`, the events with `seq` greater than `after`, in order; `[]` when there is none. `after` defaults to 0; `400` when it is not a non-negative integer. `404` |
 | `POST /runs/{id}/decisions` | `201`, the appended event. `400` when the body breaks the rules below. `404`. `409` when the gate it targets is not open. `422` when `pick_layout` names a candidate that is not a feasible candidate of the latest result |
@@ -97,7 +98,7 @@ A decision's body is the contract's `approved` event without the fields the orch
 
 `status` must be `approved`, `actor.kind` `human` with a non-empty `id` and a `surface` of `dashboard` or `slack`, the decision one of the three gate decisions with a non-empty `reason`, `analyses` only on `keep_analyses` and `layout` only on `pick_layout`. `step` must be the step of the gate: `present` for `layout`, `rehearse` for `plan`.
 
-**Browsers.** The dashboard runs on another origin (Vite's dev server), so it needs CORS. Only the origins in `ORCHESTRATOR_ALLOWED_ORIGINS` get `Access-Control-Allow-Origin`, echoed back exactly, with `Vary: Origin`; a preflight from one of them answers `204` with `GET, POST` and `Content-Type`, and a preflight from any other origin answers `403`. With the variable unset, no CORS headers are sent and the API stays same-origin. Never `*`: there is no authentication, so an open CORS policy would let any page open in the CTO's browser approve a plan on `localhost`.
+**Browsers.** The dashboard runs on another origin (Vite's dev server), so it needs CORS. Only the origins in `ORCHESTRATOR_ALLOWED_ORIGINS` get `Access-Control-Allow-Origin`, echoed back exactly, with `Vary: Origin`; a preflight from one of them answers `204` with `GET, POST, PUT` and `Content-Type`, and a preflight from any other origin answers `403`. With the variable unset, no CORS headers are sent and the API stays same-origin. Never `*`: there is no authentication, so an open CORS policy would let any page open in the CTO's browser approve a plan on `localhost`.
 
 Reads come from memory: the orchestrator holds every run, so a run, its events after a `seq`, and the run list need no disk read. Events after a `seq` are a slice of the log, since `seq` is gapless.
 
@@ -116,13 +117,14 @@ Read once at startup by the orchestrator's settings package from the environment
 | `ORCHESTRATOR_EXTRACT_CMD`, `ORCHESTRATOR_AGENT_CMD`, `ORCHESTRATOR_ENGINE_CMD`, `ORCHESTRATOR_SANDBOX_CMD` | the command prefix of each stage |
 | `ORCHESTRATOR_CONTRACTS_DIR` | the `contracts/` directory, for the schemas |
 | `ORCHESTRATOR_MAX_REVISIONS` | optional, default 2 |
+| `ORCHESTRATOR_STATES_CMD` | optional: the plan view's state builder (`docs/run-plan-view.md`); unset, no states are built |
 | `ORCHESTRATOR_ALLOWED_ORIGINS` | optional, comma-separated: the browser origins allowed to call the API, e.g. the dashboard's `http://127.0.0.1:5173`. Unset, no CORS |
 
 ## 7. The flow test
 
 One run of the demo path (`docs/spec.md` section 9) through the real orchestrator, over its HTTP API, as a Go test in `apps/orchestrator/`.
 
-- It starts the orchestrator's HTTP handler in-process, on a temporary runs dir, with the start-up project (`contracts/mock/startup.forecast.json`) and `contracts/catalog.example.json`.
+- It starts the orchestrator's HTTP handler in-process, on a temporary runs dir, with the start-up project (`contracts/mock/startup.forecast.json`) and `contracts/real/catalog.json`, the catalog `apps/pricing` builds from real price snapshots.
 - Stages, today: extract and agent are stubs; the engine is the real one, `python -m engine` from `apps/engine/`; the sandbox is a stub. The extract stub copies `contracts/mock/startup.infra.json`. The agent stub writes `{"findings": []}` for investigate and, for propose, a fixed candidates file per revision: revision 0 has a candidate that moves the database out of the EU, revision 1 keeps it in the EU. The sandbox stub copies `contracts/rehearsal.example.json` and exits 0.
 - Which stage is real is chosen per stage by `FLOW_<STAGE>_CMD` variables, so swapping a stub for a real component changes configuration, not the test.
 - The path: start a run; poll events until gate `layout`; the evaluate in revision 0 has decided `revise` and the one in revision 1 `proceed`; list and read `infra.json` through the file routes; keep one analysis from the dashboard; pick the first feasible candidate from the dashboard; poll until gate `plan`; approve the plan from Slack; the run is `completed` with exactly one revision.

@@ -1,8 +1,9 @@
 from dataclasses import dataclass
+from typing import Mapping
 
 from engine.domain.candidate import ACCOUNT_SCOPE, Action, Candidate
 from engine.domain.catalog import Catalog
-from engine.domain.costing import cost_placement
+from engine.domain.costing import ONPREM_SOURCE, cost_placement
 from engine.domain.end_state import EndState, Placement, apply_action
 
 
@@ -14,7 +15,9 @@ class ActionOutcome:
     after: str
 
 
-def action_outcomes(candidate: Candidate, initial: EndState, catalog: Catalog) -> tuple[ActionOutcome, ...]:
+def action_outcomes(
+    candidate: Candidate, initial: EndState, catalog: Catalog, onprem_eur: Mapping[str, float],
+) -> tuple[ActionOutcome, ...]:
     placements = dict(initial.placements)
     outcomes = []
     for action in candidate.actions:
@@ -24,9 +27,14 @@ def action_outcomes(candidate: Candidate, initial: EndState, catalog: Catalog) -
         before = placements[action.component]
         after = apply_action(before, action, catalog)
         placements[action.component] = after
-        saving = cost_placement(before, catalog).monthly_eur - cost_placement(after, catalog).monthly_eur
+        saving = _monthly(before, catalog, onprem_eur) - _monthly(after, catalog, onprem_eur)
         outcomes.append(ActionOutcome(action, saving, describe(before), describe(after)))
     return tuple(outcomes)
+
+
+def _monthly(placement: Placement, catalog: Catalog, onprem_eur: Mapping[str, float]) -> float:
+    cost = cost_placement(placement, catalog)
+    return onprem_eur.get(cost.component, 0.0) if cost.source == ONPREM_SOURCE else cost.monthly_eur
 
 
 def describe(placement: Placement) -> str:

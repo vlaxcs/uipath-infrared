@@ -3,6 +3,7 @@ package httpapi_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"infrared/orchestrator/internal/adapters/httpapi"
@@ -38,6 +39,17 @@ func TestAnAllowedOriginPassesThePreflightForADecision(t *testing.T) {
 	}
 	if answer.Header().Get("Access-Control-Allow-Origin") != dashboard || answer.Header().Get("Access-Control-Allow-Headers") != "Content-Type" {
 		t.Fatalf("headers %v", answer.Header())
+	}
+}
+
+func TestAnAllowedOriginPassesThePreflightForSavingTheProfile(t *testing.T) {
+	request := httptest.NewRequest(http.MethodOptions, "/profile", nil)
+	request.Header.Set("Origin", dashboard)
+	request.Header.Set("Access-Control-Request-Method", http.MethodPut)
+	recorder := httptest.NewRecorder()
+	httpapi.Handler(&fakeRuns{}, dashboard).ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusNoContent || !strings.Contains(recorder.Header().Get("Access-Control-Allow-Methods"), http.MethodPut) {
+		t.Fatalf("status %d, methods %q", recorder.Code, recorder.Header().Get("Access-Control-Allow-Methods"))
 	}
 }
 

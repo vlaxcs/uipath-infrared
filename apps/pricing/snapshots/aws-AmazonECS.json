@@ -1,0 +1,23 @@
+{
+  "fetched_on": "2026-11-14",
+  "prices": {
+    "fargate:gb-hour": {
+      "amount": 0.004445,
+      "currency": "USD",
+      "description": "AWS Fargate - Memory  - EU (Ireland)",
+      "reference": "UP5ETC3QSW2QZGEY",
+      "unit": "hours"
+    },
+    "fargate:vcpu-hour": {
+      "amount": 0.04048,
+      "currency": "USD",
+      "description": "AWS Fargate - vCPU  - EU (Ireland)",
+      "reference": "K4EXFQ5YFQCP98EN",
+      "unit": "hours"
+    }
+  },
+  "source": "aws-AmazonECS",
+  "unverified": {},
+  "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonECS/20261111234623/eu-west-1/index.csv",
+  "version": "20261111234623"
+}
