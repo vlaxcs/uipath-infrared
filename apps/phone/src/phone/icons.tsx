@@ -20,3 +20,15 @@ export const Battery = () => (
     <path d="M25 4.5v4a2 2 0 0 0 0-4z" fill="currentColor" opacity=".45" />
   </svg>
 );
+
+export const ChevronBack = () => (
+  <svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 2 2 10l8 8" />
+  </svg>
+);
+
+export const ChevronForward = () => (
+  <svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m2 2 8 8-8 8" />
+  </svg>
+);
