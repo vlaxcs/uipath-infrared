@@ -18,3 +18,4 @@ if not any(candidate["id"] == arguments.candidate and candidate["feasible"] for 
     print(f"candidate {arguments.candidate} is not a feasible candidate of {arguments.result}")
     sys.exit(2)
 shutil.copyfile(REPO / "contracts" / "rehearsal.example.json", arguments.out)
+print(f"sandbox stub: no Floci rehearsal for {arguments.candidate}; copied contracts/rehearsal.example.json", file=sys.stderr)

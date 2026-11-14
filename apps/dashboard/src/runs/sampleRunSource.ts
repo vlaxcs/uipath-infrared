@@ -18,4 +18,5 @@ export const sampleRunSource: RunSource = {
   },
   listFiles: async () => sampleArtifactInfos(),
   readArtifact: async (_id, path) => sampleArtifactText(path),
+  readLog: async () => ({ text: "", next: 0, running: false }),
 };

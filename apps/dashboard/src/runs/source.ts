@@ -3,8 +3,15 @@ import type {
   RunArtifactInfo,
   RunDetail,
   RunEvent,
+  RunStep,
   RunSummary,
 } from "~/runs/types";
+
+export type RunLogChunk = {
+  text: string;
+  next: number;
+  running: boolean;
+};
 
 export type RunSourceMode = "live" | "sample";
 
@@ -17,6 +24,7 @@ export type RunSource = {
   submitDecision(id: string, decision: HumanDecision, signal?: AbortSignal): Promise<RunEvent>;
   listFiles(id: string, signal?: AbortSignal): Promise<RunArtifactInfo[]>;
   readArtifact(id: string, path: string, signal?: AbortSignal): Promise<string>;
+  readLog(id: string, step: RunStep, after: number, signal?: AbortSignal): Promise<RunLogChunk>;
 };
 
 export class RunSourceError extends Error {

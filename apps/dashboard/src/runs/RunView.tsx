@@ -21,6 +21,8 @@ import { RunControls } from "~/runs/RunControls";
 import { RunSummary } from "~/runs/RunSummary";
 import { RunTimeline } from "~/runs/RunTimeline";
 import { StepGraph } from "~/runs/StepGraph";
+import { StepLog } from "~/runs/StepLog";
+import { useStepLog } from "~/runs/useStepLog";
 import { StepResultPane } from "~/runs/StepResultPane";
 import { NextStepPreview } from "~/runs/NextStepPreview";
 
@@ -116,6 +118,9 @@ export function RunView({ run: initialRun, source, initialStep = null, onReload,
   };
 
   const preview = selectedStep ? nextPreview(run, selectedStep, steps) : null;
+  const logStep = selectedStep ?? (run.status === "running" ? run.step : null);
+  const loggedStep = logStep === "present" ? null : logStep;
+  const log = useStepLog(source, run.id, loggedStep);
   const candidate = candidates?.candidates.find((item) => item.id === selectedCandidate) ?? null;
 
   const reviewGate = () => {
@@ -146,6 +151,7 @@ export function RunView({ run: initialRun, source, initialStep = null, onReload,
         />
         <AwaitingBanner run={run} onReview={reviewGate} />
         <StepGraph run={run} states={steps} selectedStep={selectedStep} onSelectStep={toggleStep} />
+        {loggedStep ? <StepLog step={loggedStep} log={log} /> : null}
         {candidates && candidates.candidates.length > 0 ? (
           <section aria-labelledby="run-candidates-title" className="flex flex-col gap-3">
             <h2 id="run-candidates-title" className="text-label font-semibold uppercase tracking-wide text-fg-subtle">
