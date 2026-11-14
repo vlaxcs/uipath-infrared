@@ -47,6 +47,10 @@ export function revisionLabel(revision: number): string {
   return revision === 0 ? "Initial pass" : `Revision ${revision}`;
 }
 
+export function latestOutputPath(run: RunDetail, contract: string): string | null {
+  return outputPath(run, contract);
+}
+
 function outputPath(run: RunDetail, contract: string, revision?: number | null): string | null {
   for (let index = run.events.length - 1; index >= 0; index--) {
     const event = run.events[index];

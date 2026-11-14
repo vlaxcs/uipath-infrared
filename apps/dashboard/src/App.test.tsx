@@ -113,16 +113,28 @@ describe("the dashboard shell", () => {
     expect(window.location.hash).toBe("#/approvals");
   });
 
-  it("renders the start-up dependency graph", () => {
+  it("renders the dependency graph of the run's own infra.json", async () => {
     render(<App />);
     fireEvent.click(screen.getByRole("button", { name: "Graph" }));
 
     expect(screen.getByRole("heading", { level: 1, name: "Graph" })).toBeTruthy();
-    expect(screen.getByRole("group", { name: "Dependency graph" })).toBeTruthy();
-    expect(screen.getByText("10 components · 9 dependencies")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /web-server/ })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /app-db/ })).toBeTruthy();
+    expect(await screen.findByRole("group", { name: "Dependency graph" })).toBeTruthy();
+    expect(screen.getByText("38 components · 35 dependencies")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^rds-orders,/ })).toBeTruthy();
     expect(screen.queryByText("Not built yet")).toBeNull();
+  });
+
+  it("keeps the opened run when another section of its data is picked", async () => {
+    window.location.hash = "#/runs/run-demo-shop-0001";
+    render(<App />);
+    await screen.findByRole("heading", { level: 1, name: "Runs" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Candidates" }));
+    expect(window.location.hash).toBe("#/candidates/run-demo-shop-0001");
+    expect(await screen.findByLabelText("Run")).toHaveProperty("value", "run-demo-shop-0001");
+
+    fireEvent.click(screen.getByRole("button", { name: "Approvals" }));
+    expect(window.location.hash).toBe("#/approvals");
   });
 
   it("shows the candidates and the winner's change, and returns to Runs", async () => {
@@ -133,7 +145,7 @@ describe("the dashboard shell", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Candidates" })).toBeTruthy();
     expect(window.location.hash).toBe("#/candidates");
     expect(screen.queryByText("Not built yet")).toBeNull();
-    const detail = screen.getByRole("region", { name: "consolidate" });
+    const detail = await screen.findByRole("region", { name: "consolidate" });
     expect(detail.textContent).toContain("Winner");
     expect(detail.textContent).toContain("The change, step by step");
     expect(detail.textContent).toContain("Security remediation");
@@ -144,14 +156,14 @@ describe("the dashboard shell", () => {
     expect(window.location.hash).toBe("#/runs");
   });
 
-  it("renders the passed rehearsal and the derived fallback", () => {
+  it("renders the passed rehearsal and the derived fallback", async () => {
     render(<App />);
     fireEvent.click(screen.getByRole("button", { name: "Rehearsal" }));
 
     expect(screen.getByRole("heading", { level: 1, name: "Rehearsal" })).toBeTruthy();
     expect(screen.queryByText("Not built yet")).toBeNull();
 
-    const verdict = screen.getByRole("region", { name: "Verdict" });
+    const verdict = await screen.findByRole("region", { name: "Verdict" });
     expect(verdict.textContent).toContain("Passed");
     expect(verdict.textContent).toContain("99.94%");
     expect(verdict.textContent).toContain("99.9%");

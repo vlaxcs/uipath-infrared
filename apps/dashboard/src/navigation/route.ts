@@ -7,14 +7,16 @@ export type Route = {
 };
 
 const SECTION_IDS = new Set<string>(SECTIONS.map((section) => section.id));
+export const RUN_DATA_SECTIONS: ReadonlySet<SectionId> = new Set<SectionId>(["graph", "candidates", "rehearsal"]);
 
 export function readRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   const known = parts[0] !== undefined && SECTION_IDS.has(parts[0]);
   const section: SectionId = known ? (parts[0] as SectionId) : "runs";
-  const runId = known && section === "runs" && parts[1] ? decode(parts[1]) : null;
+  const carriesRun = section === "runs" || RUN_DATA_SECTIONS.has(section);
+  const runId = known && carriesRun && parts[1] ? decode(parts[1]) : null;
 
-  return { section, runId, focusGate: runId !== null && parts[2] === "gate" };
+  return { section, runId, focusGate: section === "runs" && runId !== null && parts[2] === "gate" };
 }
 
 export function routeHash(route: Route): string {

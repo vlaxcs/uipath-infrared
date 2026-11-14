@@ -1,12 +1,14 @@
 import { CandidatesSection } from "~/candidates/CandidatesSection";
-import { sampleResult } from "~/candidates/sampleResult";
+import type { ResultDocument } from "~/candidates/types";
 import { GraphSection } from "~/graph/GraphSection";
-import { sampleGraphModel } from "~/graph/sampleGraph";
+import { buildGraphModel } from "~/graph/model";
+import type { InfraContract } from "~/graph/types";
 import { sectionById } from "~/navigation/sections";
 import { useHashRoute } from "~/navigation/useHashRoute";
 import { OnboardingSection } from "~/onboarding/OnboardingSection";
 import { RehearsalSection } from "~/rehearsal/RehearsalSection";
-import { sampleRehearsal } from "~/rehearsal/sampleRehearsal";
+import type { RehearsalDocument } from "~/rehearsal/types";
+import { RunDataSection } from "~/rundata/RunDataSection";
 import { ApprovalsPage } from "~/runs/ApprovalsPage";
 import { runSource } from "~/runs/runSource";
 import { RunsSection } from "~/runs/RunsSection";
@@ -50,11 +52,20 @@ export function App({ source = runSource }: AppProps = {}) {
       ) : route.section === "approvals" ? (
         <ApprovalsPage source={source} onReview={route.openGate} />
       ) : route.section === "graph" ? (
-        <GraphSection model={sampleGraphModel} />
+        <RunDataSection
+          key="graph" source={source} runId={route.runId} onPickRun={route.pickRun} contract="infra" noun="infrastructure graph"
+          render={(infra) => <GraphSection model={buildGraphModel(infra as InfraContract)} />}
+        />
       ) : route.section === "rehearsal" ? (
-        <RehearsalSection rehearsal={sampleRehearsal} />
+        <RunDataSection
+          key="rehearsal" source={source} runId={route.runId} onPickRun={route.pickRun} contract="rehearsal" noun="rehearsal"
+          render={(rehearsal) => <RehearsalSection rehearsal={rehearsal as RehearsalDocument} />}
+        />
       ) : route.section === "candidates" ? (
-        <CandidatesSection result={sampleResult} />
+        <RunDataSection
+          key="candidates" source={source} runId={route.runId} onPickRun={route.pickRun} contract="result" noun="result"
+          render={(result) => <CandidatesSection result={result as ResultDocument} />}
+        />
       ) : (
         <SectionPlaceholder section={activeSection} />
       )}

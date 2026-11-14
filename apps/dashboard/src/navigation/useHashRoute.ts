@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { readRoute, routeHash, type Route } from "~/navigation/route";
+import { RUN_DATA_SECTIONS, readRoute, routeHash, type Route } from "~/navigation/route";
 import type { SectionId } from "~/navigation/sections";
 
 export type HashRoute = Route & {
   selectSection: (section: SectionId) => void;
+  pickRun: (runId: string) => void;
   openRun: (runId: string) => void;
   openGate: (runId: string) => void;
   closeRun: () => void;
@@ -27,7 +28,9 @@ export function useHashRoute(): HashRoute {
 
   return {
     ...route,
-    selectSection: (section) => navigate({ section, runId: null, focusGate: false }),
+    selectSection: (section) =>
+      navigate({ section, runId: RUN_DATA_SECTIONS.has(section) ? route.runId : null, focusGate: false }),
+    pickRun: (runId) => navigate({ section: route.section, runId, focusGate: false }),
     openRun: (runId) => navigate({ section: "runs", runId, focusGate: false }),
     openGate: (runId) => navigate({ section: "runs", runId, focusGate: true }),
     closeRun: () => navigate({ section: "runs", runId: null, focusGate: false }),

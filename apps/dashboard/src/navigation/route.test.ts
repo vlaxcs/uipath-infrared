@@ -34,6 +34,18 @@ describe("reading a hash route", () => {
     expect(readRoute("#/approvals")).toEqual({ section: "approvals", runId: null, focusGate: false });
   });
 
+  it("keeps a run on the sections that show a run's data", () => {
+    for (const section of ["graph", "candidates", "rehearsal"] as const) {
+      expect(readRoute(`#/${section}/run-startup-0002`)).toEqual({ section, runId: "run-startup-0002", focusGate: false });
+    }
+    expect(readRoute("#/candidates/run-1/gate")).toEqual({ section: "candidates", runId: "run-1", focusGate: false });
+  });
+
+  it("drops a run on the sections that show no run", () => {
+    expect(readRoute("#/approvals/run-1")).toEqual({ section: "approvals", runId: null, focusGate: false });
+    expect(readRoute("#/start/run-1")).toEqual({ section: "start", runId: null, focusGate: false });
+  });
+
   it("falls back to runs for an unknown section", () => {
     expect(readRoute("#/nope")).toEqual({ section: "runs", runId: null, focusGate: false });
     expect(readRoute("#/nope/run-1")).toEqual({ section: "runs", runId: null, focusGate: false });
