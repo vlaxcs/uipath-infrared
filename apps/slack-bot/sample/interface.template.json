@@ -1,0 +1,64 @@
+{
+  "layout_gate_event": {
+    "step": "present",
+    "status": "awaiting_approval",
+    "gate": "layout",
+    "x_target": {
+      "min_availability_pct": 0,
+      "max_monthly_run_eur": 0,
+      "horizon_months": 0
+    },
+    "x_candidates": [
+      {
+        "id": "LAYOUT_ID",
+        "feasible": true,
+        "recommended": true,
+        "rank": 1,
+        "monthly_eur": 0,
+        "horizon_eur": 0,
+        "availability_pct": 0,
+        "risk": 0,
+        "effort_hours": 0,
+        "payback_months": 0,
+        "actions": 0,
+        "lost_because": {
+          "reason": "cost",
+          "detail": "WHY_THIS_LAYOUT_LOST"
+        }
+      }
+    ]
+  },
+  "plan_gate_event": {
+    "step": "rehearse",
+    "status": "awaiting_approval",
+    "gate": "plan",
+    "x_rehearsal": {
+      "measured_availability_pct": 0,
+      "target_availability_pct": 0,
+      "passed": true,
+      "gap_pct": 0,
+      "failure": "WHAT_FAILED_AND_WHAT_HELD",
+      "latency_ms": {
+        "baseline_p95": 0,
+        "failure_p95": 0,
+        "recovery_p95": 0
+      }
+    },
+    "x_plan": {
+      "layout": "LAYOUT_ID",
+      "steps": 0,
+      "monthly_eur_now": 0,
+      "monthly_eur_after": 0,
+      "effort_hours": 0,
+      "cutover_downtime_hours": 0,
+      "availability_pct": 0,
+      "actions": [
+        {
+          "component": "COMPONENT_ID",
+          "action": "resize",
+          "to": "TARGET"
+        }
+      ]
+    }
+  }
+}

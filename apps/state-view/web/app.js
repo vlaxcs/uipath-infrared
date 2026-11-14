@@ -16,6 +16,23 @@
   var theme = "light";
   var refs = {};
 
+  /* Card mode: "#card&state=target" (or current, or a state index) renders one
+     compact, static snapshot for a fixed 1200x675 viewport. snapshot.py also
+     sets window.ESTATE_CARD so the page opens as a card without a hash. */
+  var CARD = (function parseCard() {
+    var hash = window.location.hash || "";
+    if (/^#card(&|$)/.test(hash)) {
+      var params = {};
+      hash.slice(1).split("&").slice(1).forEach(function (pair) {
+        var at = pair.indexOf("=");
+        if (at > 0) params[decodeURIComponent(pair.slice(0, at))] = decodeURIComponent(pair.slice(at + 1));
+      });
+      return params;
+    }
+    var preset = window.ESTATE_CARD;
+    return preset && typeof preset === "object" ? preset : null;
+  })();
+
   var STAGE_LABELS = {};
   stages.forEach(function (stage) {
     STAGE_LABELS[stage.id] = stage.label;
@@ -285,10 +302,24 @@
 
   var T = {
     pad: 14, head: 40, row: 27, gap: [58, 96], gutter: 46, stackGap: 40, bandGap: 18,
-    colW: [100, 172, 166], indent: 20, charW: 6.25, radius: 5, laneStep: 9
+    colW: [100, 172, 166], indent: 20, charW: 6.25, radius: 5, laneStep: 9,
+    nameY: 19, ruleY: 28, chipH: 22, labelDx: 18, labelDy: 3.6, shapeDx: 7, shapeScale: 1, hostDy: 9
   };
-  T.colX = [T.pad, T.pad + T.colW[0] + T.gap[0], T.pad + T.colW[0] + T.gap[0] + T.colW[1] + T.gap[1]];
-  T.stackW = T.colX[2] + T.colW[2] + T.gutter;
+
+  /* Card geometry: bigger type, fewer columns (entry nodes fold into the
+     compute column, fed from a narrow lane on the panel's left edge). */
+  if (CARD) {
+    T.pad = 12; T.head = 48; T.gap = [24, 78]; T.gutter = 34; T.stackGap = 34; T.bandGap = 16;
+    T.colW = [0, 220, 220]; T.indent = 26; T.radius = 7; T.laneStep = 11;
+    T.nameY = 29; T.ruleY = 40; T.labelDx = 33; T.labelDy = 7.5; T.shapeDx = 11; T.shapeScale = 1.6; T.hostDy = 14;
+    T.fontPx = 22; T.colCap = 250;
+  }
+
+  function computeGeometry() {
+    T.colX = [T.pad, T.pad + T.colW[0] + T.gap[0], T.pad + T.colW[0] + T.gap[0] + T.colW[1] + T.gap[1]];
+    T.stackW = T.colX[2] + T.colW[2] + T.gutter;
+  }
+  computeGeometry();
 
   var COL_BY_KIND = {
     load_balancer: 0, cdn: 0, dns: 0, nat: 0,
@@ -299,7 +330,30 @@
   var COLUMN_NAMES = ["Entry", "Compute", "Data and storage"];
 
   function colOf(kind) {
-    return COL_BY_KIND[kind] == null ? 2 : COL_BY_KIND[kind];
+    var col = COL_BY_KIND[kind] == null ? 2 : COL_BY_KIND[kind];
+    return CARD && col === 0 ? 1 : col;
+  }
+
+  function isEntry(node) {
+    return COL_BY_KIND[node.kind] === 0;
+  }
+
+  var measureCtx = null;
+  function textWidth(text) {
+    if (!CARD) return String(text).length * T.charW;
+    if (!measureCtx) {
+      measureCtx = document.createElement("canvas").getContext("2d");
+      var family = getComputedStyle(document.documentElement).getPropertyValue("--font-display") || "sans-serif";
+      measureCtx.font = "600 " + T.fontPx + "px " + family;
+    }
+    return measureCtx.measureText(String(text)).width;
+  }
+
+  function fitLabel(text, room) {
+    if (textWidth(text) <= room) return text;
+    var cut = text.length - 1;
+    while (cut > 1 && textWidth(text.slice(0, cut) + "…") > room) cut -= 1;
+    return text.slice(0, cut) + "…";
   }
 
   var topo = (function buildTopology() {
@@ -360,7 +414,7 @@
   })();
 
   function chipWidth(node) {
-    return 18 + node.label.length * T.charW;
+    return CARD ? T.labelDx + textWidth(node.label) + 8 : 18 + node.label.length * T.charW;
   }
 
   function neighbours(node, col) {
@@ -378,21 +432,34 @@
   function layoutBand(stack) {
     var members = topo.order.map(function (id) { return topo.nodes[id]; }).filter(function (node) { return node.stack === stack.id; });
     members.forEach(function (node) {
-      var room = T.colW[node.col] - (node.kind === "node_group" ? T.indent : 0) - 18;
+      var indent = node.kind === "node_group" ? T.indent : 0;
+      if (CARD) {
+        node.label = fitLabel(node.id, T.colW[node.col] - indent - T.labelDx - 8);
+        return;
+      }
+      var room = T.colW[node.col] - indent - 18;
       var max = Math.floor(room / T.charW);
       node.label = node.id.length > max ? node.id.slice(0, max - 1) + "…" : node.id;
     });
 
     var compute = [];
-    members.filter(function (node) { return node.col === 1 && node.kind !== "node_group"; })
+    members.filter(function (node) { return node.col === 1 && node.kind !== "node_group" && !(CARD && isEntry(node)); })
       .sort(function (a, b) { return (COMPUTE_ORDER[a.kind] || 0) - (COMPUTE_ORDER[b.kind] || 0); })
       .forEach(function (node) {
         compute.push(node);
         members.forEach(function (pool) { if (pool.host === node) compute.push(pool); });
       });
     members.forEach(function (node) {
-      if (node.col === 1 && compute.indexOf(node) < 0) compute.push(node);
+      if (node.col === 1 && compute.indexOf(node) < 0 && !(CARD && isEntry(node))) compute.push(node);
     });
+    if (CARD) {
+      /* Folded entry nodes sit just above the first compute node they feed. */
+      members.filter(isEntry).forEach(function (entry) {
+        var targets = neighbours(entry, 1).filter(function (other) { return !isEntry(other); });
+        var at = targets.length ? Math.min.apply(null, targets.map(function (t) { return compute.indexOf(t); })) : 0;
+        compute.splice(Math.max(0, at), 0, entry);
+      });
+    }
     compute.forEach(function (node, i) { node.row = i; });
 
     function placeBeside(col) {
@@ -404,8 +471,11 @@
       });
       list.sort(function (a, b) { return a.want - b.want || a.tie - b.tie; });
       var next = 0;
-      list.forEach(function (node) {
-        node.row = isFinite(node.want) ? Math.max(next, Math.round(node.want)) : next;
+      /* Card: never let alignment gaps make a panel taller than it must be. */
+      var limit = CARD ? Math.max(compute.length, list.length) : Infinity;
+      list.forEach(function (node, k) {
+        var row = isFinite(node.want) ? Math.max(next, Math.round(node.want)) : next;
+        node.row = Math.max(next, Math.min(row, limit - (list.length - k)));
         next = node.row + 1;
       });
       return next;
@@ -476,8 +546,9 @@
     var colY = [];
     for (var c = 0; c < columns; c += 1) colY.push(0);
     var byStack = {};
-    topo.bands.forEach(function (band) {
-      var col = colY.indexOf(Math.min.apply(null, colY));
+    var assign = CARD && columns === 2 ? balancedColumns(topo.bands) : null;
+    topo.bands.forEach(function (band, bi) {
+      var col = assign ? assign[bi] : colY.indexOf(Math.min.apply(null, colY));
       band.gc = col;
       band.x = col * (T.stackW + T.stackGap);
       band.y = colY[col];
@@ -497,6 +568,24 @@
     routeLinks();
   }
 
+  /* Card: split the panels over two columns so the taller column is as short
+     as possible (stack order is kept inside each column). */
+  function balancedColumns(bands) {
+    var n = bands.length;
+    var best = null, bestH = Infinity;
+    for (var mask = 0; mask < (1 << n); mask += 1) {
+      if (n > 1 && (mask & 1)) continue;
+      var h = [0, 0];
+      for (var i = 0; i < n; i += 1) {
+        var c = (mask >> i) & 1;
+        h[c] += bands[i].h + (h[c] ? T.bandGap : 0);
+      }
+      var top = Math.max(h[0], h[1]);
+      if (top < bestH - 0.5) { bestH = top; best = mask; }
+    }
+    return bands.map(function (band, i) { return (best >> i) & 1; });
+  }
+
   function routeLinks() {
     var channels = {};
     function channel(id, x0, x1, loop) {
@@ -514,17 +603,27 @@
     }
     function right(node) { return [node.x + node.w + 3, node.y]; }
     function left(node) { return [node.x - 3, node.y]; }
+    function ownLeft(node) { return [node.band.x + T.colX[node.col] - 3, node.y]; }
 
     topo.links.forEach(function (link) {
       var a = topo.nodes[link.from];
       var b = topo.nodes[link.to];
       link.route = null;
       if (link.inferred) {
-        var gx = a.x + 7;
-        link.route = function () { return [[gx, a.y + 9], [gx, b.y], [b.x - 2, b.y]]; };
+        var gx = a.x + T.shapeDx;
+        link.route = function () { return [[gx, a.y + T.hostDy], [gx, b.y], [b.x - 2, b.y]]; };
         return;
       }
       if (a.band === b.band) {
+        if (CARD && a.col === b.col && a.col === 1) {
+          /* Entry folded into compute: loop through the panel's left lane. */
+          var leftCh = gapChannel(a.band, 0);
+          leftCh.loop = true;
+          var eb0 = bundle(leftCh, "loop:" + a.id, a.y);
+          eb0.tys.push(b.y);
+          link.route = function () { return [ownLeft(a), [eb0.x, a.y], [eb0.x, b.y], ownLeft(b)]; };
+          return;
+        }
         if (a.col === b.col) {
           var loopCh = gapChannel(a.band, a.col);
           loopCh.loop = true;
@@ -553,7 +652,7 @@
       }
       var corridorX = L.band.x + T.stackW;
       var corridor = channel("corridor:" + L.band.gc, corridorX + 6, corridorX + T.stackGap - 6, false);
-      var headY = R.band.y + 34;
+      var headY = R.band.y + T.ruleY + 6;
       var cb = bundle(corridor, L.id, L.y);
       cb.tys.push(headY);
       var entry = R.col === 0
@@ -615,6 +714,10 @@
   /* Split at the middle of the last segment: that branch belongs to this link
      alone, so the snap reads even where bundles share a trunk. */
   function linkSvg(link) {
+    if (CARD) {
+      return '<g class="tlink" data-link="' + esc(link.key) + '" data-kind="' + esc(link.kind) + '"' + (link.inferred ? ' data-inferred="true"' : '') + '>' +
+        '<path class="tlink-path" d="' + roundedPath(link.points) + '"></path></g>';
+    }
     var pts = link.points;
     var n = pts.length;
     var a = pts[n - 2], b = pts[n - 1];
@@ -632,7 +735,16 @@
   }
 
   function nodeShape(node) {
-    var x = node.x + 7, y = node.y;
+    if (T.shapeScale !== 1) {
+      var cx = node.x + T.shapeDx;
+      var inner = baseShape(node, cx, node.y);
+      return '<g transform="translate(' + cx.toFixed(1) + ' ' + node.y.toFixed(1) + ') scale(' + T.shapeScale + ') translate(' +
+        (-cx).toFixed(1) + ' ' + (-node.y).toFixed(1) + ')">' + inner + '</g>';
+    }
+    return baseShape(node, node.x + 7, node.y);
+  }
+
+  function baseShape(node, x, y) {
     if (node.kind === "kubernetes_cluster") {
       var pts = [];
       for (var i = 0; i < 6; i += 1) {
@@ -659,23 +771,23 @@
   function nodeSvg(node) {
     return '<g class="tnode" data-node="' + esc(node.id) + '" data-kind="' + esc(node.kind) + '" data-res="' + esc(node.id) + '">' +
       '<title>' + esc(node.id + ", " + node.typeLabel) + '</title>' +
-      '<rect class="tnode-hit" x="' + (node.x - 4) + '" y="' + (node.y - 11) + '" width="' + (node.w + 8) + '" height="22"></rect>' +
+      '<rect class="tnode-hit" x="' + (node.x - 4) + '" y="' + (node.y - T.chipH / 2) + '" width="' + (node.w + 8) + '" height="' + T.chipH + '"></rect>' +
       nodeShape(node) +
-      '<text class="tnode-label" x="' + (node.x + 18) + '" y="' + (node.y + 3.6) + '">' + esc(node.label) + '</text>' +
+      '<text class="tnode-label" x="' + (node.x + T.labelDx) + '" y="' + (node.y + T.labelDy) + '">' + esc(node.label) + '</text>' +
     '</g>';
   }
 
   function topologySvg() {
     var bands = topo.bands.map(function (band) {
-      var captions = COLUMN_NAMES.map(function (name, col) {
+      var captions = CARD ? "" : COLUMN_NAMES.map(function (name, col) {
         return col === 0 ? "" : '<text class="tband-col" x="' + (band.x + T.colX[col]) + '" y="' + (band.y + 21) + '">' + esc(name) + '</text>';
       }).join("");
+      var env = CARD ? "" : '<text class="tband-env" x="' + (band.x + T.stackW - T.pad) + '" y="' + (band.y + T.nameY) + '" text-anchor="end">' + esc(band.stack.environment || "") + '</text>';
       return '<g class="tband">' +
         '<rect x="' + band.x + '" y="' + band.y + '" width="' + T.stackW + '" height="' + band.h + '"></rect>' +
-        '<path class="tband-rule" d="M' + band.x + ' ' + (band.y + 28) + 'h' + T.stackW + '"></path>' +
-        '<text class="tband-name" x="' + (band.x + T.pad) + '" y="' + (band.y + 19) + '">' + esc(band.stack.name) + '</text>' +
-        captions +
-        '<text class="tband-env" x="' + (band.x + T.stackW - T.pad) + '" y="' + (band.y + 19) + '" text-anchor="end">' + esc(band.stack.environment || "") + '</text>' +
+        '<path class="tband-rule" d="M' + band.x + ' ' + (band.y + T.ruleY) + 'h' + T.stackW + '"></path>' +
+        '<text class="tband-name" x="' + (band.x + T.pad) + '" y="' + (band.y + T.nameY) + '">' + esc(band.stack.name) + '</text>' +
+        captions + env +
       '</g>';
     }).join("");
     var links = topo.links.map(linkSvg).join("");
@@ -914,6 +1026,132 @@
     });
   }
 
+  /* --------------------------------- card ------------------------------- */
+
+  /* Everything is marked against the current estate (state 0), not the
+     previous step: unchanged, changed, added, removed. A flag is a review note,
+     not a change, so flagged resources stay unchanged. */
+  function cardIndex(spec) {
+    var value = String(spec == null ? "target" : spec).trim().toLowerCase();
+    if (value === "current") return 0;
+    if (value === "target" || value === "") return states.length - 1;
+    if (/^\d+$/.test(value) && Number(value) < states.length) return Number(value);
+    return -1;
+  }
+
+  function cardDiff(index) {
+    var touched = {};
+    for (var j = 1; j <= index; j += 1) {
+      (states[j].changes || []).forEach(function (change) {
+        if (change.kind !== "removed" && change.kind !== "flagged") touched[change.component] = true;
+      });
+    }
+    function status(present, id) {
+      var before = !!present[0], now = !!present[index];
+      if (before && now) return id && touched[id] ? "changed" : "unchanged";
+      if (now) return "added";
+      if (before) return "removed";
+      return "absent";
+    }
+    var counts = { unchanged: 0, changed: 0, added: 0, removed: 0, absent: 0 };
+    var nodes = {};
+    topo.order.forEach(function (id) {
+      nodes[id] = status(topo.nodes[id].present, id);
+      counts[nodes[id]] += 1;
+    });
+    var links = topo.links.map(function (link) { return status(link.present, null); });
+    return { nodes: nodes, links: links, counts: counts };
+  }
+
+  function cardStateLabel(index) {
+    if (index === 0) return stepCount === 0 ? "No changes" : "Current estate";
+    return "After " + index + " change" + (index === 1 ? "" : "s");
+  }
+
+  function cardChip(layout) {
+    if (layout.winner) return '<span class="card-chip" data-tone="good">Recommended</span>';
+    if (layout.feasible === false) return '<span class="card-chip" data-tone="bad">Fails constraints</span>';
+    if (layout.rank) return '<span class="card-chip">Rank ' + esc(layout.rank) + '</span>';
+    return "";
+  }
+
+  function cardHtml(index, diff) {
+    var layout = dataset.layout || { id: (dataset.source || {}).candidate || "plan", label: (dataset.source || {}).candidate || "Plan" };
+    var base = states[0].summary.monthly_eur;
+    var now = states[index].summary.monthly_eur;
+    var money = index === 0
+      ? '<span class="card-eur">' + fmtEur(base) + '</span><span class="card-per">/mo</span>'
+      : '<span class="card-eur is-from">' + fmtEur(base) + '</span><span class="card-per">/mo</span>' +
+        '<span class="card-arrow">→</span><span class="card-eur">' + fmtEur(now) + '</span><span class="card-per">/mo</span>';
+    var pct = base ? Math.round((now - base) / base * 100) : 0;
+    var delta = index === 0 || now === base ? ""
+      : '<span class="card-delta' + (now < base ? " is-save" : " is-spend") + '">' + (pct < 0 ? "−" : "+") + Math.abs(pct) + '%</span>';
+    var c = diff.counts;
+    var legend;
+    if (index === 0) {
+      legend = '<li data-status="unchanged"><i></i>' + c.unchanged + ' resources, ' + (stepCount === 0 && String(CARD.state).trim().toLowerCase() !== "current" ? "nothing changes" : "as found") + '</li>';
+    } else {
+      legend = [["changed", c.changed], ["added", c.added], ["removed", c.removed], ["unchanged", c.unchanged]].map(function (item) {
+        return '<li data-status="' + item[0] + '"><i></i><b>' + item[1] + '</b> ' + item[0] + '</li>';
+      }).join("");
+    }
+    return '' +
+      '<div class="card" data-card>' +
+        '<header class="card-head">' +
+          '<h1 class="card-title">' + esc(layout.label) + cardChip(layout) + '</h1>' +
+          '<p class="card-money">' + money + delta + '</p>' +
+          '<p class="card-state">' + esc(cardStateLabel(index)) + '<span class="card-project">' + esc(dataset.title || "") + '</span></p>' +
+          '<ul class="card-legend" aria-label="Compared with the current estate">' + legend + '</ul>' +
+        '</header>' +
+        '<div class="card-canvas" data-topo-canvas></div>' +
+      '</div>';
+  }
+
+  function renderCard() {
+    var index = cardIndex(CARD.state);
+    if (index < 0) {
+      app.innerHTML = '<p style="padding:24px;font:20px system-ui">Unknown state ' + esc(CARD.state) + '.</p>';
+      window.__SNAPSHOT_READY__ = true;
+      return;
+    }
+    document.documentElement.setAttribute("data-theme", "light");
+    document.documentElement.classList.add("is-card");
+    var diff = cardDiff(index);
+    app.innerHTML = cardHtml(index, diff);
+    refs.topoCanvas = app.querySelector("[data-topo-canvas]");
+
+    /* Size the columns to the longest label, capped; the cap truncates. */
+    var widest = [0, 0, 0];
+    topo.order.forEach(function (id) {
+      var node = topo.nodes[id];
+      var w = T.labelDx + textWidth(node.id) + 8 + (node.kind === "node_group" ? T.indent : 0);
+      widest[node.col] = Math.max(widest[node.col], w);
+    });
+    T.colW = [0, Math.min(T.colCap, Math.max(140, widest[1])), Math.min(T.colCap, Math.max(140, widest[2]))];
+    computeGeometry();
+
+    var box = refs.topoCanvas.getBoundingClientRect();
+    var columns = topo.stacks.length > 1 ? 2 : 1;
+    for (var row = 50; row >= 31; row -= 1) {
+      T.row = row;
+      T.chipH = Math.min(34, row - 4);
+      layoutTopology(columns);
+      if ((topo.height + 8) / (topo.width + 8) <= box.height / box.width) break;
+    }
+    refs.topoCanvas.innerHTML = topologySvg();
+    var svg = refs.topoCanvas.querySelector("svg");
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    Array.prototype.forEach.call(svg.querySelectorAll(".tlink"), function (el, i) {
+      el.setAttribute("data-status", diff.links[i]);
+    });
+    Array.prototype.forEach.call(svg.querySelectorAll(".tnode"), function (el) {
+      el.setAttribute("data-status", diff.nodes[el.getAttribute("data-node")]);
+    });
+    document.title = (dataset.layout ? dataset.layout.label : "Plan") + " — " + cardStateLabel(index);
+    window.__SNAPSHOT_READY__ = true;
+    document.documentElement.setAttribute("data-snapshot-ready", "true");
+  }
+
   /* -------------------------------- boot -------------------------------- */
 
   function initialStateIndex() {
@@ -921,6 +1159,11 @@
     if (!match) return 0;
     var idx = Number(match[1]);
     return idx >= 0 && idx < states.length ? idx : 0;
+  }
+
+  if (CARD) {
+    renderCard();
+    return;
   }
 
   app.innerHTML = shellHtml();

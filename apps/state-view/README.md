@@ -22,6 +22,24 @@ python3 -m unittest discover -s apps/state-view/builder -p 'test_*.py'
 
 Deep links use the state id, e.g. `state-view.html#state-11`.
 
+## Snapshots for Slack
+
+`snapshot.py` renders the estate a decision leads to as a PNG card (1200x675 at 2x, light theme, no controls), for any candidate in the result, not just the winner:
+
+```bash
+python3 apps/state-view/snapshot.py --layout consolidate --state target --out /tmp/consolidate.png
+    [--result PATH] [--infra PATH] [--chrome PATH] [--width 1200] [--height 675] [--scale 2] [--html-only]
+```
+
+- `--state` is `current`, `target` or a state index. A candidate with no actions (`do_nothing`) has one state, so its target is the current estate.
+- Defaults: `apps/state-view/data/result.demo-shop.json` and `contracts/mock/demo-shop.infra.json`, resolved from the repo, so it runs from any directory.
+- Chrome: `--chrome`, else `$CHROME_PATH`, else the macOS app, else `google-chrome`/`chromium`/`chromium-browser` on `PATH`. `--html-only` writes the card HTML instead and needs no Chrome.
+- On success it prints one JSON line, `{"path", "layout", "state", "title", "caption", "alt"}`, and exits 0. On failure it writes to stderr only and exits 2 (bad layout, state or path), 3 (no Chrome) or 4 (Chrome failed). One render takes about 0.6 s.
+
+The card is the same page in card mode: open any build with `#card&state=target` (or `current`, or an index). Each resource and link is marked against the current estate: unchanged, changed (amber), added (green) or removed (red dashed ghost). A flag is a review note, not a change. Entry nodes fold into the compute column, labels use the condensed face at 22px, and the panels are split over two columns so the image stays legible at the 360–500 px width Slack shows. The page sets `window.__SNAPSHOT_READY__` once drawn.
+
+`builder/build_states.py --layout <id>` writes the full state document for any candidate; `build.render_html(document, card=None)` is the inliner both use.
+
 ## Data
 
 The snapshots come from the Floci estate already checked in for the demo:
@@ -29,7 +47,7 @@ The snapshots come from the Floci estate already checked in for the demo:
 | Input | Path |
 |---|---|
 | Baseline estate | `contracts/mock/demo-shop.infra.json` |
-| Winning candidate | `apps/state-view/data/result.demo-shop.json` (sample `result.json`, candidate `consolidate`) |
+| Candidates | `apps/state-view/data/result.demo-shop.json` (sample `result.json`; default is the winner, `consolidate`) |
 | Generated states | `apps/state-view/data/states.json` |
 
 `builder/build_states.py` applies the winner's 21 actions in stage order and emits 22 states: the current estate, one state after each step, and the target. It also scales the actions' savings so the endpoints land exactly on the engine's figures: €133,308/month to €74,365/month.
@@ -115,7 +133,8 @@ The dashboard's current `TransitionToggle` only offers current and after. This p
 |---|---|
 | `builder/build_states.py`, `builder/test_build_states.py` | state derivation, tests, `data/states.json` |
 | `web/app.js`, `web/app.css` | timeline carousel, topology layout and link routing, resource detail |
-| `web/template.html`, `build.py` | shell and inlining |
+| `web/template.html`, `build.py` | shell and inlining (`render_html`) |
+| `snapshot.py`, `builder/test_snapshot.py` | PNG cards for Slack, layout and CLI tests |
 | `data/result.demo-shop.json` | sample result copied from the checked-in mock |
 
 ## Design notes

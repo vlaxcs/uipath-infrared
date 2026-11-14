@@ -1,7 +1,7 @@
 {
   "dataset": {
     "schema_version": "1.0",
-    "generated_at": "2026-11-14T00:56:30Z",
+    "generated_at": "2026-11-14T01:53:02Z",
     "project": "demo-shop",
     "title": "Demo shop",
     "subtitle": "Sample plan · 4 stacks · 38 resources",
@@ -10,6 +10,13 @@
       "result": "apps/state-view/data/result.demo-shop.json",
       "candidate": "consolidate",
       "sample": true
+    },
+    "layout": {
+      "id": "consolidate",
+      "label": "Consolidate",
+      "feasible": true,
+      "winner": true,
+      "rank": 1
     },
     "stages": [
       {

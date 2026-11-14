@@ -13,6 +13,11 @@ Standard library only.  Usage (from anywhere):
 
     python3 apps/state-view/builder/build_states.py
     python3 apps/state-view/builder/build_states.py --out /tmp/states.json
+    python3 apps/state-view/builder/build_states.py --layout managed_services --out /tmp/managed.json
+
+By default the result's winner is built; ``--layout <candidate id>`` builds any
+other candidate, feasible or not.  A candidate with no actions yields a single
+state, so its target is the current estate.
 """
 
 from __future__ import annotations
@@ -21,6 +26,7 @@ import argparse
 import copy
 import json
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -31,6 +37,15 @@ DEFAULT_OUT = APP_ROOT / "data" / "states.json"
 INFRA_PATH = REPO_ROOT / "contracts" / "mock" / "demo-shop.infra.json"
 RESULT_PATH = APP_ROOT / "data" / "result.demo-shop.json"
 CANDIDATE_ID = "consolidate"
+
+LAYOUT_LABELS = {
+    "move_to_onprem": "Move to on-prem",
+    "cleanup_orphans": "Clean up orphans",
+}
+
+
+class LayoutError(ValueError):
+    """The requested layout is not a candidate in the result."""
 
 STAGE_ORDER = [
     "security_remediation",
@@ -174,12 +189,36 @@ def fmt_eur(value: float) -> str:
     return f"€{int(round(value)):,}"
 
 
-def find_winner(result: dict) -> dict:
-    winner_id = result.get("winner")
+def candidate_ids(result: dict) -> list[str]:
+    return [c.get("id") for c in result.get("candidates") or [] if c.get("id")]
+
+
+def find_candidate(result: dict, layout: str | None = None) -> dict:
+    """The candidate named ``layout``, or the winner when ``layout`` is None."""
+    wanted = layout if layout is not None else result.get("winner")
     for candidate in result.get("candidates") or []:
-        if candidate.get("id") == winner_id:
+        if candidate.get("id") == wanted:
             return candidate
-    raise SystemExit(f"winner candidate {winner_id!r} not found in result")
+    available = ", ".join(candidate_ids(result)) or "none"
+    if layout is None:
+        raise LayoutError(f"winner candidate {wanted!r} not found in result (candidates: {available})")
+    raise LayoutError(f"unknown layout {wanted!r}; candidates in this result: {available}")
+
+
+def find_winner(result: dict) -> dict:
+    return find_candidate(result, None)
+
+
+def project_title(project) -> str:
+    words = str(project or "").replace("-", " ").replace("_", " ").strip()
+    return words[:1].upper() + words[1:] if words else "Estate"
+
+
+def layout_label(layout_id: str) -> str:
+    if layout_id in LAYOUT_LABELS:
+        return LAYOUT_LABELS[layout_id]
+    words = str(layout_id).replace("-", " ").replace("_", " ").strip()
+    return words[:1].upper() + words[1:] if words else "Layout"
 
 
 # ---------------------------------------------------------------------------
@@ -624,13 +663,6 @@ def change_of(action: dict) -> dict:
     }
 
 
-def find_candidate(result: dict, candidate_id: str) -> dict:
-    for candidate in result.get("candidates") or []:
-        if candidate.get("id") == candidate_id:
-            return candidate
-    raise SystemExit(f"candidate {candidate_id!r} not found in result")
-
-
 def build_dataset(
     infra_path: Path = INFRA_PATH,
     result_path: Path | None = RESULT_PATH,
@@ -693,7 +725,7 @@ def build_dataset(
             "id": state_id,
             "index": index,
             "infra": {
-                "project": infra.get("project", "demo-shop"),
+                "project": infra.get("project", ""),
                 "stacks": copy.deepcopy(stacks),
                 "components": components,
                 "edges": public_edges(copy.deepcopy(baseline_edges), ids),
@@ -836,6 +868,13 @@ def build_dataset(
             "candidate": winner.get("id"),
             "sample": sample,
         },
+        "layout": {
+            "id": winner.get("id"),
+            "label": layout_label(winner.get("id")),
+            "feasible": winner.get("feasible"),
+            "winner": winner.get("id") == result.get("winner"),
+            "rank": winner.get("rank"),
+        },
         "stages": stages,
         "tiers": [{"id": tier, "label": label} for tier, label in TIER_LABELS.items()],
         "stepCount": len(actions),
@@ -864,7 +903,10 @@ def main(argv: list[str] | None = None) -> int:
     else:
         if (args.infra is None) != (args.result is None) or (args.candidate is not None and args.infra is None):
             parser.error("--infra, --result and --candidate go together; without them the demo dataset is built")
-        document = build_document(args.infra or INFRA_PATH, args.result or RESULT_PATH, args.candidate)
+        try:
+            document = build_document(args.infra or INFRA_PATH, args.result or RESULT_PATH, args.candidate)
+        except LayoutError as error:
+            raise SystemExit(str(error)) from None
     out_path = Path(args.out)
     if not out_path.is_absolute():
         out_path = (Path.cwd() / out_path).resolve()
