@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "illustrative": true,
   "disclaimer": "84 prices come from dated snapshots listed in x_price_sources; 1 stay illustrative, listed in x_unsourced. SLAs and migration figures are not prices and stay as written.",
   "currency": "EUR",
@@ -1352,6 +1352,11 @@
       "amortization_years": 5,
       "power_cooling_eur_month": 2400,
       "colocation_eur_month": 1800,
+      "maintenance_pct_of_capex_year": 8,
+      "network_eur_month": 600,
+      "licences_eur_month": 900,
+      "setup_one_off_eur": 30000,
+      "contingency_pct": 15,
       "disks": {
         "count": 96,
         "annual_failure_rate_pct": 2.0,
