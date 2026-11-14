@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "id": "fleet-telemetry-2027-plan",
+  "description": "Fleet telemetry forecast: two courier networks onboard in month 4, EU-only, cost-led with a real-time latency floor.",
+  "horizon_months": 18,
+  "currency": "EUR",
+  "scenarios": {
+    "low":  { "probability": 0.20, "monthly_multiplier": { "traffic": 1.01, "data": 1.03 }, "note": "Onboarding slips, organic growth only." },
+    "base": { "probability": 0.55, "monthly_multiplier": { "traffic": 1.035, "data": 1.05 }, "note": "Onboarding on time, steady van additions." },
+    "high": { "probability": 0.25, "monthly_multiplier": { "traffic": 1.06, "data": 1.08 }, "note": "Third courier network signs in year one." }
+  },
+  "events": [
+    { "month": 4, "description": "Two courier networks onboard (about 9,000 vans)", "traffic_multiplier": 1.8, "data_multiplier": 1.6 }
+  ],
+  "hard_constraints": {
+    "data_residency": { "allowed_regions": ["eu-*"], "applies_to": ["pii", "confidential", "unknown"] },
+    "budget": { "max_monthly_run_cost_eur": 28000, "max_one_off_migration_cost_eur": 20000 },
+    "min_availability_pct": 99.5,
+    "allowed_providers": ["aws", "managed_pg"],
+    "max_migration_effort_hours": 300,
+    "max_cutover_downtime_hours": 2,
+    "security_gates": {
+      "forbid_public_datastores": true,
+      "require_encryption_at_rest": true,
+      "forbid_world_open_admin_ports": true,
+      "require_audit_logging": true,
+      "require_backups": true
+    }
+  },
+  "cto_settings": {
+    "ha_level": "multi_az",
+    "min_zones": 2,
+    "weights": { "cost": 0.55, "risk": 0.30, "effort": 0.15 },
+    "tie_break": "lower_cost",
+    "strategies_enabled": ["do_nothing", "cleanup_orphans", "rightsize_in_place", "managed_services"]
+  },
+  "business": {
+    "downtime_cost_per_hour_eur": 2500,
+    "downtime_cost_by_stack": { "dev": 0 },
+    "engineer_hourly_eur": 70,
+    "discount_rate_annual": 0.05
+  }
+}

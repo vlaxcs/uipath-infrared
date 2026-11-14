@@ -17,6 +17,12 @@ Everything the extractor side and the decision-engine side must agree on, plus a
 | `mock/startup.forecast.json` | The start-up's forecast: EUR 12k budget, EU-only, 99.5% availability, 24 months. |
 | `mock/startup.expected-signals.md` | What a competent engine should notice in the start-up mock. Engine-side, not input. |
 | `mock/build_startup.py` | Authoring helper for the start-up mock. All numbers typed by hand. |
+| `mock/clinic-booking.*` | A third mock: a clinic booking SaaS, 14 components, EUR 4,305/month, with dev, staging and prod (`build_clinic.py`, `.infra.json`, `.forecast.json`, `.expected-signals.md`). |
+| `mock/fleet-telemetry.*` | A fourth mock: GPS telemetry for courier vans, 13 components, EUR 6,913/month, prod and dev only (`build_fleet.py`, `.infra.json`, `.forecast.json`, `.expected-signals.md`). |
+| `mock/demo-shop.forecast.json` | A copy of `forecast.example.json` under the name the orchestrator looks for; `check_mock.py` fails if the two differ. |
+| `project.schema.json` | **Project profile.** What the product is, which environments it runs (dev/staging/prod), users today and expected users by month. |
+| `mock/<project>.project.json` / `mock/build_profiles.py` | One profile per mock project. The builder writes all four and derives the expected users from each forecast. |
+| `project_integrity.py` / `test_project_contract.py` | The profile rules a JSON Schema can't express, and a test per rule. |
 | `candidates.schema.json` / `candidates.example.json` | The agent's proposals: what changes, never what it costs. Input to `engine evaluate --candidates`. |
 | `candidates_integrity.py` / `test_candidates_contract.py` | The candidate rules a JSON Schema can't express, and a test per rule. |
 | `run.schema.json` / `run.example.json` | One run of the workflow: its state and its event log. Written by the orchestrator, read by the surfaces and the flow test. |
@@ -63,6 +69,22 @@ Do **not** build the mock from `ground_truth/planted_issues.json`; that is the a
 - **Edges**: `from` depends on `to`. `kind` ∈ network/data/event/traffic/dns/config. `evidence` ∈ declared/observed/inferred. `gb_month` optional: **Floci produces no traffic data**, so there it is estimated or synthetic. Omit rather than invent. Kind and `stay_together` decide what moves together; `gb_month` only prices egress.
 - **`stay_together`**: optional owner/extractor hints. The engine should also derive groups from `data`/`traffic` edges with `latency_sensitive` or large volume; hints win.
 - **Extensions**: new fields must start with `x_`.
+
+## Field rules (project.json)
+
+- **One per project**, `mock/<project>.project.json`, next to `<project>.infra.json` and `<project>.forecast.json`. `project` equals the infra's `project`; `forecast_id` equals the forecast's `id`.
+- **`environments`**: only the ones that exist, each `dev`, `staging` or `prod` at most once. `stacks` lists infra stack ids. Every infra stack whose `environment` is dev, staging or prod must be listed under that environment; a stack may also appear under another one (demo-shop's staging cluster lives in the `shop` stack). `data` says where the data comes from: `copy_of_production` means real customer data outside prod.
+- **`users.current`**: an integer with `as_of` and `provenance`. `metric` says whether it counts monthly or daily active users, `definition` who counts. `peak_concurrent` is optional and sizes the sandbox's traffic.
+- **`users.expected`**: rows by month from `as_of`, months increasing, the last at the forecast's `horizon_months`. Each scenario is `current x traffic^month x every event traffic_multiplier up to that month`, rounded to the nearest 100. Users are assumed to drive traffic one-for-one, so the profile and the engine never disagree on growth. Change the forecast, then rerun `python3 mock/build_profiles.py`.
+
+| Project | What it is | Environments | Users now | Expected (base, at horizon) |
+|---|---|---|---|---|
+| `startup` | Receipt scanner for freelancers and small accounting firms | prod | 6,500 MAU | 13,600 at month 24 |
+| `demo-shop` | EU e-commerce: storefront, data platform, legacy ERP | prod, staging, dev | 1,200,000 MAU | 3,427,000 at month 36 |
+| `clinic-booking` | Booking platform for private clinics | prod, staging, dev | 41,000 MAU | 112,500 at month 24 |
+| `fleet-telemetry` | GPS tracking for courier vans | prod, dev | 3,200 DAU | 10,700 at month 18 |
+
+For the surfaces (not built yet): the orchestrator already finds a project by `<project>.forecast.json` in `ORCHESTRATOR_PROJECTS_DIR`; a `GET /projects` returning each `<project>.project.json` would let the dashboard and the Slack bot show what a project is before a run starts.
 
 ## Field rules (candidates.json)
 

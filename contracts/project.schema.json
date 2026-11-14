@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infrared.local/contract/project.schema.json",
+  "title": "Infrared project profile",
+  "description": "Who a project is for, before any infrastructure: what the product is, which environments it runs, how many people use it today and how many are expected. One file per project, `<project>.project.json`, next to `<project>.infra.json` and `<project>.forecast.json`. Hand-written for the mock projects. The expected users are not free numbers: they follow the forecast's traffic scenarios (see `users.expected`), so the profile and the engine never disagree on growth.",
+  "type": "object",
+  "required": ["schema_version", "project", "name", "summary", "business", "forecast_id", "environments", "users"],
+  "additionalProperties": false,
+  "patternProperties": { "^x_": {} },
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^1\\.\\d+$" },
+    "project": { "$ref": "#/$defs/id", "description": "Equals `project` in the infra file and the file-name prefix the orchestrator uses." },
+    "name": { "type": "string", "minLength": 1, "description": "Display name, e.g. 'Clinic booking'." },
+    "summary": { "type": "string", "minLength": 1, "description": "What the product is and does, in one to three sentences." },
+    "owner": { "type": "string", "description": "Team or person that owns the estate." },
+    "business": {
+      "type": "object",
+      "required": ["model", "customers", "critical_flows"],
+      "additionalProperties": false,
+      "properties": {
+        "model": { "enum": ["b2c", "b2b_saas", "marketplace", "internal", "other"] },
+        "customers": { "type": "string", "minLength": 1, "description": "Who pays and who uses it." },
+        "markets": { "type": "array", "items": { "type": "string" }, "description": "Countries or regions served today." },
+        "critical_flows": {
+          "type": "array", "minItems": 1, "items": { "type": "string" },
+          "description": "What must keep working during a migration, in the users' words."
+        }
+      }
+    },
+    "forecast_id": { "type": "string", "minLength": 1, "description": "`id` of the project's forecast file; the expected users are derived from it." },
+    "environments": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The development environments the project runs. Only the ones that exist; a project without staging lists no staging.",
+      "items": {
+        "type": "object",
+        "required": ["name", "stacks", "purpose", "always_on", "data"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "enum": ["dev", "staging", "prod"] },
+          "stacks": {
+            "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" },
+            "description": "Infra stack ids that make up this environment. A stack whose `environment` is dev, staging or prod must be listed under that environment."
+          },
+          "purpose": { "type": "string", "minLength": 1 },
+          "always_on": { "type": "boolean", "description": "Runs 24x7. false = stopped outside working hours or on demand." },
+          "data": {
+            "enum": ["production", "copy_of_production", "masked_copy", "synthetic", "none"],
+            "description": "Where the data in this environment comes from. `copy_of_production` means real customer data outside prod."
+          },
+          "users": { "type": "string", "description": "Who uses it, e.g. 'customers', 'QA and two pilot clinics', 'engineers'." }
+        }
+      }
+    },
+    "users": {
+      "type": "object",
+      "required": ["metric", "current", "expected"],
+      "additionalProperties": false,
+      "properties": {
+        "metric": { "enum": ["monthly_active_users", "daily_active_users"], "description": "What a user count means for this project." },
+        "definition": { "type": "string", "description": "Who counts as a user, in plain words." },
+        "current": {
+          "type": "object",
+          "required": ["value", "as_of", "provenance"],
+          "additionalProperties": false,
+          "properties": {
+            "value": { "type": "integer", "minimum": 0 },
+            "as_of": { "type": "string", "format": "date" },
+            "provenance": { "enum": ["observed", "estimated", "synthetic"], "description": "Same meaning as in infra.json. Mock projects are hand-written, so `synthetic` unless stated." },
+            "source": { "type": "string", "description": "Where the number comes from, e.g. 'product analytics, 30-day unique logins'." }
+          }
+        },
+        "peak_concurrent": {
+          "type": "integer", "minimum": 0,
+          "description": "Most users online at once over the last 30 days. Sizes the sandbox's traffic profile."
+        },
+        "expected": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Expected users by month from `current.as_of`, one row per milestone, the last at the forecast's horizon. Each scenario equals current x traffic_multiplier^month x every event traffic_multiplier up to that month, rounded to the nearest 100 (checked by project_integrity.py).",
+          "items": {
+            "type": "object",
+            "required": ["month", "low", "base", "high"],
+            "additionalProperties": false,
+            "properties": {
+              "month": { "type": "integer", "minimum": 1 },
+              "low": { "type": "integer", "minimum": 0 },
+              "base": { "type": "integer", "minimum": 0 },
+              "high": { "type": "integer", "minimum": 0 },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "note": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" }
+  }
+}
