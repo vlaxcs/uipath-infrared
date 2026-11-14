@@ -16,7 +16,10 @@
           { "id": "db.m5.2xlarge", "vcpu": 8,  "memory_gb": 32,  "monthly_eur": 500 },
           { "id": "db.r6g.2xlarge","vcpu": 8,  "memory_gb": 64,  "monthly_eur": 610 },
           { "id": "db.r6g.4xlarge","vcpu": 16, "memory_gb": 128, "monthly_eur": 1220 },
-          { "id": "db.r6g.8xlarge","vcpu": 32, "memory_gb": 256, "monthly_eur": 2440 }
+          { "id": "db.r6g.8xlarge","vcpu": 32, "memory_gb": 256, "monthly_eur": 2440 },
+          { "id": "db.m4.4xlarge", "vcpu": 16, "memory_gb": 64,  "monthly_eur": 1600 },
+          { "id": "db.r4.4xlarge", "vcpu": 16, "memory_gb": 122, "monthly_eur": 1750 },
+          { "id": "db.r5.8xlarge", "vcpu": 32, "memory_gb": 256, "monthly_eur": 2600 }
         ],
         "per_unit": [ { "driver": "storage_gb_month", "eur_per_unit": 0.11 } ],
         "egress_per_gb_eur": 0.085, "free_egress_gb": 100, "multi_az_multiplier": 2.0
@@ -162,7 +165,7 @@
       "regions": ["eu-*", "us-*"],
       "pricing": {
         "model": "per_unit",
-        "per_unit": [ { "driver": "storage_gb_month", "eur_per_unit": 0.021 }, { "driver": "requests_million", "eur_per_unit": 4.5 } ],
+        "per_unit": [ { "driver": "storage_gb_month", "eur_per_unit": 0.021 } ],
         "egress_per_gb_eur": 0.085, "free_egress_gb": 100
       },
       "sla": { "availability_pct": 99.99, "failure_domain_scope": "multi_zone", "failure_domains": 3 },
@@ -184,7 +187,7 @@
       "regions": ["eu-*", "us-*"],
       "pricing": {
         "model": "per_unit",
-        "per_unit": [ { "driver": "storage_gb_month", "eur_per_unit": 0.23 }, { "driver": "requests_million", "eur_per_unit": 1.3 } ],
+        "per_unit": [ { "driver": "storage_gb_month", "eur_per_unit": 0.23 }, { "driver": "consumed_rcu_million", "eur_per_unit": 1.15 }, { "driver": "consumed_wcu_million", "eur_per_unit": 0.23 } ],
         "egress_per_gb_eur": 0.085, "free_egress_gb": 100
       },
       "sla": { "availability_pct": 99.99, "failure_domain_scope": "multi_zone", "failure_domains": 3 },
@@ -207,10 +210,14 @@
       "pricing": {
         "model": "tiered_instance",
         "tiers": [
-          { "id": "t3.large",   "vcpu": 2, "memory_gb": 8,  "monthly_eur": 62 },
-          { "id": "m6i.xlarge", "vcpu": 4, "memory_gb": 16, "monthly_eur": 140 },
-          { "id": "m6i.2xlarge","vcpu": 8, "memory_gb": 32, "monthly_eur": 280 },
-          { "id": "m6i.4xlarge","vcpu": 16,"memory_gb": 64, "monthly_eur": 560 }
+          { "id": "t3.large",    "vcpu": 2,  "memory_gb": 8,  "monthly_eur": 62 },
+          { "id": "m6i.xlarge",  "vcpu": 4,  "memory_gb": 16, "monthly_eur": 140 },
+          { "id": "m6i.2xlarge", "vcpu": 8,  "memory_gb": 32, "monthly_eur": 280 },
+          { "id": "m6i.4xlarge", "vcpu": 16, "memory_gb": 64, "monthly_eur": 560 },
+          { "id": "r5.2xlarge",  "vcpu": 8,  "memory_gb": 64, "monthly_eur": 380 },
+          { "id": "m5.4xlarge",  "vcpu": 16, "memory_gb": 64, "monthly_eur": 560 },
+          { "id": "m5.8xlarge",  "vcpu": 32, "memory_gb": 128, "monthly_eur": 1120 },
+          { "id": "c5.9xlarge",  "vcpu": 36, "memory_gb": 72, "monthly_eur": 1240 }
         ],
         "per_unit": [ { "driver": "storage_gb_month", "eur_per_unit": 0.08 } ],
         "egress_per_gb_eur": 0.085, "free_egress_gb": 100
@@ -219,6 +226,132 @@
       "features_supported": ["autoscaling", "spot"],
       "migration": { "effort_hours_fixed": 8, "same_provider_factor": 0.3, "cutover_downtime_hours": 0.5, "risk_factor": 0.15 },
       "ops_hours_month_per_unit": 2
+    },
+    {
+      "id": "aws-dynamodb-provisioned", "kind": "nosql", "provider": "aws", "service": "dynamodb",
+      "regions": ["eu-*", "us-*"],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [ { "driver": "provisioned_rcu_month", "eur_per_unit": 0.11 }, { "driver": "provisioned_wcu_month", "eur_per_unit": 0.54 } ],
+        "egress_per_gb_eur": 0.085, "free_egress_gb": 100
+      },
+      "sla": { "availability_pct": 99.99, "failure_domain_scope": "multi_zone", "failure_domains": 3 },
+      "features_supported": ["ttl", "pitr", "streams", "global_tables"],
+      "migration": { "effort_hours_fixed": 16, "same_provider_factor": 0.3, "cutover_downtime_hours": 0, "risk_factor": 0.2 },
+      "ops_hours_month_per_unit": 0.5
+    },
+    {
+      "id": "aws-ebs", "kind": "block_storage", "provider": "aws", "service": "ebs",
+      "regions": ["eu-*", "us-*"],
+      "pricing": { "model": "per_unit", "per_unit": [ { "driver": "storage_gb_month", "eur_per_unit": 0.09 } ] },
+      "sla": { "availability_pct": 99.9, "failure_domain_scope": "single_zone", "failure_domains": 1 },
+      "features_supported": ["encryption", "snapshots"],
+      "migration": { "effort_hours_fixed": 4, "same_provider_factor": 0.2, "cutover_downtime_hours": 0, "risk_factor": 0.1 },
+      "ops_hours_month_per_unit": 0.1
+    },
+    {
+      "id": "aws-efs", "kind": "file_system", "provider": "aws", "service": "efs",
+      "regions": ["eu-*", "us-*"],
+      "pricing": { "model": "per_unit", "per_unit": [ { "driver": "throughput_mibps_month", "eur_per_unit": 5.5 } ] },
+      "sla": { "availability_pct": 99.99, "failure_domain_scope": "multi_zone", "failure_domains": 3 },
+      "features_supported": ["encryption", "snapshots"],
+      "migration": { "effort_hours_fixed": 16, "same_provider_factor": 0.4, "cutover_downtime_hours": 0, "risk_factor": 0.25 },
+      "ops_hours_month_per_unit": 1
+    },
+    {
+      "id": "aws-eip", "kind": "other", "provider": "aws", "service": "ec2-eip",
+      "regions": ["eu-*", "us-*"],
+      "pricing": { "model": "per_unit", "per_unit": [ { "driver": "address_month", "eur_per_unit": 3.4 } ] },
+      "sla": { "availability_pct": 99.9, "failure_domain_scope": "single_zone", "failure_domains": 1 },
+      "features_supported": [],
+      "migration": { "effort_hours_fixed": 1, "same_provider_factor": 0.2, "cutover_downtime_hours": 0, "risk_factor": 0.05 },
+      "ops_hours_month_per_unit": 0.1
+    },
+    {
+      "id": "aws-eks", "kind": "kubernetes_cluster", "provider": "aws", "service": "eks",
+      "regions": ["eu-*", "us-*"],
+      "pricing": { "model": "per_unit", "per_unit": [ { "driver": "cluster_month", "eur_per_unit": 67 } ] },
+      "sla": { "availability_pct": 99.95, "failure_domain_scope": "multi_zone", "failure_domains": 2 },
+      "features_supported": ["autoscaling"],
+      "migration": { "effort_hours_fixed": 16, "same_provider_factor": 0.4, "cutover_downtime_hours": 1, "risk_factor": 0.2 },
+      "ops_hours_month_per_unit": 2
+    },
+    {
+      "id": "aws-elasticache-memcached", "kind": "cache", "provider": "aws", "service": "elasticache-memcached",
+      "regions": ["eu-*", "us-*"],
+      "pricing": {
+        "model": "tiered_instance",
+        "tiers": [
+          { "id": "cache.m4.2xlarge", "vcpu": 8, "memory_gb": 30, "monthly_eur": 340 }
+        ]
+      },
+      "sla": { "availability_pct": 99.9, "failure_domain_scope": "single_zone", "failure_domains": 1 },
+      "features_supported": [],
+      "migration": { "effort_hours_fixed": 12, "same_provider_factor": 0.3, "cutover_downtime_hours": 0, "risk_factor": 0.15 },
+      "ops_hours_month_per_unit": 0.5
+    },
+    {
+      "id": "aws-elasticache-redis", "kind": "cache", "provider": "aws", "service": "elasticache-redis",
+      "regions": ["eu-*", "us-*"],
+      "pricing": {
+        "model": "tiered_instance",
+        "tiers": [
+          { "id": "cache.r5.xlarge",   "vcpu": 4,  "memory_gb": 26,  "monthly_eur": 175 },
+          { "id": "cache.r5.4xlarge",  "vcpu": 16, "memory_gb": 105, "monthly_eur": 700 }
+        ]
+      },
+      "sla": { "availability_pct": 99.9, "failure_domain_scope": "single_zone", "failure_domains": 1 },
+      "features_supported": ["cluster_mode", "encryption"],
+      "migration": { "effort_hours_fixed": 12, "same_provider_factor": 0.3, "cutover_downtime_hours": 0, "risk_factor": 0.15 },
+      "ops_hours_month_per_unit": 0.5
+    },
+    {
+      "id": "aws-kinesis", "kind": "stream", "provider": "aws", "service": "kinesis",
+      "regions": ["eu-*", "us-*"],
+      "pricing": { "model": "per_unit", "per_unit": [ { "driver": "shard_month", "eur_per_unit": 10.5 } ] },
+      "sla": { "availability_pct": 99.99, "failure_domain_scope": "multi_zone", "failure_domains": 3 },
+      "features_supported": [],
+      "migration": { "effort_hours_fixed": 8, "same_provider_factor": 0.3, "cutover_downtime_hours": 0, "risk_factor": 0.15 },
+      "ops_hours_month_per_unit": 0.5
+    },
+    {
+      "id": "aws-lambda", "kind": "function", "provider": "aws", "service": "lambda",
+      "regions": ["eu-*", "us-*"],
+      "pricing": {
+        "model": "per_unit",
+        "per_unit": [ { "driver": "invocations_million", "eur_per_unit": 0.18 }, { "driver": "gb_s_month", "eur_per_unit": 0.0000153 } ]
+      },
+      "sla": { "availability_pct": 99.99, "failure_domain_scope": "multi_zone", "failure_domains": 3 },
+      "features_supported": [],
+      "migration": { "effort_hours_fixed": 8, "same_provider_factor": 0.3, "cutover_downtime_hours": 0, "risk_factor": 0.1 },
+      "ops_hours_month_per_unit": 0.2
+    },
+    {
+      "id": "aws-alb", "kind": "load_balancer", "provider": "aws", "service": "alb",
+      "regions": ["eu-*", "us-*"],
+      "pricing": { "model": "per_unit", "per_unit": [ { "driver": "load_balancer_month", "eur_per_unit": 16 } ] },
+      "sla": { "availability_pct": 99.99, "failure_domain_scope": "multi_zone", "failure_domains": 2 },
+      "features_supported": [],
+      "migration": { "effort_hours_fixed": 4, "same_provider_factor": 0.3, "cutover_downtime_hours": 0, "risk_factor": 0.1 },
+      "ops_hours_month_per_unit": 0.5
+    },
+    {
+      "id": "aws-route53", "kind": "dns", "provider": "aws", "service": "route53",
+      "regions": ["eu-*", "us-*"],
+      "pricing": { "model": "per_unit", "per_unit": [ { "driver": "zone_month", "eur_per_unit": 0.46 } ] },
+      "sla": { "availability_pct": 100.0, "failure_domain_scope": "multi_region", "failure_domains": 3 },
+      "features_supported": ["health_checks"],
+      "migration": { "effort_hours_fixed": 4, "same_provider_factor": 0.3, "cutover_downtime_hours": 0, "risk_factor": 0.1 },
+      "ops_hours_month_per_unit": 0.1
+    },
+    {
+      "id": "aws-sqs", "kind": "queue", "provider": "aws", "service": "sqs",
+      "regions": ["eu-*", "us-*"],
+      "pricing": { "model": "per_unit", "per_unit": [ { "driver": "messages_million", "eur_per_unit": 0.37 } ] },
+      "sla": { "availability_pct": 99.99, "failure_domain_scope": "multi_zone", "failure_domains": 3 },
+      "features_supported": [],
+      "migration": { "effort_hours_fixed": 8, "same_provider_factor": 0.3, "cutover_downtime_hours": 0, "risk_factor": 0.1 },
+      "ops_hours_month_per_unit": 0.2
     }
   ],
   "onprem_platforms": [

@@ -16,11 +16,22 @@ class Growth(StrEnum):
 
 DRIVER_GROWTH = {
     "storage_gb_month": Growth.DATA,
-    "requests_million": Growth.TRAFFIC,
+    "throughput_mibps_month": Growth.DATA,
     "iops_month": Growth.TRAFFIC,
     "task_vcpu_month": Growth.TRAFFIC,
     "task_gb_month": Growth.TRAFFIC,
+    "messages_million": Growth.TRAFFIC,
+    "invocations_million": Growth.TRAFFIC,
+    "gb_s_month": Growth.TRAFFIC,
+    "consumed_rcu_million": Growth.TRAFFIC,
+    "consumed_wcu_million": Growth.TRAFFIC,
+    "provisioned_rcu_month": Growth.TRAFFIC,
+    "provisioned_wcu_month": Growth.TRAFFIC,
     "gateway_month": Growth.FIXED,
+    "cluster_month": Growth.FIXED,
+    "load_balancer_month": Growth.FIXED,
+    "address_month": Growth.FIXED,
+    "shard_month": Growth.FIXED,
 }
 
 

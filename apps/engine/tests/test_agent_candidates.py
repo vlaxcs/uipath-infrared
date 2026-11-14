@@ -89,17 +89,17 @@ def test_builds_on_null_starts_from_today(tmp_path):
 def test_the_agent_action_replaces_the_parent_one_on_the_same_component(tmp_path):
     candidates = sample()
     candidates["candidates"] = [{
-        "id": "agent-keep-eks-data",
+        "id": "agent-keep-vmfleet-web",
         "builds_on": "rightsize_in_place",
-        "rationale": "stop the data cluster instead of shrinking it",
-        "actions": [{"component": "eks-data", "action": "stop", "reason": "no jobs scheduled"}],
+        "rationale": "stop the web fleet instead of spreading it",
+        "actions": [{"component": "vmfleet-web", "action": "stop", "reason": "traffic moved to the serverless shop"}],
     }]
     _, result = evaluate_with(tmp_path, candidates)
     parent = changes(candidate(result, "rightsize_in_place"))
-    entry = changes(candidate(result, "agent-keep-eks-data"))
-    assert ("eks-data", "scale") in parent
-    assert {a for a in entry if a[0] == "eks-data"} == {("eks-data", "stop")}
-    assert {a for a in parent if a[0] != "eks-data"} <= entry
+    entry = changes(candidate(result, "agent-keep-vmfleet-web"))
+    assert ("vmfleet-web", "scale") in parent
+    assert {a for a in entry if a[0] == "vmfleet-web"} == {("vmfleet-web", "stop")}
+    assert {a for a in parent if a[0] != "vmfleet-web"} <= entry
 
 
 def test_security_remediation_is_recomputed_on_the_agent_end_state(tmp_path):
