@@ -85,8 +85,8 @@ def _positions(ordered: Sequence[Evaluation]) -> dict[str, int]:
 def _payback(evaluation: Evaluation, baseline: Evaluation) -> float | None:
     if evaluation.id == baseline.id:
         return None
-    saving = baseline.monthly_now_total_eur - evaluation.monthly_now_total_eur
-    return evaluation.migration_eur / saving if saving > 0 else None
+    saving = baseline.monthly_now_cash_eur - evaluation.monthly_now_cash_eur
+    return (evaluation.migration_eur + evaluation.upfront_hardware_eur) / saving if saving > 0 else None
 
 
 def _weights(forecast: Forecast) -> dict[str, float]:

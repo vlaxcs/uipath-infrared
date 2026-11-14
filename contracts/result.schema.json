@@ -210,19 +210,27 @@
         },
         "onprem_platform": {
           "type": "object",
-          "description": "Present when the candidate uses an on-prem platform: the full platform cost per month, allocated by the share of capacity used. Already included in the totals above.",
+          "description": "Present when the candidate uses an on-prem platform: the full platform cost per month, allocated by the share of capacity used. The monthly lines are already in the totals above, spread over the on-prem components, and grow with them.",
           "required": ["platform", "capacity_share", "capex_amortised_eur_month", "power_cooling_eur_month", "colocation_eur_month", "disk_replacement_eur_month", "staff_eur_month"],
           "additionalProperties": false,
           "properties": {
             "platform": { "type": "string", "description": "catalog.json `onprem_platforms[].id`." },
             "platforms_needed": { "type": "integer", "minimum": 1 },
             "capacity_share": { "type": "number", "exclusiveMinimum": 0 },
-            "capex_eur": { "type": "number", "minimum": 0 },
+            "capacity_share_at_horizon": { "type": "number", "minimum": 0, "description": "Share used at the horizon month on the base scenario; sizes platforms_needed and capex_eur." },
+            "capex_eur": { "type": "number", "minimum": 0, "description": "Purchase price of every platform needed by the horizon." },
+            "upfront_hardware_eur": { "type": "number", "minimum": 0, "description": "This candidate's share of the hardware price, paid on day one. Counted against the one-off budget and in payback; the run cost carries it only as capex_amortised_eur_month." },
+            "setup_eur": { "type": "number", "minimum": 0, "description": "One-off share of racking, cabling and installation. Included in migration_eur." },
+            "total_eur_month": { "type": "number", "minimum": 0, "description": "Sum of the monthly lines below." },
             "capex_amortised_eur_month": { "type": "number", "minimum": 0 },
             "power_cooling_eur_month": { "type": "number", "minimum": 0 },
             "colocation_eur_month": { "type": "number", "minimum": 0 },
             "disk_replacement_eur_month": { "type": "number", "minimum": 0 },
-            "staff_eur_month": { "type": "number", "minimum": 0 }
+            "staff_eur_month": { "type": "number", "minimum": 0 },
+            "maintenance_eur_month": { "type": "number", "minimum": 0, "description": "Support contracts, spare parts and failures other than disks." },
+            "network_eur_month": { "type": "number", "minimum": 0 },
+            "licences_eur_month": { "type": "number", "minimum": 0 },
+            "contingency_eur_month": { "type": "number", "minimum": 0, "description": "Safety margin on every monthly line except capex." }
           }
         }
       }

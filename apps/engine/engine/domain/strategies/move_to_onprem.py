@@ -13,6 +13,7 @@ from engine.domain.structure import stay_together_groups
 CANDIDATE_ID = "move_to_onprem"
 MOVE_SIGNAL = "onprem"
 REJECTED_SIGNAL = "move_rejected"
+NOT_SIZING = frozenset({ActionKind.FLAG, ActionKind.REMEDIATE})
 
 
 @dataclass(frozen=True)
@@ -37,13 +38,13 @@ def move_to_onprem(previous: Candidate, infra: Infra, catalog: Catalog, forecast
         if reason:
             rejected[placement.component.id] = reason
         else:
-            moves[placement.component.id] = _price(placement, option, catalog, forecast.business)
+            moves[placement.component.id] = _price(placement, option, catalog, forecast)
     wanted = {cid for cid, move in moves.items() if move.saving_eur > 0}
     _hold_groups(stay_together_groups(infra), end_state, moves, wanted, rejected)
     actions: list[Action] = []
     for component_id in sorted(set(moves) | set(rejected)):
         if component_id in wanted:
-            actions.append(_move_action(moves[component_id], end_state.placements[component_id]))
+            actions.append(_move_action(moves[component_id], end_state.placements[component_id], previous))
         elif component_id in rejected:
             actions.append(Action(component_id, ActionKind.FLAG, f"stays off-prem: {rejected[component_id]}", signal=REJECTED_SIGNAL))
     return previous.extend(CANDIDATE_ID, tuple(actions))
@@ -86,10 +87,11 @@ def _rejection(placement: Placement, option: Option, catalog: Catalog, constrain
     return None
 
 
-def _price(placement: Placement, option: Option, catalog: Catalog, business: Business) -> OnpremMove:
+def _price(placement: Placement, option: Option, catalog: Catalog, forecast: Forecast) -> OnpremMove:
+    business = forecast.business
     before = cost_placement(placement, catalog).monthly_eur + _ops_eur(placement.option_id, placement, catalog, business)
     platform = catalog.platforms[option.platform]
-    share = platform_cost_for(platform, platform_use((placement,), catalog), business).allocated_monthly_eur
+    share = platform_cost_for(platform, platform_use((placement,), catalog), forecast).allocated_monthly_eur
     after = share + _ops_eur(option.id, placement, catalog, business)
     return OnpremMove(placement.component.id, option, before, after)
 
@@ -130,9 +132,14 @@ def _hold_groups(
                     rejected.setdefault(member, f"{group.id} moves as one unit and {why}")
 
 
-def _move_action(move: OnpremMove, placement: Placement) -> Action:
+def _move_action(move: OnpremMove, placement: Placement, previous: Candidate) -> Action:
     component = placement.component
-    evidence = tuple(component.capacity[key].evidence for key in ("vcpu", "memory_gb") if key in component.capacity)
+    capacity = tuple(component.capacity[key].evidence for key in ("vcpu", "memory_gb") if key in component.capacity)
+    sizing = tuple(
+        e for a in previous.actions
+        if a.component == component.id and a.kind not in NOT_SIZING for e in a.evidence
+    )
+    evidence = capacity + sizing
     reason = (
         f"move to {move.option.id}: EUR {move.before_eur:,.0f} to EUR {move.after_eur:,.0f} a month "
         "with its platform share and ops"

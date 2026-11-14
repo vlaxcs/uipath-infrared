@@ -49,7 +49,7 @@ Domain modules:
 | `relocation.py` | the allowed region a component breaking residency moves to |
 | `strategies/cleanup_orphans.py`, `strategies/rightsize_in_place.py` | the first two cumulative layers, each built with `Candidate.extend` on the one before |
 | `strategies/managed_services.py` | step e: moves to another provider's catalog option, with the feature, provider, residency and stay-together checks |
-| `onprem.py` | the full on-prem platform cost (capex, power and cooling, colocation, disks, staff) and the share of it a set of placements uses |
+| `onprem.py` | the full on-prem platform cost (capex, power and cooling, colocation, disks, staff, maintenance, network, licences, contingency), the share a set of placements uses, its size at the horizon, and each component's part |
 | `placement_size.py` | the vCPU and memory of one unit of a placement, from its tier when it has one |
 | `strategies/move_to_onprem.py` | step f: moves to an `onprem-*` option when its platform share and ops cost less than staying |
 | `constraints.py` | every hard constraint on an end state; money and hours arrive in `CandidateFigures` |
@@ -122,12 +122,24 @@ Strategies plug in through `engine/application/strategies.py`: a builder `(previ
 ## On-prem rules
 
 - `move_to_onprem` builds on `managed_services` and looks at every running component, not already on-prem, whose kind has an `onprem` option on a catalog platform.
-- Platform cost per month: `capex / (amortization_years * 12) + power_cooling + colocation + disks.count * AFR * (replacement_eur + replacement_labor_hours * rate) / 12 + (base_hours + hours_per_100_vcpu * platform_vcpu / 100) * rate`. Staff hours scale with the platform's vCPU, not the share used, since the whole platform has to be run.
-- The share used is the largest of vCPU, memory and storage used over the platform's capacity; a dimension the platform does not list does not count. Above 1, `platforms_needed` rounds up and `capex_eur` is the hardware for all of them; the monthly cost is still allocated by the share.
-- An on-prem placement costs 0 on its own line. The platform share is added to the candidate's run cost once, as a fixed cost, and `result.json` shows it under `cost.onprem_platform`, each line already multiplied by the share.
+- Platform cost per month, each line from `onprem_platforms[]` in the catalog:
+  - hardware: `capex / (amortization_years * 12)`;
+  - power and cooling, and colocation (the space that houses it);
+  - disk failures: `disks.count * AFR * (replacement_eur + replacement_labor_hours * rate) / 12`;
+  - staff: `(base_hours + hours_per_100_vcpu * platform_vcpu / 100) * rate`. Staff hours scale with the platform's vCPU, not the share used, since the whole platform has to be run;
+  - maintenance: `capex * maintenance_pct_of_capex_year / 100 / 12`, for support contracts, spare parts and every failure other than disks;
+  - network (uplinks, transit) and licences (virtualisation, OS, backup software);
+  - contingency: `contingency_pct` of every line above except hardware, for costs nobody listed. Hardware is a known price.
+
+  The new lines default to 0, so a catalog without them prices as before.
+- The share used is the largest of vCPU, memory and storage used over the platform's capacity; a dimension the platform does not list does not count.
+- Each on-prem component carries its part of the platform share as its own cost (in proportion to its own share), so an action's saving counts the platform, and the cost grows like the component's kind: compute with traffic, storage with data.
+- Sizing: the use is grown to the horizon month on the base scenario (compute by traffic, storage by data). `platforms_needed` rounds that share up, and `capex_eur` is the hardware for all of them.
+- One-offs: the share of `setup_one_off_eur` (racking, cabling, installation) is added to `migration_eur`. The share of the hardware price is paid on day one (`upfront_hardware_eur`): it counts against `max_one_off_migration_cost_eur` and in payback, but not in the expected total, which already carries it spread over `amortization_years`.
+- Payback is on cash: `(migration + upfront hardware) / monthly saving`, where the saving leaves out the hardware write-off, since the hardware is already paid.
 - A component moves when its own platform share plus the target's ops costs less than its current price plus ops. It is rejected, with the reason, when the target lacks an extension it uses, `onprem` is not an allowed provider, it uses GPUs and the platform has none, or it holds data under `data_residency` and the platform's region is not allowed.
 - A stay-together group moves as one unit: if any member cannot move, or the group would cost more together, none moves.
-- On `demo-shop`: `ng-data-spark` moves to `onprem-k8s-nodes`, using 320 of the platform's 768 vCPU (a 42% share, EUR 7,700 of EUR 18,479 a month); `ng-data-gpu` stays, since `onprem-dc1` has no GPUs; `rds-orders` and `rds-analytics` stay with their groups.
+- On `demo-shop`: `ng-data-spark` moves to `onprem-k8s-nodes`, using 320 of the platform's 768 vCPU (a 42% share, EUR 10,240 of EUR 24,576 a month), and saves EUR 4,460 a month on run cost. By month 36 on the base scenario it needs 119% of a platform, so two are priced (EUR 620,000). Its EUR 129,167 hardware share up front breaks the EUR 120,000 one-off budget. `ng-data-gpu` stays, since `onprem-dc1` has no GPUs; `rds-orders` and `rds-analytics` stay with their groups.
 
 ## Evaluation rules
 
