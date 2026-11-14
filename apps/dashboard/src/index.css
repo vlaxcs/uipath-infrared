@@ -16,6 +16,8 @@
   --color-fg-muted: var(--color-fg-muted);
   --color-fg-subtle: var(--color-fg-subtle);
   --color-accent: var(--color-accent);
+  --color-credit: var(--color-credit);
+  --animate-panel-in: panel-in 220ms ease-out both;
   --color-on-accent: var(--color-on-accent);
   --color-focus: var(--color-focus);
   --color-status-running: var(--color-status-running);
@@ -64,4 +66,13 @@
     outline: var(--focus-ring-width) solid var(--color-focus);
     outline-offset: var(--focus-ring-offset);
   }
+}
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(0.5rem); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-panel-in { animation: none; }
 }
