@@ -17,5 +17,22 @@ services:
       interval: 2s
       retries: 30
 
+  app-db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: infrared
+      POSTGRES_USER: infrared
+      POSTGRES_PASSWORD: infrared
+    command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements"]
+    ports:
+      - "127.0.0.1:54330:5432"
+    volumes:
+      - app-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U infrared -d infrared"]
+      interval: 2s
+      retries: 30
+
 volumes:
   sites-db:
+  app-db:

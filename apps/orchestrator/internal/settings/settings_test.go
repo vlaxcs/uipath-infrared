@@ -17,6 +17,86 @@ func setAll(t *testing.T) {
 		t.Setenv(name, "value for "+name)
 	}
 	t.Setenv("ORCHESTRATOR_MAX_REVISIONS", "")
+	t.Setenv("ORCHESTRATOR_ADDR", "127.0.0.1:8080")
+	t.Setenv("ORCHESTRATOR_AUTH", "off")
+}
+
+var authRequired = []string{
+	"ORCHESTRATOR_DATABASE_URL", "GITHUB_APP_CLIENT_ID", "GITHUB_APP_CLIENT_SECRET", "ORCHESTRATOR_SERVICE_TOKEN", "ORCHESTRATOR_DASHBOARD_URL",
+}
+
+func setAuth(t *testing.T) {
+	setAll(t)
+	t.Setenv("ORCHESTRATOR_AUTH", "")
+	t.Setenv("ORCHESTRATOR_DATABASE_URL", "postgres://infrared@127.0.0.1:54330/infrared")
+	t.Setenv("GITHUB_APP_CLIENT_ID", "Iv-client")
+	t.Setenv("GITHUB_APP_CLIENT_SECRET", "secret")
+	t.Setenv("ORCHESTRATOR_SERVICE_TOKEN", strings.Repeat("s", 32))
+	t.Setenv("ORCHESTRATOR_DASHBOARD_URL", "http://127.0.0.1:5173/app/")
+}
+
+func TestAuthIsOnByDefaultAndReadsItsSettings(t *testing.T) {
+	setAuth(t)
+	loaded, err := settings.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !loaded.Auth.Enabled || loaded.Auth.ClientID != "Iv-client" || loaded.Auth.DashboardURL != "http://127.0.0.1:5173/app" || loaded.Auth.ServiceToken != strings.Repeat("s", 32) {
+		t.Fatalf("auth %+v", loaded.Auth)
+	}
+}
+
+func TestAuthOnNamesEveryMissingVariable(t *testing.T) {
+	setAuth(t)
+	for _, name := range authRequired {
+		t.Setenv(name, "")
+	}
+	_, err := settings.Load()
+	if err == nil {
+		t.Fatal("started without the auth settings")
+	}
+	for _, name := range authRequired {
+		if !strings.Contains(err.Error(), name) {
+			t.Errorf("%s is not named: %v", name, err)
+		}
+	}
+}
+
+func TestAShortServiceTokenStopsStartup(t *testing.T) {
+	setAuth(t)
+	t.Setenv("ORCHESTRATOR_SERVICE_TOKEN", strings.Repeat("s", 31))
+	if _, err := settings.Load(); err == nil || !strings.Contains(err.Error(), "ORCHESTRATOR_SERVICE_TOKEN") {
+		t.Fatalf("short token: %v", err)
+	}
+}
+
+func TestAuthOffNeedsNothingElseOnLoopback(t *testing.T) {
+	for _, addr := range []string{"127.0.0.1:8080", "localhost:8080", "[::1]:8080"} {
+		setAll(t)
+		t.Setenv("ORCHESTRATOR_ADDR", addr)
+		loaded, err := settings.Load()
+		if err != nil || loaded.Auth.Enabled {
+			t.Errorf("%s: enabled %v, error %v", addr, loaded.Auth.Enabled, err)
+		}
+	}
+}
+
+func TestAuthOffIsRefusedOffLoopback(t *testing.T) {
+	for _, addr := range []string{"0.0.0.0:8080", ":8080", "10.0.0.5:8080"} {
+		setAll(t)
+		t.Setenv("ORCHESTRATOR_ADDR", addr)
+		if _, err := settings.Load(); err == nil || !strings.Contains(err.Error(), "ORCHESTRATOR_AUTH=off") {
+			t.Errorf("%s: %v", addr, err)
+		}
+	}
+}
+
+func TestAnUnknownAuthModeStopsStartup(t *testing.T) {
+	setAll(t)
+	t.Setenv("ORCHESTRATOR_AUTH", "maybe")
+	if _, err := settings.Load(); err == nil || !strings.Contains(err.Error(), "ORCHESTRATOR_AUTH") {
+		t.Fatalf("unknown mode: %v", err)
+	}
 }
 
 func TestEveryRequiredVariableIsNamedWhenMissing(t *testing.T) {

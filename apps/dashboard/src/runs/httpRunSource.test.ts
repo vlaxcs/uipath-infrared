@@ -62,7 +62,7 @@ describe("the HTTP run source", () => {
     const source = createHttpRunSource("http://127.0.0.1:8080/");
 
     await expect(source.listRuns()).resolves.toEqual([summary]);
-    expect(fetchMock).toHaveBeenCalledWith("http://127.0.0.1:8080/runs", { signal: undefined });
+    expect(fetchMock).toHaveBeenCalledWith("http://127.0.0.1:8080/runs", { signal: undefined, credentials: "include" });
     expect(source.mode).toBe("live");
   });
 

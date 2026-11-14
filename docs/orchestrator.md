@@ -164,7 +164,7 @@ Each one is a recommended default. Overturn any of them and this file changes fi
 8. One active run per project; one rehearse at a time across all runs.
 9. A restart or shutdown fails the runs that were mid-step; it does not resume them.
 10. Projects are files, `<project>.forecast.json` in one directory; one catalog for every run.
-11. No authentication: the orchestrator listens on localhost and trusts `actor.id`.
+11. No authentication: the orchestrator listens on localhost and trusts `actor.id`. Superseded by `docs/sign-in.md`: every route needs a session or the service token unless `ORCHESTRATOR_AUTH=off`; `actor.id` is still trusted as sent.
 12. The flow test is a Go test using the real engine today, with stubs for extract, agent and sandbox.
 13. The CI trigger stays on manual dispatch.
 14. The agent's `propose` reaches the engine as a subprocess, not by import.
@@ -195,7 +195,7 @@ Each one is a recommended default. Overturn any of them and this file changes fi
 ## 12. Out of scope
 
 - Phase 2: migrate, verify, the pull-request gate (run contract 1.1).
-- Authentication and authorization on the API; CORS, until the dashboard exists.
+- Authorization on the API (who may decide on which run); authentication is `docs/sign-in.md`.
 - Server-sent events or websockets; polling is the contract.
 - Resuming a stage after a restart.
 - Deleting or archiving runs; pagination beyond `limit`.

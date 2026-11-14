@@ -1,3 +1,5 @@
+import { reportSignedOut } from "~/account/session";
+
 export type Plan = "run_pack" | "subscription";
 
 export type Account = {
@@ -23,6 +25,7 @@ export function createHttpAccountSource(baseUrl: string, fetcher: typeof fetch =
   return {
     async load(signal) {
       const response = await fetcher(`${baseUrl}/me`, { credentials: "include", signal });
+      if (response.status === 401) reportSignedOut();
       if (!response.ok) return null;
       const me = (await response.json()) as MeDocument;
       if (typeof me.credits !== "number") return null;

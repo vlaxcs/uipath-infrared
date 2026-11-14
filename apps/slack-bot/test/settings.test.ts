@@ -43,4 +43,9 @@ describe('Diagram setting', () => {
     expect(loadSettings(complete).diagrams).toBe(true);
     expect(loadSettings({ ...complete, DIAGRAMS: 'off' }).diagrams).toBe(false);
   });
+
+  it('reads the orchestrator service token when it is set, and has none otherwise', () => {
+    expect(loadSettings({ ...complete, ORCHESTRATOR_SERVICE_TOKEN: 'service-token' }).orchestratorServiceToken).toBe('service-token');
+    expect(loadSettings(complete).orchestratorServiceToken).toBeUndefined();
+  });
 });

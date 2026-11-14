@@ -3,7 +3,7 @@ import type { Orchestrator } from '../application/ports.js';
 import type { HumanDecision, Run, RunEvent } from '../domain/run.js';
 
 export class HttpOrchestrator implements Orchestrator {
-  constructor(private baseUrl: string) {}
+  constructor(private baseUrl: string, private serviceToken?: string) {}
 
   listRuns(): Promise<ListedRun[]> {
     return this.request<ListedRun[]>('/runs?limit=50');
@@ -33,10 +33,17 @@ export class HttpOrchestrator implements Orchestrator {
   }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${path}`, init);
+    const response = await fetch(`${this.baseUrl}${path}`, this.withToken(init));
     if (!response.ok) {
       throw new Error(`${init?.method ?? 'GET'} ${path} answered ${response.status} ${(await response.text()).slice(0, 200)}`);
     }
     return response.json() as Promise<T>;
+  }
+
+  private withToken(init?: RequestInit): RequestInit | undefined {
+    if (!this.serviceToken) return init;
+    const headers = new Headers(init?.headers);
+    headers.set('Authorization', `Bearer ${this.serviceToken}`);
+    return { ...init, headers };
   }
 }

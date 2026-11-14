@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
+import { onSignedOut, signOut } from "~/account/session";
 import { createHttpAccountSource, sampleAccountSource, type AccountSource } from "~/account/accountSource";
 import { useAccount } from "~/account/useAccount";
 import { HomePage } from "~/home/HomePage";
@@ -33,9 +34,21 @@ export function App({
   const route = useRoute();
   const account = useAccount(accountSource);
   const [refreshes, setRefreshes] = useState(0);
+  const openLogin = useEffectEvent(() => route.go("login"));
+
+  useEffect(() => onSignedOut(openLogin), []);
+
+  function enterSignedIn() {
+    window.location.assign(import.meta.env.BASE_URL);
+  }
+
+  function disconnect() {
+    if (orchestratorUrl) void signOut(orchestratorUrl);
+    route.go("login");
+  }
 
   if (route.page === "login") {
-    return <LoginPage orchestratorUrl={orchestratorUrl} onContinue={() => route.go("home")} />;
+    return <LoginPage orchestratorUrl={orchestratorUrl} onContinue={() => route.go("home")} onSignedIn={enterSignedIn} />;
   }
 
   return (
@@ -46,7 +59,7 @@ export function App({
       onBack={route.back}
       onHome={() => route.go("home")}
       onNavigate={route.go}
-      onDisconnect={() => route.go("login")}
+      onDisconnect={disconnect}
       onRefresh={() => setRefreshes((count) => count + 1)}
     >
       <RefreshProvider value={refreshes}>
