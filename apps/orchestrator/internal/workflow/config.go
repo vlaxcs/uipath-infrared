@@ -11,6 +11,7 @@ type Commands struct {
 	Agent   []string
 	Engine  []string
 	Sandbox []string
+	States  []string
 }
 
 type Config struct {
@@ -20,6 +21,8 @@ type Config struct {
 	MaxRevisions int
 	Timeouts     map[run.Step]time.Duration
 }
+
+const StatesTimeout = time.Minute
 
 var DefaultTimeouts = map[run.Step]time.Duration{
 	run.Extract:     10 * time.Minute,

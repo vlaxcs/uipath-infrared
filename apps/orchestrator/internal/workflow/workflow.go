@@ -217,6 +217,7 @@ func (w *Workflow) Decide(id string, event run.Event) (run.Event, error) {
 			return appended, nil
 		}
 		w.launch(func() { w.fromRehearse(entry) })
+		w.launch(func() { w.buildPickedStates(entry, event.Decision.Layout) })
 	case run.ApprovePlan:
 		w.release(entry.doc)
 	}

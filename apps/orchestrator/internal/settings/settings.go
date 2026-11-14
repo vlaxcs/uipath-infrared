@@ -44,6 +44,7 @@ func Load() (Settings, error) {
 				Agent:   strings.Fields(value("ORCHESTRATOR_AGENT_CMD")),
 				Engine:  strings.Fields(value("ORCHESTRATOR_ENGINE_CMD")),
 				Sandbox: strings.Fields(value("ORCHESTRATOR_SANDBOX_CMD")),
+				States:  strings.Fields(os.Getenv("ORCHESTRATOR_STATES_CMD")),
 			},
 			Timeouts: workflow.DefaultTimeouts,
 		},

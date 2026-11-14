@@ -117,6 +117,7 @@ Read once at startup by the orchestrator's settings package from the environment
 | `ORCHESTRATOR_EXTRACT_CMD`, `ORCHESTRATOR_AGENT_CMD`, `ORCHESTRATOR_ENGINE_CMD`, `ORCHESTRATOR_SANDBOX_CMD` | the command prefix of each stage |
 | `ORCHESTRATOR_CONTRACTS_DIR` | the `contracts/` directory, for the schemas |
 | `ORCHESTRATOR_MAX_REVISIONS` | optional, default 2 |
+| `ORCHESTRATOR_STATES_CMD` | optional: the plan view's state builder (`docs/run-plan-view.md`); unset, no states are built |
 | `ORCHESTRATOR_ALLOWED_ORIGINS` | optional, comma-separated: the browser origins allowed to call the API, e.g. the dashboard's `http://127.0.0.1:5173`. Unset, no CORS |
 
 ## 7. The flow test

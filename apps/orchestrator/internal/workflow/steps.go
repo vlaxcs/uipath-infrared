@@ -45,6 +45,7 @@ func (w *Workflow) proposeToPresent(entry *tracked) {
 			return
 		}
 		if decision == run.Proceed {
+			w.launch(func() { w.buildWinnerStates(entry, revision) })
 			w.present(entry)
 			return
 		}

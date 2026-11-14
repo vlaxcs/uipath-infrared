@@ -90,6 +90,7 @@ func (Local) CheckObject(path string) error {
 }
 
 type resultDocument struct {
+	Winner     string `json:"winner"`
 	Candidates []struct {
 		ID              string   `json:"id"`
 		Source          string   `json:"source"`
@@ -111,7 +112,7 @@ func (Local) ReadResult(path string) (run.Result, error) {
 	if err := readJSON(path, &document); err != nil {
 		return run.Result{}, err
 	}
-	result := run.Result{Candidates: make([]run.CandidateOutcome, 0, len(document.Candidates))}
+	result := run.Result{Winner: document.Winner, Candidates: make([]run.CandidateOutcome, 0, len(document.Candidates))}
 	for _, candidate := range document.Candidates {
 		constraints := make([]string, 0, len(candidate.Violations))
 		for _, violation := range candidate.Violations {
